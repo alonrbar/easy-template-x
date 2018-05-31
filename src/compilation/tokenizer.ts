@@ -1,8 +1,11 @@
+import { Delimiters } from '../delimiters';
 import { MaxXmlDepthError } from '../errors';
 import { MAX_XML_DEPTH } from '../utils';
-import { TemplateToken } from './templateToken';
+import { TemplateToken, TokenType } from './templateToken';
 
 export class Tokenizer {
+
+    public delimiters = new Delimiters();
 
     public tokenize(node: Node): TemplateToken[] {
         const tokens: TemplateToken[] = [];
@@ -19,6 +22,10 @@ export class Tokenizer {
 
         // process self
         if (node.nodeType === node.TEXT_NODE) {
+            tokens.push(new TemplateToken({
+                type: this.getTokenType(node.textContent),
+                xmlNode: node
+            }));
             return;
         }
 
@@ -28,5 +35,19 @@ export class Tokenizer {
             const child = node.childNodes.item(i);
             this.tokenizeRecurse(child, tokens, depth + 1);
         }
+    }
+
+    private getTokenType(text: string): TokenType {
+
+        if (!text)
+            return TokenType.Empty;
+
+        if (text.includes(this.delimiters.start))
+            return TokenType.DelimiterStart;
+
+        if (text.includes(this.delimiters.end))
+            return TokenType.DelimiterEnd;
+
+        return TokenType.Text;
     }
 }
