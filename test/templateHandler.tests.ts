@@ -25,14 +25,20 @@ describe(nameof(TemplateHandler), () => {
         const data = {
             simple_prop: 'hello world'
         };
+
         const doc = await handler.process(template, data);
+
         const docText = await handler.getText(doc);
         expect(docText.trim()).to.be.equal("hello world");
     });
 
-    it.skip("replaces loops correctly", async () => {
+    it("replaces loops correctly", async () => {
+
+        const handler = new TemplateHandler();
 
         const template: Buffer = fs.readFileSync("./test/res/loop template.docx");
+        const templateText = await handler.getText(template);
+        expect(templateText.trim()).to.be.equal("{#loop_prop}{simple_prop}{/loop_prop}");
 
         const data = {
             loop_prop: [
@@ -41,10 +47,9 @@ describe(nameof(TemplateHandler), () => {
             ]
         };
 
-        const handler = new TemplateHandler();
         const doc = await handler.process(template, data);
 
-        const docText = await doc.toString();
+        const docText = await handler.getText(doc);
         expect(docText).to.be.equal("first second");
     });
 });
