@@ -13,10 +13,7 @@ export class TemplateHandler {
     public async process(templateFile: Buffer | ArrayBuffer, data: any): Promise<JSZip> {
 
         // load the doc (zip) file
-        const docFile = await JSZip.loadAsync(templateFile);
-        const fileType = FileType.getFileType(docFile);
-        if (fileType !== FileType.Docx)
-            throw new UnsupportedFileTypeError(fileType);
+        const docFile = await this.loadDocx(templateFile);
 
         // extract content
         const contentDocuments = await this.parseContentDocuments(docFile, this.templateSpec);
@@ -28,12 +25,27 @@ export class TemplateHandler {
         // update the doc file
         for (const file of Object.keys(contentDocuments)) {
             const processedFile = contentDocuments[file];
-            console.log(`file: ${file}, textContent:`, this.parser.textContent(processedFile));
-            console.log('==========================================================');
             docFile.file(file, processedFile.textContent, { createFolders: true });
         }
 
         // export
+        return docFile;
+    }
+
+    public async getText(docxFile: Buffer | ArrayBuffer): Promise<string> {
+        const zipFile = await this.loadDocx(docxFile);
+        const mainXmlFile = this.templateSpec.mainFilePath(zipFile);
+        const xmlContent = await zipFile.files[mainXmlFile].async('text');
+        const document = this.parser.parse(xmlContent);
+        return this.parser.textContent(document);
+    }
+
+    private async loadDocx(file: Buffer | ArrayBuffer): Promise<JSZip> {
+        const docFile = await JSZip.loadAsync(file);
+        const fileType = FileType.getFileType(docFile);
+        if (fileType !== FileType.Docx)
+            throw new UnsupportedFileTypeError(fileType);
+
         return docFile;
     }
 
