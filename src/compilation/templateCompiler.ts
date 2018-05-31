@@ -9,7 +9,7 @@ import { Tokenizer } from './tokenizer';
  * 1. tokenize (lexical analysis) :: (Document) => Tokens[]
  * 2. create input AST (syntax analysis) :: (Tokens[]) => TagTree
  * 3. render output AST (code generation) :: (TagTree, data) => TagTree*
- * 4. perform document replace :: (TagTree*) => Document
+ * 4. perform document replace :: (Document, TagTree*) => Document*
  * 
  * see: https://en.wikipedia.org/wiki/Compiler
  */

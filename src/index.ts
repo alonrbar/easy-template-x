@@ -1,1 +1,1 @@
-// hi
+export * from './templateHandler';

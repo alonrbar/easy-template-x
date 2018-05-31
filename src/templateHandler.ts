@@ -20,7 +20,7 @@ export class TemplateHandler {
         // extract content as xml documents
         const contentDocuments = await this.parseContentDocuments(docFile, this.templateSpec);
 
-        // process content
+        // process content (do replacements)
         for (const contentDoc of Object.values(contentDocuments)) {
             this.compiler.compile(contentDoc, data);
         }
