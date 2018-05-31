@@ -1,0 +1,75 @@
+{
+  "extends": "tslint:recommended",
+  "rules": {
+    "array-type": [
+      true,
+      "array"
+    ],
+    "arrow-parens": [
+      true,
+      "ban-single-arg-parens"
+    ],
+    "curly": false,
+    "eofline": false,
+    "max-classes-per-file": [
+      false
+    ],
+    "max-line-length": [
+      false
+    ],
+    "member-ordering": [
+      true,
+      {
+        "order": [
+          "public-static-field",
+          "protected-static-field",
+          "private-static-field",
+          "public-static-method",
+          "protected-static-method",
+          "private-static-method",
+          "public-instance-field",
+          "protected-instance-field",
+          "private-instance-field",
+          "constructor",
+          "public-instance-method",
+          "protected-instance-method",
+          "private-instance-method"
+        ]
+      }
+    ],
+    "no-console": [
+      true
+    ],
+    "no-empty-interface": false,
+    "no-string-literal": false,
+    "no-this-assignment": true,
+    "no-trailing-whitespace": false,
+    "no-unsafe-finally": false,
+    "no-unused-variable": true,
+    "no-var-keyword": false,
+    "no-var-requires": false,
+    "object-literal-shorthand": false,
+    "object-literal-sort-keys": false,
+    "ordered-imports": [
+      true
+    ],
+    "prefer-const": false,
+    "quotemark": [
+      false
+    ],
+    "space-before-function-paren": false,
+    "trailing-comma": [
+      true,
+      {
+        "multiline": "never",
+        "singleline": "never"
+      }
+    ],
+    "variable-name": [
+      true,
+      "check-format",
+      "allow-leading-underscore",
+      "ban-keywords"
+    ]
+  }
+}

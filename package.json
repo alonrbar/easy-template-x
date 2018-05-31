@@ -1,0 +1,48 @@
+{
+  "name": "easy-template-x",
+  "version": "0.0.0",
+  "description": "Generate docx documents from templates, in Node or in the browser.",
+  "author": "Alon Bar",
+  "license": "MIT",
+  "homepage": "https://github.com/alonrbar/easy-template-x",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alonrbar/easy-template-x.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alonrbar/easy-template-x/issues"
+  },
+  "main": "dist/easy-template-x.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "dev": "webpack --config webpack.dev.js --watch",
+    "lint": "npm run lint-lint --silent",
+    "lint-lint": "tslint \"./{src,test}/**/*.ts\" --exclude \"./**/*.d.ts\"",
+    "test": "mocha-webpack --require source-map-support/register --webpack-config webpack.test.js \"test/**/*.tests.ts\"",
+    "test-watch": "yarn test --watch",
+    "release": "yarn lint && yarn test && webpack --config webpack.release.js"
+  },
+  "devDependencies": {
+    "@types/chai": "4.1.3",
+    "@types/mocha": "5.2.0",
+    "@types/node": "10.1.4",
+    "chai": "4.1.2",
+    "mocha": "5.2.0",
+    "mocha-webpack": "2.0.0-beta.0",
+    "source-map-support": "0.5.6",
+    "ts-loader": "4.3.0",
+    "ts-nameof": "1.0.0",
+    "ts-nameof-loader": "1.0.1",
+    "tslint": "5.10.0",
+    "typescript": "2.8.4",
+    "uglifyjs-webpack-plugin": "1.2.5",
+    "webpack": "4.10.2",
+    "webpack-cli": "2.1.4",
+    "webpack-merge": "4.1.2",
+    "webpack-node-externals": "1.7.2"
+  }
+}
