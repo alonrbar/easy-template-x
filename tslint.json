@@ -11,6 +11,7 @@
     ],
     "curly": false,
     "eofline": false,
+    "interface-name": false,
     "max-classes-per-file": [
       false
     ],
