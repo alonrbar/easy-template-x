@@ -1,0 +1,30 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Mocha Debug",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/node_modules/mocha-webpack/bin/mocha-webpack",
+            "cwd": "${workspaceRoot}",
+            "args": [
+                "--require",
+                "source-map-support/register",
+                "--webpack-config",
+                "webpack.test.js",
+                "test/**/*.tests.ts"
+            ],
+            "runtimeArgs": [
+                "--debug-brk"
+            ],
+            "console": "internalConsole",
+            "stopOnEntry": false,
+            "sourceMaps": true,
+            "preLaunchTask": null,
+            "runtimeExecutable": null
+        }
+    ]
+}

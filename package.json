@@ -20,6 +20,7 @@
   ],
   "scripts": {
     "dev": "webpack --config webpack.dev.js --watch",
+    "compile": "tsc",
     "lint": "npm run lint-lint --silent",
     "lint-lint": "tslint \"./{src,test}/**/*.ts\" --exclude \"./**/*.d.ts\"",
     "test": "mocha-webpack --require source-map-support/register --webpack-config webpack.test.js \"test/**/*.tests.ts\"",
