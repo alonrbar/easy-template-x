@@ -1,3 +1,5 @@
+import { Tag } from './tag';
+import { TemplateToken } from './templateToken';
 import { Tokenizer } from './tokenizer';
 
 /**
@@ -12,7 +14,7 @@ import { Tokenizer } from './tokenizer';
  * see: https://en.wikipedia.org/wiki/Compiler
  */
 export class TemplateCompiler {
-
+    
     private readonly tokenizer = new Tokenizer();
 
     /**
@@ -21,11 +23,25 @@ export class TemplateCompiler {
      */
     public compile(doc: Document, data: any): void {
         const tokens = this.tokenizer.tokenize(doc);
-        console.log(tokens);
+        const tagTree = this.createTagTree(tokens);
+        this.doTagReplacements(tagTree, data);
+        this.doDocumentReplacements(doc, tagTree);
     }
 
     //
     // private methods
     //
+
+    private createTagTree(tokens: TemplateToken[]): Tag {
+        return null;
+    }
+
+    private doTagReplacements(tagTree: Tag, data: any): void {
+        // TODO...
+    }
+
+    private doDocumentReplacements(doc: Document, tagTree: Tag): void {
+        // TODO...
+    }
 
 }
