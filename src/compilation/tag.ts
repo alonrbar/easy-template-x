@@ -3,12 +3,7 @@ export enum TagType {
      * Simple tag for straight-forward replacement.
      */
     Simple = "Simple",
-    Container = "Container",
-    Predefined = "Predefined"
-}
-
-export enum TagSubType {
-
+    
     //
     // container tags
     //
@@ -23,9 +18,20 @@ export enum TagSubType {
     NewPage = "NewPage"
 }
 
+export enum TagDisposition {
+    Open = "Open",
+    Close = "Close",
+    SelfClosed = "SelfClosed"
+}
+
 export class Tag {
+    public name: string;
     public type: TagType;
-    public subType?: TagSubType;
+    public disposition: TagDisposition;
     public startNode: Node;
     public endNode: Node;
+
+    constructor(initial?: Partial<Tag>) {
+        Object.assign(this, initial);
+    }
 }

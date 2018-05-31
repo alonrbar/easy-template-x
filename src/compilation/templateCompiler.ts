@@ -1,5 +1,5 @@
-import { Tag } from './tag';
-import { TemplateToken } from './templateToken';
+import { TagTree } from './tagTree';
+import { TagTreeComposer } from './tagTreeComposer';
 import { Tokenizer } from './tokenizer';
 
 /**
@@ -14,8 +14,9 @@ import { Tokenizer } from './tokenizer';
  * see: https://en.wikipedia.org/wiki/Compiler
  */
 export class TemplateCompiler {
-    
+
     private readonly tokenizer = new Tokenizer();
+    private readonly tagTreeComposer = new TagTreeComposer();
 
     /**
      * Compiles the template and performs the required replacements using the
@@ -23,7 +24,7 @@ export class TemplateCompiler {
      */
     public compile(doc: Document, data: any): void {
         const tokens = this.tokenizer.tokenize(doc);
-        const tagTree = this.createTagTree(tokens);
+        const tagTree = this.tagTreeComposer.composeTree(tokens);
         this.doTagReplacements(tagTree, data);
         this.doDocumentReplacements(doc, tagTree);
     }
@@ -32,15 +33,11 @@ export class TemplateCompiler {
     // private methods
     //
 
-    private createTagTree(tokens: TemplateToken[]): Tag {
-        return null;
-    }
-
-    private doTagReplacements(tagTree: Tag, data: any): void {
+    private doTagReplacements(tagTree: TagTree[], data: any): void {
         // TODO...
     }
 
-    private doDocumentReplacements(doc: Document, tagTree: Tag): void {
+    private doDocumentReplacements(doc: Document, tagTree: TagTree[]): void {
         // TODO...
     }
 
