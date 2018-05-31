@@ -30,5 +30,24 @@ export class XmlParser {
 
     public serialize(xmlNode: Node): string {
         return XmlParser.serializer.serializeToString(xmlNode).replace(/xmlns:[a-z0-9]+="" ?/g, "");
-    }    
+    }
+
+    public textContent(node: Node): string {
+        if (!node)
+            return '';
+
+        if (node.nodeType === node.TEXT_NODE)
+            return node.textContent;
+
+        // process child nodes
+        const childrenText: string[] = [];
+        const childNodesLength = (node.childNodes ? node.childNodes.length : 0);
+        for (let i = 0; i < childNodesLength; i++) {
+            const child = node.childNodes.item(i);
+            const childText = this.textContent(child);
+            childrenText.push(childText);
+        }
+
+        return childrenText.join('');
+    }
 }

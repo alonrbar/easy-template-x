@@ -11,6 +11,8 @@
             "program": "${workspaceRoot}/node_modules/mocha-webpack/bin/mocha-webpack",
             "cwd": "${workspaceRoot}",
             "args": [
+                "--timeout",
+                "0",
                 "--require",
                 "source-map-support/register",
                 "--webpack-config",
