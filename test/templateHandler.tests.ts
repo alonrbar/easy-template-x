@@ -26,10 +26,8 @@ describe(nameof(TemplateHandler), () => {
             simple_prop: 'hello world'
         };
         const doc = await handler.process(template, data);
-
-        const docBlob = await doc.generateAsync({ type: 'arraybuffer' });
-        const docText = await handler.getText(docBlob);
-        expect(docText).to.be.equal("hello world");
+        const docText = await handler.getText(doc);
+        expect(docText.trim()).to.be.equal("hello world");
     });
 
     it.skip("replaces loops correctly", async () => {

@@ -1,4 +1,5 @@
-import { platform } from './utils';
+import { MaxXmlDepthError } from './errors';
+import { MAX_XML_DEPTH, platform } from './utils';
 
 // tslint:disable:variable-name
 
@@ -29,10 +30,21 @@ export class XmlParser {
     }
 
     public serialize(xmlNode: Node): string {
-        return XmlParser.serializer.serializeToString(xmlNode).replace(/xmlns:[a-z0-9]+="" ?/g, "");
+        return XmlParser.serializer.serializeToString(xmlNode);
     }
 
     public textContent(node: Node): string {
+        return this.textContentRecurse(node, 0);
+    }
+    
+    //
+    // private methods
+    //
+
+    private textContentRecurse(node: Node, depth: number): string {
+        if (depth > MAX_XML_DEPTH)
+            throw new MaxXmlDepthError(depth);
+
         if (!node)
             return '';
 
@@ -44,7 +56,7 @@ export class XmlParser {
         const childNodesLength = (node.childNodes ? node.childNodes.length : 0);
         for (let i = 0; i < childNodesLength; i++) {
             const child = node.childNodes.item(i);
-            const childText = this.textContent(child);
+            const childText = this.textContentRecurse(child, depth + 1);
             childrenText.push(childText);
         }
 

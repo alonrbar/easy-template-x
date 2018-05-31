@@ -1,0 +1,1 @@
+export const MAX_XML_DEPTH = 20;
