@@ -10,9 +10,12 @@ export enum TokenType {
 
 export class TemplateToken {
     public type: TokenType;
+    public delimiterIndex?: number;
     public xmlNode: Node;
+    public prev: TemplateToken;
+    public next: TemplateToken;
 
-    constructor(initial?: TemplateToken) {
+    constructor(initial?: Partial<TemplateToken>) {
         Object.assign(this, initial);
     }
 }

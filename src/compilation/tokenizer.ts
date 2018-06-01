@@ -22,10 +22,16 @@ export class Tokenizer {
 
         // process self
         if (node.nodeType === node.TEXT_NODE) {
-            tokens.push(new TemplateToken({
-                type: this.getTokenType(node.textContent),
-                xmlNode: node
-            }));
+
+            const curToken = this.createToken(node);
+
+            const lastToken = (tokens.length ? tokens[tokens.length - 1] : null);
+            if (lastToken) {
+                curToken.prev = lastToken;
+                lastToken.next = curToken;
+            }
+
+            tokens.push(curToken);
             return;
         }
 
@@ -37,17 +43,31 @@ export class Tokenizer {
         }
     }
 
-    private getTokenType(text: string): TokenType {
+    private createToken(node: Node): TemplateToken {
 
-        if (!text)
-            return TokenType.Empty;
+        const token = new TemplateToken({ xmlNode: node });
+        const tokenText = node.textContent;
 
-        if (text.includes(this.delimiters.start))
-            return TokenType.DelimiterStart;
+        if (!tokenText) {
+            token.type = TokenType.Empty;
+            return token;
+        }
 
-        if (text.includes(this.delimiters.end))
-            return TokenType.DelimiterEnd;
+        const delimiterStartIndex = tokenText.indexOf(this.delimiters.start);
+        if (delimiterStartIndex !== -1) {
+            token.type = TokenType.DelimiterStart;
+            token.delimiterIndex = delimiterStartIndex;
+            return token;
+        }
 
-        return TokenType.Text;
+        const delimiterEndIndex = tokenText.indexOf(this.delimiters.end);
+        if (delimiterEndIndex !== -1) {
+            token.type = TokenType.DelimiterEnd;
+            token.delimiterIndex = delimiterEndIndex;
+            return token;
+        }
+
+        token.type = TokenType.Text;
+        return token;
     }
 }

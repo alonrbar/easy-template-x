@@ -12,8 +12,8 @@ export class DocxTemplateSpec implements ITemplateSpec {
 
     public contentFilePaths(zip: JSZip) {
         const baseTags = [
-            "docProps/core.xml",
-            "docProps/app.xml",
+            // "docProps/core.xml",
+            // "docProps/app.xml",
             "word/document.xml",
             "word/document2.xml"
         ];
