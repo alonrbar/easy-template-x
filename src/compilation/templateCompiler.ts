@@ -1,3 +1,4 @@
+import { TemplatePlugin, SimpleTagPlugin } from '../plugins';
 import { TagTree } from './tagTree';
 import { TagTreeComposer } from './tagTreeComposer';
 import { Tokenizer } from './tokenizer';
@@ -14,6 +15,8 @@ import { Tokenizer } from './tokenizer';
  * see: https://en.wikipedia.org/wiki/Compiler
  */
 export class TemplateCompiler {
+
+    public plugins: TemplatePlugin[] = [ new SimpleTagPlugin() ];
 
     private readonly tokenizer = new Tokenizer();
     private readonly tagTreeComposer = new TagTreeComposer();
@@ -34,7 +37,22 @@ export class TemplateCompiler {
     //
 
     private doTagReplacements(tagTree: TagTree[], data: any): void {
-        // TODO...
+        for (const root of tagTree) {
+            this.tagReplacementRecurse([root.name], root, (data || {})[root.name]);
+        }
+    }
+
+    private tagReplacementRecurse(path: string[], tagTree: TagTree, data: any): void {
+
+        // process current node
+        for (const plugin of this.plugins) {
+            plugin.setTagValue(path, tagTree, data);
+        }
+
+        // process child nodes
+        for (const child of tagTree.children) {
+            this.tagReplacementRecurse(path.concat(child.name), child, (data || {})[child.name]);
+        }
     }
 
     private doDocumentReplacements(doc: Document, tagTree: TagTree[]): void {
