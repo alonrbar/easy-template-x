@@ -25,6 +25,24 @@ export class XmlParser {
     private static readonly parser = new DomParserType();
     private static readonly serializer = new XmlSerializerType();
 
+    /**
+     * Encode string to make it safe to use inside xml tags.
+     * 
+     * https://stackoverflow.com/questions/7918868/how-to-escape-xml-entities-in-javascript
+     */
+    public static encode(str: string): string {
+        return str.replace(/[<>&'"]/g, c => {
+            switch (c) {
+                case '<': return '&lt;';
+                case '>': return '&gt;';
+                case '&': return '&amp;';
+                case '\'': return '&apos;';
+                case '"': return '&quot;';
+            }
+            return '';
+        });
+    }
+
     public parse(str: string): Document {
         return XmlParser.parser.parseFromString(str, "text/xml");
     }
@@ -36,7 +54,7 @@ export class XmlParser {
     public textContent(node: Node): string {
         return this.textContentRecurse(node, 0);
     }
-    
+
     //
     // private methods
     //

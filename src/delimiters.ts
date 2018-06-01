@@ -1,4 +1,4 @@
-import { DocUtils } from "./docUtils";
+import { XmlParser } from "./xmlParser";
 
 export class Delimiters {
     public start = "{";
@@ -8,10 +8,10 @@ export class Delimiters {
         if (initial) {
 
             if (initial.start)
-                this.start = DocUtils.utf8ToWord(initial.start);
+                this.start = XmlParser.encode(initial.start);
 
             if (initial.end)
-                this.end = DocUtils.utf8ToWord(initial.end);
+                this.end = XmlParser.encode(initial.end);
 
         }
 
