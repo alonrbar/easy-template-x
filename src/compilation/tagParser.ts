@@ -5,18 +5,18 @@ import { TagPrefix } from './tagPrefix';
 import { DelimiterMark, TemplateToken, TokenType } from './templateToken';
 
 export class TagParser {
-   
+
     // TODO: get from outside
     public tagPrefix: TagPrefix[] = [
         {
             prefix: '#',
             tagType: TagType.Loop,
-            tagDisposition: TagDisposition.Opened
+            tagDisposition: TagDisposition.Open
         },
         {
             prefix: '/',
             tagType: TagType.Loop,
-            tagDisposition: TagDisposition.Closed
+            tagDisposition: TagDisposition.Close
         },
         {
             prefix: '',
@@ -57,6 +57,7 @@ export class TagParser {
                     // valid close
                     if (openedTag && !delimiter.isOpen) {
                         this.processTag(openedTag, openedDelimiter, currentToken, delimiter);
+                        tags.push(openedTag);
                         openedTag = null;
                         openedDelimiter = null;
                     }
@@ -67,63 +68,32 @@ export class TagParser {
         return tags;
     }
 
-    private processTag(openedTag: Tag, openedDelimiter: DelimiterMark, closeToken: TemplateToken, closeDelimiter: DelimiterMark): void {
+    private processTag(tag: Tag, openedDelimiter: DelimiterMark, closeToken: TemplateToken, closeDelimiter: DelimiterMark): void {
 
-        let openNode = openedTag.xmlNode;
-        let closeNode = closeToken.xmlNode;
-        // let tagNode: Node;
-
+        // normalize the underlying xml structure
+        const openNode = tag.xmlNode;
+        const closeNode = closeToken.xmlNode;
         this.normalizeTagNodes(openNode, openedDelimiter, closeNode, closeDelimiter);
 
-        openedTag.rawText = this.getRawTagText(openedTag);
+        // extract tag info from tag's text
+        tag.rawText = tag.xmlNode.textContent;
         for (const prefix of this.tagPrefix) {
 
             // TODO: compile regex once
-            const pattern = `[${this.delimiters.start}](\\s*?)${prefix.prefix}(.*?)[${this.delimiters.end}]`;
+            const pattern = `^[${this.delimiters.start}](\\s*?)${prefix.prefix}(.*?)[${this.delimiters.end}]`;
             const regex = new RegExp(pattern, 'gmi');
 
-            const match = regex.exec(openedTag.rawText);
+            const match = regex.exec(tag.rawText);
             if (match && match.length) {
-                openedTag.name = match[2];
-                openedTag.type = prefix.tagType;
-                openedTag.disposition = prefix.tagDisposition;
+                tag.name = match[2];
+                tag.type = prefix.tagType;
+                tag.disposition = prefix.tagDisposition;
                 break;
             }
         }
     }
 
-    private getRawTagText(tag: Tag): string {
-
-        let rawTextBuilder: string[] = [];
-        // let token = tag.startToken;
-        // while (token) {
-
-        //     // current token text
-        //     let tokenText = token.xmlNode.textContent;
-
-        //     // trim before or after delimiter
-        //     if (typeof token.delimiterIndex === 'number') {
-        //         if (token.type === TokenType.Delimiter) {
-        //             tokenText = tokenText.substring(token.delimiterIndex);
-        //         } else if (token.type === TokenType.DelimiterEnd) {
-        //             tokenText = tokenText.substring(0, token.delimiterIndex + 1);
-        //         }
-        //     }
-
-        //     // push and next
-        //     rawTextBuilder.push(tokenText);
-
-        //     if (token === tag.endToken) {
-        //         token = null;
-        //     } else {
-        //         token = token.next;
-        //     }
-        // }
-
-        return rawTextBuilder.join('');
-    }
-
-    private normalizeTagNodes(startTextNode: Node, openDelimiter: DelimiterMark, endTextNode: Node, closeDelimiter: DelimiterMark): Node {
+    private normalizeTagNodes(startTextNode: Node, openDelimiter: DelimiterMark, endTextNode: Node, closeDelimiter: DelimiterMark): void {
 
         // for this text: "some text {my tag} some other text" 
         // the desired text nodes should be:
@@ -177,8 +147,32 @@ export class TagParser {
         secondTextNode.textContent = secondTextNode.textContent.substring(splitIndex);
     }
 
-    private joinTextNodes(first: Node, seconds: Node): void {
-        throw new Error("Method not implemented.");
+    private joinTextNodes(first: Node, second: Node): void {
+        const firstRunNode = this.findRunNode(first);
+        const secondRunNode = this.findRunNode(second);
+
+        const paragraphNode = firstRunNode.parentNode;
+        if (secondRunNode.parentNode !== paragraphNode)
+            throw new Error('Can not join text nodes from separate paragraphs.');
+
+        let curRunNode = firstRunNode.nextSibling;
+        while (curRunNode) {
+
+            // move text to first node
+            const curTextNode = this.findTextNode(curRunNode);
+            if (curTextNode)
+                first.textContent += curTextNode.textContent;
+
+            // remove current node
+            curRunNode.parentNode.removeChild(curRunNode);
+
+            // go next
+            if (curRunNode === secondRunNode) {
+                curRunNode = null;
+            } else {
+                curRunNode = curRunNode.nextSibling;
+            }
+        }
     }
 
     /**

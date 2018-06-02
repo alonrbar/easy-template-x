@@ -19,8 +19,8 @@ export enum TagType {
 }
 
 export enum TagDisposition {
-    Opened = "Opened",
-    Closed = "Closed",
+    Open = "Open",
+    Close = "Close",
     SelfClosed = "SelfClosed"
 }
 
