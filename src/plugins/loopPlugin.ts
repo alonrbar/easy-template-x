@@ -1,4 +1,4 @@
-import { Tag, TagType } from '../compilation';
+import { Tag, TagType } from '../compilation/tag';
 import { TemplatePlugin } from './templatePlugin';
 
 export class LoopPlugin extends TemplatePlugin {

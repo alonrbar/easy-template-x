@@ -1,4 +1,5 @@
 import { SimpleTagPlugin, TemplatePlugin } from '../plugins';
+import { ScopeManager } from './scopedManager';
 import { Tag } from './tag';
 import { TagParser } from './tagParser';
 import { Tokenizer } from './tokenizer';
@@ -15,7 +16,7 @@ import { Tokenizer } from './tokenizer';
  */
 export class TemplateCompiler {
 
-    public plugins: TemplatePlugin[] = [ new SimpleTagPlugin() ];
+    public plugins: TemplatePlugin[] = [new SimpleTagPlugin()];
 
     private readonly tokenizer = new Tokenizer();
     private readonly parser = new TagParser();
@@ -34,22 +35,18 @@ export class TemplateCompiler {
     // private methods
     //
 
-    private doDocumentReplacements(doc: Document, tagTree: Tag[], data: any): void {
-        for (const rootTag of tagTree) {
-            this.tagReplacementRecurse(doc, rootTag, (data || {})[rootTag.name]);
+    private doDocumentReplacements(doc: Document, tags: Tag[], data: any): void {
+        const scopeManager = new ScopeManager(data);
+        for (const tag of tags) {
+
+            scopeManager.updateScopeBefore(tag);
+            const scopedData = scopeManager.getScopedData();
+
+            for (const plugin of this.plugins) {
+                plugin.doDocumentReplacements(doc, tag, scopedData);
+            }
+            
+            scopeManager.updateScopeAfter(tag);
         }
-    }
-
-    private tagReplacementRecurse(doc: Document, tag: Tag, data: any): void {
-
-        // process current node
-        for (const plugin of this.plugins) {
-            plugin.doDocumentReplacements(doc, tag, data);
-        }
-
-        // process child nodes
-        // for (const child of tag.children) {
-        //     this.tagReplacementRecurse(doc, child, (data || {})[child.name]);
-        // }
     }
 }

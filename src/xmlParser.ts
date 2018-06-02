@@ -1,4 +1,4 @@
-import { MaxXmlDepthError } from './errors';
+import { MaxXmlDepthError, MissingArgumentError } from './errors';
 import { MAX_XML_DEPTH, platform } from './utils';
 
 // tslint:disable:variable-name
@@ -31,6 +31,9 @@ export class XmlParser {
      * https://stackoverflow.com/questions/7918868/how-to-escape-xml-entities-in-javascript
      */
     public static encode(str: string): string {
+        if (str === null || str === undefined)
+            throw new MissingArgumentError(nameof(str));
+
         return str.replace(/[<>&'"]/g, c => {
             switch (c) {
                 case '<': return '&lt;';

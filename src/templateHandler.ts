@@ -1,5 +1,5 @@
 import * as JSZip from 'jszip';
-import { TemplateCompiler } from './compilation';
+import { TemplateCompiler } from './compilation/templateCompiler';
 import { UnsupportedFileTypeError } from './errors';
 import { FileType } from './fileType';
 import { DocxTemplateSpec, ITemplateSpec } from './templateSpec';

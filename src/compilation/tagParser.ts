@@ -112,6 +112,27 @@ export class TagParser {
         }
     }
 
+    //
+    // DocxParser
+    //
+
+    // In Word text nodes are contained in "run" nodes (which specifies text
+    // properties such as font and color). The "run" nodes in turn are
+    // contained in paragraph nodes which is the core unit of content.
+    //
+    // Example:
+    //
+    // <w:p>    <-- paragraph
+    //   <w:r>      <-- run
+    //     <w:rPr>      <-- run properties
+    //       <w:b/>     <-- bold
+    //     </w:rPr>
+    //     <w:t>This is text.</w:t>     <-- actual text
+    //   </w:r>
+    // </w:p> 
+    //
+    // see: http://officeopenxml.com/WPcontentOverview.php
+
     private splitTextNode(textNode: Node, splitIndex: number, addBefore: boolean): void {
 
         let firstTextNode: Node;

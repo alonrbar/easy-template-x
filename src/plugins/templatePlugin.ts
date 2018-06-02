@@ -1,4 +1,4 @@
-import { Tag, TagType } from "../compilation";
+import { Tag, TagType } from '../compilation/tag';
 
 export abstract class TemplatePlugin {
 
