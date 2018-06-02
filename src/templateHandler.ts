@@ -42,7 +42,7 @@ export class TemplateHandler {
         const mainXmlFile = this.templateSpec.mainFilePath(zipFile);
         const xmlContent = await zipFile.files[mainXmlFile].async('text');
         const document = this.xmlParser.parse(xmlContent);
-        return this.xmlParser.textContent(document);
+        return document.documentElement.textContent;
     }
 
     //

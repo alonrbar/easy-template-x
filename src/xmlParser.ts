@@ -1,5 +1,5 @@
-import { MaxXmlDepthError, MissingArgumentError } from './errors';
-import { MAX_XML_DEPTH, platform } from './utils';
+import { MissingArgumentError } from './errors';
+import { platform } from './utils';
 
 // tslint:disable:variable-name
 
@@ -47,40 +47,13 @@ export class XmlParser {
     }
 
     public parse(str: string): Document {
+        if (str === null || str === undefined)
+            throw new MissingArgumentError(nameof(str));
+            
         return XmlParser.parser.parseFromString(str, "text/xml");
     }
 
     public serialize(xmlNode: Node): string {
         return XmlParser.serializer.serializeToString(xmlNode);
-    }
-
-    public textContent(node: Node): string {
-        return this.textContentRecurse(node, 0);
-    }
-
-    //
-    // private methods
-    //
-
-    private textContentRecurse(node: Node, depth: number): string {
-        if (depth > MAX_XML_DEPTH)
-            throw new MaxXmlDepthError(depth);
-
-        if (!node)
-            return '';
-
-        if (node.nodeType === node.TEXT_NODE)
-            return node.textContent;
-
-        // process child nodes
-        const childrenText: string[] = [];
-        const childNodesLength = (node.childNodes ? node.childNodes.length : 0);
-        for (let i = 0; i < childNodesLength; i++) {
-            const child = node.childNodes.item(i);
-            const childText = this.textContentRecurse(child, depth + 1);
-            childrenText.push(childText);
-        }
-
-        return childrenText.join('');
     }
 }
