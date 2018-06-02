@@ -1,4 +1,4 @@
-import { TemplatePlugin, SimpleTagPlugin } from '../plugins';
+import { SimpleTagPlugin, TemplatePlugin } from '../plugins';
 import { TagTree } from './tagTree';
 import { TagTreeComposer } from './tagTreeComposer';
 import { Tokenizer } from './tokenizer';
@@ -9,8 +9,7 @@ import { Tokenizer } from './tokenizer';
  * 
  * 1. tokenize (lexical analysis) :: (Document) => Tokens[]
  * 2. create input AST (syntax analysis) :: (Tokens[]) => TagTree
- * 3. render output AST (code generation) :: (TagTree, data) => TagTree*
- * 4. perform document replace :: (Document, TagTree*) => Document*
+ * 3. perform document replace (code generation) :: (Document, TagTree, data) => Document*
  * 
  * see: https://en.wikipedia.org/wiki/Compiler
  */
@@ -28,35 +27,29 @@ export class TemplateCompiler {
     public compile(doc: Document, data: any): void {
         const tokens = this.tokenizer.tokenize(doc);
         const tagTree = this.tagTreeComposer.composeTree(tokens);
-        this.doTagReplacements(tagTree, data);
-        this.doDocumentReplacements(doc, tagTree);
+        this.doDocumentReplacements(doc, tagTree, data);
     }
 
     //
     // private methods
     //
 
-    private doTagReplacements(tagTree: TagTree[], data: any): void {
-        for (const root of tagTree) {
-            this.tagReplacementRecurse([root.name], root, (data || {})[root.name]);
+    private doDocumentReplacements(doc: Document, tagTree: TagTree[], data: any): void {
+        for (const rootTag of tagTree) {
+            this.tagReplacementRecurse(doc, rootTag, (data || {})[rootTag.name]);
         }
     }
 
-    private tagReplacementRecurse(path: string[], tagTree: TagTree, data: any): void {
+    private tagReplacementRecurse(doc: Document, tag: TagTree, data: any): void {
 
         // process current node
         for (const plugin of this.plugins) {
-            plugin.setTagValue(path, tagTree, data);
+            plugin.doDocumentReplacements(doc, tag, data);
         }
 
         // process child nodes
-        for (const child of tagTree.children) {
-            this.tagReplacementRecurse(path.concat(child.name), child, (data || {})[child.name]);
+        for (const child of tag.children) {
+            this.tagReplacementRecurse(doc, child, (data || {})[child.name]);
         }
     }
-
-    private doDocumentReplacements(doc: Document, tagTree: TagTree[]): void {
-        // TODO...
-    }
-
 }

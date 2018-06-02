@@ -2,14 +2,11 @@ import { TagType } from "./tag";
 
 export class TagTree {
     public name: string;
-    /**
-     * The final value to output to the result document.
-     * The value should NOT be xml encoded.
-     */
-    public value?: string;
     public type: TagType;
     public startNode: Node;
+    public startIndex: number;
     public endNode: Node;
+    public endIndex: number;
     public parent: TagTree;
     public children: TagTree[] = [];
 
