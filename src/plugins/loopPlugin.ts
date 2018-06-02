@@ -1,4 +1,4 @@
-import { TagTree, TagType } from '../compilation';
+import { Tag, TagType } from '../compilation';
 import { TemplatePlugin } from './templatePlugin';
 
 export class LoopPlugin extends TemplatePlugin {
@@ -8,7 +8,7 @@ export class LoopPlugin extends TemplatePlugin {
     /**
      * @inheritDoc
      */
-    public doDocumentReplacements(doc: Document, tag: TagTree, data: any): void {
+    public doDocumentReplacements(doc: Document, tag: Tag, data: any): void {
 
         // if (!data || !Array.isArray(data) || !data.length)
         //     tag.value = '';

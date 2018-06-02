@@ -1,5 +1,4 @@
-import { TagTree, TagType } from '../compilation';
-import { XmlParser } from '../xmlParser';
+import { Tag, TagType } from '../compilation';
 import { TemplatePlugin } from './templatePlugin';
 
 export class SimpleTagPlugin extends TemplatePlugin {
@@ -9,7 +8,7 @@ export class SimpleTagPlugin extends TemplatePlugin {
     /**
      * @inheritDoc
      */
-    public doDocumentReplacements(doc: Document, tag: TagTree, data: any): void {
+    public doDocumentReplacements(doc: Document, tag: Tag, data: any): void {
 
         // TODO: line breaks
 
@@ -30,19 +29,7 @@ export class SimpleTagPlugin extends TemplatePlugin {
         //
         // see: http://officeopenxml.com/WPcontentOverview.php
 
-        const tagNode = this.joinTagNodes(tag);
-        const value = XmlParser.encode(data);
-    }
-
-    private joinTagNodes(tag: TagTree) {
-        while (tag.startNode !== tag.endNode) {
-
-        }
-    }
-
-    private getRunNode(node: Node) {
-        if (node.nodeName === 'w:t') {
-
-        }
+        // const tagNode = this.joinTagNodes(tag);
+        // const value = XmlParser.encode(data);
     }
 }

@@ -1,4 +1,3 @@
-import { TemplateToken } from './templateToken';
 
 export enum TagType {
     /**
@@ -20,8 +19,8 @@ export enum TagType {
 }
 
 export enum TagDisposition {
-    Open = "Open",
-    Close = "Close",
+    Opened = "Opened",
+    Closed = "Closed",
     SelfClosed = "SelfClosed"
 }
 
@@ -30,10 +29,7 @@ export class Tag {
     public rawText: string;
     public type: TagType;
     public disposition: TagDisposition;
-    public startNode: Node;
-    public endNode: Node;
-    public startToken: TemplateToken;
-    public endToken: TemplateToken;
+    public xmlNode: Node;
 
     constructor(initial?: Partial<Tag>) {
         Object.assign(this, initial);

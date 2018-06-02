@@ -48,25 +48,32 @@ export class Tokenizer {
         const token = new TemplateToken({ xmlNode: node });
         const tokenText = node.textContent;
 
+        // empty tokens
         if (!tokenText) {
             token.type = TokenType.Empty;
             return token;
         }
 
-        const delimiterStartIndex = tokenText.indexOf(this.delimiters.start);
-        if (delimiterStartIndex !== -1) {
-            token.type = TokenType.DelimiterStart;
-            token.delimiterIndex = delimiterStartIndex;
+        // delimiter tokens
+        for (let i = 0; i < tokenText.length; i++) {
+            if (tokenText[i] === this.delimiters.start) {
+                token.delimiters.push({
+                    index: i,
+                    isOpen: true
+                });
+            } else if (tokenText[i] === this.delimiters.end) {
+                token.delimiters.push({
+                    index: i,
+                    isOpen: false
+                });
+            }
+        }
+        if (token.delimiters.length) {
+            token.type = TokenType.Delimiter;
             return token;
         }
 
-        const delimiterEndIndex = tokenText.indexOf(this.delimiters.end);
-        if (delimiterEndIndex !== -1) {
-            token.type = TokenType.DelimiterEnd;
-            token.delimiterIndex = delimiterEndIndex;
-            return token;
-        }
-
+        // simple text tokens
         token.type = TokenType.Text;
         return token;
     }

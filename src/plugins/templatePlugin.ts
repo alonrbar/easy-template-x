@@ -1,4 +1,4 @@
-import { TagTree, TagType } from "../compilation";
+import { Tag, TagType } from "../compilation";
 
 export abstract class TemplatePlugin {
 
@@ -12,7 +12,7 @@ export abstract class TemplatePlugin {
      * @param tag Current tag node
      * @param data Relevant part of the data
      */
-    public doDocumentReplacements(doc: Document, tag: TagTree, data: any): void {
+    public doDocumentReplacements(doc: Document, tag: Tag, data: any): void {
         // noop
     }
 }

@@ -1,6 +1,6 @@
 import { SimpleTagPlugin, TemplatePlugin } from '../plugins';
-import { TagTree } from './tagTree';
-import { TagTreeComposer } from './tagTreeComposer';
+import { Tag } from './tag';
+import { TagParser } from './tagParser';
 import { Tokenizer } from './tokenizer';
 
 /**
@@ -8,8 +8,8 @@ import { Tokenizer } from './tokenizer';
  * It's main steps are:
  * 
  * 1. tokenize (lexical analysis) :: (Document) => Tokens[]
- * 2. create input AST (syntax analysis) :: (Tokens[]) => TagTree
- * 3. perform document replace (code generation) :: (Document, TagTree, data) => Document*
+ * 2. create input AST (syntax analysis) :: (Tokens[]) => Tag
+ * 3. perform document replace (code generation) :: (Document, Tag, data) => Document*
  * 
  * see: https://en.wikipedia.org/wiki/Compiler
  */
@@ -18,7 +18,7 @@ export class TemplateCompiler {
     public plugins: TemplatePlugin[] = [ new SimpleTagPlugin() ];
 
     private readonly tokenizer = new Tokenizer();
-    private readonly tagTreeComposer = new TagTreeComposer();
+    private readonly parser = new TagParser();
 
     /**
      * Compiles the template and performs the required replacements using the
@@ -26,21 +26,21 @@ export class TemplateCompiler {
      */
     public compile(doc: Document, data: any): void {
         const tokens = this.tokenizer.tokenize(doc);
-        const tagTree = this.tagTreeComposer.composeTree(tokens);
-        this.doDocumentReplacements(doc, tagTree, data);
+        const tags = this.parser.parse(tokens);
+        this.doDocumentReplacements(doc, tags, data);
     }
 
     //
     // private methods
     //
 
-    private doDocumentReplacements(doc: Document, tagTree: TagTree[], data: any): void {
+    private doDocumentReplacements(doc: Document, tagTree: Tag[], data: any): void {
         for (const rootTag of tagTree) {
             this.tagReplacementRecurse(doc, rootTag, (data || {})[rootTag.name]);
         }
     }
 
-    private tagReplacementRecurse(doc: Document, tag: TagTree, data: any): void {
+    private tagReplacementRecurse(doc: Document, tag: Tag, data: any): void {
 
         // process current node
         for (const plugin of this.plugins) {
@@ -48,8 +48,8 @@ export class TemplateCompiler {
         }
 
         // process child nodes
-        for (const child of tag.children) {
-            this.tagReplacementRecurse(doc, child, (data || {})[child.name]);
-        }
+        // for (const child of tag.children) {
+        //     this.tagReplacementRecurse(doc, child, (data || {})[child.name]);
+        // }
     }
 }
