@@ -8,15 +8,13 @@ export class LoopPlugin extends TemplatePlugin {
     /**
      * @inheritDoc
      */
-    public doDocumentReplacements(doc: Document, tag: Tag, data: any): void {
+    public containerTagReplacements(doc: Document, openTagIndex: number, closeTagIndex: number, allTags: Tag[], data: any): void {
 
-        // if (!data || !Array.isArray(data) || !data.length)
-        //     tag.value = '';
+        if (!data || !Array.isArray(data) || !data.length)
+            data = [{}];
 
-        // for (const item of data) {
-        //     for (const childTag of tagNode.children) {
-                
-        //     }
-        // }
+        for (const item of data) {
+            console.log(item);
+        }
     }
 }

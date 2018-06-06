@@ -9,14 +9,14 @@ export class SimpleTagPlugin extends TemplatePlugin {
     /**
      * @inheritDoc
      */
-    public doDocumentReplacements(doc: Document, tag: Tag, data: any): void {
+    public simpleTagReplacements(doc: Document, tag: Tag, data: any): void {
 
         if (tag.type !== this.tagType)
             return;
 
         // TODO: line breaks        
 
-        const value = XmlParser.encode(data);
+        const value = XmlParser.encode(data || '');
         tag.xmlNode.textContent = value;
     }
 }

@@ -1,6 +1,7 @@
-import { SimpleTagPlugin, TemplatePlugin } from '../plugins';
+import { UnclosedTagError } from '../errors';
+import { LoopPlugin, SimpleTagPlugin, TemplatePlugin } from '../plugins';
 import { ScopeManager } from './scopedManager';
-import { Tag } from './tag';
+import { Tag, TagDisposition } from './tag';
 import { TagParser } from './tagParser';
 import { Tokenizer } from './tokenizer';
 
@@ -16,10 +17,10 @@ import { Tokenizer } from './tokenizer';
  */
 export class TemplateCompiler {
 
-    public plugins: TemplatePlugin[] = [new SimpleTagPlugin()];
+    public plugins: TemplatePlugin[] = [new LoopPlugin(), new SimpleTagPlugin()];
 
     private readonly tokenizer = new Tokenizer();
-    private readonly parser = new TagParser();
+    private readonly tagParser = new TagParser();
 
     /**
      * Compiles the template and performs the required replacements using the
@@ -27,25 +28,50 @@ export class TemplateCompiler {
      */
     public compile(doc: Document, data: any): void {
         const tokens = this.tokenizer.tokenize(doc);
-        const tags = this.parser.parse(tokens);
-        this.doDocumentReplacements(doc, tags, data);
+        const tags = this.tagParser.parse(tokens);
+        this.doTagReplacements(doc, tags, data);
     }
 
     //
     // private methods
     //
 
-    private doDocumentReplacements(doc: Document, tags: Tag[], data: any): void {
+    private doTagReplacements(doc: Document, tags: Tag[], data: any): void {
         const scopeManager = new ScopeManager(data);
-        for (const tag of tags) {
+        for (let i = 0; i < tags.length; i++) {
+
+            const tag = tags[i];
 
             scopeManager.updateScopeBefore(tag);
             const scopedData = scopeManager.getScopedData();
 
-            for (const plugin of this.plugins) {
-                plugin.doDocumentReplacements(doc, tag, scopedData);
+            if (tag.disposition === TagDisposition.SelfClosed) {
+
+                // replace simple tag
+                for (const plugin of this.plugins) {
+                    plugin.simpleTagReplacements(doc, tag, scopedData);
+                }
+
+            } else if (tag.disposition === TagDisposition.Open) {
+
+                // find the closing tag
+                let closeTag: Tag;
+                let j = i;
+                for (; j < tags.length; j++) {
+                    closeTag = tags[j];
+                    if (closeTag.type === tag.type && closeTag.disposition === TagDisposition.Close) {
+                        break;
+                    }
+                }
+                if (j === tags.length)
+                    throw new UnclosedTagError(tag.name);
+
+                // replace container tag
+                for (const plugin of this.plugins) {
+                    plugin.containerTagReplacements(doc, i, j, tags, scopedData);
+                }
             }
-            
+
             scopeManager.updateScopeAfter(tag);
         }
     }
