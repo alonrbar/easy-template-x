@@ -24,13 +24,6 @@ export class Tokenizer {
         if (node.nodeType === node.TEXT_NODE) {
 
             const curToken = this.createToken(node);
-
-            const lastToken = (tokens.length ? tokens[tokens.length - 1] : null);
-            if (lastToken) {
-                curToken.prev = lastToken;
-                lastToken.next = curToken;
-            }
-
             tokens.push(curToken);
             return;
         }
