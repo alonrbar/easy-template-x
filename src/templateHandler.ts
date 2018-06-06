@@ -14,7 +14,7 @@ export class TemplateHandler {
 
     public async process<T extends Binary>(templateFile: T, data: any): Promise<T> {
 
-        // load the doc (zip) file
+        // load the docx (zip) file
         const docFile = await this.loadDocx(templateFile);
 
         // extract content as xml documents
@@ -25,7 +25,7 @@ export class TemplateHandler {
             this.compiler.compile(contentDoc, data);
         }
 
-        // update the doc file
+        // update the docx file
         for (const file of Object.keys(contentDocuments)) {
             const processedFile = contentDocuments[file];
             const xmlContent = this.xmlParser.serialize(processedFile);
@@ -58,6 +58,9 @@ export class TemplateHandler {
         return docFile;
     }
 
+    /**
+     * Returns a map where the key is the **file path** and the value is a **parsed document**.
+     */
     private async parseContentDocuments(docFile: JSZip, templateSpec: ITemplateSpec): Promise<IMap<Document>> {
 
         const contentFiles = templateSpec.contentFilePaths(docFile);

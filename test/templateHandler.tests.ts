@@ -10,7 +10,7 @@ describe(nameof(TemplateHandler), () => {
         new TemplateHandler();
     });
 
-    it("replaces a single tags", async () => {
+    it("replaces a single tag", async () => {
 
         const handler = new TemplateHandler();
 
