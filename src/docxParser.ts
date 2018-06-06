@@ -1,5 +1,32 @@
+import * as JSZip from 'jszip';
+
 export class DocxParser {
     
+    public contentFilePaths(zip: JSZip) {
+        const baseTags = [
+            // "docProps/core.xml",
+            // "docProps/app.xml",
+            "word/document.xml",
+            "word/document2.xml"
+        ];
+
+        const headersAndFooters = zip
+            .file(/word\/(header|footer)\d+\.xml/)
+            .map(file => file.name);
+
+        return headersAndFooters.concat(baseTags);
+    }
+
+    public mainFilePath(zip: JSZip): string {
+        if (zip.files["word/document.xml"]) {
+            return "word/document.xml";
+        }
+        if (zip.files["word/document2.xml"]) {
+            return "word/document2.xml";
+        }
+        return undefined;
+    }
+
     // In Word text nodes are contained in "run" nodes (which specifies text
     // properties such as font and color). The "run" nodes in turn are
     // contained in paragraph nodes which is the core unit of content.
@@ -79,6 +106,10 @@ export class DocxParser {
             }
         }
     }
+
+    //
+    // private methods
+    //
 
     /**
      * Search **downwards** for the first text node.

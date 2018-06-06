@@ -1,14 +1,14 @@
 import * as JSZip from 'jszip';
 import { TemplateCompiler } from './compilation/templateCompiler';
+import { DocxParser } from './docxParser';
 import { UnsupportedFileTypeError } from './errors';
 import { FileType } from './fileType';
-import { DocxTemplateSpec, ITemplateSpec } from './templateSpec';
 import { Binary, IMap } from './utils';
 import { XmlParser } from './xmlParser';
 
 export class TemplateHandler {
 
-    private readonly templateSpec = new DocxTemplateSpec();
+    private readonly docxParser = new DocxParser();
     private readonly xmlParser = new XmlParser();
     private readonly compiler = new TemplateCompiler();
 
@@ -18,7 +18,7 @@ export class TemplateHandler {
         const docFile = await this.loadDocx(templateFile);
 
         // extract content as xml documents
-        const contentDocuments = await this.parseContentDocuments(docFile, this.templateSpec);
+        const contentDocuments = await this.parseContentDocuments(docFile);
 
         // process content (do replacements)
         for (const contentDoc of Object.values(contentDocuments)) {
@@ -39,7 +39,7 @@ export class TemplateHandler {
 
     public async getText(docxFile: Binary): Promise<string> {
         const zipFile = await this.loadDocx(docxFile);
-        const mainXmlFile = this.templateSpec.mainFilePath(zipFile);
+        const mainXmlFile = this.docxParser.mainFilePath(zipFile);
         const xmlContent = await zipFile.files[mainXmlFile].async('text');
         const document = this.xmlParser.parse(xmlContent);
         return document.documentElement.textContent;
@@ -61,9 +61,9 @@ export class TemplateHandler {
     /**
      * Returns a map where the key is the **file path** and the value is a **parsed document**.
      */
-    private async parseContentDocuments(docFile: JSZip, templateSpec: ITemplateSpec): Promise<IMap<Document>> {
+    private async parseContentDocuments(docFile: JSZip): Promise<IMap<Document>> {
 
-        const contentFiles = templateSpec.contentFilePaths(docFile);
+        const contentFiles = this.docxParser.contentFilePaths(docFile);
 
         // some content files may not always exist (footer.xml for example)
         const existingContentFiles = contentFiles.filter(file => docFile.files[file]);
