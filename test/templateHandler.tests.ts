@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
-import { TemplateHandler } from '../src/templateHandler';
+import { TemplateHandler } from 'src/templateHandler';
 
 // tslint:disable:no-unused-expression
 
@@ -51,6 +51,8 @@ describe(nameof(TemplateHandler), () => {
         const doc = await handler.process(template, data);
         const end = Date.now();
         console.log(`took ${end - begin}ms`);
+
+        fs.writeFileSync('/temp/myfile.docx', doc);
 
         const docText = await handler.getText(doc);
         expect(docText).to.be.equal("first!second!");

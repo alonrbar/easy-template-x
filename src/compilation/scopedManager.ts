@@ -1,6 +1,8 @@
-import { pushMany } from '../utils';
+import { last, pushMany } from '../utils';
 import { Tag, TagDisposition } from './tag';
 const getProp = require('lodash.get');
+
+type DataType = 'object' | 'array';
 
 export class ScopeManager {
 
@@ -18,10 +20,10 @@ export class ScopeManager {
     }
 
     public path: (string | number)[] = [];
+    private dataTypes: DataType[] = [];
 
     private _scopedData: any;
     private isScopedDataUpToDate = false;
-    private lastDataIsArray: boolean;
 
     constructor(allData: any) {
         this.allData = allData;
@@ -34,30 +36,50 @@ export class ScopeManager {
                 this.push(tag, index);
                 break;
             case TagDisposition.Close:
-                this.pop();
-                break;
+                throw new Error(`Unexpected close tag. Tag should be remove by LoopPlugin.`);
             default:
                 throw new Error(`Unrecognized tag disposition: '${tag.disposition}'.`);
         }
     }
 
     public updateScopeAfter(tag: Tag): void {
-        if (tag.disposition === TagDisposition.SelfClosed) {
-            this.pop();
+        switch (tag.disposition) {
+            case TagDisposition.Open:
+            case TagDisposition.SelfClosed:
+                this.pop();
+                break;
+            case TagDisposition.Close:
+                throw new Error(`Unexpected close tag. Tag should be remove by LoopPlugin.`);
+            default:
+                throw new Error(`Unrecognized tag disposition: '${tag.disposition}'.`);
         }
     }
 
     private push(tag: Tag, index: number): void {
-        this.lastDataIsArray = Array.isArray(this.scopedData);
-        const pathParts = (this.lastDataIsArray ? [index, tag.name] : [tag.name]);
+        const isArray = Array.isArray(this.scopedData);
+
+        // path
+        const pathParts = (isArray ? [index, tag.name] : [tag.name]);
         pushMany(this.path, pathParts);
+
+        // data type
+        this.dataTypes.push(isArray ? 'array' : 'object');
+
+        // invalidate cache
         this.isScopedDataUpToDate = false;
     }
 
     private pop(): void {
+
+        // path
         this.path.pop();
-        if (this.lastDataIsArray)
+        if (last(this.dataTypes) === 'array')
             this.path.pop();
+
+        // data type
+        this.dataTypes.pop();
+
+        // invalidate cache
         this.isScopedDataUpToDate = false;
     }
 }
