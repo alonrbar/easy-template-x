@@ -50,6 +50,6 @@ describe(nameof(TemplateHandler), () => {
         const doc = await handler.process(template, data);
 
         const docText = await handler.getText(doc);
-        expect(docText).to.be.equal("first second");
+        expect(docText).to.be.equal("first!second!");
     });
 });

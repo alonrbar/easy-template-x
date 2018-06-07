@@ -47,8 +47,8 @@ export class LoopPlugin extends TemplatePlugin {
     private extractParagraphs(firstParagraph: Node, openTagNode: Node, lastParagraph: Node, closeTagNode: Node): Node[] {
 
         // split edge paragraphs
-        const firstParagraphSplit = this.xmlParser.splitByChild(firstParagraph, openTagNode, true);
-        const lastParagraphSplit = this.xmlParser.splitByChild(lastParagraph, closeTagNode, false);
+        const firstParagraphSplit = this.xmlParser.splitByChild(firstParagraph, openTagNode, true, true);
+        const lastParagraphSplit = this.xmlParser.splitByChild(lastParagraph, closeTagNode, false, true);
 
         // extract all paragraphs in between
         const middleParagraphNodes = this.xmlParser.removeSiblings(firstParagraph, lastParagraph);
@@ -67,11 +67,13 @@ export class LoopPlugin extends TemplatePlugin {
 
             // merge first paragraph to previous one
             if (result.length) {
-                this.docxParser.joinParagraphs(last(result), firstParagraph.cloneNode());
+                this.docxParser.joinParagraphs(last(result), firstParagraph.cloneNode(true));
+            } else {
+                result.push(firstParagraph.cloneNode(true));
             }
 
             // append other paragraphs
-            const newParagraphs = paragraphs.slice(1).map(para => para.cloneNode());
+            const newParagraphs = paragraphs.slice(1).map(para => para.cloneNode(true));
             pushMany(result, newParagraphs);
         }
 

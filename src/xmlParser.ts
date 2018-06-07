@@ -44,6 +44,8 @@ export class XmlParser {
     public encode(str: string): string {
         if (str === null || str === undefined)
             throw new MissingArgumentError(nameof(str));
+        if (typeof str !== 'string')
+            throw new TypeError(`Expected a string, got '${(str as any).constructor.name}'.`);
 
         return str.replace(/[<>&'"]/g, c => {
             switch (c) {
@@ -102,31 +104,43 @@ export class XmlParser {
      *
      * @param root The node to split
      * @param markerNode The node that marks the split position. 
-     * @param markerAndAfter If true the marker node and everything after it
-     * will be extracted into the result node. Else, the marker node and
-     * everything before it will be extracted into the result node.
+     * @param afterMarker If true everything the marker node will be extracted
+     * into the result node. Else, everything before it will be extracted
+     * instead.
      */
-    public splitByChild(root: Node, markerNode: Node, markerAndAfter: boolean): Node {
+    public splitByChild(root: Node, markerNode: Node, afterMarker: boolean, removeMarkerNode: boolean): Node {
         const path = this.getDescendantPath(root, markerNode);
 
         let clone = root.cloneNode(false);
 
-        const childIndex = path[0];
-        if (markerAndAfter) {
+        const childIndex = path[0] + (afterMarker ? 1 : -1);
+        if (afterMarker) {
+
+            // after marker
             while (childIndex < root.childNodes.length) {
                 const curChild = root.childNodes.item(childIndex);
                 root.removeChild(curChild);
                 clone.appendChild(curChild);
             }
+
+            if (removeMarkerNode) {
+                root.removeChild(root.lastChild);
+            }
         } else {
-            const markerChild = root.childNodes.item(childIndex);
+
+            // before marker
+            const stopChild = root.childNodes.item(childIndex);
             let curChild: Node;
             do {
                 curChild = root.firstChild;
                 root.removeChild(curChild);
                 clone.appendChild(curChild);
 
-            } while (curChild !== markerChild);
+            } while (curChild !== stopChild);
+
+            if (removeMarkerNode) {
+                root.removeChild(root.firstChild);
+            }
         }
 
         return clone;

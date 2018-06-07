@@ -44,8 +44,8 @@ export class TemplateCompiler {
 
             const tag = tags[i];
 
-            scopeManager.updateScopeBefore(tag);
-            const scopedData = scopeManager.getScopedData();
+            scopeManager.updateScopeBefore(tag, i);
+            const scopedData = scopeManager.scopedData;
 
             if (tag.disposition === TagDisposition.SelfClosed) {
 
