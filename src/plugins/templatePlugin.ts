@@ -1,17 +1,23 @@
 import { Tag, TagType } from '../compilation/tag';
+import { TemplateCompiler } from '../compilation/templateCompiler';
 
 export abstract class TemplatePlugin {
 
     public abstract get tagType(): TagType;
 
+    protected compiler: TemplateCompiler;
+
+    public setContext(compiler: TemplateCompiler) {
+        this.compiler = compiler;
+    }
+
     /**
      * This method is called for each self-closing tag.
      * It should implement the specific document manipulation required by the tag.
      * 
-     * @param doc The document to manipulate
      * @param data Relevant part of the data
      */
-    public simpleTagReplacements(doc: Document, tag: Tag, data: any): void {
+    public simpleTagReplacements(tag: Tag, data: any): void {
         // noop
     }
 
@@ -19,10 +25,9 @@ export abstract class TemplatePlugin {
      * This method is called for each container tag.
      * It should implement the specific document manipulation required by the tag.
      * 
-     * @param doc The document to manipulate
      * @param data Relevant part of the data
      */
-    public containerTagReplacements(doc: Document, openTagIndex: number, closeTagIndex: number, allTags: Tag[], data: any): void {
+    public containerTagReplacements(openTagIndex: number, closeTagIndex: number, allTags: Tag[], data: any): void {
         // noop
     }
 }

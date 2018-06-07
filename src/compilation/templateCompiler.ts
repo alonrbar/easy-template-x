@@ -17,8 +17,7 @@ import { Tokenizer } from './tokenizer';
  */
 export class TemplateCompiler {
 
-    public plugins: TemplatePlugin[] = [new LoopPlugin(), new SimpleTagPlugin()];
-
+    private readonly plugins: TemplatePlugin[] = [new LoopPlugin(), new SimpleTagPlugin()];
     private readonly tokenizer = new Tokenizer();
     private readonly tagParser = new TagParser();
 
@@ -26,17 +25,20 @@ export class TemplateCompiler {
      * Compiles the template and performs the required replacements using the
      * specified data.
      */
-    public compile(doc: Document, data: any): void {
-        const tokens = this.tokenizer.tokenize(doc);
+    public compile(node: Node, data: any): void {
+        const tokens = this.tokenizer.tokenize(node);
         const tags = this.tagParser.parse(tokens);
-        this.doTagReplacements(doc, tags, data);
+        this.doTagReplacements(node, tags, data);
     }
 
     //
     // private methods
     //
 
-    private doTagReplacements(doc: Document, tags: Tag[], data: any): void {
+    private doTagReplacements(node: Node, tags: Tag[], data: any): void {
+
+        this.plugins.forEach(plugin => plugin.setContext(this));
+
         const scopeManager = new ScopeManager(data);
         for (let i = 0; i < tags.length; i++) {
 
@@ -49,7 +51,7 @@ export class TemplateCompiler {
 
                 // replace simple tag
                 for (const plugin of this.plugins) {
-                    plugin.simpleTagReplacements(doc, tag, scopedData);
+                    plugin.simpleTagReplacements(tag, scopedData);
                 }
 
             } else if (tag.disposition === TagDisposition.Open) {
@@ -68,7 +70,7 @@ export class TemplateCompiler {
 
                 // replace container tag
                 for (const plugin of this.plugins) {
-                    plugin.containerTagReplacements(doc, i, j, tags, scopedData);
+                    plugin.containerTagReplacements(i, j, tags, scopedData);
                 }
             }
 

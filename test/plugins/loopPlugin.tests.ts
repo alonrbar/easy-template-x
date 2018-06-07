@@ -28,7 +28,7 @@ describe(nameof(LoopPlugin), () => {
             })
         ];
 
-        loop.containerTagReplacements(document, 0, 1, tags, {});
+        loop.containerTagReplacements(0, 1, tags, {});
     });
 
 });

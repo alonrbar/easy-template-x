@@ -11,7 +11,7 @@ export class SimpleTagPlugin extends TemplatePlugin {
     /**
      * @inheritDoc
      */
-    public simpleTagReplacements(doc: Document, tag: Tag, data: any): void {
+    public simpleTagReplacements(tag: Tag, data: any): void {
 
         if (tag.type !== this.tagType)
             return;
