@@ -38,7 +38,7 @@ describe(nameof(TemplateHandler), () => {
 
         const template: Buffer = fs.readFileSync("./test/res/loop template.docx");
         const templateText = await handler.getText(template);
-        expect(templateText.trim()).to.be.equal("{#loop_prop}{simple_prop}{/loop_prop}");
+        expect(templateText.trim()).to.be.equal("{#loop_prop}{simple_prop}!{/loop_prop}");
 
         const data = {
             loop_prop: [
