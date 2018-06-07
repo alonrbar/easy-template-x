@@ -55,7 +55,7 @@ export class XmlParser {
             }
             return '';
         });
-    }   
+    }
 
     /**
      * Clone sibling nodes between 'from' and 'to' excluding both.
@@ -101,19 +101,32 @@ export class XmlParser {
      * Modifies the original node and returns the other part.
      *
      * @param root The node to split
-     * @param markerNode The node that marks the split position. Everything
-     * after this node will be extracted into the result node.
+     * @param markerNode The node that marks the split position. 
+     * @param markerAndAfter If true the marker node and everything after it
+     * will be extracted into the result node. Else, the marker node and
+     * everything before it will be extracted into the result node.
      */
-    public splitByChild(root: Node, markerNode: Node): Node {
+    public splitByChild(root: Node, markerNode: Node, markerAndAfter: boolean): Node {
         const path = this.getDescendantPath(root, markerNode);
 
         let clone = root.cloneNode(false);
 
         const childIndex = path[0];
-        while (childIndex < root.childNodes.length) {
-            const child = root.childNodes.item(childIndex);
-            root.removeChild(child);
-            clone.appendChild(child);
+        if (markerAndAfter) {
+            while (childIndex < root.childNodes.length) {
+                const curChild = root.childNodes.item(childIndex);
+                root.removeChild(curChild);
+                clone.appendChild(curChild);
+            }
+        } else {
+            const markerChild = root.childNodes.item(childIndex);
+            let curChild: Node;
+            do {
+                curChild = root.firstChild;
+                root.removeChild(curChild);
+                clone.appendChild(curChild);
+
+            } while (curChild !== markerChild);
         }
 
         return clone;
@@ -137,8 +150,13 @@ export class XmlParser {
         let node = descendant;
         while (node !== root) {
             const parent = node.parentNode;
+            if (!parent)
+                throw new Error(`Argument ${nameof(descendant)} is not a descendant of ${nameof(root)}`);
+
             const curChildIndex = this.indexOfChildNode(parent, node);
             path.push(curChildIndex);
+
+            node = parent;
         }
 
         return path.reverse();

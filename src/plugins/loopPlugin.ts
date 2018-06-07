@@ -47,8 +47,8 @@ export class LoopPlugin extends TemplatePlugin {
     private extractParagraphs(firstParagraph: Node, openTagNode: Node, lastParagraph: Node, closeTagNode: Node): Node[] {
 
         // split edge paragraphs
-        const firstParagraphSplit = this.xmlParser.splitByChild(firstParagraph, openTagNode);
-        const lastParagraphSplit = this.xmlParser.splitByChild(lastParagraph, closeTagNode);
+        const firstParagraphSplit = this.xmlParser.splitByChild(firstParagraph, openTagNode, true);
+        const lastParagraphSplit = this.xmlParser.splitByChild(lastParagraph, closeTagNode, false);
 
         // extract all paragraphs in between
         const middleParagraphNodes = this.xmlParser.removeSiblings(firstParagraph, lastParagraph);
