@@ -7,20 +7,20 @@ export class ScopeManager {
     public readonly allData: any;
 
     public get scopedData(): any {
-        // if (!this.isScopedDataUpToDate) {
-        // this._scopedData = getProp(this.allData, this.path);
         if (!this.path.length)
             return this.allData;
-        return getProp(this.allData, this.path);
-        //     this.isScopedDataUpToDate = true;
-        // }
-        // return this._scopedData;
+
+        if (!this.isScopedDataUpToDate) {
+            this._scopedData = getProp(this.allData, this.path);
+            this.isScopedDataUpToDate = true;
+        }
+        return this._scopedData;
     }
 
     public path: (string | number)[] = [];
 
-    // private _scopedData: any;
-    // private isScopedDataUpToDate = false;
+    private _scopedData: any;
+    private isScopedDataUpToDate = false;
     private lastDataIsArray: boolean;
 
     constructor(allData: any) {
@@ -51,13 +51,13 @@ export class ScopeManager {
         this.lastDataIsArray = Array.isArray(this.scopedData);
         const pathParts = (this.lastDataIsArray ? [index, tag.name] : [tag.name]);
         pushMany(this.path, pathParts);
-        // this.isScopedDataUpToDate = false;
+        this.isScopedDataUpToDate = false;
     }
 
     private pop(): void {
         this.path.pop();
         if (this.lastDataIsArray)
             this.path.pop();
-        // this.isScopedDataUpToDate = false;
+        this.isScopedDataUpToDate = false;
     }
 }
