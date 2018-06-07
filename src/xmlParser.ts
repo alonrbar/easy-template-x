@@ -71,6 +71,56 @@ export class XmlParser {
         } while (nextNode && nextNode !== stopNode);
     }
 
+    /**
+     * Clone sibling nodes between 'from' and 'to' excluding both.
+     */
+    public cloneSiblings(from: Node, to: Node): Node[] {
+        if (from === to)
+            return [];
+
+        const clones: Node[] = [];
+
+        from = from.nextSibling;
+        while (from !== to) {
+            clones.push(from.cloneNode());
+            from = from.nextSibling;
+        }
+
+        return clones;
+    }
+
+    /**
+     * Remove sibling nodes between 'from' and 'to' excluding both.
+     */
+    public removeSiblings(from: Node, to: Node): void {
+        if (from === to)
+            return;
+
+        from = from.nextSibling;
+        while (from !== to) {
+            const removeMe = from;
+            from = from.nextSibling;
+            removeMe.parentNode.removeChild(removeMe);
+        }
+    }
+
+    /**
+     * Modifies the original node and returns the other part.
+     *
+     * @param root The node to split
+     * @param markerNode The node that marks the split position
+     */
+    public splitByChild(root: Node, markerNode: Node): Node {
+        const path = this.getDescendantPath(root, markerNode);
+
+        const clone = root.cloneNode(false);
+        for (const childIndex of path) {
+            throw new Error('not implemented...');
+        }
+
+        return clone;
+    }
+
     public indexOfChildNode(parent: Node, child: Node): number {
         if (!parent.hasChildNodes())
             return -1;
@@ -81,5 +131,18 @@ export class XmlParser {
         }
 
         return -1;
+    }
+
+    private getDescendantPath(root: Node, descendant: Node): number[] {
+        const path: number[] = [];
+
+        let node = descendant;
+        while (node !== root) {
+            const parent = node.parentNode;
+            const curChildIndex = this.indexOfChildNode(parent, node);
+            path.push(curChildIndex);
+        }
+
+        return path.reverse();
     }
 }

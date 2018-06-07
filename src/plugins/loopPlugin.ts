@@ -1,12 +1,13 @@
 import { Tag, TagType } from '../compilation/tag';
 import { DocxParser } from '../docxParser';
-import { last } from '../utils';
+import { XmlParser } from '../xmlParser';
 import { TemplatePlugin } from './templatePlugin';
 
 export class LoopPlugin extends TemplatePlugin {
 
     public readonly tagType = TagType.Loop;
 
+    private readonly xmlParser = new XmlParser();
     private readonly docxParser = new DocxParser();
 
     /**
@@ -20,64 +21,75 @@ export class LoopPlugin extends TemplatePlugin {
         const openTag = allTags[openTagIndex];
         const closeTag = allTags[closeTagIndex];
 
-        // clone all paragraphs in range
-        const paragraphClones = this.cloneParagraphs(openTag, closeTag, data.length);
+        // get edge paragraphs
+        const firstParagraph = this.docxParser.findParagraphNode(openTag.xmlNode);
+        const lastParagraph = this.docxParser.findParagraphNode(closeTag.xmlNode);
+
+        // clone and repeat paragraph range
+        const repeatedClonedParagraphs = this.splitAndClone(firstParagraph, openTag.xmlNode, lastParagraph, closeTag.xmlNode, data.length);
+
+        // recursive compilation
+        const compiledNodes = this.compile(repeatedClonedParagraphs, data);
+
+        // merge back to the document
+        this.mergeBack(compiledNodes, firstParagraph, lastParagraph);
+
+        // modify input tags collection
+        allTags.splice(openTagIndex, closeTagIndex);
+
+        // TODO: adjust compiler accordingly
+    }
+
+    private splitAndClone(firstParagraph: Node, openTagNode: Node, lastParagraph: Node, closeTagNode: Node, times: number): Node[] {
+
+        // split edge paragraphs and prepare for cloning process
+        const firstParagraphClone = this.xmlParser.splitByChild(firstParagraph, openTagNode);
+        const lastParagraphClone = this.xmlParser.splitByChild(lastParagraph, closeTagNode);
+
+        // clone all paragraphs in between
+        const middleParagraphClones = this.xmlParser.cloneSiblings(firstParagraph, lastParagraph);
+
+        // return joined result
+        const clonedSection = [firstParagraphClone].concat(middleParagraphClones).concat(lastParagraphClone);
+        return this.joinRepeatParagraphs(clonedSection, times);
+    }
+
+    private joinRepeatParagraphs(paragraphs: Node[], times: number): Node[] {
+        throw new Error('not implemented...');
+    }
+
+    private compile(nodes: Node[], data: any): Node[] {
 
         // create dummy root node
-        const dummyRootNode = new Node();
-        paragraphClones.forEach(p => dummyRootNode.appendChild(p));
-        
+        const dummyRootNode = this.xmlParser.parse('<dummyRootNode/>');
+        nodes.forEach(p => dummyRootNode.documentElement.appendChild(p));
+
         // compile the new root
         this.compiler.compile(dummyRootNode, data);
 
-        // modify tags collection
-        allTags.splice(openTagIndex, closeTagIndex);
+        // return result nodes
+        const newChildNodes = dummyRootNode.documentElement.childNodes;
+        if (!newChildNodes || !newChildNodes.length)
+            return [];
 
-        // 1. re-merge first paragraphs
-        // 2. re-merge last paragraph
-
-        // adjust compiler accordingly
-    }
-
-    public clearSubNodes(path: number[], node: Node): void {
-        throw new Error("Method not implemented.");
-    }
-
-    private cloneParagraphs(openTag: Tag, closeTag: Tag, times: number): Node[] {
-
-        // get first paragraph
-        const openTagPathInFirstParagraph: number[] = [];
-        const firstParagraph = this.docxParser.findParagraphNode(openTag.xmlNode);
-
-        // get last paragraph        
-        const closeTagPathInLastParagraph: number[] = [];
-        const lastParagraph = this.docxParser.findParagraphNode(closeTag.xmlNode);
-
-        // clone paragraphs, from first to last
-        const paragraphClones: Node[] = [];
-
-        let paragraph = firstParagraph;
-        while (paragraph !== lastParagraph) {
-            paragraphClones.push(paragraph.cloneNode());
-            paragraph = paragraph.nextSibling;
+        const resultNodes: Node[] = [];
+        for (let i = 0; i < resultNodes.length; i++) {
+            resultNodes.push(newChildNodes.item(i));
         }
-        paragraphClones.push(lastParagraph.cloneNode());
+        return resultNodes;
+    }
 
-        // remove unnecessary parts - from first paragraph
-        this.clearSubNodes(openTagPathInFirstParagraph, paragraphClones[0]);
-        this.clearSubNodes(openTagPathInFirstParagraph, firstParagraph);
+    private mergeBack(newParagraphs: Node[], firstParagraph: Node, lastParagraph: Node): void {
 
-        // remove unnecessary parts - from last paragraph
-        this.clearSubNodes(closeTagPathInLastParagraph, last(paragraphClones));
-        this.clearSubNodes(closeTagPathInLastParagraph, lastParagraph);
+        // merge first original paragraph with first resulting paragraph
+        this.docxParser.joinParagraphs(firstParagraph, newParagraphs[0]);
 
-        // 1. re-merge first paragraphs
-        // 2. insert middle paragraphs
-        // 3. if (last iteration)
-        //      re-merge last paragraph
-        //    else
-        //      merge last clone with next first clone and go to (2)
+        // merge first original paragraph with first resulting paragraph
+        this.docxParser.joinParagraphs(newParagraphs[newParagraphs.length - 1], lastParagraph);
 
-        return paragraphClones;
+        // add middle paragraphs to the original document
+        for (let i = 1; i < newParagraphs.length - 1; i++) {
+            lastParagraph.parentNode.insertBefore(newParagraphs[i], lastParagraph);
+        }
     }
 }

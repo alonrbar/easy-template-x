@@ -2,7 +2,7 @@ import * as JSZip from 'jszip';
 import { XmlParser } from './xmlParser';
 
 export class DocxParser {
-    
+
     public readonly xmlParser = new XmlParser();
 
     // In Word text nodes are contained in "run" nodes (which specifies text
@@ -45,7 +45,7 @@ export class DocxParser {
             return "word/document2.xml";
         }
         return undefined;
-    }    
+    }
 
     public splitTextNode(textNode: Node, splitIndex: number, addBefore: boolean): void {
 
@@ -108,6 +108,10 @@ export class DocxParser {
                 curRunNode = curRunNode.nextSibling;
             }
         }
+    }
+
+    public joinParagraphs(first: Node, second: Node): void {
+        throw new Error('not implemented...');
     }
 
     /**
