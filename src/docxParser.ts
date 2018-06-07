@@ -3,6 +3,10 @@ import { XmlParser } from './xmlParser';
 
 export class DocxParser {
 
+    public static readonly PARAGRAPH_NODE = 'w:p';
+    public static readonly RUN_NODE = 'w:r';
+    public static readonly TEXT_NODE = 'w:t';
+
     public readonly xmlParser = new XmlParser();
 
     // In Word text nodes are contained in "run" nodes (which specifies text
@@ -82,6 +86,9 @@ export class DocxParser {
         secondTextNode.textContent = secondTextNode.textContent.substring(splitIndex);
     }
 
+    /**
+     * Move all text from 'second' to 'first'.
+     */
     public joinTextNodes(first: Node, second: Node): void {
         const firstRunNode = this.findRunNode(first);
         const secondRunNode = this.findRunNode(second);
@@ -110,8 +117,20 @@ export class DocxParser {
         }
     }
 
+    /**
+     * Take all runs from 'second' and move them to 'first'.
+     */
     public joinParagraphs(first: Node, second: Node): void {
-        throw new Error('not implemented...');
+        let i = 0;
+        while (second.childNodes && second.childNodes.length) {
+            const curChild = second.childNodes.item(i);
+            if (curChild.nodeName === DocxParser.RUN_NODE) {
+                second.removeChild(curChild);
+                first.appendChild(curChild);
+            } else {
+                i++;
+            }
+        }
     }
 
     /**
@@ -122,7 +141,7 @@ export class DocxParser {
         if (!node)
             return null;
 
-        if (node.nodeName === 'w:t')
+        if (node.nodeName === DocxParser.TEXT_NODE)
             return node;
 
         if (!node.hasChildNodes())
@@ -145,7 +164,7 @@ export class DocxParser {
         if (!node)
             return null;
 
-        if (node.nodeName === 'w:r')
+        if (node.nodeName === DocxParser.RUN_NODE)
             return node;
 
         return this.findRunNode(node.parentNode);
@@ -158,7 +177,7 @@ export class DocxParser {
         if (!node)
             return null;
 
-        if (node.nodeName === 'w:p')
+        if (node.nodeName === DocxParser.PARAGRAPH_NODE)
             return node;
 
         return this.findParagraphNode(node.parentNode);

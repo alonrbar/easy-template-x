@@ -55,21 +55,7 @@ export class XmlParser {
             }
             return '';
         });
-    }
-
-    public removeNodeAndSiblings(node: Node, goForward = true, stopNode: Node = null): void {
-        let nextNode = node;
-        do {
-            const curNode = nextNode;
-            if (goForward) {
-                nextNode = nextNode.nextSibling;
-            } else {
-                nextNode = nextNode.previousSibling;
-            }
-            curNode.parentNode.removeChild(curNode);
-
-        } while (nextNode && nextNode !== stopNode);
-    }
+    }   
 
     /**
      * Clone sibling nodes between 'from' and 'to' excluding both.
@@ -91,31 +77,43 @@ export class XmlParser {
 
     /**
      * Remove sibling nodes between 'from' and 'to' excluding both.
+     * Return the removed nodes.
      */
-    public removeSiblings(from: Node, to: Node): void {
+    public removeSiblings(from: Node, to: Node): Node[] {
         if (from === to)
-            return;
+            return [];
+
+        const removed: Node[] = [];
 
         from = from.nextSibling;
         while (from !== to) {
             const removeMe = from;
             from = from.nextSibling;
+
             removeMe.parentNode.removeChild(removeMe);
+            removed.push(removeMe);
         }
+
+        return removed;
     }
 
     /**
      * Modifies the original node and returns the other part.
      *
      * @param root The node to split
-     * @param markerNode The node that marks the split position
+     * @param markerNode The node that marks the split position. Everything
+     * after this node will be extracted into the result node.
      */
     public splitByChild(root: Node, markerNode: Node): Node {
         const path = this.getDescendantPath(root, markerNode);
 
-        const clone = root.cloneNode(false);
-        for (const childIndex of path) {
-            throw new Error('not implemented...');
+        let clone = root.cloneNode(false);
+
+        const childIndex = path[0];
+        while (childIndex < root.childNodes.length) {
+            const child = root.childNodes.item(childIndex);
+            root.removeChild(child);
+            clone.appendChild(child);
         }
 
         return clone;
