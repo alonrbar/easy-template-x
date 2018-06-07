@@ -51,17 +51,21 @@ export class TemplateCompiler {
 
                 // replace simple tag
                 for (const plugin of this.plugins) {
-                    plugin.simpleTagReplacements(tag, scopedData);
+                    if (plugin.simpleTagReplacements(tag, scopedData)) {
+                        break;
+                    }
                 }
 
             } else if (tag.disposition === TagDisposition.Open) {
 
                 // find the closing tag
-                const j = this.findCloseTagIndex(i, tag, tags);       
+                const j = this.findCloseTagIndex(i, tag, tags);
 
                 // replace container tag
                 for (const plugin of this.plugins) {
-                    plugin.containerTagReplacements(i, j, tags, scopedData);
+                    if (plugin.containerTagReplacements(i, j, tags, scopedData)) {
+                        break;
+                    }
                 }
             }
 
@@ -70,13 +74,13 @@ export class TemplateCompiler {
     }
 
     private findCloseTagIndex(fromIndex: number, openTag: Tag, tags: Tag[]): number {
-        
+
         let i = fromIndex;
         for (; i < tags.length; i++) {
             const closeTag = tags[i];
             if (
-                closeTag.name === openTag.name && 
-                closeTag.type === openTag.type && 
+                closeTag.name === openTag.name &&
+                closeTag.type === openTag.type &&
                 closeTag.disposition === TagDisposition.Close
             ) {
                 break;

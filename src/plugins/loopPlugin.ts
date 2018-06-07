@@ -14,7 +14,7 @@ export class LoopPlugin extends TemplatePlugin {
     /**
      * @inheritDoc
      */
-    public containerTagReplacements(openTagIndex: number, closeTagIndex: number, allTags: Tag[], data: any): void {
+    public containerTagReplacements(openTagIndex: number, closeTagIndex: number, allTags: Tag[], data: any): boolean {
 
         if (!data || !Array.isArray(data) || !data.length)
             data = [];
@@ -41,7 +41,7 @@ export class LoopPlugin extends TemplatePlugin {
         // modify input tags collection
         allTags.splice(openTagIndex, closeTagIndex + 1);
 
-        // TODO: adjust compiler accordingly
+        return true;
     }
 
     private extractParagraphs(firstParagraph: Node, openTagNode: Node, lastParagraph: Node, closeTagNode: Node): Node[] {

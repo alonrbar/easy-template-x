@@ -14,20 +14,22 @@ export abstract class TemplatePlugin {
     /**
      * This method is called for each self-closing tag.
      * It should implement the specific document manipulation required by the tag.
+     * It should return true if successfully replaced.
      * 
      * @param data Relevant part of the data
      */
-    public simpleTagReplacements(tag: Tag, data: any): void {
-        // noop
+    public simpleTagReplacements(tag: Tag, data: any): boolean {
+        return false;
     }
 
     /**
      * This method is called for each container tag.
      * It should implement the specific document manipulation required by the tag.
+     * It should return true if successfully replaced.
      * 
      * @param data Relevant part of the data
      */
-    public containerTagReplacements(openTagIndex: number, closeTagIndex: number, allTags: Tag[], data: any): void {
-        // noop
+    public containerTagReplacements(openTagIndex: number, closeTagIndex: number, allTags: Tag[], data: any): boolean {
+        return false;
     }
 }
