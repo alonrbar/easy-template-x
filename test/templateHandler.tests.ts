@@ -19,7 +19,7 @@ describe(nameof(TemplateHandler), () => {
         const template: Buffer = fs.readFileSync("./test/res/simple template.docx");
         const templateText = await handler.getText(template);
         expect(templateText.trim()).to.be.equal("{simple_prop}");
-        
+
         // replace tags
 
         const data = {
@@ -47,9 +47,46 @@ describe(nameof(TemplateHandler), () => {
             ]
         };
 
+        const begin = Date.now();
         const doc = await handler.process(template, data);
+        const end = Date.now();
+        console.log(`took ${end - begin}ms`);
 
         const docText = await handler.getText(doc);
         expect(docText).to.be.equal("first!second!");
+    });
+
+    it("replaces nested loops correctly", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template: Buffer = fs.readFileSync("./test/res/nested loop template.docx");
+        const templateText = await handler.getText(template);
+        expect(templateText.trim()).to.be.equal("{#loop_prop1}hi!{#loop_prop2}{simple_prop}!{/loop_prop2}{/loop_prop1}");
+
+        const data = {
+            loop_prop1: [
+                {
+                    loop_prop2: [
+                        { simple_prop: 'first' },
+                        { simple_prop: 'second' }
+                    ]
+                },
+                {
+                    loop_prop2: [
+                        { simple_prop: 'third' },
+                        { simple_prop: 'forth' }
+                    ]
+                }
+            ]
+        };
+
+        const begin = Date.now();
+        const doc = await handler.process(template, data);
+        const end = Date.now();
+        console.log(`took ${end - begin}ms`);
+
+        const docText = await handler.getText(doc);
+        expect(docText).to.be.equal("hi!first!second!hi!third!forth!");
     });
 });

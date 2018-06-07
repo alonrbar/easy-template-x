@@ -39,7 +39,7 @@ export class LoopPlugin extends TemplatePlugin {
         this.mergeBack(compiledParagraphs, firstParagraph, lastParagraph);
 
         // modify input tags collection
-        allTags.splice(openTagIndex, closeTagIndex);
+        allTags.splice(openTagIndex, closeTagIndex + 1);
 
         // TODO: adjust compiler accordingly
     }
@@ -101,6 +101,8 @@ export class LoopPlugin extends TemplatePlugin {
     }
 
     private mergeBack(newParagraphs: Node[], firstParagraph: Node, lastParagraph: Node): void {
+        if (!newParagraphs.length)
+            return;
 
         // merge edge paragraphs
         this.docxParser.joinParagraphs(firstParagraph, newParagraphs[0]);

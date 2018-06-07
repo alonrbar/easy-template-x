@@ -57,16 +57,7 @@ export class TemplateCompiler {
             } else if (tag.disposition === TagDisposition.Open) {
 
                 // find the closing tag
-                let closeTag: Tag;
-                let j = i;
-                for (; j < tags.length; j++) {
-                    closeTag = tags[j];
-                    if (closeTag.type === tag.type && closeTag.disposition === TagDisposition.Close) {
-                        break;
-                    }
-                }
-                if (j === tags.length)
-                    throw new UnclosedTagError(tag.name);
+                const j = this.findCloseTagIndex(i, tag, tags);       
 
                 // replace container tag
                 for (const plugin of this.plugins) {
@@ -76,5 +67,26 @@ export class TemplateCompiler {
 
             scopeManager.updateScopeAfter(tag);
         }
+    }
+
+    private findCloseTagIndex(fromIndex: number, openTag: Tag, tags: Tag[]): number {
+        
+        let i = fromIndex;
+        for (; i < tags.length; i++) {
+            const closeTag = tags[i];
+            if (
+                closeTag.name === openTag.name && 
+                closeTag.type === openTag.type && 
+                closeTag.disposition === TagDisposition.Close
+            ) {
+                break;
+            }
+        }
+
+        if (i === tags.length) {
+            throw new UnclosedTagError(openTag.name);
+        }
+
+        return i;
     }
 }
