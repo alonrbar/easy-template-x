@@ -1,7 +1,27 @@
 import * as JSZip from 'jszip';
+import { XmlParser } from './xmlParser';
 
 export class DocxParser {
     
+    public readonly xmlParser = new XmlParser();
+
+    // In Word text nodes are contained in "run" nodes (which specifies text
+    // properties such as font and color). The "run" nodes in turn are
+    // contained in paragraph nodes which is the core unit of content.
+    //
+    // Example:
+    //
+    // <w:p>    <-- paragraph
+    //   <w:r>      <-- run
+    //     <w:rPr>      <-- run properties
+    //       <w:b/>     <-- bold
+    //     </w:rPr>
+    //     <w:t>This is text.</w:t>     <-- actual text
+    //   </w:r>
+    // </w:p> 
+    //
+    // see: http://officeopenxml.com/WPcontentOverview.php
+
     public contentFilePaths(zip: JSZip) {
         const baseTags = [
             // "docProps/core.xml",
@@ -25,24 +45,7 @@ export class DocxParser {
             return "word/document2.xml";
         }
         return undefined;
-    }
-
-    // In Word text nodes are contained in "run" nodes (which specifies text
-    // properties such as font and color). The "run" nodes in turn are
-    // contained in paragraph nodes which is the core unit of content.
-    //
-    // Example:
-    //
-    // <w:p>    <-- paragraph
-    //   <w:r>      <-- run
-    //     <w:rPr>      <-- run properties
-    //       <w:b/>     <-- bold
-    //     </w:rPr>
-    //     <w:t>This is text.</w:t>     <-- actual text
-    //   </w:r>
-    // </w:p> 
-    //
-    // see: http://officeopenxml.com/WPcontentOverview.php
+    }    
 
     public splitTextNode(textNode: Node, splitIndex: number, addBefore: boolean): void {
 
@@ -62,7 +65,7 @@ export class DocxParser {
         } else {
 
             const afterRunNode = runNode.cloneNode(true);
-            const runIndex = this.indexOfChildNode(runNode.parentNode, runNode);
+            const runIndex = this.xmlParser.indexOfChildNode(runNode.parentNode, runNode);
             if (runIndex === runNode.parentNode.childNodes.length - 1) {
                 runNode.parentNode.appendChild(afterRunNode);
             } else {
@@ -107,14 +110,10 @@ export class DocxParser {
         }
     }
 
-    //
-    // private methods
-    //
-
     /**
      * Search **downwards** for the first text node.
      */
-    private findTextNode(node: Node): Node {
+    public findTextNode(node: Node): Node {
 
         if (!node)
             return null;
@@ -138,7 +137,7 @@ export class DocxParser {
     /**
      * Search **upwards** for the first run node.
      */
-    private findRunNode(node: Node): Node {
+    public findRunNode(node: Node): Node {
         if (!node)
             return null;
 
@@ -148,15 +147,16 @@ export class DocxParser {
         return this.findRunNode(node.parentNode);
     }
 
-    private indexOfChildNode(parent: Node, child: Node): number {
-        if (!parent.hasChildNodes())
-            return -1;
+    /**
+     * Search **upwards** for the first paragraph node.
+     */
+    public findParagraphNode(node: Node): Node {
+        if (!node)
+            return null;
 
-        for (let i = 0; i < parent.childNodes.length; i++) {
-            if (parent.childNodes.item(i) === child)
-                return i;
-        }
+        if (node.nodeName === 'w:p')
+            return node;
 
-        return -1;
+        return this.findParagraphNode(node.parentNode);
     }
 }

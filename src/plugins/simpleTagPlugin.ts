@@ -6,6 +6,8 @@ export class SimpleTagPlugin extends TemplatePlugin {
 
     public readonly tagType = TagType.Simple;
 
+    public xmlParser = new XmlParser();
+
     /**
      * @inheritDoc
      */
@@ -16,7 +18,7 @@ export class SimpleTagPlugin extends TemplatePlugin {
 
         // TODO: line breaks        
 
-        const value = XmlParser.encode(data || '');
+        const value = this.xmlParser.encode(data || '');
         tag.xmlNode.textContent = value;
     }
 }

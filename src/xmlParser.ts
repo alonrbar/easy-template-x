@@ -25,12 +25,23 @@ export class XmlParser {
     private static readonly parser = new DomParserType();
     private static readonly serializer = new XmlSerializerType();
 
+    public parse(str: string): Document {
+        if (str === null || str === undefined)
+            throw new MissingArgumentError(nameof(str));
+
+        return XmlParser.parser.parseFromString(str, "text/xml");
+    }
+
+    public serialize(xmlNode: Node): string {
+        return XmlParser.serializer.serializeToString(xmlNode);
+    }
+
     /**
      * Encode string to make it safe to use inside xml tags.
      * 
      * https://stackoverflow.com/questions/7918868/how-to-escape-xml-entities-in-javascript
      */
-    public static encode(str: string): string {
+    public encode(str: string): string {
         if (str === null || str === undefined)
             throw new MissingArgumentError(nameof(str));
 
@@ -46,14 +57,29 @@ export class XmlParser {
         });
     }
 
-    public parse(str: string): Document {
-        if (str === null || str === undefined)
-            throw new MissingArgumentError(nameof(str));
-            
-        return XmlParser.parser.parseFromString(str, "text/xml");
+    public removeNodeAndSiblings(node: Node, goForward = true, stopNode: Node = null): void {
+        let nextNode = node;
+        do {
+            const curNode = nextNode;
+            if (goForward) {
+                nextNode = nextNode.nextSibling;
+            } else {
+                nextNode = nextNode.previousSibling;
+            }
+            curNode.parentNode.removeChild(curNode);
+
+        } while (nextNode && nextNode !== stopNode);
     }
 
-    public serialize(xmlNode: Node): string {
-        return XmlParser.serializer.serializeToString(xmlNode);
+    public indexOfChildNode(parent: Node, child: Node): number {
+        if (!parent.hasChildNodes())
+            return -1;
+
+        for (let i = 0; i < parent.childNodes.length; i++) {
+            if (parent.childNodes.item(i) === child)
+                return i;
+        }
+
+        return -1;
     }
 }
