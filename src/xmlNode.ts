@@ -91,9 +91,39 @@ export namespace XmlNode {
 
     export function serialize(node: XmlNode): string {
         if (isTextNode(node))
-            return node.textContent || '';
+            return encodeValue(node.textContent) || '';
 
-        throw new Error('not implemented');
+        // attributes
+        let attributes = '';
+        if (node.attributes) {
+            attributes = node.attributes
+                .map(attr => `${attr.name}="${attr.value}"`)
+                .join(' ');
+        }
+
+        // open tag
+        const hasChildren = (node.childNodes || []).length > 0;
+        const suffix = hasChildren ? '' : '/';
+        const openTag = `<${node.nodeName} ${attributes} ${suffix}>`;
+
+        let xml: string;
+
+        if (hasChildren) {
+
+            // child nodes
+            const childrenXml = node.childNodes
+                .map(child => serialize(child))
+                .join('');
+
+            // close tag
+            const closeTag = `</${node.nodeName}>`;
+
+            xml = openTag + childrenXml + closeTag;
+        } else {
+            xml = openTag;
+        }
+
+        return xml;
     }
 
     /**

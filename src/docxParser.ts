@@ -103,15 +103,16 @@ export class DocxParser {
                 firstXmlTextNode.textContent += curXmlTextNode.textContent;
             }
 
-            // remove current node
-            XmlNode.remove(curRunNode);
-
             // go next
+            const toRemove = curRunNode;
             if (curRunNode === secondRunNode) {
                 curRunNode = null;
             } else {
                 curRunNode = curRunNode.nextSibling;
             }
+
+            // remove current node
+            XmlNode.remove(toRemove);            
         }
     }
 
