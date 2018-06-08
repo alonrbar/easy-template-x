@@ -95,8 +95,8 @@ export namespace XmlNode {
 
         // attributes
         let attributes = '';
-        if (node.attributes) {
-            attributes = node.attributes
+        if (node.attributes && node.attributes.length) {
+            attributes = ' ' + node.attributes
                 .map(attr => `${attr.name}="${attr.value}"`)
                 .join(' ');
         }
@@ -104,7 +104,7 @@ export namespace XmlNode {
         // open tag
         const hasChildren = (node.childNodes || []).length > 0;
         const suffix = hasChildren ? '' : '/';
-        const openTag = `<${node.nodeName} ${attributes} ${suffix}>`;
+        const openTag = `<${node.nodeName}${attributes}${suffix}>`;
 
         let xml: string;
 
