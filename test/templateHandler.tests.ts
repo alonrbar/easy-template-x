@@ -174,7 +174,7 @@ describe(nameof(TemplateHandler), () => {
         };
 
         // generate lots of data
-        const maxOuterLoop = 100;
+        const maxOuterLoop = 1000;
         const maxInnerLoop = 20;
         for (let i = 0; i < maxOuterLoop; i++) {
             data.loop_prop1[i] = { loop_prop2: [] };
