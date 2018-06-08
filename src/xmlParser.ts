@@ -34,30 +34,7 @@ export class XmlParser {
 
     public serialize(xmlNode: XmlNode): string {
         return XmlParser.serializer.serializeToString(xmlNode);
-    }
-
-    /**
-     * Encode string to make it safe to use inside xml tags.
-     * 
-     * https://stackoverflow.com/questions/7918868/how-to-escape-xml-entities-in-javascript
-     */
-    public encode(str: string): string {
-        if (str === null || str === undefined)
-            throw new MissingArgumentError(nameof(str));
-        if (typeof str !== 'string')
-            throw new TypeError(`Expected a string, got '${(str as any).constructor.name}'.`);
-
-        return str.replace(/[<>&'"]/g, c => {
-            switch (c) {
-                case '<': return '&lt;';
-                case '>': return '&gt;';
-                case '&': return '&amp;';
-                case '\'': return '&apos;';
-                case '"': return '&quot;';
-            }
-            return '';
-        });
-    }
+    }    
 
     /**
      * Remove sibling nodes between 'from' and 'to' excluding both.

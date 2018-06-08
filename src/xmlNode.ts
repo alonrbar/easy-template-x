@@ -19,7 +19,7 @@ export interface XmlTextNode extends XmlNode {
 
 export interface XmlOtherNode extends XmlNode {
     nodeType: XmlNodeType.Other;
-    name: string;
+    nodeName: string;
     attributes?: XmlAttribute[];
 }
 
@@ -31,8 +31,83 @@ export interface XmlAttribute {
 // tslint:disable-next-line:no-namespace
 export namespace XmlNode {
 
-    export function fromDomNode(domNode: Node, deep: boolean): XmlNode {
-        throw new Error('not implemented...');
+    /**
+     * Encode string to make it safe to use inside xml tags.
+     * 
+     * https://stackoverflow.com/questions/7918868/how-to-escape-xml-entities-in-javascript
+     */
+    export function encode(str: string): string {
+        if (str === null || str === undefined)
+            throw new MissingArgumentError(nameof(str));
+        if (typeof str !== 'string')
+            throw new TypeError(`Expected a string, got '${(str as any).constructor.name}'.`);
+
+        return str.replace(/[<>&'"]/g, c => {
+            switch (c) {
+                case '<': return '&lt;';
+                case '>': return '&gt;';
+                case '&': return '&amp;';
+                case '\'': return '&apos;';
+                case '"': return '&quot;';
+            }
+            return '';
+        });
+    }
+
+    /**
+     * The conversion is always deep.
+     */
+    export function fromDomNode(domNode: Node): XmlNode {
+        const xmlNode: XmlNode = ({} as any);
+
+        // basic properties
+        if (domNode.nodeType === domNode.TEXT_NODE) {
+
+            xmlNode.nodeType = XmlNodeType.Text;
+            (xmlNode as XmlTextNode).textContent = domNode.textContent;
+
+        } else {
+
+            xmlNode.nodeType = XmlNodeType.Other;
+            (xmlNode as XmlOtherNode).nodeName = domNode.nodeName;
+
+            // attributes
+            if (domNode.nodeType === domNode.ELEMENT_NODE) {
+                const attributes = (domNode as Element).attributes;
+                if (attributes) {
+                    (xmlNode as XmlOtherNode).attributes = [];
+                    for (let i = 0; i < attributes.length; i++) {
+                        const curAttribute = attributes.item(i);
+                        (xmlNode as XmlOtherNode).attributes.push({
+                            name: curAttribute.name,
+                            value: curAttribute.value
+                        });
+                    }
+                }
+            }
+        }
+
+        // children
+        if (domNode.childNodes) {
+            xmlNode.childNodes = [];
+            let prevChild: XmlNode;
+            for (let i = 0; i < domNode.childNodes.length; i++) {
+
+                // clone child
+                const domChild = domNode.childNodes.item(i);
+                const curChild = fromDomNode(domChild);
+
+                // set references                
+                xmlNode.childNodes.push(curChild);
+                curChild.parentNode = xmlNode;
+                if (prevChild) {
+                    prevChild.nextSibling = curChild;
+                }
+                prevChild = curChild;
+            }
+        }
+
+        return xmlNode as XmlNode;
     }
 
     export function cloneNode(node: XmlNode, deep: boolean): XmlNode {
@@ -46,7 +121,9 @@ export namespace XmlNode {
             clone.nextSibling = null;
             return clone;
         } else {
-            throw new Error('not implemented...');
+            const clone = cloneNodeDeep(node);
+            clone.parentNode = null;
+            return clone;
         }
     }
 
@@ -171,5 +248,47 @@ export namespace XmlNode {
 
         // append
         parent.childNodes.splice(childIndex, 0, child);
+    }
+
+    //
+    // private functions
+    //
+
+    function cloneNodeDeep(original: XmlNode): XmlNode {
+
+        const clone: XmlNode = ({} as any);
+
+        // basic properties
+        clone.nodeType = original.nodeType;
+        if (original.nodeType === XmlNodeType.Text) {
+            (clone as XmlTextNode).textContent = (original as XmlTextNode).textContent;
+        } else {
+            (clone as XmlOtherNode).nodeName = (original as XmlOtherNode).nodeName;
+            const attributes = (original as XmlOtherNode).attributes;
+            if (attributes) {
+                (clone as XmlOtherNode).attributes = attributes.map(attr => ({ name: attr.name, value: attr.value }));
+            }
+        }
+
+        // children
+        if (original.childNodes) {
+            clone.childNodes = [];
+            let prevChildClone: XmlNode;
+            for (const child of original.childNodes) {
+                
+                // clone child
+                const childClone = cloneNodeDeep(child);
+
+                // set references                
+                clone.childNodes.push(childClone);
+                childClone.parentNode = clone;
+                if (prevChildClone) {
+                    prevChildClone.nextSibling = childClone;
+                }
+                prevChildClone = childClone;
+            }
+        }
+
+        return clone;
     }
 }
