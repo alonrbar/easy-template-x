@@ -40,11 +40,12 @@ export class TemplateCompiler {
         this.plugins.forEach(plugin => plugin.setContext(this));
 
         const scopeManager = new ScopeManager(data);
+        let scopeIndex = 0;
         for (let i = 0; i < tags.length; i++) {
 
             const tag = tags[i];
 
-            scopeManager.updateScopeBefore(tag, i);
+            scopeManager.updateScopeBefore(tag, scopeIndex);
             const scopedData = scopeManager.scopedData;
 
             if (tag.disposition === TagDisposition.SelfClosed) {
@@ -64,12 +65,14 @@ export class TemplateCompiler {
                 // replace container tag
                 for (const plugin of this.plugins) {
                     if (plugin.containerTagReplacements(i, j, tags, scopedData)) {
+                        i--;
                         break;
                     }
                 }
             }
 
             scopeManager.updateScopeAfter(tag);
+            scopeIndex++;
         }
     }
 
