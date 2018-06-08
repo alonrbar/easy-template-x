@@ -52,7 +52,7 @@ export class TagParser {
 
                     // valid open
                     if (!openedTag && delimiter.isOpen) {
-                        openedTag = new Tag({ xmlNode: currentToken.xmlNode });
+                        openedTag = new Tag({ xmlTextNode: currentToken.xmlTextNode });
                         openedDelimiter = delimiter;
                     }
 
@@ -73,12 +73,12 @@ export class TagParser {
     private processTag(tag: Tag, openedDelimiter: DelimiterMark, closeToken: TemplateToken, closeDelimiter: DelimiterMark): void {
 
         // normalize the underlying xml structure
-        const openNode = tag.xmlNode;
-        const closeNode = closeToken.xmlNode;
+        const openNode = tag.xmlTextNode;
+        const closeNode = closeToken.xmlTextNode;
         this.normalizeTagNodes(openNode, openedDelimiter, closeNode, closeDelimiter);
 
         // extract tag info from tag's text
-        tag.rawText = tag.xmlNode.textContent;
+        tag.rawText = tag.xmlTextNode.textContent;
         for (const prefix of this.tagPrefix) {
 
             // TODO: compile regex once

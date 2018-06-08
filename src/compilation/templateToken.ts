@@ -18,7 +18,7 @@ export interface DelimiterMark {
 export class TemplateToken {
     public type: TokenType;
     public delimiters: DelimiterMark[] = [];
-    public xmlNode: Node;
+    public xmlTextNode: Text;
 
     constructor(initial?: Partial<TemplateToken>) {
         Object.assign(this, initial);

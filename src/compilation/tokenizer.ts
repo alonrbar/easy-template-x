@@ -21,7 +21,7 @@ export class Tokenizer {
             return;
 
         // process self
-        if (node.nodeType === node.TEXT_NODE) {
+        if (this.isText(node)) {
 
             const curToken = this.createToken(node);
             tokens.push(curToken);
@@ -36,9 +36,9 @@ export class Tokenizer {
         }
     }
 
-    private createToken(node: Node): TemplateToken {
+    private createToken(node: Text): TemplateToken {
 
-        const token = new TemplateToken({ xmlNode: node });
+        const token = new TemplateToken({ xmlTextNode: node });
         const tokenText = node.textContent;
 
         // empty tokens
@@ -69,5 +69,9 @@ export class Tokenizer {
         // simple text tokens
         token.type = TokenType.Text;
         return token;
+    }
+
+    private isText(node: Node): node is Text {
+        return node.nodeType === node.TEXT_NODE;
     }
 }

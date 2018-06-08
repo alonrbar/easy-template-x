@@ -29,7 +29,7 @@ export class Tag {
     public rawText: string;
     public type: TagType;
     public disposition: TagDisposition;
-    public xmlNode: Node;
+    public xmlTextNode: Text;
 
     constructor(initial?: Partial<Tag>) {
         Object.assign(this, initial);

@@ -13,18 +13,18 @@ describe(nameof(LoopPlugin), () => {
         const document = new XmlParser().parse(template);
         const tags = [
             new Tag({
-                xmlNode: document.documentElement
+                xmlTextNode: document.documentElement
                     .childNodes.item(1) // body
                     .childNodes.item(1) // paragraph
                     .childNodes.item(5) // run
-                    .childNodes.item(3) // text node
+                    .childNodes.item(3) as Text // text node
             }),
             new Tag({
-                xmlNode: document.documentElement
+                xmlTextNode: document.documentElement
                     .childNodes.item(1) // body
                     .childNodes.item(3) // paragraph
                     .childNodes.item(7) // run
-                    .childNodes.item(3) // text node
+                    .childNodes.item(3) as Text // text node
             })
         ];
 

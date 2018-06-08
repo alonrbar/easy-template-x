@@ -23,11 +23,11 @@ export class LoopPlugin extends TemplatePlugin {
         const closeTag = allTags[closeTagIndex];
 
         // get edge paragraphs
-        const firstParagraph = this.docxParser.findParagraphNode(openTag.xmlNode);
-        const lastParagraph = this.docxParser.findParagraphNode(closeTag.xmlNode);
+        const firstParagraph = this.docxParser.findParagraphNode(openTag.xmlTextNode);
+        const lastParagraph = this.docxParser.findParagraphNode(closeTag.xmlTextNode);
 
         // extract relevant content
-        const extractedParagraphs = this.extractParagraphs(firstParagraph, openTag.xmlNode, lastParagraph, closeTag.xmlNode);
+        const extractedParagraphs = this.extractParagraphs(firstParagraph, openTag.xmlTextNode, lastParagraph, closeTag.xmlTextNode);
 
         // repeat (loop) the content
         const repeatedParagraphs = this.repeatParagraphs(extractedParagraphs, data.length);
