@@ -5,7 +5,7 @@ import { TemplatePlugin } from './templatePlugin';
 
 export class SimpleTagPlugin extends TemplatePlugin {
 
-    private static lineBreak: Node;
+    private static lineBreak: XmlNode;
 
     public readonly tagType = TagType.Simple;
 
@@ -56,7 +56,7 @@ export class SimpleTagPlugin extends TemplatePlugin {
         }
     }
 
-    private getLineBreak(): Node {
+    private getLineBreak(): XmlNode {
         if (!SimpleTagPlugin.lineBreak) {
             SimpleTagPlugin.lineBreak = this.xmlParser.parse('<dummyRoot><w:br/></dummyRoot>').documentElement.firstChild;
         }

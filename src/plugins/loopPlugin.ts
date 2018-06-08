@@ -44,7 +44,7 @@ export class LoopPlugin extends TemplatePlugin {
         return true;
     }
 
-    private extractParagraphs(firstParagraph: Node, openTagNode: Node, lastParagraph: Node, closeTagNode: Node): Node[] {
+    private extractParagraphs(firstParagraph: XmlNode, openTagNode: XmlNode, lastParagraph: XmlNode, closeTagNode: XmlNode): XmlNode[] {
 
         // split edge paragraphs
         const firstParagraphSplit = this.xmlParser.splitByChild(firstParagraph, openTagNode, true, true);
@@ -58,8 +58,8 @@ export class LoopPlugin extends TemplatePlugin {
 
     }
 
-    private repeatParagraphs(paragraphs: Node[], times: number): Node[] {
-        const result: Node[] = [];
+    private repeatParagraphs(paragraphs: XmlNode[], times: number): XmlNode[] {
+        const result: XmlNode[] = [];
 
         const firstParagraph = paragraphs[0];
 
@@ -80,7 +80,7 @@ export class LoopPlugin extends TemplatePlugin {
         return result;
     }
 
-    private compile(nodes: Node[], data: any): Node[] {
+    private compile(nodes: XmlNode[], data: any): XmlNode[] {
 
         // create dummy root node
         const dummyRootNode = this.xmlParser.parse('<dummyRootNode/>');
@@ -91,7 +91,7 @@ export class LoopPlugin extends TemplatePlugin {
         this.compiler.compile(dummyRootNode, data);
 
         // return result nodes
-        const resultNodes: Node[] = [];
+        const resultNodes: XmlNode[] = [];
         while (dummyDocRoot.childNodes && dummyDocRoot.childNodes.length) {
             const child = dummyDocRoot.firstChild;
             dummyDocRoot.removeChild(child);
@@ -100,7 +100,7 @@ export class LoopPlugin extends TemplatePlugin {
         return resultNodes;
     }
 
-    private mergeBack(newParagraphs: Node[], firstParagraph: Node, lastParagraph: Node): void {
+    private mergeBack(newParagraphs: XmlNode[], firstParagraph: XmlNode, lastParagraph: XmlNode): void {
         if (!newParagraphs.length)
             return;
 

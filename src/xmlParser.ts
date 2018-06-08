@@ -32,7 +32,7 @@ export class XmlParser {
         return XmlParser.parser.parseFromString(str, "text/xml");
     }
 
-    public serialize(xmlNode: Node): string {
+    public serialize(xmlNode: XmlNode): string {
         return XmlParser.serializer.serializeToString(xmlNode);
     }
 
@@ -62,11 +62,11 @@ export class XmlParser {
     /**
      * Clone sibling nodes between 'from' and 'to' excluding both.
      */
-    public cloneSiblings(from: Node, to: Node): Node[] {
+    public cloneSiblings(from: XmlNode, to: XmlNode): XmlNode[] {
         if (from === to)
             return [];
 
-        const clones: Node[] = [];
+        const clones: XmlNode[] = [];
 
         from = from.nextSibling;
         while (from !== to) {
@@ -81,11 +81,11 @@ export class XmlParser {
      * Remove sibling nodes between 'from' and 'to' excluding both.
      * Return the removed nodes.
      */
-    public removeSiblings(from: Node, to: Node): Node[] {
+    public removeSiblings(from: XmlNode, to: XmlNode): XmlNode[] {
         if (from === to)
             return [];
 
-        const removed: Node[] = [];
+        const removed: XmlNode[] = [];
 
         from = from.nextSibling;
         while (from !== to) {
@@ -108,7 +108,7 @@ export class XmlParser {
      * into the result node. Else, everything before it will be extracted
      * instead.
      */
-    public splitByChild(root: Node, markerNode: Node, afterMarker: boolean, removeMarkerNode: boolean): Node {
+    public splitByChild(root: XmlNode, markerNode: XmlNode, afterMarker: boolean, removeMarkerNode: boolean): XmlNode {
         const path = this.getDescendantPath(root, markerNode);
 
         let clone = root.cloneNode(false);
@@ -130,7 +130,7 @@ export class XmlParser {
 
             // before marker
             const stopChild = root.childNodes.item(childIndex);
-            let curChild: Node;
+            let curChild: XmlNode;
             do {
                 curChild = root.firstChild;
                 root.removeChild(curChild);
@@ -146,7 +146,7 @@ export class XmlParser {
         return clone;
     }
 
-    public indexOfChildNode(parent: Node, child: Node): number {
+    public indexOfChildNode(parent: XmlNode, child: XmlNode): number {
         if (!parent.hasChildNodes())
             return -1;
 
@@ -158,7 +158,7 @@ export class XmlParser {
         return -1;
     }
 
-    private getDescendantPath(root: Node, descendant: Node): number[] {
+    private getDescendantPath(root: XmlNode, descendant: XmlNode): number[] {
         const path: number[] = [];
 
         let node = descendant;

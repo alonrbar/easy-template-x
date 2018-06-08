@@ -95,7 +95,7 @@ export class TagParser {
         }
     }
 
-    private normalizeTagNodes(startTextNode: Node, openDelimiter: DelimiterMark, endTextNode: Node, closeDelimiter: DelimiterMark): void {
+    private normalizeTagNodes(startTextNode: XmlNode, openDelimiter: DelimiterMark, endTextNode: XmlNode, closeDelimiter: DelimiterMark): void {
 
         // for this text: "some text {my tag} some other text" 
         // the desired text nodes should be:

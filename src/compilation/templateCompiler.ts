@@ -25,7 +25,7 @@ export class TemplateCompiler {
      * Compiles the template and performs the required replacements using the
      * specified data.
      */
-    public compile(node: Node, data: any): void {
+    public compile(node: XmlNode, data: any): void {
         const tokens = this.tokenizer.tokenize(node);
         const tags = this.tagParser.parse(tokens);
         this.doTagReplacements(node, tags, data);
@@ -35,7 +35,7 @@ export class TemplateCompiler {
     // private methods
     //
 
-    private doTagReplacements(node: Node, tags: Tag[], data: any): void {
+    private doTagReplacements(node: XmlNode, tags: Tag[], data: any): void {
 
         this.plugins.forEach(plugin => plugin.setContext(this));
 

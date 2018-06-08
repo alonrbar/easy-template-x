@@ -51,10 +51,10 @@ export class DocxParser {
         return undefined;
     }
 
-    public splitTextNode(textNode: Node, splitIndex: number, addBefore: boolean): void {
+    public splitTextNode(textNode: XmlNode, splitIndex: number, addBefore: boolean): void {
 
-        let firstTextNode: Node;
-        let secondTextNode: Node;
+        let firstTextNode: XmlNode;
+        let secondTextNode: XmlNode;
 
         // split nodes
         const runNode = this.findRunNode(textNode);
@@ -89,7 +89,7 @@ export class DocxParser {
     /**
      * Move all text from 'second' to 'first'.
      */
-    public joinTextNodes(first: Node, second: Node): void {
+    public joinTextNodes(first: XmlNode, second: XmlNode): void {
         const firstRunNode = this.findRunNode(first);
         const secondRunNode = this.findRunNode(second);
 
@@ -120,7 +120,7 @@ export class DocxParser {
     /**
      * Take all runs from 'second' and move them to 'first'.
      */
-    public joinParagraphs(first: Node, second: Node): void {
+    public joinParagraphs(first: XmlNode, second: XmlNode): void {
         let i = 0;
         while (second.childNodes && second.childNodes.length) {
             const curChild = second.childNodes.item(i);
@@ -136,7 +136,7 @@ export class DocxParser {
     /**
      * Search **downwards** for the first text node.
      */
-    public findTextNode(node: Node): Node {
+    public findTextNode(node: XmlNode): XmlNode {
 
         if (!node)
             return null;
@@ -160,7 +160,7 @@ export class DocxParser {
     /**
      * Search **upwards** for the first run node.
      */
-    public findRunNode(node: Node): Node {
+    public findRunNode(node: XmlNode): XmlNode {
         if (!node)
             return null;
 
@@ -173,7 +173,7 @@ export class DocxParser {
     /**
      * Search **upwards** for the first paragraph node.
      */
-    public findParagraphNode(node: Node): Node {
+    public findParagraphNode(node: XmlNode): XmlNode {
         if (!node)
             return null;
 

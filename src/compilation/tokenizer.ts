@@ -7,13 +7,13 @@ export class Tokenizer {
 
     public delimiters = new Delimiters();
 
-    public tokenize(node: Node): TemplateToken[] {
+    public tokenize(node: XmlNode): TemplateToken[] {
         const tokens: TemplateToken[] = [];
         this.tokenizeRecurse(node, tokens, 0);
         return tokens;
     }
 
-    private tokenizeRecurse(node: Node, tokens: TemplateToken[], depth: number): void {
+    private tokenizeRecurse(node: XmlNode, tokens: TemplateToken[], depth: number): void {
         if (depth > MAX_XML_DEPTH)
             throw new MaxXmlDepthError(depth);
 
@@ -71,7 +71,7 @@ export class Tokenizer {
         return token;
     }
 
-    private isText(node: Node): node is Text {
+    private isText(node: XmlNode): node is Text {
         return node.nodeType === node.TEXT_NODE;
     }
 }
