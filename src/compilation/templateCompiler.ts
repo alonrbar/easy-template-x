@@ -53,9 +53,12 @@ export class TemplateCompiler {
 
                 // replace simple tag
                 for (const plugin of this.plugins) {
-                    if (plugin.simpleTagReplacements(tag, scopedData)) {
+
+                    if (plugin.tagType !== tag.type)
+                        continue;
+
+                    if (plugin.simpleTagReplacements(tag, scopedData))
                         break;
-                    }
                 }
 
             } else if (tag.disposition === TagDisposition.Open) {
@@ -65,6 +68,10 @@ export class TemplateCompiler {
 
                 // replace container tag
                 for (const plugin of this.plugins) {
+
+                    if (plugin.tagType !== tag.type)
+                        continue;
+
                     if (plugin.containerTagReplacements(i, j, tags, scopedData)) {
                         i--;
                         break;
