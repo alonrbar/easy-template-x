@@ -1,6 +1,7 @@
 import { Delimiters } from '../delimiters';
 import { MaxXmlDepthError } from '../errors';
 import { MAX_XML_DEPTH } from '../utils';
+import { XmlNode } from '../xmlNode';
 import { TemplateToken, TokenType } from './templateToken';
 
 export class Tokenizer {
@@ -31,7 +32,7 @@ export class Tokenizer {
         // process child nodes
         const childNodesLength = (node.childNodes ? node.childNodes.length : 0);
         for (let i = 0; i < childNodesLength; i++) {
-            const child = node.childNodes.item(i);
+            const child = node.childNodes[i];
             this.tokenizeRecurse(child, tokens, depth + 1);
         }
     }

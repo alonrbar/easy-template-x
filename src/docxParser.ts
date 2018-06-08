@@ -1,4 +1,5 @@
 import * as JSZip from 'jszip';
+import { XmlNode } from './xmlNode';
 import { XmlParser } from './xmlParser';
 
 export class DocxParser {
@@ -60,22 +61,17 @@ export class DocxParser {
         const runNode = this.findRunNode(textNode);
         if (addBefore) {
 
-            const beforeRunNode = runNode.cloneNode(true);
-            runNode.parentNode.insertBefore(beforeRunNode, runNode);
+            const beforeRunNode = XmlNode.cloneNode(runNode, true);
+            XmlNode.insertBefore(beforeRunNode, runNode);
 
             firstTextNode = this.findTextNode(beforeRunNode);
             secondTextNode = textNode;
 
         } else {
 
-            const afterRunNode = runNode.cloneNode(true);
+            const afterRunNode = XmlNode.cloneNode(runNode, true);
             const runIndex = this.xmlParser.indexOfChildNode(runNode.parentNode, runNode);
-            if (runIndex === runNode.parentNode.childNodes.length - 1) {
-                runNode.parentNode.appendChild(afterRunNode);
-            } else {
-                const currentAfterRunNode = runNode.parentNode.childNodes.item(runIndex + 1);
-                runNode.parentNode.insertBefore(currentAfterRunNode, afterRunNode);
-            }
+            XmlNode.insertChild(runNode.parentNode, afterRunNode, runIndex + 1);
 
             firstTextNode = textNode;
             secondTextNode = this.findTextNode(afterRunNode);
@@ -123,10 +119,10 @@ export class DocxParser {
     public joinParagraphs(first: XmlNode, second: XmlNode): void {
         let i = 0;
         while (second.childNodes && second.childNodes.length) {
-            const curChild = second.childNodes.item(i);
+            const curChild = second.childNodes[i];
             if (curChild.nodeName === DocxParser.RUN_NODE) {
                 second.removeChild(curChild);
-                first.appendChild(curChild);
+                XmlNode.appendChild(first, curChild);
             } else {
                 i++;
             }
@@ -148,7 +144,7 @@ export class DocxParser {
             return null;
 
         for (let i = 0; i < node.childNodes.length; i++) {
-            const childNode = node.childNodes.item(i);
+            const childNode = node.childNodes[i];
             const textNode = this.findTextNode(childNode);
             if (textNode)
                 return textNode;

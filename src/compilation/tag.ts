@@ -1,3 +1,4 @@
+import { XmlTextNode } from '../xmlNode';
 
 export enum TagType {
     /**
@@ -29,7 +30,7 @@ export class Tag {
     public rawText: string;
     public type: TagType;
     public disposition: TagDisposition;
-    public xmlTextNode: Text;
+    public xmlTextNode: XmlTextNode;
 
     constructor(initial?: Partial<Tag>) {
         Object.assign(this, initial);

@@ -1,5 +1,6 @@
 import { Tag, TagType } from '../compilation/tag';
 import { DocxParser } from '../docxParser';
+import { XmlNode } from '../xmlNode';
 import { XmlParser } from '../xmlParser';
 import { TemplatePlugin } from './templatePlugin';
 
@@ -47,19 +48,19 @@ export class SimpleTagPlugin extends TemplatePlugin {
             
             // add line break
             const lineBreak = this.getLineBreak();
-            runNode.appendChild(lineBreak);
+            XmlNode.appendChild(runNode, lineBreak);
 
             // add text
-            const lineNode = textNode.parentNode.cloneNode();
+            const lineNode = textNode.XmlNode.cloneNode(parentNode, );
             lineNode.textContent = lines[i];
-            runNode.appendChild(lineNode);
+            XmlNode.appendChild(runNode, lineNode);
         }
     }
 
     private getLineBreak(): XmlNode {
         if (!SimpleTagPlugin.lineBreak) {
-            SimpleTagPlugin.lineBreak = this.xmlParser.parse('<dummyRoot><w:br/></dummyRoot>').documentElement.firstChild;
+            SimpleTagPlugin.lineBreak = this.xmlParser.parse('<dummyRoot><w:br/></dummyRoot>').documentElement.childNodes[0];
         }
-        return SimpleTagPlugin.lineBreak.cloneNode();
+        return SimpleTagPlugin.XmlNode.cloneNode(lineBreak, );
     }
 }

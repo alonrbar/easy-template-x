@@ -1,6 +1,7 @@
 import { Tag, TagType } from '../compilation/tag';
 import { DocxParser } from '../docxParser';
 import { last, pushMany } from '../utils';
+import { XmlNode } from '../xmlNode';
 import { XmlParser } from '../xmlParser';
 import { TemplatePlugin } from './templatePlugin';
 
@@ -67,13 +68,13 @@ export class LoopPlugin extends TemplatePlugin {
 
             // merge first paragraph to previous one
             if (result.length) {
-                this.docxParser.joinParagraphs(last(result), firstParagraph.cloneNode(true));
+                this.docxParser.joinParagraphs(last(result), XmlNode.cloneNode(firstParagraph, true));
             } else {
-                result.push(firstParagraph.cloneNode(true));
+                result.push(XmlNode.cloneNode(firstParagraph, true));
             }
 
             // append other paragraphs
-            const newParagraphs = paragraphs.slice(1).map(para => para.cloneNode(true));
+            const newParagraphs = paragraphs.slice(1).map(para => XmlNode.cloneNode(para, true));
             pushMany(result, newParagraphs);
         }
 
@@ -84,17 +85,16 @@ export class LoopPlugin extends TemplatePlugin {
 
         // create dummy root node
         const dummyRootNode = this.xmlParser.parse('<dummyRootNode/>');
-        const dummyDocRoot = dummyRootNode.documentElement;
-        nodes.forEach(p => dummyDocRoot.appendChild(p));
+        nodes.forEach(p => XmlNode.appendChild(dummyRootNode, p));
 
         // compile the new root
         this.compiler.compile(dummyRootNode, data);
 
         // return result nodes
         const resultNodes: XmlNode[] = [];
-        while (dummyDocRoot.childNodes && dummyDocRoot.childNodes.length) {
-            const child = dummyDocRoot.firstChild;
-            dummyDocRoot.removeChild(child);
+        while (dummyRootNode.childNodes && dummyRootNode.childNodes.length) {
+            const child = dummyRootNode.childNodes[0];
+            XmlNode.remove(child);
             resultNodes.push(child);
         }
         return resultNodes;
@@ -110,10 +110,10 @@ export class LoopPlugin extends TemplatePlugin {
 
         // add middle and last paragraphs to the original document
         for (let i = 1; i < newParagraphs.length; i++) {
-            lastParagraph.parentNode.insertBefore(newParagraphs[i], lastParagraph);
+            XmlNode.insertBefore(newParagraphs[i], lastParagraph);
         }
 
         // remove the old last paragraph (was merged into the new one)
-        lastParagraph.parentNode.removeChild(lastParagraph);
+        XmlNode.remove(lastParagraph);
     }
 }

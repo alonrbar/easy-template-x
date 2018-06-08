@@ -1,6 +1,7 @@
 import { Delimiters } from '../delimiters';
 import { DocxParser } from '../docxParser';
 import { MissingCloseDelimiterError, MissingStartDelimiterError } from '../errors';
+import { XmlNode } from '../xmlNode';
 import { Tag, TagDisposition, TagType } from './tag';
 import { TagPrefix } from './tagPrefix';
 import { DelimiterMark, TemplateToken, TokenType } from './templateToken';

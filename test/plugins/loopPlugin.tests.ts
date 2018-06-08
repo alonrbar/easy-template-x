@@ -14,17 +14,17 @@ describe(nameof(LoopPlugin), () => {
         const tags = [
             new Tag({
                 xmlTextNode: document.documentElement
-                    .childNodes.item(1) // body
-                    .childNodes.item(1) // paragraph
-                    .childNodes.item(5) // run
-                    .childNodes.item(3) as Text // text node
+                    .childNodes[1] // body
+                    .childNodes[1] // paragraph
+                    .childNodes[5] // run
+                    .childNodes[3] as Text // text node
             }),
             new Tag({
                 xmlTextNode: document.documentElement
-                    .childNodes.item(1) // body
-                    .childNodes.item(3) // paragraph
-                    .childNodes.item(7) // run
-                    .childNodes.item(3) as Text // text node
+                    .childNodes[1] // body
+                    .childNodes[3] // paragraph
+                    .childNodes[7] // run
+                    .childNodes[3] as Text // text node
             })
         ];
 

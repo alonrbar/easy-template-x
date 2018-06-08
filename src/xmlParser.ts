@@ -1,5 +1,6 @@
 import { MissingArgumentError } from './errors';
-import { platform } from './utils';
+import { last, platform } from './utils';
+import { XmlNode } from './xmlNode';
 
 // tslint:disable:variable-name
 
@@ -14,7 +15,6 @@ if (platform.isNode) {
     xmlServices = window;
 }
 const DomParserType: typeof DOMParser = xmlServices.DOMParser;
-const XmlSerializerType: typeof XMLSerializer = xmlServices.XMLSerializer;
 
 //
 // parser class
@@ -23,13 +23,13 @@ const XmlSerializerType: typeof XMLSerializer = xmlServices.XMLSerializer;
 export class XmlParser {
 
     private static readonly parser = new DomParserType();
-    private static readonly serializer = new XmlSerializerType();
 
-    public parse(str: string): Document {
+    public parse(str: string): XmlNode {
         if (str === null || str === undefined)
             throw new MissingArgumentError(nameof(str));
 
-        return XmlParser.parser.parseFromString(str, "text/xml");
+        const domNode = XmlParser.parser.parseFromString(str, "text/xml");
+        return XmlNode.fromDomNode(domNode, true);
     }
 
     public serialize(xmlNode: XmlNode): string {
@@ -60,24 +60,6 @@ export class XmlParser {
     }
 
     /**
-     * Clone sibling nodes between 'from' and 'to' excluding both.
-     */
-    public cloneSiblings(from: XmlNode, to: XmlNode): XmlNode[] {
-        if (from === to)
-            return [];
-
-        const clones: XmlNode[] = [];
-
-        from = from.nextSibling;
-        while (from !== to) {
-            clones.push(from.cloneNode());
-            from = from.nextSibling;
-        }
-
-        return clones;
-    }
-
-    /**
      * Remove sibling nodes between 'from' and 'to' excluding both.
      * Return the removed nodes.
      */
@@ -92,7 +74,7 @@ export class XmlParser {
             const removeMe = from;
             from = from.nextSibling;
 
-            removeMe.parentNode.removeChild(removeMe);
+            XmlNode.remove(removeMe);
             removed.push(removeMe);
         }
 
@@ -111,51 +93,39 @@ export class XmlParser {
     public splitByChild(root: XmlNode, markerNode: XmlNode, afterMarker: boolean, removeMarkerNode: boolean): XmlNode {
         const path = this.getDescendantPath(root, markerNode);
 
-        let clone = root.cloneNode(false);
+        let clone = XmlNode.cloneNode(root, false);
 
         const childIndex = path[0] + (afterMarker ? 1 : -1);
         if (afterMarker) {
 
             // after marker
             while (childIndex < root.childNodes.length) {
-                const curChild = root.childNodes.item(childIndex);
-                root.removeChild(curChild);
-                clone.appendChild(curChild);
+                const curChild = root.childNodes[childIndex];
+                XmlNode.remove(curChild);
+                XmlNode.appendChild(clone, curChild);
             }
 
             if (removeMarkerNode) {
-                root.removeChild(root.lastChild);
+                XmlNode.remove(last(root.childNodes));
             }
         } else {
 
             // before marker
-            const stopChild = root.childNodes.item(childIndex);
+            const stopChild = root.childNodes[childIndex];
             let curChild: XmlNode;
             do {
-                curChild = root.firstChild;
-                root.removeChild(curChild);
-                clone.appendChild(curChild);
+                curChild = root.childNodes[0];
+                XmlNode.remove(curChild);
+                XmlNode.appendChild(clone, curChild);
 
             } while (curChild !== stopChild);
 
             if (removeMarkerNode) {
-                root.removeChild(root.firstChild);
+                XmlNode.remove(root.childNodes[0]);
             }
         }
 
         return clone;
-    }
-
-    public indexOfChildNode(parent: XmlNode, child: XmlNode): number {
-        if (!parent.hasChildNodes())
-            return -1;
-
-        for (let i = 0; i < parent.childNodes.length; i++) {
-            if (parent.childNodes.item(i) === child)
-                return i;
-        }
-
-        return -1;
     }
 
     private getDescendantPath(root: XmlNode, descendant: XmlNode): number[] {
@@ -167,7 +137,7 @@ export class XmlParser {
             if (!parent)
                 throw new Error(`Argument ${nameof(descendant)} is not a descendant of ${nameof(root)}`);
 
-            const curChildIndex = this.indexOfChildNode(parent, node);
+            const curChildIndex = parent.childNodes.indexOf(node);
             path.push(curChildIndex);
 
             node = parent;

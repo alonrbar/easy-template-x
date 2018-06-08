@@ -1,5 +1,6 @@
 import { UnclosedTagError } from '../errors';
 import { LoopPlugin, SimpleTagPlugin, TemplatePlugin } from '../plugins';
+import { XmlNode } from '../xmlNode';
 import { ScopeManager } from './scopedManager';
 import { Tag, TagDisposition } from './tag';
 import { TagParser } from './tagParser';
