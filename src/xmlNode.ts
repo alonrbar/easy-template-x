@@ -333,6 +333,7 @@ export namespace XmlNode {
                 const lastTextNode = last(allTextNodes);
                 if (!lastTextNode.textContent)
                     lastTextNode.textContent = '';
+                return lastTextNode;
             }
         }
 

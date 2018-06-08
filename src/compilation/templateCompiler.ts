@@ -10,8 +10,8 @@ import { Tokenizer } from './tokenizer';
  * The TemplateCompiler works roughly the same way as a source code compiler.
  * It's main steps are:
  * 
- * 1. tokenize (lexical analysis) :: (Document) => Tokens[]
- * 2. create input AST (syntax analysis) :: (Tokens[]) => Tag
+ * 1. tokenize (lexical analysis) :: (Document) => Token[]
+ * 2. extract tags (syntax analysis) :: (Token[]) => Tag[]
  * 3. perform document replace (code generation) :: (Document, Tag, data) => Document*
  * 
  * see: https://en.wikipedia.org/wiki/Compiler

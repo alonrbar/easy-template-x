@@ -1,7 +1,7 @@
 import { Tag, TagType } from '../compilation/tag';
 import { DocxParser } from '../docxParser';
 import { last, pushMany } from '../utils';
-import { XmlGeneralNode, XmlNode, XmlNodeType } from '../xmlNode';
+import { XmlNode } from '../xmlNode';
 import { TemplatePlugin } from './templatePlugin';
 
 export class LoopPlugin extends TemplatePlugin {

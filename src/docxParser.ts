@@ -91,7 +91,7 @@ export class DocxParser {
             throw new Error('Can not join text nodes from separate paragraphs.');
 
         const firstWordTextNode = this.findTextNode(firstRunNode);
-        let firstXmlTextNode = XmlNode.lastTextChild(firstWordTextNode);
+        const firstXmlTextNode = XmlNode.lastTextChild(firstWordTextNode);
 
         let curRunNode = firstRunNode.nextSibling;
         while (curRunNode) {
