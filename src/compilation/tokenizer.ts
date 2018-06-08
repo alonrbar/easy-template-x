@@ -1,7 +1,7 @@
 import { Delimiters } from '../delimiters';
 import { MaxXmlDepthError } from '../errors';
 import { MAX_XML_DEPTH } from '../utils';
-import { XmlNode } from '../xmlNode';
+import { XmlNode, XmlNodeType, XmlTextNode } from '../xmlNode';
 import { TemplateToken, TokenType } from './templateToken';
 
 export class Tokenizer {
@@ -37,7 +37,7 @@ export class Tokenizer {
         }
     }
 
-    private createToken(node: Text): TemplateToken {
+    private createToken(node: XmlTextNode): TemplateToken {
 
         const token = new TemplateToken({ xmlTextNode: node });
         const tokenText = node.textContent;
@@ -72,7 +72,7 @@ export class Tokenizer {
         return token;
     }
 
-    private isText(node: XmlNode): node is Text {
-        return node.nodeType === node.TEXT_NODE;
+    private isText(node: XmlNode): node is XmlTextNode {
+        return node.nodeType === XmlNodeType.Text;
     }
 }

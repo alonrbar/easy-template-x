@@ -4,6 +4,7 @@ import { DocxParser } from './docxParser';
 import { UnsupportedFileTypeError } from './errors';
 import { FileType } from './fileType';
 import { Binary, IMap } from './utils';
+import { XmlNode } from './xmlNode';
 import { XmlParser } from './xmlParser';
 
 export class TemplateHandler {
@@ -41,7 +42,7 @@ export class TemplateHandler {
         const zipFile = await this.loadDocx(docxFile);
         const mainXmlFile = this.docxParser.mainFilePath(zipFile);
         const xmlContent = await zipFile.files[mainXmlFile].async('text');
-        const document = this.xmlParser.parse(xmlContent);
+        const document = this.xmlParser.domParse(xmlContent);
         return document.documentElement.textContent;
     }
 
@@ -61,14 +62,14 @@ export class TemplateHandler {
     /**
      * Returns a map where the key is the **file path** and the value is a **parsed document**.
      */
-    private async parseContentDocuments(docFile: JSZip): Promise<IMap<Document>> {
+    private async parseContentDocuments(docFile: JSZip): Promise<IMap<XmlNode>> {
 
         const contentFiles = this.docxParser.contentFilePaths(docFile);
 
         // some content files may not always exist (footer.xml for example)
         const existingContentFiles = contentFiles.filter(file => docFile.files[file]);
 
-        const contentDocuments: IMap<Document> = {};
+        const contentDocuments: IMap<XmlNode> = {};
         for (const file of existingContentFiles) {
 
             // extract the content from the content file

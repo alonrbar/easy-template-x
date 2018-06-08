@@ -1,8 +1,6 @@
-import { XmlParser } from "./xmlParser";
+import { XmlNode } from "./xmlNode";
 
 export class Delimiters {
-
-    private static readonly xmlParser = new XmlParser();
 
     public start = "{";
     public end = "}";
@@ -11,10 +9,10 @@ export class Delimiters {
         if (initial) {
 
             if (initial.start)
-                this.start = Delimiters.xmlParser.encode(initial.start);
+                this.start = XmlNode.encodeValue(initial.start);
 
             if (initial.end)
-                this.end = Delimiters.xmlParser.encode(initial.end);
+                this.end = XmlNode.encodeValue(initial.end);
 
         }
 

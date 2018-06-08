@@ -1,3 +1,5 @@
+import { XmlTextNode } from "../xmlNode";
+
 export enum TokenType {
     Empty = "Empty",
     /**
@@ -18,7 +20,7 @@ export interface DelimiterMark {
 export class TemplateToken {
     public type: TokenType;
     public delimiters: DelimiterMark[] = [];
-    public xmlTextNode: Text;
+    public xmlTextNode: XmlTextNode;
 
     constructor(initial?: Partial<TemplateToken>) {
         Object.assign(this, initial);

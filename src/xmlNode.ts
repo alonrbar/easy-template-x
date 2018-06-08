@@ -1,4 +1,5 @@
 import { MissingArgumentError } from './errors';
+import { last } from './utils';
 
 export enum XmlNodeType {
     Text = "Text",
@@ -31,12 +32,16 @@ export interface XmlAttribute {
 // tslint:disable-next-line:no-namespace
 export namespace XmlNode {
 
+    //
+    // serialization
+    //
+
     /**
      * Encode string to make it safe to use inside xml tags.
      * 
      * https://stackoverflow.com/questions/7918868/how-to-escape-xml-entities-in-javascript
      */
-    export function encode(str: string): string {
+    export function encodeValue(str: string): string {
         if (str === null || str === undefined)
             throw new MissingArgumentError(nameof(str));
         if (typeof str !== 'string')
@@ -52,6 +57,10 @@ export namespace XmlNode {
             }
             return '';
         });
+    }
+
+    export function serialize(node: XmlNode): string {
+        throw new Error('not implemented');
     }
 
     /**
@@ -109,6 +118,10 @@ export namespace XmlNode {
 
         return xmlNode as XmlNode;
     }
+
+    //
+    // core functions
+    //
 
     export function cloneNode(node: XmlNode, deep: boolean): XmlNode {
         if (!node)
@@ -251,6 +264,79 @@ export namespace XmlNode {
     }
 
     //
+    // utility functions
+    //
+
+    /**
+     * Remove sibling nodes between 'from' and 'to' excluding both.
+     * Return the removed nodes.
+     */
+    export function removeSiblings(from: XmlNode, to: XmlNode): XmlNode[] {
+        if (from === to)
+            return [];
+
+        const removed: XmlNode[] = [];
+
+        from = from.nextSibling;
+        while (from !== to) {
+            const removeMe = from;
+            from = from.nextSibling;
+
+            XmlNode.remove(removeMe);
+            removed.push(removeMe);
+        }
+
+        return removed;
+    }
+
+    /**
+     * Modifies the original node and returns the other part.
+     *
+     * @param root The node to split
+     * @param markerNode The node that marks the split position. 
+     * @param afterMarker If true everything the marker node will be extracted
+     * into the result node. Else, everything before it will be extracted
+     * instead.
+     */
+    export function splitByChild(root: XmlNode, markerNode: XmlNode, afterMarker: boolean, removeMarkerNode: boolean): XmlNode {
+        const path = getDescendantPath(root, markerNode);
+
+        let clone = XmlNode.cloneNode(root, false);
+
+        const childIndex = path[0] + (afterMarker ? 1 : -1);
+        if (afterMarker) {
+
+            // after marker
+            while (childIndex < root.childNodes.length) {
+                const curChild = root.childNodes[childIndex];
+                XmlNode.remove(curChild);
+                XmlNode.appendChild(clone, curChild);
+            }
+
+            if (removeMarkerNode) {
+                XmlNode.remove(last(root.childNodes));
+            }
+        } else {
+
+            // before marker
+            const stopChild = root.childNodes[childIndex];
+            let curChild: XmlNode;
+            do {
+                curChild = root.childNodes[0];
+                XmlNode.remove(curChild);
+                XmlNode.appendChild(clone, curChild);
+
+            } while (curChild !== stopChild);
+
+            if (removeMarkerNode) {
+                XmlNode.remove(root.childNodes[0]);
+            }
+        }
+
+        return clone;
+    }
+
+    //
     // private functions
     //
 
@@ -275,7 +361,7 @@ export namespace XmlNode {
             clone.childNodes = [];
             let prevChildClone: XmlNode;
             for (const child of original.childNodes) {
-                
+
                 // clone child
                 const childClone = cloneNodeDeep(child);
 
@@ -290,5 +376,23 @@ export namespace XmlNode {
         }
 
         return clone;
+    }
+
+    function getDescendantPath(root: XmlNode, descendant: XmlNode): number[] {
+        const path: number[] = [];
+
+        let node = descendant;
+        while (node !== root) {
+            const parent = node.parentNode;
+            if (!parent)
+                throw new Error(`Argument ${nameof(descendant)} is not a descendant of ${nameof(root)}`);
+
+            const curChildIndex = parent.childNodes.indexOf(node);
+            path.push(curChildIndex);
+
+            node = parent;
+        }
+
+        return path.reverse();
     }
 }

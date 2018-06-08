@@ -1,15 +1,13 @@
 import { Tag, TagType } from '../compilation/tag';
 import { DocxParser } from '../docxParser';
 import { last, pushMany } from '../utils';
-import { XmlNode } from '../xmlNode';
-import { XmlParser } from '../xmlParser';
+import { XmlNode, XmlNodeType, XmlOtherNode } from '../xmlNode';
 import { TemplatePlugin } from './templatePlugin';
 
 export class LoopPlugin extends TemplatePlugin {
 
     public readonly tagType = TagType.Loop;
 
-    private readonly xmlParser = new XmlParser();
     private readonly docxParser = new DocxParser();
 
     /**
@@ -48,11 +46,11 @@ export class LoopPlugin extends TemplatePlugin {
     private extractParagraphs(firstParagraph: XmlNode, openTagNode: XmlNode, lastParagraph: XmlNode, closeTagNode: XmlNode): XmlNode[] {
 
         // split edge paragraphs
-        const firstParagraphSplit = this.xmlParser.splitByChild(firstParagraph, openTagNode, true, true);
-        const lastParagraphSplit = this.xmlParser.splitByChild(lastParagraph, closeTagNode, false, true);
+        const firstParagraphSplit = XmlNode.splitByChild(firstParagraph, openTagNode, true, true);
+        const lastParagraphSplit = XmlNode.splitByChild(lastParagraph, closeTagNode, false, true);
 
         // extract all paragraphs in between
-        const middleParagraphNodes = this.xmlParser.removeSiblings(firstParagraph, lastParagraph);
+        const middleParagraphNodes = XmlNode.removeSiblings(firstParagraph, lastParagraph);
 
         // return joined result
         return [firstParagraphSplit].concat(middleParagraphNodes).concat(lastParagraphSplit);
@@ -84,7 +82,10 @@ export class LoopPlugin extends TemplatePlugin {
     private compile(nodes: XmlNode[], data: any): XmlNode[] {
 
         // create dummy root node
-        const dummyRootNode = this.xmlParser.parse('<dummyRootNode/>');
+        const dummyRootNode: XmlOtherNode = {
+            nodeName: 'dummyRootNode',
+            nodeType: XmlNodeType.Other
+        };
         nodes.forEach(p => XmlNode.appendChild(dummyRootNode, p));
 
         // compile the new root

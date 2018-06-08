@@ -1,7 +1,6 @@
 import { Tag, TagType } from '../compilation/tag';
 import { DocxParser } from '../docxParser';
-import { XmlNode } from '../xmlNode';
-import { XmlParser } from '../xmlParser';
+import { XmlNode, XmlTextNode } from '../xmlNode';
 import { TemplatePlugin } from './templatePlugin';
 
 export class SimpleTagPlugin extends TemplatePlugin {
@@ -10,16 +9,12 @@ export class SimpleTagPlugin extends TemplatePlugin {
 
     public readonly tagType = TagType.Simple;
 
-    private xmlParser = new XmlParser();
     private docxParser = new DocxParser();
 
     /**
      * @inheritDoc
      */
-    public simpleTagReplacements(tag: Tag, data: any): boolean {
-
-        if (tag.type !== this.tagType)
-            return false;
+    public simpleTagReplacements(tag: Tag, data: any): boolean {        
 
         const value = (data || '').split('\n');
 
@@ -32,11 +27,11 @@ export class SimpleTagPlugin extends TemplatePlugin {
         return true;
     }
 
-    private replaceSingleLine(textNode: Text, text: string) {
+    private replaceSingleLine(textNode: XmlTextNode, text: string) {
         textNode.textContent = text;
     }
 
-    private replaceMultiLine(textNode: Text, lines: string[]) {
+    private replaceMultiLine(textNode: XmlTextNode, lines: string[]) {
 
         const runNode = this.docxParser.findRunNode(textNode);
 
