@@ -47,10 +47,7 @@ describe(nameof(TemplateHandler), () => {
             ]
         };
 
-        const begin = Date.now();
         const doc = await handler.process(template, data);
-        const end = Date.now();
-        console.log(`took ${end - begin}ms`);
 
         fs.writeFileSync('/temp/myfile.docx', doc);
 
@@ -83,12 +80,43 @@ describe(nameof(TemplateHandler), () => {
             ]
         };
 
-        const begin = Date.now();
         const doc = await handler.process(template, data);
-        const end = Date.now();
-        console.log(`took ${end - begin}ms`);
 
         const docText = await handler.getText(doc);
         expect(docText).to.be.equal("hi!first!second!hi!third!forth!");
     });
+
+    it("replaces nested loops fast enough?", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template: Buffer = fs.readFileSync("./test/res/nested loop template.docx");
+        const templateText = await handler.getText(template);
+        expect(templateText.trim()).to.be.equal("{#loop_prop1}hi!{#loop_prop2}{simple_prop}!{/loop_prop2}{/loop_prop1}");
+
+        const data = {
+            loop_prop1: [
+                {
+                    loop_prop2: [
+                        { simple_prop: 'some string' }
+                    ]
+                }
+            ]
+        };
+
+        const maxOuterLoop = 500;
+        const maxInnerLoop = 20;
+        for (let i = 0; i < maxOuterLoop; i++) {
+            data.loop_prop1[i] = { loop_prop2: [] };
+            for (let j = 0; j < maxInnerLoop; j++) {
+                data.loop_prop1[i].loop_prop2[j] = { simple_prop: (i * maxOuterLoop + j).toString() };
+            }
+        }
+
+        const begin = Date.now();
+        await handler.process(template, data);
+        const end = Date.now();
+        console.log(`==> took ${end - begin}ms`);
+
+    }).timeout(60000);
 });
