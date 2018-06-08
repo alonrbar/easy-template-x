@@ -3,24 +3,29 @@ import { last } from './utils';
 
 export enum XmlNodeType {
     Text = "Text",
-    Other = "Other"
+    General = "General"
 }
 
-export interface XmlNode {
+export type XmlNode = XmlTextNode | XmlGeneralNode;
+
+export interface XmlNodeBase {
     nodeType: XmlNodeType;
+    nodeName: string;
     parentNode?: XmlNode;
     childNodes?: XmlNode[];
     nextSibling?: XmlNode;
 }
 
-export interface XmlTextNode extends XmlNode {
+const TEXT_NODE_NAME_VALUE = '#text'; // see: https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeName
+
+export interface XmlTextNode extends XmlNodeBase {
     nodeType: XmlNodeType.Text;
+    nodeName: typeof TEXT_NODE_NAME_VALUE;
     textContent: string;
 }
 
-export interface XmlOtherNode extends XmlNode {
-    nodeType: XmlNodeType.Other;
-    nodeName: string;
+export interface XmlGeneralNode extends XmlNodeBase {
+    nodeType: XmlNodeType.General;
     attributes?: XmlAttribute[];
 }
 
@@ -31,6 +36,31 @@ export interface XmlAttribute {
 
 // tslint:disable-next-line:no-namespace
 export namespace XmlNode {
+
+    //
+    // constants
+    //
+
+    export const TEXT_NODE_NAME = TEXT_NODE_NAME_VALUE;
+
+    //
+    // factories
+    //
+
+    export function createTextNode(text?: string): XmlTextNode {
+        return {
+            nodeType: XmlNodeType.Text,
+            nodeName: XmlNode.TEXT_NODE_NAME,
+            textContent: text
+        };
+    }
+
+    export function createGeneralNode(name: string): XmlGeneralNode {
+        return {
+            nodeType: XmlNodeType.General,
+            nodeName: name
+        };
+    }
 
     //
     // serialization
@@ -60,6 +90,9 @@ export namespace XmlNode {
     }
 
     export function serialize(node: XmlNode): string {
+        if (isTextNode(node))
+            return node.textContent || '';
+
         throw new Error('not implemented');
     }
 
@@ -67,27 +100,25 @@ export namespace XmlNode {
      * The conversion is always deep.
      */
     export function fromDomNode(domNode: Node): XmlNode {
-        const xmlNode: XmlNode = ({} as any);
+        let xmlNode: XmlNode;
 
         // basic properties
         if (domNode.nodeType === domNode.TEXT_NODE) {
 
-            xmlNode.nodeType = XmlNodeType.Text;
-            (xmlNode as XmlTextNode).textContent = domNode.textContent;
+            xmlNode = createTextNode(domNode.textContent);
 
         } else {
 
-            xmlNode.nodeType = XmlNodeType.Other;
-            (xmlNode as XmlOtherNode).nodeName = domNode.nodeName;
+            xmlNode = createGeneralNode(domNode.nodeName);
 
             // attributes
             if (domNode.nodeType === domNode.ELEMENT_NODE) {
                 const attributes = (domNode as Element).attributes;
                 if (attributes) {
-                    (xmlNode as XmlOtherNode).attributes = [];
+                    (xmlNode as XmlGeneralNode).attributes = [];
                     for (let i = 0; i < attributes.length; i++) {
                         const curAttribute = attributes.item(i);
-                        (xmlNode as XmlOtherNode).attributes.push({
+                        (xmlNode as XmlGeneralNode).attributes.push({
                             name: curAttribute.name,
                             value: curAttribute.value
                         });
@@ -122,6 +153,16 @@ export namespace XmlNode {
     //
     // core functions
     //
+
+    export function isTextNode(node: XmlNode): node is XmlTextNode {
+        if (node.nodeType === XmlNodeType.Text || node.nodeName === TEXT_NODE_NAME) {
+            if (!(node.nodeType === XmlNodeType.Text && node.nodeName === TEXT_NODE_NAME)) {
+                throw new Error(`Invalid text node. Type: '${node.nodeType}', Name: '${node.nodeName}'.`);
+            }
+            return true;
+        }
+        return false;
+    }
 
     export function cloneNode(node: XmlNode, deep: boolean): XmlNode {
         if (!node)
@@ -162,6 +203,8 @@ export namespace XmlNode {
 
     /**
      * Removes the node from it's parent.
+     * 
+     * * **Note**: It is more efficient to call removeChild(parent, childIndex).
      */
     export function remove(node: XmlNode): void {
         if (!node)
@@ -173,6 +216,9 @@ export namespace XmlNode {
         removeChild(node.parentNode, node);
     }
 
+    /**
+     * * **Note:** Prefer calling with explicit index.
+     */
     export function removeChild(parent: XmlNode, child: XmlNode): XmlNode;
     export function removeChild(parent: XmlNode, childIndex: number): XmlNode;
     export function removeChild(parent: XmlNode, childOrIndex: XmlNode | number): XmlNode {
@@ -265,7 +311,41 @@ export namespace XmlNode {
 
     //
     // utility functions
-    //
+    //    
+
+    /**
+     * Gets the last direct child text node if it exists. Otherwise creates a
+     * new text node, appends it to 'node' and return the newly created text
+     * node.
+     *
+     * The function also makes sure the returned text node has a valid string
+     * value.
+     */
+    export function lastTextChild(node: XmlNode): XmlTextNode {
+        if (isTextNode(node)) {
+            return node;
+        }
+
+        // existing text nodes
+        if (node.childNodes) {
+            const allTextNodes = node.childNodes.filter(child => isTextNode(child)) as XmlTextNode[];
+            if (allTextNodes.length) {
+                const lastTextNode = last(allTextNodes);
+                if (!lastTextNode.textContent)
+                    lastTextNode.textContent = '';
+            }
+        }
+
+        // create new text node
+        const newTextNode: XmlTextNode = {
+            nodeType: XmlNodeType.Text,
+            nodeName: TEXT_NODE_NAME,
+            textContent: ''
+        };
+
+        appendChild(node, newTextNode);
+        return newTextNode;
+    }
 
     /**
      * Remove sibling nodes between 'from' and 'to' excluding both.
@@ -346,13 +426,13 @@ export namespace XmlNode {
 
         // basic properties
         clone.nodeType = original.nodeType;
-        if (original.nodeType === XmlNodeType.Text) {
-            (clone as XmlTextNode).textContent = (original as XmlTextNode).textContent;
+        clone.nodeName = original.nodeName;
+        if (isTextNode(original)) {
+            (clone as XmlTextNode).textContent = original.textContent;
         } else {
-            (clone as XmlOtherNode).nodeName = (original as XmlOtherNode).nodeName;
-            const attributes = (original as XmlOtherNode).attributes;
+            const attributes = original.attributes;
             if (attributes) {
-                (clone as XmlOtherNode).attributes = attributes.map(attr => ({ name: attr.name, value: attr.value }));
+                (clone as XmlGeneralNode).attributes = attributes.map(attr => ({ name: attr.name, value: attr.value }));
             }
         }
 

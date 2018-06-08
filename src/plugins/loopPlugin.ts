@@ -1,7 +1,7 @@
 import { Tag, TagType } from '../compilation/tag';
 import { DocxParser } from '../docxParser';
 import { last, pushMany } from '../utils';
-import { XmlNode, XmlNodeType, XmlOtherNode } from '../xmlNode';
+import { XmlGeneralNode, XmlNode, XmlNodeType } from '../xmlNode';
 import { TemplatePlugin } from './templatePlugin';
 
 export class LoopPlugin extends TemplatePlugin {
@@ -82,10 +82,7 @@ export class LoopPlugin extends TemplatePlugin {
     private compile(nodes: XmlNode[], data: any): XmlNode[] {
 
         // create dummy root node
-        const dummyRootNode: XmlOtherNode = {
-            nodeName: 'dummyRootNode',
-            nodeType: XmlNodeType.Other
-        };
+        const dummyRootNode = XmlNode.createGeneralNode('dummyRootNode');
         nodes.forEach(p => XmlNode.appendChild(dummyRootNode, p));
 
         // compile the new root

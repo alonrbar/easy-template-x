@@ -1,7 +1,7 @@
 import { Delimiters } from '../delimiters';
 import { DocxParser } from '../docxParser';
 import { MissingCloseDelimiterError, MissingStartDelimiterError } from '../errors';
-import { XmlNode } from '../xmlNode';
+import { XmlTextNode } from '../xmlNode';
 import { Tag, TagDisposition, TagType } from './tag';
 import { TagPrefix } from './tagPrefix';
 import { DelimiterMark, TemplateToken, TokenType } from './templateToken';
@@ -42,13 +42,13 @@ export class TagParser {
                     // close before open
                     if (!openedTag && !delimiter.isOpen) {
                         // TODO: extract tag name
-                        throw new MissingStartDelimiterError('tag name...');
+                        throw new MissingStartDelimiterError('Unknown');
                     }
 
                     // open before close
                     if (openedTag && delimiter.isOpen) {
                         // TODO: extract tag name
-                        throw new MissingCloseDelimiterError('tag name...');
+                        throw new MissingCloseDelimiterError('Unknown');
                     }
 
                     // valid open
@@ -96,7 +96,7 @@ export class TagParser {
         }
     }
 
-    private normalizeTagNodes(startTextNode: XmlNode, openDelimiter: DelimiterMark, endTextNode: XmlNode, closeDelimiter: DelimiterMark): void {
+    private normalizeTagNodes(startTextNode: XmlTextNode, openDelimiter: DelimiterMark, endTextNode: XmlTextNode, closeDelimiter: DelimiterMark): void {
 
         // for this text: "some text {my tag} some other text" 
         // the desired text nodes should be:

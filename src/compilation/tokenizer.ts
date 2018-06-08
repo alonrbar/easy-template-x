@@ -1,7 +1,7 @@
 import { Delimiters } from '../delimiters';
 import { MaxXmlDepthError } from '../errors';
 import { MAX_XML_DEPTH } from '../utils';
-import { XmlNode, XmlNodeType, XmlTextNode } from '../xmlNode';
+import { XmlNode, XmlTextNode } from '../xmlNode';
 import { TemplateToken, TokenType } from './templateToken';
 
 export class Tokenizer {
@@ -22,7 +22,7 @@ export class Tokenizer {
             return;
 
         // process self
-        if (this.isText(node)) {
+        if (XmlNode.isTextNode(node)) {
 
             const curToken = this.createToken(node);
             tokens.push(curToken);
@@ -70,9 +70,5 @@ export class Tokenizer {
         // simple text tokens
         token.type = TokenType.Text;
         return token;
-    }
-
-    private isText(node: XmlNode): node is XmlTextNode {
-        return node.nodeType === XmlNodeType.Text;
-    }
+    }    
 }

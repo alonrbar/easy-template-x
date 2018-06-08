@@ -1,11 +1,9 @@
 import { Tag, TagType } from '../compilation/tag';
 import { DocxParser } from '../docxParser';
-import { XmlNode, XmlTextNode } from '../xmlNode';
+import { XmlNode, XmlNodeType, XmlTextNode } from '../xmlNode';
 import { TemplatePlugin } from './templatePlugin';
 
 export class SimpleTagPlugin extends TemplatePlugin {
-
-    private static lineBreak: XmlNode;
 
     public readonly tagType = TagType.Simple;
 
@@ -14,7 +12,7 @@ export class SimpleTagPlugin extends TemplatePlugin {
     /**
      * @inheritDoc
      */
-    public simpleTagReplacements(tag: Tag, data: any): boolean {        
+    public simpleTagReplacements(tag: Tag, data: any): boolean {
 
         const value = (data || '').split('\n');
 
@@ -40,22 +38,21 @@ export class SimpleTagPlugin extends TemplatePlugin {
 
         // other lines
         for (let i = 1; i < lines.length; i++) {
-            
+
             // add line break
             const lineBreak = this.getLineBreak();
             XmlNode.appendChild(runNode, lineBreak);
 
             // add text
-            const lineNode = textNode.XmlNode.cloneNode(parentNode, );
-            lineNode.textContent = lines[i];
+            const lineNode = XmlNode.createTextNode(lines[i]);
             XmlNode.appendChild(runNode, lineNode);
         }
     }
 
     private getLineBreak(): XmlNode {
-        if (!SimpleTagPlugin.lineBreak) {
-            SimpleTagPlugin.lineBreak = this.xmlParser.parse('<dummyRoot><w:br/></dummyRoot>').documentElement.childNodes[0];
-        }
-        return SimpleTagPlugin.XmlNode.cloneNode(lineBreak, );
+        return {
+            nodeType: XmlNodeType.General,
+            nodeName: 'w:br'
+        };
     }
 }

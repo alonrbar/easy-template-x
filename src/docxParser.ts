@@ -1,14 +1,11 @@
 import * as JSZip from 'jszip';
-import { XmlNode } from './xmlNode';
-import { XmlParser } from './xmlParser';
+import { XmlGeneralNode, XmlNode, XmlTextNode } from './xmlNode';
 
 export class DocxParser {
 
     public static readonly PARAGRAPH_NODE = 'w:p';
     public static readonly RUN_NODE = 'w:r';
     public static readonly TEXT_NODE = 'w:t';
-
-    public readonly xmlParser = new XmlParser();
 
     // In Word text nodes are contained in "run" nodes (which specifies text
     // properties such as font and color). The "run" nodes in turn are
@@ -54,8 +51,8 @@ export class DocxParser {
 
     public splitTextNode(textNode: XmlNode, splitIndex: number, addBefore: boolean): void {
 
-        let firstTextNode: XmlNode;
-        let secondTextNode: XmlNode;
+        let firstTextNode: XmlTextNode;
+        let secondTextNode: XmlTextNode;
 
         // split nodes
         const runNode = this.findRunNode(textNode);
@@ -64,17 +61,17 @@ export class DocxParser {
             const beforeRunNode = XmlNode.cloneNode(runNode, true);
             XmlNode.insertBefore(beforeRunNode, runNode);
 
-            firstTextNode = this.findTextNode(beforeRunNode);
-            secondTextNode = textNode;
+            firstTextNode = XmlNode.lastTextChild(this.findTextNode(beforeRunNode));
+            secondTextNode = XmlNode.lastTextChild(textNode);
 
         } else {
 
             const afterRunNode = XmlNode.cloneNode(runNode, true);
-            const runIndex = this.xmlParser.indexOfChildNode(runNode.parentNode, runNode);
+            const runIndex = runNode.parentNode.childNodes.indexOf(runNode);
             XmlNode.insertChild(runNode.parentNode, afterRunNode, runIndex + 1);
 
-            firstTextNode = textNode;
-            secondTextNode = this.findTextNode(afterRunNode);
+            firstTextNode = XmlNode.lastTextChild(textNode);
+            secondTextNode = XmlNode.lastTextChild(this.findTextNode(afterRunNode));
         }
 
         // edit text
@@ -93,16 +90,21 @@ export class DocxParser {
         if (secondRunNode.parentNode !== paragraphNode)
             throw new Error('Can not join text nodes from separate paragraphs.');
 
+        const firstWordTextNode = this.findTextNode(firstRunNode);
+        let firstXmlTextNode = XmlNode.lastTextChild(firstWordTextNode);
+
         let curRunNode = firstRunNode.nextSibling;
         while (curRunNode) {
 
             // move text to first node
-            const curTextNode = this.findTextNode(curRunNode);
-            if (curTextNode)
-                first.textContent += curTextNode.textContent;
+            const curWordTextNode = this.findTextNode(curRunNode);
+            if (curWordTextNode) {
+                const curXmlTextNode = XmlNode.lastTextChild(curWordTextNode);
+                firstXmlTextNode.textContent += curXmlTextNode.textContent;
+            }
 
             // remove current node
-            curRunNode.parentNode.removeChild(curRunNode);
+            XmlNode.remove(curRunNode);
 
             // go next
             if (curRunNode === secondRunNode) {
@@ -117,35 +119,37 @@ export class DocxParser {
      * Take all runs from 'second' and move them to 'first'.
      */
     public joinParagraphs(first: XmlNode, second: XmlNode): void {
-        let i = 0;
+        let childIndex = 0;
         while (second.childNodes && second.childNodes.length) {
-            const curChild = second.childNodes[i];
+            const curChild = second.childNodes[childIndex];
             if (curChild.nodeName === DocxParser.RUN_NODE) {
-                second.removeChild(curChild);
+                XmlNode.removeChild(second, childIndex);
                 XmlNode.appendChild(first, curChild);
             } else {
-                i++;
+                childIndex++;
             }
         }
     }
 
     /**
-     * Search **downwards** for the first text node.
+     * Search **downwards** for the first **Word** text node (i.e. a <w:t> node).
      */
-    public findTextNode(node: XmlNode): XmlNode {
+    public findTextNode(node: XmlNode): XmlGeneralNode {
 
         if (!node)
+            return null;
+
+        if (XmlNode.isTextNode(node))
             return null;
 
         if (node.nodeName === DocxParser.TEXT_NODE)
             return node;
 
-        if (!node.hasChildNodes())
+        if (!node.childNodes)
             return null;
 
-        for (let i = 0; i < node.childNodes.length; i++) {
-            const childNode = node.childNodes[i];
-            const textNode = this.findTextNode(childNode);
+        for (const child of node.childNodes) {
+            const textNode = this.findTextNode(child);
             if (textNode)
                 return textNode;
         }
