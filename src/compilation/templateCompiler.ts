@@ -1,16 +1,16 @@
 import { UnclosedTagError } from '../errors';
 import { LoopPlugin, SimpleTagPlugin, TemplatePlugin } from '../plugins';
 import { XmlNode } from '../xmlNode';
+import { Tokenizer } from './delimiterSearcher';
 import { ScopeManager } from './scopedManager';
 import { Tag, TagDisposition } from './tag';
 import { TagParser } from './tagParser';
-import { Tokenizer } from './tokenizer';
 
 /**
  * The TemplateCompiler works roughly the same way as a source code compiler.
  * It's main steps are:
  * 
- * 1. tokenize (lexical analysis) :: (Document) => Token[]
+ * 1. find delimiters (lexical analysis) :: (Document) => Token[]
  * 2. extract tags (syntax analysis) :: (Token[]) => Tag[]
  * 3. perform document replace (code generation) :: (Document, Tag, data) => Document*
  * 
@@ -19,7 +19,7 @@ import { Tokenizer } from './tokenizer';
 export class TemplateCompiler {
 
     private readonly plugins: TemplatePlugin[] = [new LoopPlugin(), new SimpleTagPlugin()];
-    private readonly tokenizer = new Tokenizer();
+    private readonly delimiterSearcher = new Tokenizer();
     private readonly tagParser = new TagParser();
 
     /**
@@ -27,8 +27,8 @@ export class TemplateCompiler {
      * specified data.
      */
     public compile(node: XmlNode, data: any): void {
-        const tokens = this.tokenizer.tokenize(node);
-        const tags = this.tagParser.parse(tokens);
+        const delimiters = this.delimiterSearcher.findDelimiters(node);
+        const tags = this.tagParser.parse(delimiters);
         this.doTagReplacements(node, tags, data);
     }
 

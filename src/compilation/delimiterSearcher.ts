@@ -1,22 +1,47 @@
-import { Delimiters } from '../delimiters';
 import { MaxXmlDepthError } from '../errors';
-import { MAX_XML_DEPTH } from '../utils';
+import { pushMany } from '../utils';
 import { XmlNode, XmlTextNode } from '../xmlNode';
-import { TemplateToken, TokenType } from './templateToken';
+import { Delimiter } from './delimiter';
+
+export class TokenizerOptions {
+
+    public maxXmlDepth = 20;
+    public startDelimiter = "{";
+    public endDelimiter = "}";
+
+    constructor(initial?: TokenizerOptions) {
+        if (initial) {
+
+            if (initial.startDelimiter)
+                this.startDelimiter = XmlNode.encodeValue(initial.startDelimiter);
+
+            if (initial.endDelimiter)
+                this.endDelimiter = XmlNode.encodeValue(initial.endDelimiter);
+
+        }
+
+        if (!this.startDelimiter || !this.endDelimiter)
+            throw new Error('Both delimiters must be specified.');
+
+        if (this.startDelimiter === this.endDelimiter)
+            throw new Error('Start and end delimiters can not be the same.');
+    }
+}
 
 export class Tokenizer {
 
-    public delimiters = new Delimiters();
+    // TODO: get from outside
+    private readonly options = new TokenizerOptions();
 
-    public tokenize(node: XmlNode): TemplateToken[] {
-        const tokens: TemplateToken[] = [];
-        this.tokenizeRecurse(node, tokens, 0);
+    public findDelimiters(node: XmlNode): Delimiter[] {
+        const tokens: Delimiter[] = [];
+        this.findRecurse(node, tokens, 0);
         return tokens;
     }
 
-    private tokenizeRecurse(node: XmlNode, tokens: TemplateToken[], depth: number): void {
-        if (depth > MAX_XML_DEPTH)
-            throw new MaxXmlDepthError(depth);
+    private findRecurse(node: XmlNode, tokens: Delimiter[], depth: number): void {
+        if (depth > this.options.maxXmlDepth)
+            throw new MaxXmlDepthError(this.options.maxXmlDepth);
 
         if (!node)
             return;
@@ -24,8 +49,11 @@ export class Tokenizer {
         // process self
         if (XmlNode.isTextNode(node)) {
 
-            const curToken = this.createToken(node);
-            tokens.push(curToken);
+            const curTokens = this.createDelimiterMark(node);
+            if (curTokens.length) {
+                pushMany(tokens, curTokens);
+            }
+
             return;
         }
 
@@ -33,42 +61,36 @@ export class Tokenizer {
         const childNodesLength = (node.childNodes ? node.childNodes.length : 0);
         for (let i = 0; i < childNodesLength; i++) {
             const child = node.childNodes[i];
-            this.tokenizeRecurse(child, tokens, depth + 1);
+            this.findRecurse(child, tokens, depth + 1);
         }
     }
 
-    private createToken(node: XmlTextNode): TemplateToken {
+    private createDelimiterMark(node: XmlTextNode): Delimiter[] {
 
-        const token = new TemplateToken({ xmlTextNode: node });
-        const tokenText = node.textContent;
-
-        // empty tokens
-        if (!tokenText) {
-            token.type = TokenType.Empty;
-            return token;
+        // empty text node
+        if (!node.textContent) {
+            return [];
         }
 
         // delimiter tokens
-        for (let i = 0; i < tokenText.length; i++) {
-            if (tokenText[i] === this.delimiters.start) {
-                token.delimiters.push({
+        // TODO: support delimiters longer than one character
+        const delimiterTokens: Delimiter[] = [];
+        for (let i = 0; i < node.textContent.length; i++) {
+            if (node.textContent[i] === this.options.startDelimiter) {
+                delimiterTokens.push({
                     index: i,
-                    isOpen: true
+                    isOpen: true,
+                    xmlTextNode: node
                 });
-            } else if (tokenText[i] === this.delimiters.end) {
-                token.delimiters.push({
+            } else if (node.textContent[i] === this.options.endDelimiter) {
+                delimiterTokens.push({
                     index: i,
-                    isOpen: false
+                    isOpen: false,
+                    xmlTextNode: node
                 });
             }
         }
-        if (token.delimiters.length) {
-            token.type = TokenType.Delimiter;
-            return token;
-        }
 
-        // simple text tokens
-        token.type = TokenType.Text;
-        return token;
-    }    
+        return delimiterTokens;
+    }
 }

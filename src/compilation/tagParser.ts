@@ -1,14 +1,15 @@
-import { Delimiters } from '../delimiters';
 import { DocxParser } from '../docxParser';
 import { MissingCloseDelimiterError, MissingStartDelimiterError } from '../errors';
 import { XmlTextNode } from '../xmlNode';
+import { Delimiter } from './delimiter';
 import { Tag, TagDisposition, TagType } from './tag';
 import { TagPrefix } from './tagPrefix';
-import { DelimiterMark, TemplateToken, TokenType } from './templateToken';
 
 export class TagParser {
 
-    // TODO: get from outside
+    // TODO: get from outside    
+    public startDelimiter = "{";
+    public endDelimiter = "}";
     public tagPrefix: TagPrefix[] = [
         {
             prefix: '#',
@@ -26,56 +27,50 @@ export class TagParser {
             tagDisposition: TagDisposition.SelfClosed
         }
     ];
-    public delimiters = new Delimiters();
     public docParser = new DocxParser();
 
-    public parse(tokens: TemplateToken[]): Tag[] {
+    public parse(delimiters: Delimiter[]): Tag[] {
         const tags: Tag[] = [];
 
         let openedTag: Tag;
-        let openedDelimiter: DelimiterMark;
-        for (const currentToken of tokens) {
+        let openedDelimiter: Delimiter;
+        for (const delimiter of delimiters) {
 
-            if (currentToken.type === TokenType.Delimiter) {
-                for (const delimiter of currentToken.delimiters) {
+            // close before open
+            if (!openedTag && !delimiter.isOpen) {
+                // TODO: extract tag name
+                throw new MissingStartDelimiterError('Unknown');
+            }
 
-                    // close before open
-                    if (!openedTag && !delimiter.isOpen) {
-                        // TODO: extract tag name
-                        throw new MissingStartDelimiterError('Unknown');
-                    }
+            // open before close
+            if (openedTag && delimiter.isOpen) {
+                // TODO: extract tag name
+                throw new MissingCloseDelimiterError('Unknown');
+            }
 
-                    // open before close
-                    if (openedTag && delimiter.isOpen) {
-                        // TODO: extract tag name
-                        throw new MissingCloseDelimiterError('Unknown');
-                    }
+            // valid open
+            if (!openedTag && delimiter.isOpen) {
+                openedTag = new Tag({ xmlTextNode: delimiter.xmlTextNode });
+                openedDelimiter = delimiter;
+            }
 
-                    // valid open
-                    if (!openedTag && delimiter.isOpen) {
-                        openedTag = new Tag({ xmlTextNode: currentToken.xmlTextNode });
-                        openedDelimiter = delimiter;
-                    }
-
-                    // valid close
-                    if (openedTag && !delimiter.isOpen) {
-                        this.processTag(openedTag, openedDelimiter, currentToken, delimiter);
-                        tags.push(openedTag);
-                        openedTag = null;
-                        openedDelimiter = null;
-                    }
-                }
+            // valid close
+            if (openedTag && !delimiter.isOpen) {
+                this.processTag(openedTag, openedDelimiter, delimiter);
+                tags.push(openedTag);
+                openedTag = null;
+                openedDelimiter = null;
             }
         }
 
         return tags;
     }
 
-    private processTag(tag: Tag, openedDelimiter: DelimiterMark, closeToken: TemplateToken, closeDelimiter: DelimiterMark): void {
+    private processTag(tag: Tag, openedDelimiter: Delimiter, closeDelimiter: Delimiter): void {
 
         // normalize the underlying xml structure
         const openNode = tag.xmlTextNode;
-        const closeNode = closeToken.xmlTextNode;
+        const closeNode = closeDelimiter.xmlTextNode;
         this.normalizeTagNodes(openNode, openedDelimiter, closeNode, closeDelimiter);
 
         // extract tag info from tag's text
@@ -83,7 +78,7 @@ export class TagParser {
         for (const prefix of this.tagPrefix) {
 
             // TODO: compile regex once
-            const pattern = `^[${this.delimiters.start}](\\s*?)${prefix.prefix}(.*?)[${this.delimiters.end}]`;
+            const pattern = `^[${this.startDelimiter}](\\s*?)${prefix.prefix}(.*?)[${this.endDelimiter}]`;
             const regex = new RegExp(pattern, 'gmi');
 
             const match = regex.exec(tag.rawText);
@@ -96,11 +91,20 @@ export class TagParser {
         }
     }
 
-    private normalizeTagNodes(startTextNode: XmlTextNode, openDelimiter: DelimiterMark, endTextNode: XmlTextNode, closeDelimiter: DelimiterMark): void {
-
-        // for this text: "some text {my tag} some other text" 
-        // the desired text nodes should be:
-        // [ "some text ", "{my tag}", " some other text" ]
+    /**
+     * Consolidate all tag's text into a single text node.
+     * 
+     * Example: 
+     * 
+     * Input text: "some text {some tag} some more text" 
+     * Output text nodes: [ "some text ", "{tag1}", " some more text" ]
+     * 
+     * @param startTextNode 
+     * @param openDelimiter 
+     * @param endTextNode 
+     * @param closeDelimiter 
+     */
+    private normalizeTagNodes(openDelimiter: Delimiter, closeDelimiter: Delimiter): void {
 
         if (openDelimiter.index > 0) {
             this.docParser.splitTextNode(startTextNode, openDelimiter.index, true);

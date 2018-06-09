@@ -1,28 +1,15 @@
 import { XmlTextNode } from "../xmlNode";
 
-export enum TokenType {
-    Empty = "Empty",
-    /**
-     * The token contains at least one delimiter.
-     */
-    Delimiter = "Delimiter",
-    /**
-     * Arbitrary text. Can be part of a template tag, or non-related.
-     */
-    Text = "Text"
-}
+export class Delimiter {
 
-export interface DelimiterMark {
-    index: number;
-    isOpen: boolean;
-}
-
-export class TemplateToken {
-    public type: TokenType;
-    public delimiters: DelimiterMark[] = [];
     public xmlTextNode: XmlTextNode;
+    /**
+     * Index inside the text node
+     */
+    public index: number;
+    public isOpen: boolean;
 
-    constructor(initial?: Partial<TemplateToken>) {
+    constructor(initial?: Partial<Delimiter>) {
         Object.assign(this, initial);
     }
 }
