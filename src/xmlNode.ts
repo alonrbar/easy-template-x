@@ -231,6 +231,64 @@ export namespace XmlNode {
         XmlNode.insertChild(referenceNode.parentNode, newNode, beforeNodeIndex);
     }
 
+    export function insertChild(parent: XmlNode, child: XmlNode, childIndex: number): void {
+        if (!parent)
+            throw new MissingArgumentError(nameof(parent));
+        if (isTextNode(parent))
+            throw new Error('Appending children to text nodes is forbidden');
+        if (!child)
+            throw new MissingArgumentError(nameof(child));
+
+        if (!parent.childNodes)
+            parent.childNodes = [];
+
+        // revert to append
+        if (childIndex === parent.childNodes.length) {
+            XmlNode.appendChild(parent, child);
+            return;
+        }
+
+        if (childIndex > parent.childNodes.length)
+            throw new RangeError(`Child index ${childIndex} is out of range. Parent has only ${parent.childNodes.length} child nodes.`);
+
+        // update references
+        child.parentNode = parent;
+
+        const childAfter = parent.childNodes[childIndex];
+        child.nextSibling = childAfter;
+
+        if (childIndex > 0) {
+            const childBefore = parent.childNodes[childIndex - 1];
+            childBefore.nextSibling = child;
+        }
+
+        // append
+        parent.childNodes.splice(childIndex, 0, child);
+    }
+
+    export function appendChild(parent: XmlNode, child: XmlNode): void {
+        if (!parent)
+            throw new MissingArgumentError(nameof(parent));
+        if (isTextNode(parent))
+            throw new Error('Appending children to text nodes is forbidden');
+        if (!child)
+            throw new MissingArgumentError(nameof(child));
+
+        if (!parent.childNodes)
+            parent.childNodes = [];
+
+        // update references
+        if (parent.childNodes.length) {
+            const currentLastChild = parent.childNodes[parent.childNodes.length - 1];
+            currentLastChild.nextSibling = child;
+        }
+        child.nextSibling = null;
+        child.parentNode = parent;
+
+        // append
+        parent.childNodes.push(child);
+    }        
+
     /**
      * Removes the node from it's parent.
      * 
@@ -284,65 +342,7 @@ export namespace XmlNode {
 
         // remove and return
         return parent.childNodes.splice(childIndex, 1)[0];
-    }    
-
-    export function appendChild(parent: XmlNode, child: XmlNode): void {
-        if (!parent)
-            throw new MissingArgumentError(nameof(parent));
-        if (isTextNode(parent))
-            throw new Error('Appending children to text nodes is forbidden');
-        if (!child)
-            throw new MissingArgumentError(nameof(child));
-
-        if (!parent.childNodes)
-            parent.childNodes = [];
-
-        // update references
-        if (parent.childNodes.length) {
-            const currentLastChild = parent.childNodes[parent.childNodes.length - 1];
-            currentLastChild.nextSibling = child;
-        }
-        child.nextSibling = null;
-        child.parentNode = parent;
-
-        // append
-        parent.childNodes.push(child);
-    }    
-
-    export function insertChild(parent: XmlNode, child: XmlNode, childIndex: number): void {
-        if (!parent)
-            throw new MissingArgumentError(nameof(parent));
-        if (isTextNode(parent))
-            throw new Error('Appending children to text nodes is forbidden');
-        if (!child)
-            throw new MissingArgumentError(nameof(child));
-
-        if (!parent.childNodes)
-            parent.childNodes = [];
-
-        // revert to append
-        if (childIndex === parent.childNodes.length) {
-            XmlNode.appendChild(parent, child);
-            return;
-        }
-
-        if (childIndex > parent.childNodes.length)
-            throw new RangeError(`Child index ${childIndex} is out of range. Parent has only ${parent.childNodes.length} child nodes.`);
-
-        // update references
-        child.parentNode = parent;
-
-        const childAfter = parent.childNodes[childIndex];
-        child.nextSibling = childAfter;
-
-        if (childIndex > 0) {
-            const childBefore = parent.childNodes[childIndex - 1];
-            childBefore.nextSibling = child;
-        }
-
-        // append
-        parent.childNodes.splice(childIndex, 0, child);
-    }
+    }        
 
     //
     // utility functions
