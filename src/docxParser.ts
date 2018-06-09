@@ -97,6 +97,7 @@ export class DocxParser {
      */
     public joinTextNodesRange(from: XmlTextNode, to: XmlTextNode): void {
 
+        // find run nodes
         const firstRunNode = this.containingRunNode(from);
         const secondRunNode = this.containingRunNode(to);
 
@@ -104,8 +105,9 @@ export class DocxParser {
         if (secondRunNode.parentNode !== paragraphNode)
             throw new Error('Can not join text nodes from separate paragraphs.');
 
+        // find "word text nodes"
         const firstWordTextNode = this.containingTextNode(from);
-        const firstXmlTextNode = XmlNode.lastTextChild(firstWordTextNode);
+        const secondWordTextNode = this.containingTextNode(to);        
         const totalText: string[] = [];
 
         // iterate runs
@@ -113,7 +115,12 @@ export class DocxParser {
         while (curRunNode) {
 
             // iterate text nodes
-            let curWordTextNode = this.firstTextNodeChild(curRunNode);
+            let curWordTextNode: XmlNode;
+            if (curRunNode === firstRunNode) {
+                curWordTextNode = firstWordTextNode;
+            } else {
+                curWordTextNode = this.firstTextNodeChild(curRunNode);
+            }
             while (curWordTextNode) {
 
                 if (curWordTextNode.nodeName !== DocxParser.TEXT_NODE)
@@ -125,11 +132,16 @@ export class DocxParser {
 
                 // next text node
                 const textToRemove = curWordTextNode;
-                curWordTextNode = curWordTextNode.nextSibling;
+                if (curWordTextNode === secondWordTextNode) {
+                    curWordTextNode = null;
+                } else {
+                    curWordTextNode = curWordTextNode.nextSibling;
+                }
 
                 // remove current text node
-                if (textToRemove !== firstWordTextNode)
+                if (textToRemove !== firstWordTextNode) {
                     XmlNode.remove(textToRemove);
+                }
             }
 
             // next run
@@ -146,6 +158,8 @@ export class DocxParser {
             }
         }
 
+        // set the text content
+        const firstXmlTextNode = XmlNode.lastTextChild(firstWordTextNode);
         firstXmlTextNode.textContent = totalText.join('');
     }
 
