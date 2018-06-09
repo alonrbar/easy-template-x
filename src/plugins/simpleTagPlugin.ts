@@ -44,7 +44,7 @@ export class SimpleTagPlugin extends TemplatePlugin {
             XmlNode.appendChild(runNode, lineBreak);
 
             // add text
-            const lineNode = XmlNode.createTextNode(lines[i]);
+            const lineNode = this.createWordTextNode(lines[i]);
             XmlNode.appendChild(runNode, lineNode);
         }
     }
@@ -54,5 +54,13 @@ export class SimpleTagPlugin extends TemplatePlugin {
             nodeType: XmlNodeType.General,
             nodeName: 'w:br'
         };
+    }
+
+    private createWordTextNode(text: string): XmlNode {
+        const wordTextNode = XmlNode.createGeneralNode(DocxParser.TEXT_NODE);
+        wordTextNode.childNodes = [
+            XmlNode.createTextNode(text)
+        ];
+        return wordTextNode;
     }
 }
