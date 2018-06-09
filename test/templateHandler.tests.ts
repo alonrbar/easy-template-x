@@ -103,7 +103,7 @@ describe(nameof(TemplateHandler), () => {
         expect(docText).to.be.equal("first!second!");
     });
 
-    it("replaces loops with no paragraphs between correctly", async () => {
+    it("replaces a loop with open and close tag in the same paragraph correctly", async () => {
 
         const handler = new TemplateHandler();
 

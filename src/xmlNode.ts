@@ -201,7 +201,7 @@ export namespace XmlNode {
         if (!deep) {
             const clone = Object.assign({}, node);
             clone.parentNode = null;
-            clone.childNodes = null;
+            clone.childNodes = (node.childNodes ? [] : null);
             clone.nextSibling = null;
             return clone;
         } else {
@@ -229,6 +229,26 @@ export namespace XmlNode {
         const childNodes = referenceNode.parentNode.childNodes;
         const beforeNodeIndex = childNodes.indexOf(referenceNode);
         XmlNode.insertChild(referenceNode.parentNode, newNode, beforeNodeIndex);
+    }
+
+    /**
+     * Insert the node as a new sibling, after the original node.
+     *
+     * * **Note**: It is more efficient to use the insertChild function if you
+     *   already know the relevant index.
+     */
+    export function insertAfter(newNode: XmlNode, referenceNode: XmlNode): void {
+        if (!newNode)
+            throw new MissingArgumentError(nameof(newNode));
+        if (!referenceNode)
+            throw new MissingArgumentError(nameof(referenceNode));
+
+        if (!referenceNode.parentNode)
+            throw new Error(`'${nameof(referenceNode)}' has no parent`);
+
+        const childNodes = referenceNode.parentNode.childNodes;
+        const referenceNodeIndex = childNodes.indexOf(referenceNode);
+        XmlNode.insertChild(referenceNode.parentNode, newNode, referenceNodeIndex + 1);
     }
 
     export function insertChild(parent: XmlNode, child: XmlNode, childIndex: number): void {
@@ -287,7 +307,7 @@ export namespace XmlNode {
 
         // append
         parent.childNodes.push(child);
-    }        
+    }
 
     /**
      * Removes the node from it's parent.
@@ -342,7 +362,7 @@ export namespace XmlNode {
 
         // remove and return
         return parent.childNodes.splice(childIndex, 1)[0];
-    }        
+    }
 
     //
     // utility functions
@@ -392,7 +412,7 @@ export namespace XmlNode {
             return [];
 
         const removed: XmlNode[] = [];
-
+        let lastRemoved: XmlNode;
         from = from.nextSibling;
         while (from !== to) {
             const removeMe = from;
@@ -400,56 +420,46 @@ export namespace XmlNode {
 
             XmlNode.remove(removeMe);
             removed.push(removeMe);
+
+            if (lastRemoved)
+                lastRemoved.nextSibling = removeMe;
+            lastRemoved = removeMe;
         }
 
         return removed;
     }
 
     /**
-     * Modifies the original node and returns the other part.
+     * Split the original node into two sibling nodes.
+     * Returns both nodes.
      *
      * @param root The node to split
-     * @param markerNode The node that marks the split position. 
-     * @param afterMarker If true everything the marker node will be extracted
-     * into the result node. Else, everything before it will be extracted
-     * instead.
+     * @param markerNode The node that marks the split position.      
      */
-    export function splitByChild(root: XmlNode, markerNode: XmlNode, afterMarker: boolean, removeMarkerNode: boolean): XmlNode {
+    export function splitByChild(root: XmlNode, markerNode: XmlNode, removeMarkerNode: boolean): [ XmlNode, XmlNode ] {
+
+        // find the split path
         const path = getDescendantPath(root, markerNode);
 
-        let clone = XmlNode.cloneNode(root, false);
-
-        const childIndex = path[0] + (afterMarker ? 1 : -1);
-        if (afterMarker) {
-
-            // after marker
-            while (childIndex < root.childNodes.length) {
-                const curChild = root.childNodes[childIndex];
-                XmlNode.remove(curChild);
-                XmlNode.appendChild(clone, curChild);
-            }
-
-            if (removeMarkerNode) {
-                XmlNode.remove(last(root.childNodes));
-            }
-        } else {
-
-            // before marker
-            const stopChild = root.childNodes[childIndex];
-            let curChild: XmlNode;
-            do {
-                curChild = root.childNodes[0];
-                XmlNode.remove(curChild);
-                XmlNode.appendChild(clone, curChild);
-
-            } while (curChild !== stopChild);
-
-            if (removeMarkerNode) {
-                XmlNode.remove(root.childNodes[0]);
-            }
+        // split
+        const split = XmlNode.cloneNode(root, false);
+        const childIndex = path[0] + 1;
+        while (childIndex < root.childNodes.length) {
+            const curChild = root.childNodes[childIndex];
+            XmlNode.remove(curChild);
+            XmlNode.appendChild(split, curChild);
         }
 
-        return clone;
+        if (root.parentNode) {
+            XmlNode.insertAfter(split, root);
+        }
+
+        // remove marker node
+        if (removeMarkerNode && root.childNodes.length) {
+            XmlNode.removeChild(root, root.childNodes.length - 1);
+        }
+
+        return [ root, split ];
     }
 
     //

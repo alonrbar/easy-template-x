@@ -21,15 +21,11 @@ export class LoopPlugin extends TemplatePlugin {
         const openTag = allTags[openTagIndex];
         const closeTag = allTags[closeTagIndex];
 
-        // get edge paragraphs
-        const firstParagraph = this.docxParser.containingParagraphNode(openTag.xmlTextNode);
-        const lastParagraph = this.docxParser.containingParagraphNode(closeTag.xmlTextNode);
-
         // extract relevant content
-        const extractedParagraphs = this.extractParagraphs(firstParagraph, openTag.xmlTextNode, lastParagraph, closeTag.xmlTextNode);
+        const { firstParagraph, middleParagraphs, lastParagraph } = this.splitParagraphs(openTag.xmlTextNode, closeTag.xmlTextNode);
 
         // repeat (loop) the content
-        const repeatedParagraphs = this.repeatParagraphs(extractedParagraphs, data.length);
+        const repeatedParagraphs = this.repeatParagraphs(middleParagraphs, data.length);
 
         // recursive compilation 
         // (this step can be optimized in the future if we'll keep track of the
@@ -46,33 +42,64 @@ export class LoopPlugin extends TemplatePlugin {
         return true;
     }
 
-    private extractParagraphs(firstParagraph: XmlNode, openTagNode: XmlNode, lastParagraph: XmlNode, closeTagNode: XmlNode): XmlNode[] {
+    private splitParagraphs(openTagNode: XmlNode, closeTagNode: XmlNode): ExtractParagraphsResult {
 
-        // split edge paragraphs
-        const firstParagraphSplit = XmlNode.splitByChild(firstParagraph, openTagNode, true, true);
-        const lastParagraphSplit = XmlNode.splitByChild(lastParagraph, closeTagNode, false, true);
+        // gather some info
+        let firstParagraph = this.docxParser.containingParagraphNode(openTagNode);
+        let lastParagraph = this.docxParser.containingParagraphNode(closeTagNode);
+        const areSame = (firstParagraph === lastParagraph);
+        const parent = firstParagraph.parentNode;
+        const firstParagraphIndex = parent.childNodes.indexOf(firstParagraph);
+        const lastParagraphIndex = areSame ? firstParagraphIndex : parent.childNodes.indexOf(lastParagraph);
+
+        // split first paragraphs
+        let splitResult = XmlNode.splitByChild(firstParagraph, openTagNode, true);
+        firstParagraph = splitResult[0];
+        const firstParagraphSplit = splitResult[1];
+        if (areSame)
+            lastParagraph = firstParagraphSplit;
+
+        // split last paragraph
+        splitResult = XmlNode.splitByChild(lastParagraph, closeTagNode, true);
+        const lastParagraphSplit = splitResult[0];
+        lastParagraph = splitResult[1];
+
+        // fix references
+        XmlNode.removeChild(parent, firstParagraphIndex + 1);
+        if (!areSame)
+            XmlNode.removeChild(parent, lastParagraphIndex);
+        firstParagraphSplit.parentNode = null;
+        lastParagraphSplit.parentNode = null;
 
         // extract all paragraphs in between
-        const middleParagraphNodes = XmlNode.removeSiblings(firstParagraph, lastParagraph);
+        let middleParagraphs: XmlNode[];
+        if (areSame) {
+            this.docxParser.joinParagraphs(firstParagraphSplit, lastParagraphSplit);
+            middleParagraphs = [firstParagraphSplit];
+        } else {
+            const inBetween = XmlNode.removeSiblings(firstParagraph, lastParagraph);
+            middleParagraphs = [firstParagraphSplit].concat(inBetween).concat(lastParagraphSplit);
+        }
 
-        // return joined result
-        return [firstParagraphSplit].concat(middleParagraphNodes).concat(lastParagraphSplit);
-
+        return {
+            firstParagraph,
+            middleParagraphs,
+            lastParagraph
+        };
     }
 
     private repeatParagraphs(paragraphs: XmlNode[], times: number): XmlNode[] {
-        const result: XmlNode[] = [];
+        if (!paragraphs.length || !times)
+            return [];
 
         const firstParagraph = paragraphs[0];
+        const result = [XmlNode.cloneNode(firstParagraph, true)];
 
         for (let i = 0; i < times; i++) {
 
             // merge first paragraph to previous one
-            if (result.length) {
+            if (i !== 0)
                 this.docxParser.joinParagraphs(last(result), XmlNode.cloneNode(firstParagraph, true));
-            } else {
-                result.push(XmlNode.cloneNode(firstParagraph, true));
-            }
 
             // append other paragraphs
             const newParagraphs = paragraphs.slice(1).map(para => XmlNode.cloneNode(para, true));
@@ -117,4 +144,10 @@ export class LoopPlugin extends TemplatePlugin {
         // remove the old last paragraph (was merged into the new one)
         XmlNode.remove(lastParagraph);
     }
+}
+
+interface ExtractParagraphsResult {
+    firstParagraph: XmlNode;
+    middleParagraphs: XmlNode[];
+    lastParagraph: XmlNode;
 }
