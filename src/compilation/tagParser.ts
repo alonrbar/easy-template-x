@@ -1,7 +1,7 @@
 import { DocxParser } from '../docxParser';
 import { MissingCloseDelimiterError, MissingStartDelimiterError } from '../errors';
 import { XmlTextNode } from '../xmlNode';
-import { Delimiter } from './delimiter';
+import { DelimiterMark } from './delimiterMark';
 import { Tag, TagDisposition, TagType } from './tag';
 import { TagPrefix } from './tagPrefix';
 
@@ -29,11 +29,11 @@ export class TagParser {
     ];
     public docParser = new DocxParser();
 
-    public parse(delimiters: Delimiter[]): Tag[] {
+    public parse(delimiters: DelimiterMark[]): Tag[] {
         const tags: Tag[] = [];
 
         let openedTag: Tag;
-        let openedDelimiter: Delimiter;
+        let openedDelimiter: DelimiterMark;
         for (const delimiter of delimiters) {
 
             // close before open
@@ -66,7 +66,7 @@ export class TagParser {
         return tags;
     }
 
-    private processTag(tag: Tag, openedDelimiter: Delimiter, closeDelimiter: Delimiter): void {
+    private processTag(tag: Tag, openedDelimiter: DelimiterMark, closeDelimiter: DelimiterMark): void {
 
         // normalize the underlying xml structure
         const openNode = tag.xmlTextNode;
@@ -104,7 +104,7 @@ export class TagParser {
      * @param endTextNode 
      * @param closeDelimiter 
      */
-    private normalizeTagNodes(openDelimiter: Delimiter, closeDelimiter: Delimiter): void {
+    private normalizeTagNodes(openDelimiter: DelimiterMark, closeDelimiter: DelimiterMark): void {
 
         if (openDelimiter.index > 0) {
             this.docParser.splitTextNode(startTextNode, openDelimiter.index, true);

@@ -1,47 +1,24 @@
 import { MaxXmlDepthError } from '../errors';
 import { pushMany } from '../utils';
 import { XmlNode, XmlTextNode } from '../xmlNode';
-import { Delimiter } from './delimiter';
+import { DelimiterMark } from './delimiterMark';
 
-export class TokenizerOptions {
+export class DelimiterSearcher {
 
+    // TODO: get from outside
     public maxXmlDepth = 20;
     public startDelimiter = "{";
     public endDelimiter = "}";
 
-    constructor(initial?: TokenizerOptions) {
-        if (initial) {
-
-            if (initial.startDelimiter)
-                this.startDelimiter = XmlNode.encodeValue(initial.startDelimiter);
-
-            if (initial.endDelimiter)
-                this.endDelimiter = XmlNode.encodeValue(initial.endDelimiter);
-
-        }
-
-        if (!this.startDelimiter || !this.endDelimiter)
-            throw new Error('Both delimiters must be specified.');
-
-        if (this.startDelimiter === this.endDelimiter)
-            throw new Error('Start and end delimiters can not be the same.');
-    }
-}
-
-export class Tokenizer {
-
-    // TODO: get from outside
-    private readonly options = new TokenizerOptions();
-
-    public findDelimiters(node: XmlNode): Delimiter[] {
-        const tokens: Delimiter[] = [];
-        this.findRecurse(node, tokens, 0);
-        return tokens;
+    public findDelimiters(node: XmlNode): DelimiterMark[] {
+        const delimiters: DelimiterMark[] = [];
+        this.findRecurse(node, delimiters, 0);
+        return delimiters;
     }
 
-    private findRecurse(node: XmlNode, tokens: Delimiter[], depth: number): void {
-        if (depth > this.options.maxXmlDepth)
-            throw new MaxXmlDepthError(this.options.maxXmlDepth);
+    private findRecurse(node: XmlNode, delimiters: DelimiterMark[], depth: number): void {
+        if (depth > this.maxXmlDepth)
+            throw new MaxXmlDepthError(this.maxXmlDepth);
 
         if (!node)
             return;
@@ -49,9 +26,9 @@ export class Tokenizer {
         // process self
         if (XmlNode.isTextNode(node)) {
 
-            const curTokens = this.createDelimiterMark(node);
+            const curTokens = this.findInNode(node);
             if (curTokens.length) {
-                pushMany(tokens, curTokens);
+                pushMany(delimiters, curTokens);
             }
 
             return;
@@ -61,29 +38,28 @@ export class Tokenizer {
         const childNodesLength = (node.childNodes ? node.childNodes.length : 0);
         for (let i = 0; i < childNodesLength; i++) {
             const child = node.childNodes[i];
-            this.findRecurse(child, tokens, depth + 1);
+            this.findRecurse(child, delimiters, depth + 1);
         }
     }
 
-    private createDelimiterMark(node: XmlTextNode): Delimiter[] {
+    private findInNode(node: XmlTextNode): DelimiterMark[] {
 
-        // empty text node
         if (!node.textContent) {
             return [];
         }
 
-        // delimiter tokens
         // TODO: support delimiters longer than one character
-        const delimiterTokens: Delimiter[] = [];
+        
+        const delimiterMarks: DelimiterMark[] = [];
         for (let i = 0; i < node.textContent.length; i++) {
-            if (node.textContent[i] === this.options.startDelimiter) {
-                delimiterTokens.push({
+            if (node.textContent[i] === this.startDelimiter) {
+                delimiterMarks.push({
                     index: i,
                     isOpen: true,
                     xmlTextNode: node
                 });
-            } else if (node.textContent[i] === this.options.endDelimiter) {
-                delimiterTokens.push({
+            } else if (node.textContent[i] === this.endDelimiter) {
+                delimiterMarks.push({
                     index: i,
                     isOpen: false,
                     xmlTextNode: node
@@ -91,6 +67,6 @@ export class Tokenizer {
             }
         }
 
-        return delimiterTokens;
+        return delimiterMarks;
     }
 }

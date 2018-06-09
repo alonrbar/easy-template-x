@@ -1,7 +1,7 @@
 import { UnclosedTagError } from '../errors';
 import { LoopPlugin, SimpleTagPlugin, TemplatePlugin } from '../plugins';
 import { XmlNode } from '../xmlNode';
-import { Tokenizer } from './delimiterSearcher';
+import { DelimiterSearcher } from './delimiterSearcher';
 import { ScopeManager } from './scopedManager';
 import { Tag, TagDisposition } from './tag';
 import { TagParser } from './tagParser';
@@ -19,7 +19,7 @@ import { TagParser } from './tagParser';
 export class TemplateCompiler {
 
     private readonly plugins: TemplatePlugin[] = [new LoopPlugin(), new SimpleTagPlugin()];
-    private readonly delimiterSearcher = new Tokenizer();
+    private readonly delimiterSearcher = new DelimiterSearcher();
     private readonly tagParser = new TagParser();
 
     /**
