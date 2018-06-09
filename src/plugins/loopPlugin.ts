@@ -13,7 +13,7 @@ export class LoopPlugin extends TemplatePlugin {
     /**
      * @inheritDoc
      */
-    public containerTagReplacements(openTagIndex: number, closeTagIndex: number, allTags: Tag[], data: any): boolean {
+    public containerTagReplacements(openTagIndex: number, closeTagIndex: number, allTags: Tag[], data: any): void {
 
         if (!data || !Array.isArray(data) || !data.length)
             data = [];
@@ -38,8 +38,6 @@ export class LoopPlugin extends TemplatePlugin {
 
         // modify input tags collection
         allTags.splice(openTagIndex, closeTagIndex + 1);
-
-        return true;
     }
 
     private splitParagraphs(openTagNode: XmlNode, closeTagNode: XmlNode): ExtractParagraphsResult {

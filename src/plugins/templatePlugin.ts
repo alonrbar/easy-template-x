@@ -18,8 +18,8 @@ export abstract class TemplatePlugin {
      * 
      * @param data Relevant part of the data
      */
-    public simpleTagReplacements(tag: Tag, data: any): boolean {
-        return false;
+    public simpleTagReplacements(tag: Tag, data: any): void {
+        // noop
     }
 
     /**
@@ -29,7 +29,7 @@ export abstract class TemplatePlugin {
      * 
      * @param data Relevant part of the data
      */
-    public containerTagReplacements(openTagIndex: number, closeTagIndex: number, allTags: Tag[], data: any): boolean {
-        return false;
+    public containerTagReplacements(openTagIndex: number, closeTagIndex: number, allTags: Tag[], data: any): void {
+        // noop
     }
 }

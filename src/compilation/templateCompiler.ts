@@ -57,8 +57,7 @@ export class TemplateCompiler {
                     if (plugin.tagType !== tag.type)
                         continue;
 
-                    if (plugin.simpleTagReplacements(tag, scopedData))
-                        break;
+                    plugin.simpleTagReplacements(tag, scopedData);
                 }
 
             } else if (tag.disposition === TagDisposition.Open) {
@@ -72,10 +71,8 @@ export class TemplateCompiler {
                     if (plugin.tagType !== tag.type)
                         continue;
 
-                    if (plugin.containerTagReplacements(i, j, tags, scopedData)) {
-                        i--;
-                        break;
-                    }
+                    plugin.containerTagReplacements(i, j, tags, scopedData);
+                    i--;
                 }
             }
 
