@@ -10,9 +10,9 @@ import { TagParser } from './tagParser';
  * The TemplateCompiler works roughly the same way as a source code compiler.
  * It's main steps are:
  * 
- * 1. find delimiters (lexical analysis) :: (Document) => Token[]
- * 2. extract tags (syntax analysis) :: (Token[]) => Tag[]
- * 3. perform document replace (code generation) :: (Document, Tag, data) => Document*
+ * 1. find delimiters (lexical analysis) :: (Document) => DelimiterMark[]
+ * 2. extract tags (syntax analysis) :: (DelimiterMark[]) => Tag[]
+ * 3. perform document replace (code generation) :: (Tag[], data) => Document*
  * 
  * see: https://en.wikipedia.org/wiki/Compiler
  */
@@ -29,14 +29,14 @@ export class TemplateCompiler {
     public compile(node: XmlNode, data: any): void {
         const delimiters = this.delimiterSearcher.findDelimiters(node);
         const tags = this.tagParser.parse(delimiters);
-        this.doTagReplacements(node, tags, data);
+        this.doTagReplacements(tags, data);
     }
 
     //
     // private methods
     //
 
-    private doTagReplacements(node: XmlNode, tags: Tag[], data: any): void {
+    private doTagReplacements(tags: Tag[], data: any): void {
 
         this.plugins.forEach(plugin => plugin.setContext(this));
 
