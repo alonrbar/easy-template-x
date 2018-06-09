@@ -99,6 +99,114 @@ describe(nameof(XmlNode), () => {
 
     });
 
+    describe(nameof(XmlNode.insertBefore), () => {
+
+        it('inserts before an only child', () => {
+
+            const domNode = createDomNode(`
+                <root>
+                    <child></child>
+                </root>
+            `, true);
+
+            const parent = XmlNode.fromDomNode(domNode);
+            const child = parent.childNodes[0];
+            const newChild: XmlNode = {
+                nodeName: 'new-child',
+                nodeType: XmlNodeType.General
+            };
+
+            XmlNode.insertBefore(newChild, child);
+
+            // parent
+            expect(parent.parentNode).to.not.exist;
+            expect(parent.nextSibling).to.not.exist;
+            expect(parent.childNodes.length).to.eql(2);
+            expect(parent.childNodes[0]).to.eql(newChild);
+            expect(parent.childNodes[1]).to.eql(child);
+
+            // child
+            expect(child.parentNode).to.eql(parent);
+            expect(child.childNodes.length).to.eql(0);
+            expect(child.nextSibling).to.not.exist;
+
+            // new child
+            expect(newChild.parentNode).to.eql(parent);
+            expect((newChild.childNodes || []).length).to.eql(0);
+            expect(newChild.nextSibling).to.eql(child);
+        });
+
+    });
+
+    describe(nameof(XmlNode.insertChild), () => {
+
+        it('inserts into an empty child collection', () => {
+
+            const domNode = createDomNode(`<root></root>`, true);
+
+            const parent = XmlNode.fromDomNode(domNode);
+            const child: XmlNode = {
+                nodeName: 'new-child',
+                nodeType: XmlNodeType.General
+            };
+
+            XmlNode.insertChild(parent, child, 0);
+
+            // parent
+            expect(parent.parentNode).to.not.exist;
+            expect(parent.nextSibling).to.not.exist;
+            expect(parent.childNodes.length).to.eql(1);
+            expect(parent.childNodes[0]).to.eql(child);
+
+            // child
+            expect(child.parentNode).to.eql(parent);
+            expect((child.childNodes || []).length).to.eql(0);
+            expect(child.nextSibling).to.not.exist;
+
+        });
+
+    });
+
+    describe(nameof(XmlNode.appendChild), () => {
+
+        it('appends a child', () => {
+
+            const domNode = createDomNode(`
+                <root>
+                    <child></child>
+                </root>
+            `, true);
+
+            const parent = XmlNode.fromDomNode(domNode);
+            const child = parent.childNodes[0];
+            const newChild: XmlNode = {
+                nodeName: 'new-child',
+                nodeType: XmlNodeType.General
+            };
+
+            XmlNode.appendChild(parent, newChild);
+
+            // parent
+            expect(parent.parentNode).to.not.exist;
+            expect(parent.nextSibling).to.not.exist;
+            expect(parent.childNodes.length).to.eql(2);
+            expect(parent.childNodes[0]).to.eql(child);
+            expect(parent.childNodes[1]).to.eql(newChild);
+
+            // child
+            expect(child.parentNode).to.eql(parent);
+            expect(child.childNodes.length).to.eql(0);
+            expect(child.nextSibling).to.eql(newChild);
+
+            // new child
+            expect(newChild.parentNode).to.eql(parent);
+            expect((newChild.childNodes || []).length).to.eql(0);
+            expect(newChild.nextSibling).to.not.exist;
+
+        });
+
+    });
+
 });
 
 const xmlParser = new XmlParser();

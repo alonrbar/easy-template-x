@@ -284,7 +284,7 @@ export namespace XmlNode {
 
         // remove and return
         return parent.childNodes.splice(childIndex, 1)[0];
-    }
+    }    
 
     export function appendChild(parent: XmlNode, child: XmlNode): void {
         if (!parent)
@@ -307,7 +307,7 @@ export namespace XmlNode {
 
         // append
         parent.childNodes.push(child);
-    }
+    }    
 
     export function insertChild(parent: XmlNode, child: XmlNode, childIndex: number): void {
         if (!parent)
@@ -330,10 +330,15 @@ export namespace XmlNode {
             throw new RangeError(`Child index ${childIndex} is out of range. Parent has only ${parent.childNodes.length} child nodes.`);
 
         // update references
-        const currentChildAtIndex = parent.childNodes[childIndex];
-        child.nextSibling = currentChildAtIndex.nextSibling;
-        currentChildAtIndex.nextSibling = child;
         child.parentNode = parent;
+
+        const childAfter = parent.childNodes[childIndex];
+        child.nextSibling = childAfter;
+
+        if (childIndex > 0) {
+            const childBefore = parent.childNodes[childIndex - 1];
+            childBefore.nextSibling = child;
+        }
 
         // append
         parent.childNodes.splice(childIndex, 0, child);
