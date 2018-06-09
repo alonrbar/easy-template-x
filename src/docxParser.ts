@@ -107,7 +107,7 @@ export class DocxParser {
 
         // find "word text nodes"
         const firstWordTextNode = this.containingTextNode(from);
-        const secondWordTextNode = this.containingTextNode(to);        
+        const secondWordTextNode = this.containingTextNode(to);
         const totalText: string[] = [];
 
         // iterate runs
@@ -167,6 +167,9 @@ export class DocxParser {
      * Take all runs from 'second' and move them to 'first'.
      */
     public joinParagraphs(first: XmlNode, second: XmlNode): void {
+        if (first === second)
+            return;
+
         let childIndex = 0;
         while (second.childNodes && second.childNodes.length) {
             const curChild = second.childNodes[childIndex];

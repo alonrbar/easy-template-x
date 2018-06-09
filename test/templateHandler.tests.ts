@@ -157,7 +157,7 @@ describe(nameof(TemplateHandler), () => {
         expect(docText).to.be.equal("hi!first!second!hi!third!forth!");
     });
 
-    it("replaces nested loops fast enough?", async () => {
+    it("replaces nested loops fast enough", async () => {
 
         const handler = new TemplateHandler();
 
