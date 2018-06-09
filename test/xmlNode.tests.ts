@@ -15,9 +15,9 @@ describe(nameof(XmlNode), () => {
 
             expect(xmlNode.nodeName).to.eql('my-node');
             expect(xmlNode.nodeType).to.eql(XmlNodeType.General);
-            expect(!!xmlNode.parentNode).to.be.false;
+            expect(xmlNode.parentNode).to.not.exist;
             expect(xmlNode.childNodes.length).to.eql(0);
-            expect(!!xmlNode.nextSibling).to.be.false;
+            expect(xmlNode.nextSibling).to.not.exist;
         });
 
         it('creates a valid xml tree from a dom node with a single child', () => {
@@ -31,26 +31,26 @@ describe(nameof(XmlNode), () => {
             // root
             const root = xmlNode;
             expect(root.nodeName).to.eql('root');
-            expect(root.nodeType).to.eql(XmlNodeType.General);
-            expect(!!root.parentNode).to.be.false;
+            expect(xmlNode.nodeType).to.eql(XmlNodeType.General);
+            expect(root.parentNode).to.not.exist;
             expect(root.childNodes.length).to.eql(1);
-            expect(!!root.nextSibling).to.be.false;
+            expect(root.nextSibling).to.not.exist;
 
             // child
             const child = root.childNodes[0];
             expect(child.nodeName).to.eql('child');
-            expect(child.nodeType).to.eql(XmlNodeType.General);
+            expect(xmlNode.nodeType).to.eql(XmlNodeType.General);
             expect(child.parentNode).to.eql(root);
             expect(child.childNodes.length).to.eql(0);
-            expect(!!child.nextSibling).to.be.false;
+            expect(child.nextSibling).to.not.exist;
         });
 
-        it('creates a valid xml tree from a dom node with a three child nodes', () => {
+        it('creates a valid xml tree from a mixed tree', () => {
             const domNode = createDomNode(`
                 <root>
                     <child></child>
                     <child></child>
-                    <other-child></other-child>
+                    <other-child>hi</other-child>
                 </root>
             `, true);
             const xmlNode = XmlNode.fromDomNode(domNode);
@@ -59,13 +59,14 @@ describe(nameof(XmlNode), () => {
             const root = xmlNode;
             expect(root.nodeName).to.eql('root');
             expect(root.nodeType).to.eql(XmlNodeType.General);
-            expect(!!root.parentNode).to.be.false;
+            expect(root.parentNode).to.not.exist;
             expect(root.childNodes.length).to.eql(3);
-            expect(!!root.nextSibling).to.be.false;
+            expect(root.nextSibling).to.not.exist;
 
             const child1 = root.childNodes[0];
             const child2 = root.childNodes[1];
             const child3 = root.childNodes[2];
+            const grandchild1 = root.childNodes[2].childNodes[0];
             
             // child #1
             expect(child1.nodeName).to.eql('child');
@@ -85,8 +86,15 @@ describe(nameof(XmlNode), () => {
             expect(child3.nodeName).to.eql('other-child');
             expect(child3.nodeType).to.eql(XmlNodeType.General);
             expect(child3.parentNode).to.eql(root);
-            expect(child3.childNodes.length).to.eql(0);
-            expect(!!child3.nextSibling).to.be.false;
+            expect(child3.childNodes.length).to.eql(1);
+            expect(child3.nextSibling).to.not.exist;
+
+            // grandchild #3
+            expect(grandchild1.nodeName).to.eql(XmlNode.TEXT_NODE_NAME);
+            expect(grandchild1.nodeType).to.eql(XmlNodeType.Text);
+            expect(grandchild1.parentNode).to.eql(child3);
+            expect(grandchild1.childNodes).to.not.exist;
+            expect(grandchild1.nextSibling).to.not.exist;
         });
 
     });

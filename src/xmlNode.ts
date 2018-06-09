@@ -224,7 +224,7 @@ export namespace XmlNode {
             throw new MissingArgumentError(nameof(referenceNode));
 
         if (!referenceNode.parentNode)
-            throw new Error(`'${referenceNode}' has no parent`);
+            throw new Error(`'${nameof(referenceNode)}' has no parent`);
 
         const childNodes = referenceNode.parentNode.childNodes;
         const beforeNodeIndex = childNodes.indexOf(referenceNode);
@@ -289,7 +289,7 @@ export namespace XmlNode {
     export function appendChild(parent: XmlNode, child: XmlNode): void {
         if (!parent)
             throw new MissingArgumentError(nameof(parent));
-        if (parent.nodeType === XmlNodeType.Text)
+        if (isTextNode(parent))
             throw new Error('Appending children to text nodes is forbidden');
         if (!child)
             throw new MissingArgumentError(nameof(child));
@@ -312,7 +312,7 @@ export namespace XmlNode {
     export function insertChild(parent: XmlNode, child: XmlNode, childIndex: number): void {
         if (!parent)
             throw new MissingArgumentError(nameof(parent));
-        if (parent.nodeType === XmlNodeType.Text)
+        if (isTextNode(parent))
             throw new Error('Appending children to text nodes is forbidden');
         if (!child)
             throw new MissingArgumentError(nameof(child));
