@@ -2,8 +2,8 @@ import { expect } from 'chai';
 import { DelimiterMark } from 'src/compilation/delimiterMark';
 import { TagDisposition } from 'src/compilation/tag';
 import { TagParser } from 'src/compilation/tagParser';
-import { XmlNode, XmlTextNode } from 'src/xmlNode';
-import { XmlParser } from 'src/xmlParser';
+import { XmlTextNode } from 'src/xmlNode';
+import { parseXml } from '../testUtils';
 
 describe(nameof(TagParser), () => {
 
@@ -151,10 +151,3 @@ describe(nameof(TagParser), () => {
     });
 
 });
-
-const xmlParser = new XmlParser();
-
-function parseXml(xml: string): XmlNode {
-    xml = xml.replace(/\s/g, '');
-    return xmlParser.parse(xml);
-}

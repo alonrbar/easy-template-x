@@ -31,7 +31,7 @@ export class SimpleTagPlugin extends TemplatePlugin {
 
     private replaceMultiLine(textNode: XmlTextNode, lines: string[]) {
 
-        const runNode = this.docxParser.findRunNode(textNode);
+        const runNode = this.docxParser.containingRunNode(textNode);
 
         // first lint
         textNode.textContent = lines[0];

@@ -1,5 +1,5 @@
 import * as JSZip from 'jszip';
-import { XmlGeneralNode, XmlNode, XmlTextNode } from './xmlNode';
+import { XmlNode, XmlTextNode } from './xmlNode';
 
 export class DocxParser {
 
@@ -50,7 +50,7 @@ export class DocxParser {
     }
 
     /**
-     * Split the text node into two text nodes, each in it's own wrapping <w:t> node.
+     * Split the text node into two text nodes, each with it's own wrapping <w:t> node.
      * Returns the newly created text node.
      * 
      * @param textNode 
@@ -59,74 +59,94 @@ export class DocxParser {
      */
     public splitTextNode(textNode: XmlTextNode, splitIndex: number, addBefore: boolean): XmlTextNode {
 
-        let firstTextNode: XmlTextNode;
-        let secondTextNode: XmlTextNode;
+        let firstXmlTextNode: XmlTextNode;
+        let secondXmlTextNode: XmlTextNode;
 
         // split nodes
-        const runNode = this.findRunNode(textNode);
-        const newRunNode = XmlNode.cloneNode(runNode, true);
+        const wordTextNode = this.containingTextNode(textNode);
+        const newWordTextNode = XmlNode.cloneNode(wordTextNode, true);
         if (addBefore) {
 
-            // insert new run before existing one
-            XmlNode.insertBefore(newRunNode, runNode);
+            // insert new node before existing one
+            XmlNode.insertBefore(newWordTextNode, wordTextNode);
 
-            firstTextNode = XmlNode.lastTextChild(this.findTextNode(newRunNode));
-            secondTextNode = XmlNode.lastTextChild(textNode);
+            firstXmlTextNode = XmlNode.lastTextChild(newWordTextNode);
+            secondXmlTextNode = textNode;
 
         } else {
 
-            // insert new run after existing one
-            const runIndex = runNode.parentNode.childNodes.indexOf(runNode);
-            XmlNode.insertChild(runNode.parentNode, newRunNode, runIndex + 1);
+            // insert new node after existing one
+            const curIndex = wordTextNode.parentNode.childNodes.indexOf(wordTextNode);
+            XmlNode.insertChild(wordTextNode.parentNode, newWordTextNode, curIndex + 1);
 
-            firstTextNode = XmlNode.lastTextChild(textNode);
-            secondTextNode = XmlNode.lastTextChild(this.findTextNode(newRunNode));
+            firstXmlTextNode = textNode;
+            secondXmlTextNode = XmlNode.lastTextChild(newWordTextNode);
         }
 
         // edit text
-        const firstText = firstTextNode.textContent;
-        const secondText = secondTextNode.textContent;
-        firstTextNode.textContent = firstText.substring(0, splitIndex);
-        secondTextNode.textContent = secondText.substring(splitIndex);
+        const firstText = firstXmlTextNode.textContent;
+        const secondText = secondXmlTextNode.textContent;
+        firstXmlTextNode.textContent = firstText.substring(0, splitIndex);
+        secondXmlTextNode.textContent = secondText.substring(splitIndex);
 
-        return (addBefore ? firstTextNode : secondTextNode);
+        return (addBefore ? firstXmlTextNode : secondXmlTextNode);
     }
 
     /**
-     * Move all text from 'second' to 'first'.
+     * Move all text between the 'from' and 'to' nodes to the 'from' node.
      */
-    public joinTextNodes(first: XmlNode, second: XmlNode): void {
-        const firstRunNode = this.findRunNode(first);
-        const secondRunNode = this.findRunNode(second);
+    public joinTextNodesRange(from: XmlTextNode, to: XmlTextNode): void {
+
+        const firstRunNode = this.containingRunNode(from);
+        const secondRunNode = this.containingRunNode(to);
 
         const paragraphNode = firstRunNode.parentNode;
         if (secondRunNode.parentNode !== paragraphNode)
             throw new Error('Can not join text nodes from separate paragraphs.');
 
-        const firstWordTextNode = this.findTextNode(firstRunNode);
+        const firstWordTextNode = this.containingTextNode(from);
         const firstXmlTextNode = XmlNode.lastTextChild(firstWordTextNode);
+        const totalText: string[] = [];
 
-        let curRunNode = firstRunNode.nextSibling;
+        // iterate runs
+        let curRunNode = firstRunNode;
         while (curRunNode) {
 
-            // move text to first node
-            const curWordTextNode = this.findTextNode(curRunNode);
-            if (curWordTextNode) {
+            // iterate text nodes
+            let curWordTextNode = this.firstTextNodeChild(curRunNode);
+            while (curWordTextNode) {
+
+                if (curWordTextNode.nodeName !== DocxParser.TEXT_NODE)
+                    continue;
+
+                // move text to first node
                 const curXmlTextNode = XmlNode.lastTextChild(curWordTextNode);
-                firstXmlTextNode.textContent += curXmlTextNode.textContent;
+                totalText.push(curXmlTextNode.textContent);
+
+                // next text node
+                const textToRemove = curWordTextNode;
+                curWordTextNode = curWordTextNode.nextSibling;
+
+                // remove current text node
+                if (textToRemove !== firstWordTextNode)
+                    XmlNode.remove(textToRemove);
             }
 
-            // go next
-            const toRemove = curRunNode;
+            // next run
+            const runToRemove = curRunNode;
             if (curRunNode === secondRunNode) {
                 curRunNode = null;
             } else {
                 curRunNode = curRunNode.nextSibling;
             }
 
-            // remove current node
-            XmlNode.remove(toRemove);            
+            // remove current run
+            if (!runToRemove.childNodes || !runToRemove.childNodes.length) {
+                XmlNode.remove(runToRemove);
+            }
         }
+
+        firstXmlTextNode.textContent = totalText.join('');
     }
 
     /**
@@ -146,26 +166,45 @@ export class DocxParser {
     }
 
     /**
-     * Search **downwards** for the first **Word** text node (i.e. a <w:t> node).
+     * Search for the first child **Word** text node (i.e. a <w:t> node).
      */
-    public findTextNode(node: XmlNode): XmlGeneralNode {
+    public firstTextNodeChild(node: XmlNode): XmlNode {
 
         if (!node)
             return null;
 
-        if (XmlNode.isTextNode(node))
+        if (node.nodeName !== DocxParser.RUN_NODE)
             return null;
-
-        if (node.nodeName === DocxParser.TEXT_NODE)
-            return node;
 
         if (!node.childNodes)
             return null;
 
         for (const child of node.childNodes) {
-            const textNode = this.findTextNode(child);
-            if (textNode)
-                return textNode;
+            if (child.nodeName === DocxParser.TEXT_NODE)
+                return child;
+        }
+
+        return null;
+    }
+
+    /**
+     * Search **upwards** for the first **Word** text node (i.e. a <w:t> node).
+     */
+    public containingTextNode(node: XmlTextNode): XmlNode {
+
+        if (!node)
+            return null;
+
+        if (!XmlNode.isTextNode(node))
+            throw new Error(`'Invalid argument ${nameof(node)}. Expected a XmlTextNode.`);
+
+        let genNode = (node as XmlNode);
+        while (genNode.parentNode) {
+
+            if (genNode.nodeName === DocxParser.TEXT_NODE)
+                return genNode;
+
+            genNode = genNode.parentNode;
         }
 
         return null;
@@ -174,26 +213,26 @@ export class DocxParser {
     /**
      * Search **upwards** for the first run node.
      */
-    public findRunNode(node: XmlNode): XmlNode {
+    public containingRunNode(node: XmlNode): XmlNode {
         if (!node)
             return null;
 
         if (node.nodeName === DocxParser.RUN_NODE)
             return node;
 
-        return this.findRunNode(node.parentNode);
+        return this.containingRunNode(node.parentNode);
     }
 
     /**
      * Search **upwards** for the first paragraph node.
      */
-    public findParagraphNode(node: XmlNode): XmlNode {
+    public containingParagraphNode(node: XmlNode): XmlNode {
         if (!node)
             return null;
 
         if (node.nodeName === DocxParser.PARAGRAPH_NODE)
             return node;
 
-        return this.findParagraphNode(node.parentNode);
+        return this.containingParagraphNode(node.parentNode);
     }
 }

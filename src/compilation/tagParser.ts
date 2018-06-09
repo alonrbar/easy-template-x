@@ -137,7 +137,7 @@ export class TagParser {
 
         // join nodes
         if (!sameNode) {
-            this.docParser.joinTextNodes(startTextNode, endTextNode);
+            this.docParser.joinTextNodesRange(startTextNode, endTextNode);
             endTextNode = startTextNode;
         }
 
