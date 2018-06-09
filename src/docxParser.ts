@@ -49,34 +49,47 @@ export class DocxParser {
         return undefined;
     }
 
-    public splitTextNode(textNode: XmlNode, splitIndex: number, addBefore: boolean): void {
+    /**
+     * Split the text node into two text nodes, each in it's own wrapping <w:t> node.
+     * Returns the newly created text node.
+     * 
+     * @param textNode 
+     * @param splitIndex 
+     * @param addBefore Should the new node be added before or after the original node.
+     */
+    public splitTextNode(textNode: XmlTextNode, splitIndex: number, addBefore: boolean): XmlTextNode {
 
         let firstTextNode: XmlTextNode;
         let secondTextNode: XmlTextNode;
 
         // split nodes
         const runNode = this.findRunNode(textNode);
+        const newRunNode = XmlNode.cloneNode(runNode, true);
         if (addBefore) {
 
-            const beforeRunNode = XmlNode.cloneNode(runNode, true);
-            XmlNode.insertBefore(beforeRunNode, runNode);
+            // insert new run before existing one
+            XmlNode.insertBefore(newRunNode, runNode);
 
-            firstTextNode = XmlNode.lastTextChild(this.findTextNode(beforeRunNode));
+            firstTextNode = XmlNode.lastTextChild(this.findTextNode(newRunNode));
             secondTextNode = XmlNode.lastTextChild(textNode);
 
         } else {
 
-            const afterRunNode = XmlNode.cloneNode(runNode, true);
+            // insert new run after existing one
             const runIndex = runNode.parentNode.childNodes.indexOf(runNode);
-            XmlNode.insertChild(runNode.parentNode, afterRunNode, runIndex + 1);
+            XmlNode.insertChild(runNode.parentNode, newRunNode, runIndex + 1);
 
             firstTextNode = XmlNode.lastTextChild(textNode);
-            secondTextNode = XmlNode.lastTextChild(this.findTextNode(afterRunNode));
+            secondTextNode = XmlNode.lastTextChild(this.findTextNode(newRunNode));
         }
 
         // edit text
-        firstTextNode.textContent = firstTextNode.textContent.substring(0, splitIndex);
-        secondTextNode.textContent = secondTextNode.textContent.substring(splitIndex);
+        const firstText = firstTextNode.textContent;
+        const secondText = secondTextNode.textContent;
+        firstTextNode.textContent = firstText.substring(0, splitIndex);
+        secondTextNode.textContent = secondText.substring(splitIndex);
+
+        return (addBefore ? firstTextNode : secondTextNode);
     }
 
     /**
