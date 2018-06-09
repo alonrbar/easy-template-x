@@ -321,7 +321,7 @@ export namespace XmlNode {
         // get child index
         let childIndex: number;
         if (typeof childOrIndex === 'number') {
-            childIndex = childIndex;
+            childIndex = childOrIndex;
         } else {
             childIndex = parent.childNodes.indexOf(childOrIndex);
             if (childIndex === -1)
