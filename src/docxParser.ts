@@ -171,7 +171,7 @@ export class DocxParser {
             return;
 
         let childIndex = 0;
-        while (second.childNodes && second.childNodes.length) {
+        while (second.childNodes && childIndex < second.childNodes.length) {
             const curChild = second.childNodes[childIndex];
             if (curChild.nodeName === DocxParser.RUN_NODE) {
                 XmlNode.removeChild(second, childIndex);
