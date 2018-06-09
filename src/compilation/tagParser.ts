@@ -1,5 +1,6 @@
 import { DocxParser } from '../docxParser';
-import { MissingCloseDelimiterError, MissingStartDelimiterError } from '../errors';
+import { MissingCloseDelimiterError, MissingStartDelimiterError, UnknownPrefixError } from '../errors';
+import { XmlTextNode } from '../xmlNode';
 import { DelimiterMark } from './delimiterMark';
 import { Tag, TagDisposition, TagType } from './tag';
 import { TagPrefix } from './tagPrefix';
@@ -33,6 +34,8 @@ export class TagParser {
 
         let openedTag: Tag;
         let openedDelimiter: DelimiterMark;
+        let lastNormalizedNode: XmlTextNode;
+        let lastInflictedOffset: number;
         for (const delimiter of delimiters) {
 
             // close before open
@@ -49,13 +52,27 @@ export class TagParser {
 
             // valid open
             if (!openedTag && delimiter.isOpen) {
-                openedTag = new Tag({ xmlTextNode: delimiter.xmlTextNode });
+                openedTag = new Tag();
                 openedDelimiter = delimiter;
             }
 
             // valid close
             if (openedTag && !delimiter.isOpen) {
-                this.processTag(openedTag, openedDelimiter, delimiter);
+
+                // normalize the underlying xml structure
+                // (make sure the tag's node only includes the tag's text)
+                if (lastNormalizedNode === openedDelimiter.xmlTextNode) {
+                    openedDelimiter.index -= lastInflictedOffset;
+                }
+                if (lastNormalizedNode === delimiter.xmlTextNode) {
+                    delimiter.index -= lastInflictedOffset;
+                }
+                lastNormalizedNode = delimiter.xmlTextNode;
+                lastInflictedOffset = this.normalizeTagNodes(openedDelimiter, delimiter);
+                openedTag.xmlTextNode = openedDelimiter.xmlTextNode;
+
+                // extract tag info from tag's text
+                this.processTag(openedTag);
                 tags.push(openedTag);
                 openedTag = null;
                 openedDelimiter = null;
@@ -65,12 +82,7 @@ export class TagParser {
         return tags;
     }
 
-    private processTag(tag: Tag, openedDelimiter: DelimiterMark, closeDelimiter: DelimiterMark): void {
-
-        // normalize the underlying xml structure
-        this.normalizeTagNodes(openedDelimiter, closeDelimiter);
-
-        // extract tag info from tag's text
+    private processTag(tag: Tag): void {
         tag.rawText = tag.xmlTextNode.textContent;
         for (const prefix of this.tagPrefix) {
 
@@ -86,6 +98,9 @@ export class TagParser {
                 break;
             }
         }
+
+        if (!tag.name)
+            throw new UnknownPrefixError(tag.rawText);
     }
 
     /**
@@ -96,21 +111,41 @@ export class TagParser {
      * Input text node: "some text {some tag} some more text" 
      * Output text nodes: [ "some text ", "{tag1}", " some more text" ]
      */
-    private normalizeTagNodes(openDelimiter: DelimiterMark, closeDelimiter: DelimiterMark): void {
+    private normalizeTagNodes(openDelimiter: DelimiterMark, closeDelimiter: DelimiterMark): number {
 
-        const startTextNode = openDelimiter.xmlTextNode;
-        const endTextNode = closeDelimiter.xmlTextNode;
+        // we change the node's text and therefor needs to update following delimiters
+        let inflictedOffset = 0;
 
+        let startTextNode = openDelimiter.xmlTextNode;
+        let endTextNode = closeDelimiter.xmlTextNode;
+        const sameNode = (startTextNode === endTextNode);
+
+        // trim start
         if (openDelimiter.index > 0) {
+            inflictedOffset += openDelimiter.index;
             this.docParser.splitTextNode(startTextNode, openDelimiter.index, true);
         }
 
+        // trim end
         if (closeDelimiter.index < endTextNode.textContent.length - 1) {
-            this.docParser.splitTextNode(endTextNode, closeDelimiter.index, false);
+            inflictedOffset += closeDelimiter.index + 1;
+            endTextNode = this.docParser.splitTextNode(endTextNode, closeDelimiter.index + 1, true);
+            if (sameNode) {
+                startTextNode = endTextNode;
+            }
         }
 
-        if (startTextNode !== endTextNode) {
+        // join nodes
+        if (!sameNode) {
             this.docParser.joinTextNodes(startTextNode, endTextNode);
+            endTextNode = startTextNode;
         }
-    }
+
+        // update references
+        openDelimiter.xmlTextNode = startTextNode;
+        closeDelimiter.xmlTextNode = endTextNode;
+
+        // return the created offset
+        return inflictedOffset;
+    }    
 }

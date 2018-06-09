@@ -4,5 +4,6 @@ export * from './missingCloseDelimiterError';
 export * from './missingStartDelimiterError';
 export * from './unclosedTagError';
 export * from './unidentifiedFileTypeError';
+export * from './unknownPrefixError';
 export * from './unopenedTagError';
 export * from './unsupportedFileTypeError';
