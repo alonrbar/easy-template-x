@@ -39,6 +39,7 @@
     "@types/node": "10.1.4",
     "@types/xmldom": "0.1.29",
     "chai": "4.1.2",
+    "lorem-ipsum": "1.0.4",
     "mocha": "5.2.0",
     "mocha-webpack": "2.0.0-beta.0",
     "source-map-support": "0.5.6",

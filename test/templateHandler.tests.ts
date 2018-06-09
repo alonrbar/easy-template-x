@@ -1,8 +1,9 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import { TemplateHandler } from 'src/templateHandler';
+import { randomParagraphs, randomWords } from './testUtils';
 
-// tslint:disable:no-unused-expression
+// tslint:disable:no-unused-expression object-literal-key-quotes
 
 describe(nameof(TemplateHandler), () => {
 
@@ -162,7 +163,7 @@ describe(nameof(TemplateHandler), () => {
         const handler = new TemplateHandler();
 
         const template: Buffer = fs.readFileSync("./test/res/nested loop with image.docx");
-        
+
         const data = {
             loop_prop1: [
                 {
@@ -186,9 +187,59 @@ describe(nameof(TemplateHandler), () => {
         const begin = Date.now();
         const doc = await handler.process(template, data);
         const end = Date.now();
-        console.log(`==> nested loop speed test took ${end - begin}ms`);
+        console.log(`==> nested loop speed test took ${end - begin}ms`); // tslint:disable-line:no-console
 
         fs.writeFileSync('/temp/nested loop speed test - output.docx', doc);
 
     }).timeout(10000);
+
+    it("handles a real life template (in Hebrew)", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template: Buffer = fs.readFileSync("./test/res/real life - he.docx");
+
+        // const data = {
+        //     'תלמידים': [
+        //         {
+        //             'שם_התלמיד': 'אלון בר',
+        //             'קבוצות': [                 
+        //                 {
+        //                     'שם_הקבוצה': 'אנגלית',
+        //                     'שם_המורה': 'משה משה',
+        //                     'הערכה מילולית': 'טעון שיפור'
+        //                 }
+        //             ]
+        //         }]
+        // };
+
+        const data: any = {
+            'תלמידים': []
+        };
+
+        const studentsCount = 3;
+        const groupsCount = 3;
+        for (let i = 0; i < studentsCount; i++) {
+            const student: any = {
+                'שם התלמיד': randomWords(),
+                'קבוצות': []
+            };
+
+            for (let j = 0; j < groupsCount; j++) {
+                student['קבוצות'].push({
+                    'שם הקבוצה': randomWords(),
+                    'שם המורה': randomWords(2),
+                    'הערכה מילולית': randomParagraphs(2)
+                });
+            }
+            data['תלמידים'].push(student);
+        }
+
+        const begin = Date.now();
+        const doc = await handler.process(template, data);
+        const end = Date.now();
+        console.log(`==> real life test took ${end - begin}ms`); // tslint:disable-line:no-console
+
+        fs.writeFileSync('/temp/real life - output.docx', doc);
+    });
 });
