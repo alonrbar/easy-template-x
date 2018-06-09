@@ -117,7 +117,7 @@ describe(nameof(TagParser), () => {
         const paragraphNode = parseXml(`
             <w:p>
                 <w:r>
-                    <w:t>{loo</w:t>
+                    <w:t>{#loo</w:t>
                     <w:t>p}</w:t>
                 </w:r>
             </w:p>
