@@ -31,7 +31,10 @@ export class LoopPlugin extends TemplatePlugin {
         // repeat (loop) the content
         const repeatedParagraphs = this.repeatParagraphs(extractedParagraphs, data.length);
 
-        // recursive compilation
+        // recursive compilation 
+        // (this step can be optimized in the future if we'll keep track of the
+        // path to each delimiter and use that to create new DelimiterMarks
+        // instead of search through the text again)
         const compiledParagraphs = this.compile(repeatedParagraphs, data);
 
         // merge back to the document
