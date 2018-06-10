@@ -127,6 +127,39 @@ describe(nameof(TemplateHandler), () => {
         expect(docText).to.be.equal("first!second!");
     });
 
+    it("replaces a loop whose items have several properties", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template: Buffer = fs.readFileSync("./test/res/loop - multi props.docx");
+        const templateText = await handler.getText(template);
+        expect(templateText.trim()).to.be.equal(
+            "{#loop_prop}{simple_prop1}!{simple_prop2}!{simple_prop3}!{/loop_prop}"
+        );
+
+        const data = {
+            loop_prop: [
+                { 
+                    simple_prop1: 'first',
+                    simple_prop2: 'second',
+                    simple_prop3: 'third'
+                },
+                { 
+                    simple_prop1: 'forth',
+                    simple_prop2: 'fifth',
+                    simple_prop3: 'sixth'
+                }
+            ]
+        };
+
+        const doc = await handler.process(template, data);
+
+        fs.writeFileSync('/temp/loop - multi props - output.docx', doc);
+
+        const docText = await handler.getText(doc);
+        expect(docText).to.be.equal("first!second!third!forth!fifth!sixth!");
+    });
+
     it("replaces nested loops correctly", async () => {
 
         const handler = new TemplateHandler();

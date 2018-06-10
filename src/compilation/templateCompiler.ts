@@ -2,7 +2,6 @@ import { UnclosedTagError } from '../errors';
 import { LoopPlugin, SimpleTagPlugin, TemplatePlugin } from '../plugins';
 import { XmlNode } from '../xmlNode';
 import { DelimiterSearcher } from './delimiterSearcher';
-import { ScopeManager } from './scopedManager';
 import { Tag, TagDisposition } from './tag';
 import { TagParser } from './tagParser';
 
@@ -40,14 +39,10 @@ export class TemplateCompiler {
 
         this.plugins.forEach(plugin => plugin.setContext(this));
 
-        const scopeManager = new ScopeManager(data);
-        let scopeIndex = 0;
         for (let i = 0; i < tags.length; i++) {
 
             const tag = tags[i];
-
-            scopeManager.updateScopeBefore(tag, scopeIndex);
-            const scopedData = scopeManager.scopedData;
+            const scopedData = (data ? data[tag.name] : undefined);
 
             if (tag.disposition === TagDisposition.SelfClosed) {
 
@@ -73,12 +68,9 @@ export class TemplateCompiler {
                     if (plugin.tagType !== tag.type)
                         continue;
 
-                    plugin.containerTagReplacements(scopeTags, scopedData);                    
+                    plugin.containerTagReplacements(scopeTags, scopedData);
                 }
             }
-
-            scopeManager.updateScopeAfter(tag);
-            scopeIndex++;
         }
     }
 

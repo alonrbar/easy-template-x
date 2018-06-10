@@ -83,43 +83,50 @@ export class LoopPlugin extends TemplatePlugin {
         };
     }
 
-    private repeatParagraphs(paragraphs: XmlNode[], times: number): XmlNode[] {
+    private repeatParagraphs(paragraphs: XmlNode[], times: number): XmlNode[][] {
         if (!paragraphs.length || !times)
             return [];
 
         const firstParagraph = paragraphs[0];
-        const result = [XmlNode.cloneNode(firstParagraph, true)];
-
+        const allResults: XmlNode[][];
+        
         for (let i = 0; i < times; i++) {
+            const curResult = [XmlNode.cloneNode(firstParagraph, true)];
 
             // merge first paragraph to previous one
             if (i !== 0)
-                this.docxParser.joinParagraphs(last(result), XmlNode.cloneNode(firstParagraph, true));
+                this.docxParser.joinParagraphs(last(curResult), XmlNode.cloneNode(firstParagraph, true));
 
             // append other paragraphs
             const newParagraphs = paragraphs.slice(1).map(para => XmlNode.cloneNode(para, true));
-            pushMany(result, newParagraphs);
+            allResults.push(curResult, newParagraphs);
         }
 
-        return result;
+        return allResults;
     }
 
-    private compile(nodes: XmlNode[], data: any): XmlNode[] {
-
-        // create dummy root node
-        const dummyRootNode = XmlNode.createGeneralNode('dummyRootNode');
-        nodes.forEach(p => XmlNode.appendChild(dummyRootNode, p));
-
-        // compile the new root
-        this.compiler.compile(dummyRootNode, data);
-
-        // return result nodes
+    private compile(nodeGroups: XmlNode[][], data: any[]): XmlNode[] {
         const resultNodes: XmlNode[] = [];
-        while (dummyRootNode.childNodes && dummyRootNode.childNodes.length) {
-            const child = dummyRootNode.childNodes[0];
-            XmlNode.remove(child);
-            resultNodes.push(child);
+
+        // compile each node group with it's relevant data
+        for (let i = 0; i < nodeGroups.length; i++) {
+
+            // create dummy root node
+            const curNodes = nodeGroups[i];
+            const dummyRootNode = XmlNode.createGeneralNode('dummyRootNode');
+            curNodes.forEach(node => XmlNode.appendChild(dummyRootNode, node));
+            
+            // compile the new root
+            const curData = (i < data.length ? data[i] : undefined);
+            this.compiler.compile(dummyRootNode, curData);
+
+            while (dummyRootNode.childNodes && dummyRootNode.childNodes.length) {
+                const child = dummyRootNode.childNodes[0];
+                XmlNode.remove(child);
+                resultNodes.push(child);
+            }
         }
+
         return resultNodes;
     }
 
