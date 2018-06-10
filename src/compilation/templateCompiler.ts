@@ -62,8 +62,10 @@ export class TemplateCompiler {
 
             } else if (tag.disposition === TagDisposition.Open) {
 
-                // find the closing tag
+                // get all tags between the open and close tags
                 const j = this.findCloseTagIndex(i, tag, tags);
+                const scopeTags = tags.slice(i, j + 1);
+                i = i + j;
 
                 // replace container tag
                 for (const plugin of this.plugins) {
@@ -71,8 +73,7 @@ export class TemplateCompiler {
                     if (plugin.tagType !== tag.type)
                         continue;
 
-                    plugin.containerTagReplacements(i, j, tags, scopedData);
-                    i--;
+                    plugin.containerTagReplacements(scopeTags, scopedData);                    
                 }
             }
 

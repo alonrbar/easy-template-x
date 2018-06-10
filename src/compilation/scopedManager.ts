@@ -36,9 +36,9 @@ export class ScopeManager {
                 this.push(tag, index);
                 break;
             case TagDisposition.Close:
-                throw new Error(`Unexpected close tag. Tag should be remove by LoopPlugin.`);
+                throw new Error(`Unexpected close tag: '${tag.rawText}'.`);
             default:
-                throw new Error(`Unrecognized tag disposition: '${tag.disposition}'.`);
+                throw new Error(`Unrecognized tag disposition: '${tag.disposition}' (tag: ${tag.rawText}).`);
         }
     }
 
@@ -49,9 +49,9 @@ export class ScopeManager {
                 this.pop();
                 break;
             case TagDisposition.Close:
-                throw new Error(`Unexpected close tag. Tag should be remove by LoopPlugin.`);
+                throw new Error(`Unexpected close tag: '${tag.rawText}'.`);
             default:
-                throw new Error(`Unrecognized tag disposition: '${tag.disposition}'.`);
+                throw new Error(`Unrecognized tag disposition: '${tag.disposition}' (tag: ${tag.rawText}).`);
         }
     }
 

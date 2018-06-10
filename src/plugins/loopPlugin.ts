@@ -13,13 +13,13 @@ export class LoopPlugin extends TemplatePlugin {
     /**
      * @inheritDoc
      */
-    public containerTagReplacements(openTagIndex: number, closeTagIndex: number, allTags: Tag[], data: any): void {
+    public containerTagReplacements(tags: Tag[], data: any): void {
 
         if (!data || !Array.isArray(data) || !data.length)
             data = [];
 
-        const openTag = allTags[openTagIndex];
-        const closeTag = allTags[closeTagIndex];
+        const openTag = tags[0];
+        const closeTag = last(tags);
 
         // extract relevant content
         const { firstParagraph, middleParagraphs, lastParagraph } = this.splitParagraphs(openTag.xmlTextNode, closeTag.xmlTextNode);
@@ -35,9 +35,6 @@ export class LoopPlugin extends TemplatePlugin {
 
         // merge back to the document
         this.mergeBack(compiledParagraphs, firstParagraph, lastParagraph);
-
-        // modify input tags collection
-        allTags.splice(openTagIndex, closeTagIndex + 1);
     }
 
     private splitParagraphs(openTagNode: XmlNode, closeTagNode: XmlNode): ExtractParagraphsResult {

@@ -27,9 +27,10 @@ export abstract class TemplatePlugin {
      * It should implement the specific document manipulation required by the tag.
      * It should return true if successfully replaced.
      * 
+     * @param tags All tags between the opening tag and the closing tag (inclusive).
      * @param data Relevant part of the data
      */
-    public containerTagReplacements(openTagIndex: number, closeTagIndex: number, allTags: Tag[], data: any): void {
+    public containerTagReplacements(tags: Tag[], data: any): void {
         // noop
     }
 }
