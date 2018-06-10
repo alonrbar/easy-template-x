@@ -241,5 +241,5 @@ describe(nameof(TemplateHandler), () => {
         console.log(`==> real life test took ${end - begin}ms`); // tslint:disable-line:no-console
 
         fs.writeFileSync('/temp/real life - output.docx', doc);
-    });
+    }).timeout(10000);
 });
