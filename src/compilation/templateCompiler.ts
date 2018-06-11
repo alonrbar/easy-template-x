@@ -1,5 +1,5 @@
 import { UnclosedTagError } from '../errors';
-import { LoopPlugin, RawXmlPlugin, SimpleTagPlugin, TemplatePlugin } from '../plugins';
+import { TemplatePlugin } from '../plugins';
 import { XmlNode } from '../xmlNode';
 import { DelimiterSearcher } from './delimiterSearcher';
 import { Tag, TagDisposition } from './tag';
@@ -17,29 +17,10 @@ import { TagParser } from './tagParser';
  */
 export class TemplateCompiler {
 
-    private readonly plugins: TemplatePlugin[] = [new LoopPlugin(), new RawXmlPlugin(), new SimpleTagPlugin()];
-    private readonly delimiterSearcher = new DelimiterSearcher();
-    private readonly tagParser = new TagParser();
-
-    constructor() {
-        this.tagParser.tagPrefixes = [
-            {
-                prefix: '#',
-                tagDisposition: TagDisposition.Open
-            },
-            {
-                prefix: '/',
-                tagDisposition: TagDisposition.Close
-            },
-            {
-                prefix: '@',
-                tagDisposition: TagDisposition.SelfClosed
-            },
-            {
-                prefix: '',
-                tagDisposition: TagDisposition.SelfClosed
-            }
-        ];
+    constructor(
+        private readonly delimiterSearcher: DelimiterSearcher,
+        private readonly tagParser: TagParser,
+        private readonly plugins: TemplatePlugin[]) {
     }
 
     /**
@@ -57,8 +38,6 @@ export class TemplateCompiler {
     //
 
     private doTagReplacements(tags: Tag[], data: any): void {
-
-        this.plugins.forEach(plugin => plugin.setContext(this));
 
         for (let i = 0; i < tags.length; i++) {
 

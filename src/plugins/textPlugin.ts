@@ -3,7 +3,7 @@ import { DocxParser } from '../docxParser';
 import { XmlNode, XmlNodeType, XmlTextNode } from '../xmlNode';
 import { TemplatePlugin } from './templatePlugin';
 
-export class SimpleTagPlugin extends TemplatePlugin {
+export class TextPlugin extends TemplatePlugin {
 
     public readonly prefixes: TagPrefix[] = [{
         prefix: '',
@@ -22,7 +22,7 @@ export class SimpleTagPlugin extends TemplatePlugin {
         if (value.length < 2) {
             this.replaceSingleLine(tag.xmlTextNode, value.length ? value[0] : '');
         } else {
-            this.replaceMultiLine(tag.xmlTextNode, value);
+            this.replaceMultiLine(tag.xmlTextNode, value, this.docxParser);
         }
     }
 
@@ -30,9 +30,9 @@ export class SimpleTagPlugin extends TemplatePlugin {
         textNode.textContent = text;
     }
 
-    private replaceMultiLine(textNode: XmlTextNode, lines: string[]) {
+    private replaceMultiLine(textNode: XmlTextNode, lines: string[], docxParser: DocxParser) {
 
-        const runNode = this.docxParser.containingRunNode(textNode);
+        const runNode = docxParser.containingRunNode(textNode);
 
         // first lint
         textNode.textContent = lines[0];

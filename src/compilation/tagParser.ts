@@ -1,16 +1,23 @@
 import { DocxParser } from '../docxParser';
-import { MissingCloseDelimiterError, MissingStartDelimiterError, UnknownPrefixError } from '../errors';
+import { MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, UnknownPrefixError } from '../errors';
 import { XmlTextNode } from '../xmlNode';
 import { DelimiterMark } from './delimiterMark';
 import { Tag, TagPrefix } from './tag';
 
 export class TagParser {
-    
+
     public startDelimiter = "{";
     public endDelimiter = "}";
-    public tagPrefixes: TagPrefix[] = [];
 
-    private readonly docParser = new DocxParser();
+    constructor(
+        private readonly tagPrefixes: TagPrefix[],
+        private readonly docParser: DocxParser
+    ) {
+        if (!tagPrefixes || !tagPrefixes.length)
+            throw new MissingArgumentError(nameof(tagPrefixes));
+        if (!docParser)
+            throw new MissingArgumentError(nameof(docParser));
+    }
 
     public parse(delimiters: DelimiterMark[]): Tag[] {
         const tags: Tag[] = [];
@@ -63,7 +70,7 @@ export class TagParser {
         }
 
         return tags;
-    }    
+    }
 
     /**
      * Consolidate all tag's text into a single text node.

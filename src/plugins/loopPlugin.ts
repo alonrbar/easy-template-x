@@ -13,10 +13,11 @@ export class LoopPlugin extends TemplatePlugin {
         },
         {
             prefix: '/',
-            tagDisposition: TagDisposition.Open
+            tagDisposition: TagDisposition.Close
         }
     ];
 
+    private readonly compiler: any = {};
     private readonly docxParser = new DocxParser();
 
     /**

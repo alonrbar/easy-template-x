@@ -1,8 +1,9 @@
 import * as JSZip from 'jszip';
-import { TemplateCompiler } from './compilation/templateCompiler';
+import { DelimiterSearcher, TagParser, TemplateCompiler } from './compilation';
 import { DocxParser } from './docxParser';
 import { UnsupportedFileTypeError } from './errors';
 import { FileType } from './fileType';
+import { TemplateHandlerOptions } from './templateHandlerOptions';
 import { Binary, IMap } from './utils';
 import { XmlNode } from './xmlNode';
 import { XmlParser } from './xmlParser';
@@ -11,7 +12,36 @@ export class TemplateHandler {
 
     private readonly docxParser = new DocxParser();
     private readonly xmlParser = new XmlParser();
-    private readonly compiler = new TemplateCompiler();
+    private readonly compiler: TemplateCompiler;
+
+    private readonly options = new TemplateHandlerOptions();
+
+    constructor(options?: TemplateHandlerOptions) {
+        this.options = new TemplateHandlerOptions(options);
+
+        //
+        // this is the library's composition root
+        //
+
+        const delimiterSearcher = new DelimiterSearcher();
+        delimiterSearcher.startDelimiter = this.options.delimiters.start;
+        delimiterSearcher.endDelimiter = this.options.delimiters.end;
+        delimiterSearcher.maxXmlDepth = this.options.maxXmlDepth;
+
+        const prefixes = this.options.plugins
+            .map(plugin => plugin.prefixes)
+            .reduce((total, current) => total.concat(current), []);
+
+        const tagParser = new TagParser(prefixes, this.docxParser);
+        tagParser.startDelimiter = this.options.delimiters.start;
+        tagParser.endDelimiter = this.options.delimiters.end;
+
+        this.compiler = new TemplateCompiler(
+            delimiterSearcher,
+            tagParser,
+            this.options.plugins
+        );
+    }
 
     public async process<T extends Binary>(templateFile: T, data: any): Promise<T> {
 

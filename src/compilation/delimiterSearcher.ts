@@ -5,7 +5,6 @@ import { DelimiterMark } from './delimiterMark';
 
 export class DelimiterSearcher {
 
-    // TODO: get from outside
     public maxXmlDepth = 20;
     public startDelimiter = "{";
     public endDelimiter = "}";
