@@ -129,7 +129,7 @@ export class TagParser {
             const match = regex.exec(tag.rawText);
             if (match && match.length) {
                 tag.name = match[2];
-                tag.prefix = prefix.prefix;
+                tag.type = prefix.tagType;
                 tag.disposition = prefix.tagDisposition;
                 break;
             }

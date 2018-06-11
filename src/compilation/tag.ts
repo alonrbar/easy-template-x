@@ -8,7 +8,7 @@ export enum TagDisposition {
 
 export class Tag {
     public name: string;
-    public prefix: string;
+    public type: string;
     public rawText: string;
     public disposition: TagDisposition;
     public xmlTextNode: XmlTextNode;
@@ -20,5 +20,6 @@ export class Tag {
 
 export interface TagPrefix {
     prefix: string;
+    tagType: string;
     tagDisposition: TagDisposition;
 }

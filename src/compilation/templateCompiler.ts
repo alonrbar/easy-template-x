@@ -48,8 +48,9 @@ export class TemplateCompiler {
 
                 // replace simple tag
                 for (const plugin of this.plugins) {
-                    if (plugin.prefixes.some(prefix => prefix.prefix === tag.prefix)) {
+                    if (plugin.prefixes.some(prefix => prefix.tagType === tag.type)) {
                         plugin.simpleTagReplacements(tag, scopeData);
+                        break;
                     }
                 }
 
@@ -62,8 +63,9 @@ export class TemplateCompiler {
 
                 // replace container tag
                 for (const plugin of this.plugins) {
-                    if (plugin.prefixes.some(prefix => prefix.prefix === tag.prefix)) {
+                    if (plugin.prefixes.some(prefix => prefix.tagType === tag.type)) {
                         plugin.containerTagReplacements(scopeTags, scopeData);
+                        break;
                     }
                 }
             }
@@ -77,7 +79,7 @@ export class TemplateCompiler {
             const closeTag = tags[i];
             if (
                 closeTag.name === openTag.name &&
-                closeTag.prefix === openTag.prefix &&
+                closeTag.type === openTag.type &&
                 closeTag.disposition === TagDisposition.Close
             ) {
                 break;

@@ -8,6 +8,7 @@ export class RawXmlPlugin extends TemplatePlugin {
 
     public readonly prefixes: TagPrefix[] = [{
         prefix: '@',
+        tagType: 'rawXml',
         tagDisposition: TagDisposition.SelfClosed
     }];
 

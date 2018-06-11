@@ -7,6 +7,7 @@ export class TextPlugin extends TemplatePlugin {
 
     public readonly prefixes: TagPrefix[] = [{
         prefix: '',
+        tagType: 'text',
         tagDisposition: TagDisposition.SelfClosed
     }];
 

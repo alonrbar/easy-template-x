@@ -8,10 +8,12 @@ export class LoopPlugin extends TemplatePlugin {
     public readonly prefixes: TagPrefix[] = [
         {
             prefix: '#',
+            tagType: 'loop',
             tagDisposition: TagDisposition.Open
         },
         {
             prefix: '/',
+            tagType: 'loop',
             tagDisposition: TagDisposition.Close
         }
     ];
