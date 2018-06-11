@@ -12,7 +12,7 @@ export class SimpleTagPlugin extends TemplatePlugin {
     /**
      * @inheritDoc
      */
-    public simpleTagReplacements(tag: Tag, data: any): boolean {
+    public simpleTagReplacements(tag: Tag, data: any): void {
 
         const value = (data || '').split('\n');
 
@@ -21,8 +21,6 @@ export class SimpleTagPlugin extends TemplatePlugin {
         } else {
             this.replaceMultiLine(tag.xmlTextNode, value);
         }
-
-        return true;
     }
 
     private replaceSingleLine(textNode: XmlTextNode, text: string) {

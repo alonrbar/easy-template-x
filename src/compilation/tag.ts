@@ -1,22 +1,9 @@
 import { XmlTextNode } from '../xmlNode';
 
-export enum TagType {
-    /**
-     * Simple tag for straight-forward replacement.
-     */
+export enum TagType {    
     Simple = "Simple",
-    
-    //
-    // container tags
-    //
-
     Loop = "Loop",
-
-    //
-    // pre-defined tags
-    //
-
-    NewPage = "NewPage"
+    RawXml = "RawXml"
 }
 
 export enum TagDisposition {

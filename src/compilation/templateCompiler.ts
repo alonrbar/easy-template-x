@@ -1,5 +1,5 @@
 import { UnclosedTagError } from '../errors';
-import { LoopPlugin, SimpleTagPlugin, TemplatePlugin } from '../plugins';
+import { LoopPlugin, RawXmlPlugin, SimpleTagPlugin, TemplatePlugin } from '../plugins';
 import { XmlNode } from '../xmlNode';
 import { DelimiterSearcher } from './delimiterSearcher';
 import { Tag, TagDisposition } from './tag';
@@ -17,7 +17,7 @@ import { TagParser } from './tagParser';
  */
 export class TemplateCompiler {
 
-    private readonly plugins: TemplatePlugin[] = [new LoopPlugin(), new SimpleTagPlugin()];
+    private readonly plugins: TemplatePlugin[] = [new LoopPlugin(), new RawXmlPlugin(), new SimpleTagPlugin()];
     private readonly delimiterSearcher = new DelimiterSearcher();
     private readonly tagParser = new TagParser();
 
@@ -60,7 +60,7 @@ export class TemplateCompiler {
                 // get all tags between the open and close tags
                 const j = this.findCloseTagIndex(i, tag, tags);
                 const scopeTags = tags.slice(i, j + 1);
-                i = i + j;
+                i = j;
 
                 // replace container tag
                 for (const plugin of this.plugins) {

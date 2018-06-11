@@ -22,6 +22,11 @@ export class TagParser {
             tagDisposition: TagDisposition.Close
         },
         {
+            prefix: '@',
+            tagType: TagType.RawXml,
+            tagDisposition: TagDisposition.SelfClosed
+        },
+        {
             prefix: '',
             tagType: TagType.Simple,
             tagDisposition: TagDisposition.SelfClosed
