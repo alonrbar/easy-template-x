@@ -21,6 +21,27 @@ export class TemplateCompiler {
     private readonly delimiterSearcher = new DelimiterSearcher();
     private readonly tagParser = new TagParser();
 
+    constructor() {
+        this.tagParser.tagPrefixes = [
+            {
+                prefix: '#',
+                tagDisposition: TagDisposition.Open
+            },
+            {
+                prefix: '/',
+                tagDisposition: TagDisposition.Close
+            },
+            {
+                prefix: '@',
+                tagDisposition: TagDisposition.SelfClosed
+            },
+            {
+                prefix: '',
+                tagDisposition: TagDisposition.SelfClosed
+            }
+        ];
+    }
+
     /**
      * Compiles the template and performs the required replacements using the
      * specified data.
@@ -42,17 +63,15 @@ export class TemplateCompiler {
         for (let i = 0; i < tags.length; i++) {
 
             const tag = tags[i];
-            const scopedData = (data ? data[tag.name] : undefined);
+            const scopeData = (data ? data[tag.name] : undefined);
 
             if (tag.disposition === TagDisposition.SelfClosed) {
 
                 // replace simple tag
                 for (const plugin of this.plugins) {
-
-                    if (plugin.tagType !== tag.type)
-                        continue;
-
-                    plugin.simpleTagReplacements(tag, scopedData);
+                    if (plugin.prefixes.some(prefix => prefix.prefix === tag.prefix)) {
+                        plugin.simpleTagReplacements(tag, scopeData);
+                    }
                 }
 
             } else if (tag.disposition === TagDisposition.Open) {
@@ -64,11 +83,9 @@ export class TemplateCompiler {
 
                 // replace container tag
                 for (const plugin of this.plugins) {
-
-                    if (plugin.tagType !== tag.type)
-                        continue;
-
-                    plugin.containerTagReplacements(scopeTags, scopedData);
+                    if (plugin.prefixes.some(prefix => prefix.prefix === tag.prefix)) {
+                        plugin.containerTagReplacements(scopeTags, scopeData);
+                    }
                 }
             }
         }
@@ -81,7 +98,7 @@ export class TemplateCompiler {
             const closeTag = tags[i];
             if (
                 closeTag.name === openTag.name &&
-                closeTag.type === openTag.type &&
+                closeTag.prefix === openTag.prefix &&
                 closeTag.disposition === TagDisposition.Close
             ) {
                 break;

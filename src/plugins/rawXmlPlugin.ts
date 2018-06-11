@@ -1,4 +1,4 @@
-import { Tag, TagType } from '../compilation/tag';
+import { Tag, TagDisposition, TagPrefix } from '../compilation/tag';
 import { DocxParser } from '../docxParser';
 import { XmlNode, XmlNodeType } from '../xmlNode';
 import { XmlParser } from '../xmlParser';
@@ -6,7 +6,10 @@ import { TemplatePlugin } from './templatePlugin';
 
 export class RawXmlPlugin extends TemplatePlugin {
 
-    public readonly tagType = TagType.RawXml;
+    public readonly prefixes: TagPrefix[] = [{
+        prefix: '@',
+        tagDisposition: TagDisposition.SelfClosed
+    }];
 
     private docxParser = new DocxParser();
     private xmlParser = new XmlParser();

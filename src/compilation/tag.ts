@@ -1,11 +1,5 @@
 import { XmlTextNode } from '../xmlNode';
 
-export enum TagType {    
-    Simple = "Simple",
-    Loop = "Loop",
-    RawXml = "RawXml"
-}
-
 export enum TagDisposition {
     Open = "Open",
     Close = "Close",
@@ -14,12 +8,17 @@ export enum TagDisposition {
 
 export class Tag {
     public name: string;
+    public prefix: string;
     public rawText: string;
-    public type: TagType;
     public disposition: TagDisposition;
     public xmlTextNode: XmlTextNode;
 
     constructor(initial?: Partial<Tag>) {
         Object.assign(this, initial);
     }
+}
+
+export interface TagPrefix {
+    prefix: string;
+    tagDisposition: TagDisposition;
 }

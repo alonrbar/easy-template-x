@@ -2,37 +2,15 @@ import { DocxParser } from '../docxParser';
 import { MissingCloseDelimiterError, MissingStartDelimiterError, UnknownPrefixError } from '../errors';
 import { XmlTextNode } from '../xmlNode';
 import { DelimiterMark } from './delimiterMark';
-import { Tag, TagDisposition, TagType } from './tag';
-import { TagPrefix } from './tagPrefix';
+import { Tag, TagPrefix } from './tag';
 
 export class TagParser {
-
-    // TODO: get from outside    
+    
     public startDelimiter = "{";
     public endDelimiter = "}";
-    public tagPrefix: TagPrefix[] = [
-        {
-            prefix: '#',
-            tagType: TagType.Loop,
-            tagDisposition: TagDisposition.Open
-        },
-        {
-            prefix: '/',
-            tagType: TagType.Loop,
-            tagDisposition: TagDisposition.Close
-        },
-        {
-            prefix: '@',
-            tagType: TagType.RawXml,
-            tagDisposition: TagDisposition.SelfClosed
-        },
-        {
-            prefix: '',
-            tagType: TagType.Simple,
-            tagDisposition: TagDisposition.SelfClosed
-        }
-    ];
-    public docParser = new DocxParser();
+    public tagPrefixes: TagPrefix[] = [];
+
+    private readonly docParser = new DocxParser();
 
     public parse(delimiters: DelimiterMark[]): Tag[] {
         const tags: Tag[] = [];
@@ -85,28 +63,7 @@ export class TagParser {
         }
 
         return tags;
-    }
-
-    private processTag(tag: Tag): void {
-        tag.rawText = tag.xmlTextNode.textContent;
-        for (const prefix of this.tagPrefix) {
-
-            // TODO: compile regex once
-            const pattern = `^[${this.startDelimiter}](\\s*?)${prefix.prefix}(.*?)[${this.endDelimiter}]`;
-            const regex = new RegExp(pattern, 'gmi');
-
-            const match = regex.exec(tag.rawText);
-            if (match && match.length) {
-                tag.name = match[2];
-                tag.type = prefix.tagType;
-                tag.disposition = prefix.tagDisposition;
-                break;
-            }
-        }
-
-        if (!tag.name)
-            throw new UnknownPrefixError(tag.rawText);
-    }
+    }    
 
     /**
      * Consolidate all tag's text into a single text node.
@@ -152,5 +109,26 @@ export class TagParser {
 
         // return the created offset
         return inflictedOffset;
-    }    
+    }
+
+    private processTag(tag: Tag): void {
+        tag.rawText = tag.xmlTextNode.textContent;
+        for (const prefix of this.tagPrefixes) {
+
+            // TODO: compile regex once
+            const pattern = `^[${this.startDelimiter}](\\s*?)${prefix.prefix}(.*?)[${this.endDelimiter}]`;
+            const regex = new RegExp(pattern, 'gmi');
+
+            const match = regex.exec(tag.rawText);
+            if (match && match.length) {
+                tag.name = match[2];
+                tag.prefix = prefix.prefix;
+                tag.disposition = prefix.tagDisposition;
+                break;
+            }
+        }
+
+        if (!tag.name)
+            throw new UnknownPrefixError(tag.rawText);
+    }
 }

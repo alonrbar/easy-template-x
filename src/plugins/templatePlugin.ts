@@ -1,9 +1,9 @@
-import { Tag, TagType } from '../compilation/tag';
+import { Tag, TagPrefix } from '../compilation/tag';
 import { TemplateCompiler } from '../compilation/templateCompiler';
 
 export abstract class TemplatePlugin {
 
-    public abstract get tagType(): TagType;
+    public abstract get prefixes(): TagPrefix[];
 
     protected compiler: TemplateCompiler;
 

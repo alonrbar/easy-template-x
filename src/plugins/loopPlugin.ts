@@ -1,4 +1,4 @@
-import { Tag, TagType } from '../compilation/tag';
+import { Tag, TagDisposition, TagPrefix } from '../compilation/tag';
 import { DocxParser } from '../docxParser';
 import { last } from '../utils';
 import { XmlNode } from '../xmlNode';
@@ -6,7 +6,16 @@ import { TemplatePlugin } from './templatePlugin';
 
 export class LoopPlugin extends TemplatePlugin {
 
-    public readonly tagType = TagType.Loop;
+    public readonly prefixes: TagPrefix[] = [
+        {
+            prefix: '#',
+            tagDisposition: TagDisposition.Open
+        },
+        {
+            prefix: '/',
+            tagDisposition: TagDisposition.Open
+        }
+    ];
 
     private readonly docxParser = new DocxParser();
 
