@@ -14,7 +14,7 @@ export class TemplateHandler {
     private readonly xmlParser = new XmlParser();
     private readonly compiler: TemplateCompiler;
 
-    private readonly options = new TemplateHandlerOptions();
+    private readonly options: TemplateHandlerOptions;
 
     constructor(options?: TemplateHandlerOptions) {
         this.options = new TemplateHandlerOptions(options);
@@ -41,6 +41,14 @@ export class TemplateHandler {
             tagParser,
             this.options.plugins
         );
+
+        this.options.plugins.forEach(plugin => {
+            plugin.setUtilities({
+                xmlParser: this.xmlParser,
+                docxParser: this.docxParser,
+                compiler: this.compiler
+            });
+        });
     }
 
     public async process<T extends Binary>(templateFile: T, data: any): Promise<T> {

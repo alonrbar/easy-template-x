@@ -10,8 +10,6 @@ export class TextPlugin extends TemplatePlugin {
         tagDisposition: TagDisposition.SelfClosed
     }];
 
-    private docxParser = new DocxParser();
-
     /**
      * @inheritDoc
      */
@@ -22,7 +20,7 @@ export class TextPlugin extends TemplatePlugin {
         if (value.length < 2) {
             this.replaceSingleLine(tag.xmlTextNode, value.length ? value[0] : '');
         } else {
-            this.replaceMultiLine(tag.xmlTextNode, value, this.docxParser);
+            this.replaceMultiLine(tag.xmlTextNode, value);
         }
     }
 
@@ -30,9 +28,9 @@ export class TextPlugin extends TemplatePlugin {
         textNode.textContent = text;
     }
 
-    private replaceMultiLine(textNode: XmlTextNode, lines: string[], docxParser: DocxParser) {
+    private replaceMultiLine(textNode: XmlTextNode, lines: string[]) {
 
-        const runNode = docxParser.containingRunNode(textNode);
+        const runNode = this.utilities.docxParser.containingRunNode(textNode);
 
         // first lint
         textNode.textContent = lines[0];

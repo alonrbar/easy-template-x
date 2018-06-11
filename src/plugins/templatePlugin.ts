@@ -1,26 +1,32 @@
 import * as JSZip from 'jszip';
-import { Tag, TagPrefix } from '../compilation/tag';
-import { TemplateCompiler } from '../compilation/templateCompiler';
+import { ScopeData, Tag, TagPrefix, TemplateCompiler } from '../compilation';
 import { DocxParser } from '../docxParser';
 import { XmlParser } from '../xmlParser';
 
-export class TemplatePluginContext {
-    public compiler: TemplateCompiler;
-    public docxParser: DocxParser;
-    public xmlParser: XmlParser;
+export interface PluginUtilities {
+    compiler: TemplateCompiler;
+    docxParser: DocxParser;
+    xmlParser: XmlParser;
 }
 
 export interface TagReplacementContext {
-    dataPath: string[];
-    allData: any;
-    scopeData: any;
-    docFile: JSZip;
+    data: ScopeData;
+    zipFile: JSZip;
     currentFilePath: string;
 }
 
 export abstract class TemplatePlugin {
 
     public abstract get prefixes(): TagPrefix[];
+
+    protected utilities: PluginUtilities;
+
+    /**
+     * Called by the TemplateHandler at runtime.
+     */
+    public setUtilities(utilities: PluginUtilities) {
+        this.utilities = utilities;
+    }
 
     /**
      * This method is called for each self-closing tag.

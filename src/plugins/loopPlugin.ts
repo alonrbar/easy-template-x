@@ -1,5 +1,4 @@
 import { Tag, TagDisposition, TagPrefix } from '../compilation/tag';
-import { DocxParser } from '../docxParser';
 import { last } from '../utils';
 import { XmlNode } from '../xmlNode';
 import { TemplatePlugin } from './templatePlugin';
@@ -17,9 +16,6 @@ export class LoopPlugin extends TemplatePlugin {
         }
     ];
 
-    private readonly compiler: any = {};
-    private readonly docxParser = new DocxParser();
-
     /**
      * @inheritDoc
      */
@@ -31,8 +27,8 @@ export class LoopPlugin extends TemplatePlugin {
         // vars
         const openTag = tags[0];
         const closeTag = last(tags);
-        let firstNode = this.docxParser.containingParagraphNode(openTag.xmlTextNode);
-        let lastNode = this.docxParser.containingParagraphNode(closeTag.xmlTextNode);
+        let firstNode = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
+        let lastNode = this.utilities.docxParser.containingParagraphNode(closeTag.xmlTextNode);
         let middleNodes: XmlNode[];
         const sameNodes = (firstNode === lastNode);
 
@@ -58,8 +54,8 @@ export class LoopPlugin extends TemplatePlugin {
     private splitParagraphs(openTagNode: XmlNode, closeTagNode: XmlNode): ExtractParagraphsResult {
 
         // gather some info
-        let firstParagraph = this.docxParser.containingParagraphNode(openTagNode);
-        let lastParagraph = this.docxParser.containingParagraphNode(closeTagNode);
+        let firstParagraph = this.utilities.docxParser.containingParagraphNode(openTagNode);
+        let lastParagraph = this.utilities.docxParser.containingParagraphNode(closeTagNode);
         const areSame = (firstParagraph === lastParagraph);
         const parent = firstParagraph.parentNode;
         const firstParagraphIndex = parent.childNodes.indexOf(firstParagraph);
@@ -87,7 +83,7 @@ export class LoopPlugin extends TemplatePlugin {
         // extract all paragraphs in between
         let middleParagraphs: XmlNode[];
         if (areSame) {
-            this.docxParser.joinParagraphs(firstParagraphSplit, lastParagraphSplit);
+            this.utilities.docxParser.joinParagraphs(firstParagraphSplit, lastParagraphSplit);
             middleParagraphs = [firstParagraphSplit];
         } else {
             const inBetween = XmlNode.removeSiblings(firstParagraph, lastParagraph);
@@ -128,7 +124,7 @@ export class LoopPlugin extends TemplatePlugin {
 
             // compile the new root
             const curData = (i < data.length ? data[i] : undefined);
-            this.compiler.compile(dummyRootNode, curData);
+            this.utilities.compiler.compile(dummyRootNode, curData);
 
             // disconnect from dummy root
             const curResult: XmlNode[] = [];
@@ -148,7 +144,7 @@ export class LoopPlugin extends TemplatePlugin {
         for (const curNodeGroup of nodeGroups) {
 
             // merge first paragraphs
-            this.docxParser.joinParagraphs(mergeTo, curNodeGroup[0]);
+            this.utilities.docxParser.joinParagraphs(mergeTo, curNodeGroup[0]);
 
             // add middle and last paragraphs to the original document
             for (let i = 1; i < curNodeGroup.length; i++) {
@@ -158,7 +154,7 @@ export class LoopPlugin extends TemplatePlugin {
         }
 
         // merge last paragraph
-        this.docxParser.joinParagraphs(mergeTo, lastParagraph);
+        this.utilities.docxParser.joinParagraphs(mergeTo, lastParagraph);
 
         // remove the old last paragraph (was merged into the new one)
         XmlNode.remove(lastParagraph);
