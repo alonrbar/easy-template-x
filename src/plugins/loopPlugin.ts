@@ -1,6 +1,6 @@
 import { Tag, TagType } from '../compilation/tag';
 import { DocxParser } from '../docxParser';
-import { last, pushMany } from '../utils';
+import { last } from '../utils';
 import { XmlNode } from '../xmlNode';
 import { TemplatePlugin } from './templatePlugin';
 
@@ -18,23 +18,31 @@ export class LoopPlugin extends TemplatePlugin {
         if (!data || !Array.isArray(data) || !data.length)
             data = [];
 
+        // vars
         const openTag = tags[0];
         const closeTag = last(tags);
+        let firstNode = this.docxParser.containingParagraphNode(openTag.xmlTextNode);
+        let lastNode = this.docxParser.containingParagraphNode(closeTag.xmlTextNode);
+        let middleNodes: XmlNode[];
+        const sameNodes = (firstNode === lastNode);
 
-        // extract relevant content
-        const { firstParagraph, middleParagraphs, lastParagraph } = this.splitParagraphs(openTag.xmlTextNode, closeTag.xmlTextNode);
+        // extract relevant content        
+        const result = this.splitParagraphs(openTag.xmlTextNode, closeTag.xmlTextNode);
+        firstNode = result.firstParagraph;
+        lastNode = result.lastParagraph;
+        middleNodes = result.middleParagraphs;
 
         // repeat (loop) the content
-        const repeatedParagraphs = this.repeatParagraphs(middleParagraphs, data.length);
+        const repeatedNodes = this.repeat(middleNodes, data.length);
 
         // recursive compilation 
         // (this step can be optimized in the future if we'll keep track of the
-        // path to each delimiter and use that to create new DelimiterMarks
-        // instead of search through the text again)
-        const compiledParagraphs = this.compile(repeatedParagraphs, data);
+        // path to each token and use that to create new tokens instead of
+        // search through the text again)
+        const compiledNodes = this.compile(repeatedNodes, data);
 
         // merge back to the document
-        this.mergeBack(compiledParagraphs, firstParagraph, lastParagraph);
+        this.mergeBack(compiledNodes, firstNode, lastNode, sameNodes);
     }
 
     private splitParagraphs(openTagNode: XmlNode, closeTagNode: XmlNode): ExtractParagraphsResult {
@@ -83,30 +91,22 @@ export class LoopPlugin extends TemplatePlugin {
         };
     }
 
-    private repeatParagraphs(paragraphs: XmlNode[], times: number): XmlNode[][] {
-        if (!paragraphs.length || !times)
+    private repeat(nodes: XmlNode[], times: number): XmlNode[][] {
+        if (!nodes.length || !times)
             return [];
 
-        const firstParagraph = paragraphs[0];
-        const allResults: XmlNode[][];
-        
+        const allResults: XmlNode[][] = [];
+
         for (let i = 0; i < times; i++) {
-            const curResult = [XmlNode.cloneNode(firstParagraph, true)];
-
-            // merge first paragraph to previous one
-            if (i !== 0)
-                this.docxParser.joinParagraphs(last(curResult), XmlNode.cloneNode(firstParagraph, true));
-
-            // append other paragraphs
-            const newParagraphs = paragraphs.slice(1).map(para => XmlNode.cloneNode(para, true));
-            allResults.push(curResult, newParagraphs);
+            const curResult = nodes.map(node => XmlNode.cloneNode(node, true));
+            allResults.push(curResult);
         }
 
         return allResults;
     }
 
-    private compile(nodeGroups: XmlNode[][], data: any[]): XmlNode[] {
-        const resultNodes: XmlNode[] = [];
+    private compile(nodeGroups: XmlNode[][], data: any[]): XmlNode[][] {
+        const compiledNodeGroups: XmlNode[][] = [];
 
         // compile each node group with it's relevant data
         for (let i = 0; i < nodeGroups.length; i++) {
@@ -115,33 +115,46 @@ export class LoopPlugin extends TemplatePlugin {
             const curNodes = nodeGroups[i];
             const dummyRootNode = XmlNode.createGeneralNode('dummyRootNode');
             curNodes.forEach(node => XmlNode.appendChild(dummyRootNode, node));
-            
+
             // compile the new root
             const curData = (i < data.length ? data[i] : undefined);
             this.compiler.compile(dummyRootNode, curData);
 
+            // disconnect from dummy root
+            const curResult: XmlNode[] = [];
             while (dummyRootNode.childNodes && dummyRootNode.childNodes.length) {
-                const child = dummyRootNode.childNodes[0];
-                XmlNode.remove(child);
-                resultNodes.push(child);
+                const child = XmlNode.removeChild(dummyRootNode, 0);
+                curResult.push(child);
+            }
+            compiledNodeGroups.push(curResult);
+        }
+
+        return compiledNodeGroups;
+    }
+
+    private mergeBack(nodeGroups: XmlNode[][], firstParagraph: XmlNode, lastParagraph: XmlNode, sameNodes: boolean): void {
+        if (!nodeGroups.length || !nodeGroups[0].length) {
+            if (sameNodes) {
+                this.docxParser.joinParagraphs(firstParagraph, lastParagraph);
+            }
+            return;
+        }
+
+        let mergeTo = firstParagraph;
+        for (const curNodeGroup of nodeGroups) {
+
+            // merge first paragraphs
+            this.docxParser.joinParagraphs(mergeTo, curNodeGroup[0]);
+
+            // add middle and last paragraphs to the original document
+            for (let i = 1; i < curNodeGroup.length; i++) {
+                XmlNode.insertBefore(curNodeGroup[i], lastParagraph);
+                mergeTo = curNodeGroup[i];
             }
         }
 
-        return resultNodes;
-    }
-
-    private mergeBack(newParagraphs: XmlNode[], firstParagraph: XmlNode, lastParagraph: XmlNode): void {
-        if (!newParagraphs.length)
-            return;
-
-        // merge edge paragraphs
-        this.docxParser.joinParagraphs(firstParagraph, newParagraphs[0]);
-        this.docxParser.joinParagraphs(newParagraphs[newParagraphs.length - 1], lastParagraph);
-
-        // add middle and last paragraphs to the original document
-        for (let i = 1; i < newParagraphs.length; i++) {
-            XmlNode.insertBefore(newParagraphs[i], lastParagraph);
-        }
+        // merge last paragraph
+        this.docxParser.joinParagraphs(mergeTo, lastParagraph);
 
         // remove the old last paragraph (was merged into the new one)
         XmlNode.remove(lastParagraph);

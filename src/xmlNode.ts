@@ -325,9 +325,14 @@ export namespace XmlNode {
     }
 
     /**
+     * Remove a child node from it's parent. Returns the removed child.
+     * 
      * * **Note:** Prefer calling with explicit index.
      */
     export function removeChild(parent: XmlNode, child: XmlNode): XmlNode;
+    /**
+     * Remove a child node from it's parent. Returns the removed child.
+     */
     export function removeChild(parent: XmlNode, childIndex: number): XmlNode;
     export function removeChild(parent: XmlNode, childOrIndex: XmlNode | number): XmlNode {
         if (!parent)
