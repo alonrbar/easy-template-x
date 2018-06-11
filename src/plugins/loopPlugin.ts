@@ -133,12 +133,6 @@ export class LoopPlugin extends TemplatePlugin {
     }
 
     private mergeBack(nodeGroups: XmlNode[][], firstParagraph: XmlNode, lastParagraph: XmlNode, sameNodes: boolean): void {
-        if (!nodeGroups.length || !nodeGroups[0].length) {
-            if (sameNodes) {
-                this.docxParser.joinParagraphs(firstParagraph, lastParagraph);
-            }
-            return;
-        }
 
         let mergeTo = firstParagraph;
         for (const curNodeGroup of nodeGroups) {
