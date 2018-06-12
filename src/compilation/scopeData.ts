@@ -1,3 +1,5 @@
+import { last } from "../utils";
+
 const getProp = require('lodash.get');
 
 export class ScopeData {
@@ -9,11 +11,16 @@ export class ScopeData {
     }
 
     public getScopeData(): any {
+
+        const lastKey = last(this.path);
+
         let result: any;
-        let curPath = this.path;
+        let curPath = this.path.slice();
+
         while (result === undefined && curPath.length) {
-            result = getProp(this.allData, curPath);
-            curPath = curPath.slice(0, curPath.length - 1);
+            const curScopePath = curPath.slice(0, curPath.length - 1);
+            result = getProp(this.allData, curScopePath.concat(lastKey));
+            curPath = curScopePath;
         }
         return result;
     }
