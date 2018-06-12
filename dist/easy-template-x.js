@@ -2175,6 +2175,7 @@ var UnsupportedFileTypeError = (function (_super) {
 /*! ModuleConcatenation bailout: Cannot concat with ./src/errors/index.ts because of ./src/utils/binary.ts */
 /*! ModuleConcatenation bailout: Cannot concat with ./src/utils/binary.ts (<- Module uses injected variables (Buffer)) */
 /*! ModuleConcatenation bailout: Cannot concat with external "jszip" (<- Module is not an ECMAScript module) */
+/*! ModuleConcatenation bailout: Cannot concat with external "xmldom" (<- Module is not an ECMAScript module) */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3321,10 +3322,13 @@ var templateHandlerOptions_TemplateHandlerOptions = (function () {
 }());
 
 
+// EXTERNAL MODULE: external "xmldom"
+var external_xmldom_ = __webpack_require__("xmldom");
+
 // CONCATENATED MODULE: ./src/xmlParser.ts
 
 
-var DomParserType = __webpack_require__(/*! xmldom */ "xmldom").DOMParser;
+
 var xmlParser_XmlParser = (function () {
     function XmlParser() {
     }
@@ -3341,7 +3345,7 @@ var xmlParser_XmlParser = (function () {
         return XmlParser.xmlHeader + xmlNode_XmlNode.serialize(xmlNode);
     };
     XmlParser.xmlHeader = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
-    XmlParser.parser = new DomParserType();
+    XmlParser.parser = new external_xmldom_["DOMParser"]();
     return XmlParser;
 }());
 

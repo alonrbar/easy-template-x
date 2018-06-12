@@ -2,6 +2,10 @@
 
 ## [Unreleased](https://github.com/alonrbar/easy-template-x/tree/develop)
 
+## [0.2.1 - 2018-06-12](https://github.com/alonrbar/easy-template-x/tree/v0.2.1)
+
+- Various bug fixes
+
 ## [0.2.0 - 2018-06-12](https://github.com/alonrbar/easy-template-x/tree/v0.2.0)
 
 - Typings file
