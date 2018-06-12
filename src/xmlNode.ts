@@ -16,7 +16,7 @@ export interface XmlNodeBase {
     nextSibling?: XmlNode;
 }
 
-const TEXT_NODE_NAME_VALUE = '#text'; // see: https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeName
+export const TEXT_NODE_NAME_VALUE = '#text'; // see: https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeName
 
 export interface XmlTextNode extends XmlNodeBase {
     nodeType: XmlNodeType.Text;
