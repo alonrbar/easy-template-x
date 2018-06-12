@@ -5,6 +5,7 @@ import { DelimiterSearcher } from './delimiterSearcher';
 import { ScopeData } from './scopeData';
 import { Tag, TagDisposition } from './tag';
 import { TagParser } from './tagParser';
+import { TemplateContext } from './templateContext';
 
 /**
  * The TemplateCompiler works roughly the same way as a source code compiler.
@@ -28,17 +29,17 @@ export class TemplateCompiler {
      * Compiles the template and performs the required replacements using the
      * specified data.
      */
-    public compile(node: XmlNode, data: ScopeData): void {
+    public compile(node: XmlNode, data: ScopeData, context: TemplateContext): void {
         const delimiters = this.delimiterSearcher.findDelimiters(node);
         const tags = this.tagParser.parse(delimiters);
-        this.doTagReplacements(tags, data);
+        this.doTagReplacements(tags, data, context);
     }
 
     //
     // private methods
     //
 
-    private doTagReplacements(tags: Tag[], data: ScopeData): void {
+    private doTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): void {
 
         for (let i = 0; i < tags.length; i++) {
 
@@ -50,7 +51,7 @@ export class TemplateCompiler {
                 // replace simple tag
                 for (const plugin of this.plugins) {
                     if (plugin.prefixes.some(prefix => prefix.tagType === tag.type)) {
-                        plugin.simpleTagReplacements(tag, data);
+                        plugin.simpleTagReplacements(tag, data, context);
                         break;
                     }
                 }
@@ -65,7 +66,7 @@ export class TemplateCompiler {
                 // replace container tag
                 for (const plugin of this.plugins) {
                     if (plugin.prefixes.some(prefix => prefix.tagType === tag.type)) {
-                        plugin.containerTagReplacements(scopeTags, data);
+                        plugin.containerTagReplacements(scopeTags, data, context);
                         break;
                     }
                 }

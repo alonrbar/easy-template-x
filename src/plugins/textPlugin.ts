@@ -12,7 +12,8 @@ export class TextPlugin extends TemplatePlugin {
     }];
 
     /**
-     * @inheritDoc
+     * Replace the node text content with the specified value. The value is
+     * xml-encoded by the plugin.
      */
     public simpleTagReplacements(tag: Tag, data: ScopeData): void {
 

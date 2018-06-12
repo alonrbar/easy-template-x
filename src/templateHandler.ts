@@ -1,6 +1,5 @@
 import * as JSZip from 'jszip';
-import { DelimiterSearcher, TagParser, TemplateCompiler } from './compilation';
-import { ScopeData } from './compilation/scopeData';
+import { DelimiterSearcher, ScopeData, TagParser, TemplateCompiler, TemplateContext } from './compilation';
 import { DocxParser } from './docxParser';
 import { UnsupportedFileTypeError } from './errors';
 import { FileType } from './fileType';
@@ -60,10 +59,15 @@ export class TemplateHandler {
         // extract content as xml documents
         const contentDocuments = await this.parseContentDocuments(docFile);
 
-        // process content (do replacements)
+        // process content (do replacements)        
         const scopeData = new ScopeData(data);
-        for (const contentDoc of Object.values(contentDocuments)) {
-            this.compiler.compile(contentDoc, scopeData);
+        const context: TemplateContext = {
+            zipFile: docFile,
+            currentFilePath: null
+        };
+        for (const file of Object.keys(contentDocuments)) {
+            context.currentFilePath = file;
+            this.compiler.compile(contentDocuments[file], scopeData, context);
         }
 
         // update the docx file

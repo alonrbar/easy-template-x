@@ -1,4 +1,4 @@
-import { ScopeData, Tag, TagDisposition, TagPrefix } from '../compilation';
+import { ScopeData, Tag, TagDisposition, TagPrefix, TemplateContext } from '../compilation';
 import { last } from '../utils';
 import { XmlNode } from '../xmlNode';
 import { TemplatePlugin } from './templatePlugin';
@@ -21,7 +21,7 @@ export class LoopPlugin extends TemplatePlugin {
     /**
      * @inheritDoc
      */
-    public containerTagReplacements(tags: Tag[], data: ScopeData): void {
+    public containerTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): void {
 
         let value: any[] = data.getScopeData();
 
@@ -49,7 +49,7 @@ export class LoopPlugin extends TemplatePlugin {
         // (this step can be optimized in the future if we'll keep track of the
         // path to each token and use that to create new tokens instead of
         // search through the text again)
-        const compiledNodes = this.compile(repeatedNodes, data);
+        const compiledNodes = this.compile(repeatedNodes, data, context);
 
         // merge back to the document
         this.mergeBack(compiledNodes, firstNode, lastNode, sameNodes);
@@ -115,7 +115,7 @@ export class LoopPlugin extends TemplatePlugin {
         return allResults;
     }
 
-    private compile(nodeGroups: XmlNode[][], data: ScopeData): XmlNode[][] {
+    private compile(nodeGroups: XmlNode[][], data: ScopeData, context: TemplateContext): XmlNode[][] {
         const compiledNodeGroups: XmlNode[][] = [];
 
         // compile each node group with it's relevant data
@@ -128,7 +128,7 @@ export class LoopPlugin extends TemplatePlugin {
 
             // compile the new root
             data.path.push(i);
-            this.utilities.compiler.compile(dummyRootNode, data);
+            this.utilities.compiler.compile(dummyRootNode, data, context);
             data.path.pop();
 
             // disconnect from dummy root
