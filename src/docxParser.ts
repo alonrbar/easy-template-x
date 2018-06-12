@@ -25,18 +25,18 @@ export class DocxParser {
     // see: http://officeopenxml.com/WPcontentOverview.php
 
     public contentFilePaths(zip: JSZip) {
-        const baseTags = [
+        const coreFiles = [
             // "docProps/core.xml",
             // "docProps/app.xml",
             "word/document.xml",
             "word/document2.xml"
         ];
 
-        const headersAndFooters = zip
-            .file(/word\/(header|footer)\d+\.xml/)
-            .map(file => file.name);
+        // const headersAndFooters = zip
+        //     .file(/word\/(header|footer)\d+\.xml/)
+        //     .map(file => file.name);
 
-        return headersAndFooters.concat(baseTags);
+        return coreFiles;
     }
 
     public mainFilePath(zip: JSZip): string {
