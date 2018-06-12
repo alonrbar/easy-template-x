@@ -10,17 +10,14 @@ export namespace Binary {
         if (!binary)
             throw new MissingArgumentError(nameof(binary));
 
-        const type = binary.constructor.name.toLowerCase();
-        switch (type) {
-            case 'blob':
-                return type;
-            case 'arraybuffer':
-                return type;
-            case 'buffer':
-                return 'nodebuffer';
-            default:
-                throw new Error(`Binary type '${type}' is not supported.`);
+        if (typeof Blob !== 'undefined' && binary instanceof Blob)
+            return 'blob';
+        if (typeof ArrayBuffer !== 'undefined' && binary instanceof ArrayBuffer)
+            return 'arraybuffer';
+        if (typeof Buffer !== 'undefined' && binary instanceof Buffer)
+            return 'nodebuffer';
 
-        }
+        throw new Error(`Binary type '${(binary as any).constructor.name}' is not supported.`);
+
     }
 }
