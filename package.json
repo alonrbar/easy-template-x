@@ -1,6 +1,6 @@
 {
   "name": "easy-template-x",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Generate docx documents from templates, in Node or in the browser.",
   "author": "Alon Bar",
   "license": "MIT",

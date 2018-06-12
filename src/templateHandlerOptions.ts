@@ -8,7 +8,7 @@ export class TemplateHandlerOptions {
 
     public delimiters?= new Delimiters();
 
-    public maxXmlDepth = 20;
+    public maxXmlDepth? = 20;
 
     constructor(initial?: Partial<TemplateHandlerOptions>) {
         Object.assign(this, initial);
