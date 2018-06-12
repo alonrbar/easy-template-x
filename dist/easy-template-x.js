@@ -296,15 +296,12 @@ process.umask = function() { return 0; };
 /*!***********************************!*\
   !*** ./src/index.ts + 33 modules ***!
   \***********************************/
-/*! exports provided: TemplateHandler */
+/*! exports provided: Delimiters, DocxParser, TemplateHandler, TemplateHandlerOptions, Binary, XmlNodeType, TEXT_NODE_NAME_VALUE, XmlNode, XmlParser, DelimiterMark, DelimiterSearcher, ScopeData, TagDisposition, Tag, TagParser, TemplateCompiler, MaxXmlDepthError, MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, UnclosedTagError, UnidentifiedFileTypeError, UnknownPrefixError, UnopenedTagError, UnsupportedFileTypeError, createDefaultPlugins, LoopPlugin, RawXmlPlugin, TemplatePlugin, TextPlugin */
 /*! ModuleConcatenation bailout: Cannot concat with ./src/utils/platform.ts (<- Module uses injected variables (process)) */
 /*! ModuleConcatenation bailout: Cannot concat with external "jszip" (<- Module is not an ECMAScript module) */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-
-// EXTERNAL MODULE: external "jszip"
-var external_jszip_ = __webpack_require__("jszip");
 
 // CONCATENATED MODULE: ./src/compilation/delimiterMark.ts
 var DelimiterMark = (function () {
@@ -1178,219 +1175,6 @@ var templateCompiler_TemplateCompiler = (function () {
 
 
 
-// CONCATENATED MODULE: ./src/docxParser.ts
-
-var docxParser_DocxParser = (function () {
-    function DocxParser() {
-    }
-    DocxParser.prototype.contentFilePaths = function (zip) {
-        var baseTags = [
-            "word/document.xml",
-            "word/document2.xml"
-        ];
-        var headersAndFooters = zip
-            .file(/word\/(header|footer)\d+\.xml/)
-            .map(function (file) { return file.name; });
-        return headersAndFooters.concat(baseTags);
-    };
-    DocxParser.prototype.mainFilePath = function (zip) {
-        if (zip.files["word/document.xml"]) {
-            return "word/document.xml";
-        }
-        if (zip.files["word/document2.xml"]) {
-            return "word/document2.xml";
-        }
-        return undefined;
-    };
-    DocxParser.prototype.splitTextNode = function (textNode, splitIndex, addBefore) {
-        var firstXmlTextNode;
-        var secondXmlTextNode;
-        var wordTextNode = this.containingTextNode(textNode);
-        var newWordTextNode = xmlNode_XmlNode.cloneNode(wordTextNode, true);
-        if (addBefore) {
-            xmlNode_XmlNode.insertBefore(newWordTextNode, wordTextNode);
-            firstXmlTextNode = xmlNode_XmlNode.lastTextChild(newWordTextNode);
-            secondXmlTextNode = textNode;
-        }
-        else {
-            var curIndex = wordTextNode.parentNode.childNodes.indexOf(wordTextNode);
-            xmlNode_XmlNode.insertChild(wordTextNode.parentNode, newWordTextNode, curIndex + 1);
-            firstXmlTextNode = textNode;
-            secondXmlTextNode = xmlNode_XmlNode.lastTextChild(newWordTextNode);
-        }
-        var firstText = firstXmlTextNode.textContent;
-        var secondText = secondXmlTextNode.textContent;
-        firstXmlTextNode.textContent = firstText.substring(0, splitIndex);
-        secondXmlTextNode.textContent = secondText.substring(splitIndex);
-        return (addBefore ? firstXmlTextNode : secondXmlTextNode);
-    };
-    DocxParser.prototype.joinTextNodesRange = function (from, to) {
-        var firstRunNode = this.containingRunNode(from);
-        var secondRunNode = this.containingRunNode(to);
-        var paragraphNode = firstRunNode.parentNode;
-        if (secondRunNode.parentNode !== paragraphNode)
-            throw new Error('Can not join text nodes from separate paragraphs.');
-        var firstWordTextNode = this.containingTextNode(from);
-        var secondWordTextNode = this.containingTextNode(to);
-        var totalText = [];
-        var curRunNode = firstRunNode;
-        while (curRunNode) {
-            var curWordTextNode = void 0;
-            if (curRunNode === firstRunNode) {
-                curWordTextNode = firstWordTextNode;
-            }
-            else {
-                curWordTextNode = this.firstTextNodeChild(curRunNode);
-            }
-            while (curWordTextNode) {
-                if (curWordTextNode.nodeName !== DocxParser.TEXT_NODE)
-                    continue;
-                var curXmlTextNode = xmlNode_XmlNode.lastTextChild(curWordTextNode);
-                totalText.push(curXmlTextNode.textContent);
-                var textToRemove = curWordTextNode;
-                if (curWordTextNode === secondWordTextNode) {
-                    curWordTextNode = null;
-                }
-                else {
-                    curWordTextNode = curWordTextNode.nextSibling;
-                }
-                if (textToRemove !== firstWordTextNode) {
-                    xmlNode_XmlNode.remove(textToRemove);
-                }
-            }
-            var runToRemove = curRunNode;
-            if (curRunNode === secondRunNode) {
-                curRunNode = null;
-            }
-            else {
-                curRunNode = curRunNode.nextSibling;
-            }
-            if (!runToRemove.childNodes || !runToRemove.childNodes.length) {
-                xmlNode_XmlNode.remove(runToRemove);
-            }
-        }
-        var firstXmlTextNode = xmlNode_XmlNode.lastTextChild(firstWordTextNode);
-        firstXmlTextNode.textContent = totalText.join('');
-    };
-    DocxParser.prototype.joinParagraphs = function (first, second) {
-        if (first === second)
-            return;
-        var childIndex = 0;
-        while (second.childNodes && childIndex < second.childNodes.length) {
-            var curChild = second.childNodes[childIndex];
-            if (curChild.nodeName === DocxParser.RUN_NODE) {
-                xmlNode_XmlNode.removeChild(second, childIndex);
-                xmlNode_XmlNode.appendChild(first, curChild);
-            }
-            else {
-                childIndex++;
-            }
-        }
-    };
-    DocxParser.prototype.firstTextNodeChild = function (node) {
-        if (!node)
-            return null;
-        if (node.nodeName !== DocxParser.RUN_NODE)
-            return null;
-        if (!node.childNodes)
-            return null;
-        for (var _i = 0, _a = node.childNodes; _i < _a.length; _i++) {
-            var child = _a[_i];
-            if (child.nodeName === DocxParser.TEXT_NODE)
-                return child;
-        }
-        return null;
-    };
-    DocxParser.prototype.containingTextNode = function (node) {
-        if (!node)
-            return null;
-        if (!xmlNode_XmlNode.isTextNode(node))
-            throw new Error("'Invalid argument " + "node" + ". Expected a XmlTextNode.");
-        var genNode = node;
-        while (genNode.parentNode) {
-            if (genNode.nodeName === DocxParser.TEXT_NODE)
-                return genNode;
-            genNode = genNode.parentNode;
-        }
-        return null;
-    };
-    DocxParser.prototype.containingRunNode = function (node) {
-        if (!node)
-            return null;
-        if (node.nodeName === DocxParser.RUN_NODE)
-            return node;
-        return this.containingRunNode(node.parentNode);
-    };
-    DocxParser.prototype.containingParagraphNode = function (node) {
-        if (!node)
-            return null;
-        if (node.nodeName === DocxParser.PARAGRAPH_NODE)
-            return node;
-        return this.containingParagraphNode(node.parentNode);
-    };
-    DocxParser.PARAGRAPH_NODE = 'w:p';
-    DocxParser.RUN_NODE = 'w:r';
-    DocxParser.TEXT_NODE = 'w:t';
-    return DocxParser;
-}());
-
-
-// CONCATENATED MODULE: ./src/fileType.ts
-
-var fileType_FileType;
-(function (FileType) {
-    FileType["Docx"] = "docx";
-    FileType["Pptx"] = "pptx";
-    FileType["Odt"] = "odt";
-})(fileType_FileType || (fileType_FileType = {}));
-(function (FileType) {
-    function getFileType(zipFile) {
-        if (isDocx(zipFile))
-            return FileType.Docx;
-        if (isPptx(zipFile))
-            return FileType.Pptx;
-        if (isOdt(zipFile))
-            return FileType.Odt;
-        throw new UnidentifiedFileTypeError();
-    }
-    FileType.getFileType = getFileType;
-    function isDocx(zipFile) {
-        return !!(zipFile.files["word/document.xml"] || zipFile.files["word/document2.xml"]);
-    }
-    FileType.isDocx = isDocx;
-    function isPptx(zipFile) {
-        return !!zipFile.files["ppt/presentation.xml"];
-    }
-    FileType.isPptx = isPptx;
-    function isOdt(zipFile) {
-        return !!zipFile.files['mimetype'];
-    }
-    FileType.isOdt = isOdt;
-})(fileType_FileType || (fileType_FileType = {}));
-
-// CONCATENATED MODULE: ./src/delimiters.ts
-
-var delimiters_Delimiters = (function () {
-    function Delimiters(initial) {
-        this.start = "{";
-        this.end = "}";
-        if (initial) {
-            if (initial.start)
-                this.start = xmlNode_XmlNode.encodeValue(initial.start);
-            if (initial.end)
-                this.end = xmlNode_XmlNode.encodeValue(initial.end);
-        }
-        if (!this.start || !this.end)
-            throw new Error('Both delimiters must be specified.');
-        if (this.start === this.end)
-            throw new Error('Start and end delimiters can not be the same.');
-        if (this.start.length > 1 || this.end.length > 1)
-            throw new Error("Only single character delimiters supported (start: '" + this.start + "', end: '" + this.end + "').");
-    }
-    return Delimiters;
-}());
-
-
 // CONCATENATED MODULE: ./src/plugins/templatePlugin.ts
 var TemplatePlugin = (function () {
     function TemplatePlugin() {
@@ -1579,6 +1363,163 @@ var rawXmlPlugin_RawXmlPlugin = (function (_super) {
 }(TemplatePlugin));
 
 
+// CONCATENATED MODULE: ./src/docxParser.ts
+
+var docxParser_DocxParser = (function () {
+    function DocxParser() {
+    }
+    DocxParser.prototype.contentFilePaths = function (zip) {
+        var baseTags = [
+            "word/document.xml",
+            "word/document2.xml"
+        ];
+        var headersAndFooters = zip
+            .file(/word\/(header|footer)\d+\.xml/)
+            .map(function (file) { return file.name; });
+        return headersAndFooters.concat(baseTags);
+    };
+    DocxParser.prototype.mainFilePath = function (zip) {
+        if (zip.files["word/document.xml"]) {
+            return "word/document.xml";
+        }
+        if (zip.files["word/document2.xml"]) {
+            return "word/document2.xml";
+        }
+        return undefined;
+    };
+    DocxParser.prototype.splitTextNode = function (textNode, splitIndex, addBefore) {
+        var firstXmlTextNode;
+        var secondXmlTextNode;
+        var wordTextNode = this.containingTextNode(textNode);
+        var newWordTextNode = xmlNode_XmlNode.cloneNode(wordTextNode, true);
+        if (addBefore) {
+            xmlNode_XmlNode.insertBefore(newWordTextNode, wordTextNode);
+            firstXmlTextNode = xmlNode_XmlNode.lastTextChild(newWordTextNode);
+            secondXmlTextNode = textNode;
+        }
+        else {
+            var curIndex = wordTextNode.parentNode.childNodes.indexOf(wordTextNode);
+            xmlNode_XmlNode.insertChild(wordTextNode.parentNode, newWordTextNode, curIndex + 1);
+            firstXmlTextNode = textNode;
+            secondXmlTextNode = xmlNode_XmlNode.lastTextChild(newWordTextNode);
+        }
+        var firstText = firstXmlTextNode.textContent;
+        var secondText = secondXmlTextNode.textContent;
+        firstXmlTextNode.textContent = firstText.substring(0, splitIndex);
+        secondXmlTextNode.textContent = secondText.substring(splitIndex);
+        return (addBefore ? firstXmlTextNode : secondXmlTextNode);
+    };
+    DocxParser.prototype.joinTextNodesRange = function (from, to) {
+        var firstRunNode = this.containingRunNode(from);
+        var secondRunNode = this.containingRunNode(to);
+        var paragraphNode = firstRunNode.parentNode;
+        if (secondRunNode.parentNode !== paragraphNode)
+            throw new Error('Can not join text nodes from separate paragraphs.');
+        var firstWordTextNode = this.containingTextNode(from);
+        var secondWordTextNode = this.containingTextNode(to);
+        var totalText = [];
+        var curRunNode = firstRunNode;
+        while (curRunNode) {
+            var curWordTextNode = void 0;
+            if (curRunNode === firstRunNode) {
+                curWordTextNode = firstWordTextNode;
+            }
+            else {
+                curWordTextNode = this.firstTextNodeChild(curRunNode);
+            }
+            while (curWordTextNode) {
+                if (curWordTextNode.nodeName !== DocxParser.TEXT_NODE)
+                    continue;
+                var curXmlTextNode = xmlNode_XmlNode.lastTextChild(curWordTextNode);
+                totalText.push(curXmlTextNode.textContent);
+                var textToRemove = curWordTextNode;
+                if (curWordTextNode === secondWordTextNode) {
+                    curWordTextNode = null;
+                }
+                else {
+                    curWordTextNode = curWordTextNode.nextSibling;
+                }
+                if (textToRemove !== firstWordTextNode) {
+                    xmlNode_XmlNode.remove(textToRemove);
+                }
+            }
+            var runToRemove = curRunNode;
+            if (curRunNode === secondRunNode) {
+                curRunNode = null;
+            }
+            else {
+                curRunNode = curRunNode.nextSibling;
+            }
+            if (!runToRemove.childNodes || !runToRemove.childNodes.length) {
+                xmlNode_XmlNode.remove(runToRemove);
+            }
+        }
+        var firstXmlTextNode = xmlNode_XmlNode.lastTextChild(firstWordTextNode);
+        firstXmlTextNode.textContent = totalText.join('');
+    };
+    DocxParser.prototype.joinParagraphs = function (first, second) {
+        if (first === second)
+            return;
+        var childIndex = 0;
+        while (second.childNodes && childIndex < second.childNodes.length) {
+            var curChild = second.childNodes[childIndex];
+            if (curChild.nodeName === DocxParser.RUN_NODE) {
+                xmlNode_XmlNode.removeChild(second, childIndex);
+                xmlNode_XmlNode.appendChild(first, curChild);
+            }
+            else {
+                childIndex++;
+            }
+        }
+    };
+    DocxParser.prototype.firstTextNodeChild = function (node) {
+        if (!node)
+            return null;
+        if (node.nodeName !== DocxParser.RUN_NODE)
+            return null;
+        if (!node.childNodes)
+            return null;
+        for (var _i = 0, _a = node.childNodes; _i < _a.length; _i++) {
+            var child = _a[_i];
+            if (child.nodeName === DocxParser.TEXT_NODE)
+                return child;
+        }
+        return null;
+    };
+    DocxParser.prototype.containingTextNode = function (node) {
+        if (!node)
+            return null;
+        if (!xmlNode_XmlNode.isTextNode(node))
+            throw new Error("'Invalid argument " + "node" + ". Expected a XmlTextNode.");
+        var genNode = node;
+        while (genNode.parentNode) {
+            if (genNode.nodeName === DocxParser.TEXT_NODE)
+                return genNode;
+            genNode = genNode.parentNode;
+        }
+        return null;
+    };
+    DocxParser.prototype.containingRunNode = function (node) {
+        if (!node)
+            return null;
+        if (node.nodeName === DocxParser.RUN_NODE)
+            return node;
+        return this.containingRunNode(node.parentNode);
+    };
+    DocxParser.prototype.containingParagraphNode = function (node) {
+        if (!node)
+            return null;
+        if (node.nodeName === DocxParser.PARAGRAPH_NODE)
+            return node;
+        return this.containingParagraphNode(node.parentNode);
+    };
+    DocxParser.PARAGRAPH_NODE = 'w:p';
+    DocxParser.RUN_NODE = 'w:r';
+    DocxParser.TEXT_NODE = 'w:t';
+    return DocxParser;
+}());
+
+
 // CONCATENATED MODULE: ./src/plugins/textPlugin.ts
 var textPlugin_extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -1662,6 +1603,65 @@ function createDefaultPlugins() {
 
 
 
+
+// CONCATENATED MODULE: ./src/delimiters.ts
+
+var delimiters_Delimiters = (function () {
+    function Delimiters(initial) {
+        this.start = "{";
+        this.end = "}";
+        if (initial) {
+            if (initial.start)
+                this.start = xmlNode_XmlNode.encodeValue(initial.start);
+            if (initial.end)
+                this.end = xmlNode_XmlNode.encodeValue(initial.end);
+        }
+        if (!this.start || !this.end)
+            throw new Error('Both delimiters must be specified.');
+        if (this.start === this.end)
+            throw new Error('Start and end delimiters can not be the same.');
+        if (this.start.length > 1 || this.end.length > 1)
+            throw new Error("Only single character delimiters supported (start: '" + this.start + "', end: '" + this.end + "').");
+    }
+    return Delimiters;
+}());
+
+
+// EXTERNAL MODULE: external "jszip"
+var external_jszip_ = __webpack_require__("jszip");
+
+// CONCATENATED MODULE: ./src/fileType.ts
+
+var fileType_FileType;
+(function (FileType) {
+    FileType["Docx"] = "docx";
+    FileType["Pptx"] = "pptx";
+    FileType["Odt"] = "odt";
+})(fileType_FileType || (fileType_FileType = {}));
+(function (FileType) {
+    function getFileType(zipFile) {
+        if (isDocx(zipFile))
+            return FileType.Docx;
+        if (isPptx(zipFile))
+            return FileType.Pptx;
+        if (isOdt(zipFile))
+            return FileType.Odt;
+        throw new UnidentifiedFileTypeError();
+    }
+    FileType.getFileType = getFileType;
+    function isDocx(zipFile) {
+        return !!(zipFile.files["word/document.xml"] || zipFile.files["word/document2.xml"]);
+    }
+    FileType.isDocx = isDocx;
+    function isPptx(zipFile) {
+        return !!zipFile.files["ppt/presentation.xml"];
+    }
+    FileType.isPptx = isPptx;
+    function isOdt(zipFile) {
+        return !!zipFile.files['mimetype'];
+    }
+    FileType.isOdt = isOdt;
+})(fileType_FileType || (fileType_FileType = {}));
 
 // CONCATENATED MODULE: ./src/templateHandlerOptions.ts
 
@@ -1884,7 +1884,45 @@ var templateHandler_TemplateHandler = (function () {
 
 
 // CONCATENATED MODULE: ./src/index.ts
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "DelimiterMark", function() { return DelimiterMark; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "DelimiterSearcher", function() { return delimiterSearcher_DelimiterSearcher; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "ScopeData", function() { return scopeData_ScopeData; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "TagDisposition", function() { return TagDisposition; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "Tag", function() { return Tag; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "TagParser", function() { return tagParser_TagParser; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "TemplateCompiler", function() { return templateCompiler_TemplateCompiler; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MaxXmlDepthError", function() { return MaxXmlDepthError; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MissingArgumentError", function() { return MissingArgumentError; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MissingCloseDelimiterError", function() { return MissingCloseDelimiterError; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MissingStartDelimiterError", function() { return MissingStartDelimiterError; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "UnclosedTagError", function() { return UnclosedTagError; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "UnidentifiedFileTypeError", function() { return UnidentifiedFileTypeError; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "UnknownPrefixError", function() { return UnknownPrefixError; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "UnopenedTagError", function() { return UnopenedTagError; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "UnsupportedFileTypeError", function() { return UnsupportedFileTypeError; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "createDefaultPlugins", function() { return createDefaultPlugins; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "LoopPlugin", function() { return loopPlugin_LoopPlugin; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "RawXmlPlugin", function() { return rawXmlPlugin_RawXmlPlugin; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "TemplatePlugin", function() { return TemplatePlugin; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "TextPlugin", function() { return textPlugin_TextPlugin; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "Delimiters", function() { return delimiters_Delimiters; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "DocxParser", function() { return docxParser_DocxParser; });
 /* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "TemplateHandler", function() { return templateHandler_TemplateHandler; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "TemplateHandlerOptions", function() { return templateHandlerOptions_TemplateHandlerOptions; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "Binary", function() { return binary_Binary; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "XmlNodeType", function() { return XmlNodeType; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "TEXT_NODE_NAME_VALUE", function() { return TEXT_NODE_NAME_VALUE; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "XmlNode", function() { return xmlNode_XmlNode; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "XmlParser", function() { return xmlParser_XmlParser; });
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1908,7 +1946,9 @@ var Platform = (function () {
     Object.defineProperty(Platform.prototype, "isNode", {
         get: function () {
             if (this._isNode === null) {
-                var isNodeJS = (typeof process !== 'undefined') && (process.release.name === 'node');
+                var isNodeJS = ((typeof process !== 'undefined') &&
+                    (typeof process.release !== 'undefined') &&
+                    process.release.name === 'node');
                 var isBrowser = (typeof window !== 'undefined');
                 this._isNode = (isNodeJS || !isBrowser);
             }

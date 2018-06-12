@@ -25,7 +25,7 @@
     "lint-lint": "tslint \"./{src,test}/**/*.ts\" --exclude \"./**/*.d.ts\"",
     "test": "mocha-webpack --require source-map-support/register --webpack-config webpack.test.js \"test/**/*.tests.ts\"",
     "test-watch": "yarn test --watch",
-    "release": "yarn lint && yarn test && webpack --config webpack.release.js"
+    "release": "yarn lint && yarn test && webpack --config webpack.dev.js && webpack --config webpack.release.js"
   },
   "dependencies": {
     "jszip": "3.1.5",
