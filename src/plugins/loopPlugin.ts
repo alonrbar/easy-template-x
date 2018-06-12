@@ -1,4 +1,4 @@
-import { Tag, TagDisposition, TagPrefix } from '../compilation/tag';
+import { ScopeData, Tag, TagDisposition, TagPrefix } from '../compilation';
 import { last } from '../utils';
 import { XmlNode } from '../xmlNode';
 import { TemplatePlugin } from './templatePlugin';
@@ -21,10 +21,12 @@ export class LoopPlugin extends TemplatePlugin {
     /**
      * @inheritDoc
      */
-    public containerTagReplacements(tags: Tag[], data: any): void {
+    public containerTagReplacements(tags: Tag[], data: ScopeData): void {
 
-        if (!data || !Array.isArray(data) || !data.length)
-            data = [];
+        let value: any[] = data.getScopeData();
+
+        if (!value || !Array.isArray(value) || !value.length)
+            value = [];
 
         // vars
         const openTag = tags[0];
@@ -41,7 +43,7 @@ export class LoopPlugin extends TemplatePlugin {
         middleNodes = result.middleParagraphs;
 
         // repeat (loop) the content
-        const repeatedNodes = this.repeat(middleNodes, data.length);
+        const repeatedNodes = this.repeat(middleNodes, value.length);
 
         // recursive compilation 
         // (this step can be optimized in the future if we'll keep track of the
@@ -113,7 +115,7 @@ export class LoopPlugin extends TemplatePlugin {
         return allResults;
     }
 
-    private compile(nodeGroups: XmlNode[][], data: any[]): XmlNode[][] {
+    private compile(nodeGroups: XmlNode[][], data: ScopeData): XmlNode[][] {
         const compiledNodeGroups: XmlNode[][] = [];
 
         // compile each node group with it's relevant data
@@ -125,8 +127,9 @@ export class LoopPlugin extends TemplatePlugin {
             curNodes.forEach(node => XmlNode.appendChild(dummyRootNode, node));
 
             // compile the new root
-            const curData = (i < data.length ? data[i] : undefined);
-            this.utilities.compiler.compile(dummyRootNode, curData);
+            data.path.push(i);
+            this.utilities.compiler.compile(dummyRootNode, data);
+            data.path.pop();
 
             // disconnect from dummy root
             const curResult: XmlNode[] = [];

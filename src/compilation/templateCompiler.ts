@@ -2,6 +2,7 @@ import { UnclosedTagError } from '../errors';
 import { TemplatePlugin } from '../plugins';
 import { XmlNode } from '../xmlNode';
 import { DelimiterSearcher } from './delimiterSearcher';
+import { ScopeData } from './scopeData';
 import { Tag, TagDisposition } from './tag';
 import { TagParser } from './tagParser';
 
@@ -27,7 +28,7 @@ export class TemplateCompiler {
      * Compiles the template and performs the required replacements using the
      * specified data.
      */
-    public compile(node: XmlNode, data: any): void {
+    public compile(node: XmlNode, data: ScopeData): void {
         const delimiters = this.delimiterSearcher.findDelimiters(node);
         const tags = this.tagParser.parse(delimiters);
         this.doTagReplacements(tags, data);
@@ -37,19 +38,19 @@ export class TemplateCompiler {
     // private methods
     //
 
-    private doTagReplacements(tags: Tag[], data: any): void {
+    private doTagReplacements(tags: Tag[], data: ScopeData): void {
 
         for (let i = 0; i < tags.length; i++) {
 
             const tag = tags[i];
-            const scopeData = (data ? data[tag.name] : undefined);
+            data.path.push(tag.name);
 
             if (tag.disposition === TagDisposition.SelfClosed) {
 
                 // replace simple tag
                 for (const plugin of this.plugins) {
                     if (plugin.prefixes.some(prefix => prefix.tagType === tag.type)) {
-                        plugin.simpleTagReplacements(tag, scopeData);
+                        plugin.simpleTagReplacements(tag, data);
                         break;
                     }
                 }
@@ -64,11 +65,13 @@ export class TemplateCompiler {
                 // replace container tag
                 for (const plugin of this.plugins) {
                     if (plugin.prefixes.some(prefix => prefix.tagType === tag.type)) {
-                        plugin.containerTagReplacements(scopeTags, scopeData);
+                        plugin.containerTagReplacements(scopeTags, data);
                         break;
                     }
                 }
             }
+
+            data.path.pop();
         }
     }
 

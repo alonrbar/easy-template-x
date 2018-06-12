@@ -35,7 +35,7 @@ export abstract class TemplatePlugin {
      * 
      * @param data Relevant part of the data
      */
-    public simpleTagReplacements(tag: Tag, data: any): void {
+    public simpleTagReplacements(tag: Tag, data: ScopeData): void {
         // noop
     }
 
@@ -47,7 +47,7 @@ export abstract class TemplatePlugin {
      * @param tags All tags between the opening tag and the closing tag (inclusive).
      * @param data Relevant part of the data
      */
-    public containerTagReplacements(tags: Tag[], data: any): void {
+    public containerTagReplacements(tags: Tag[], data: ScopeData): void {
         // noop
     }
 }

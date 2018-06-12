@@ -1,6 +1,6 @@
-import { Tag, TagDisposition, TagPrefix } from '../compilation/tag';
+import { ScopeData, Tag, TagDisposition, TagPrefix } from '../compilation';
 import { DocxParser } from '../docxParser';
-import { XmlNode, XmlNodeType } from '../xmlNode';
+import { XmlNode } from '../xmlNode';
 import { XmlParser } from '../xmlParser';
 import { TemplatePlugin } from './templatePlugin';
 
@@ -18,22 +18,13 @@ export class RawXmlPlugin extends TemplatePlugin {
     /**
      * @inheritDoc
      */
-    public simpleTagReplacements(tag: Tag, data: any): void {
+    public simpleTagReplacements(tag: Tag, data: ScopeData): void {
 
         const wordTextNode = this.docxParser.containingTextNode(tag.xmlTextNode);
 
-        if (data) {
-            const newNode = this.xmlParser.parse(data);
-            XmlNode.insertBefore(newNode, wordTextNode);
-        } else {
-            const newNode: XmlNode = {
-                nodeType: XmlNodeType.General,
-                nodeName: 'w:br',
-                attributes: [{
-                    name: 'w:type',
-                    value: 'page'
-                }]
-            };
+        const value = data.getScopeData();
+        if (typeof value === 'string') {
+            const newNode = this.xmlParser.parse(value);
             XmlNode.insertBefore(newNode, wordTextNode);
         }
 

@@ -1,4 +1,4 @@
-import { Tag, TagDisposition, TagPrefix } from '../compilation/tag';
+import { ScopeData, Tag, TagDisposition, TagPrefix } from '../compilation';
 import { DocxParser } from '../docxParser';
 import { XmlNode, XmlNodeType, XmlTextNode } from '../xmlNode';
 import { TemplatePlugin } from './templatePlugin';
@@ -14,9 +14,9 @@ export class TextPlugin extends TemplatePlugin {
     /**
      * @inheritDoc
      */
-    public simpleTagReplacements(tag: Tag, data: any): void {
+    public simpleTagReplacements(tag: Tag, data: ScopeData): void {
 
-        const value = (data || '').split('\n');
+        const value = (data.getScopeData() || '').split('\n');
 
         if (value.length < 2) {
             this.replaceSingleLine(tag.xmlTextNode, value.length ? value[0] : '');
