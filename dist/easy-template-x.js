@@ -3211,14 +3211,11 @@ var docxParser_DocxParser = (function () {
     function DocxParser() {
     }
     DocxParser.prototype.contentFilePaths = function (zip) {
-        var baseTags = [
+        var coreFiles = [
             "word/document.xml",
             "word/document2.xml"
         ];
-        var headersAndFooters = zip
-            .file(/word\/(header|footer)\d+\.xml/)
-            .map(function (file) { return file.name; });
-        return headersAndFooters.concat(baseTags);
+        return coreFiles;
     };
     DocxParser.prototype.mainFilePath = function (zip) {
         if (zip.files["word/document.xml"]) {
