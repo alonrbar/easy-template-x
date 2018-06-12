@@ -5,7 +5,7 @@
         // --- output --- //
         
         "declaration": false,
-        "outDir": "./dist",
+        "outDir": "./.tmp/compiled",
         "sourceMap": true,
         "target": "es5",
         "module": "es2015",

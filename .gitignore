@@ -1,5 +1,5 @@
+/.tmp
 /.vscode/settings.json
-/dist
 /node_modules
 /out
 npm-debug.log*

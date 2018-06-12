@@ -2,7 +2,9 @@
 
 ## [Unreleased](https://github.com/alonrbar/easy-template-x/tree/develop)
 
-## [0.1.0 - 0000-00-00](https://github.com/alonrbar/easy-template-x/tree/v0.1.0)
+## [0.1.0 - 2018-06-12](https://github.com/alonrbar/easy-template-x/tree/v0.1.0)
+
+- First version
 
 ---
 
