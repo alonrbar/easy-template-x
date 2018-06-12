@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { XmlNode, XmlNodeType } from 'src/xmlNode';
 import { XmlParser } from 'src/xmlParser';
+import { parseXml } from './testUtils';
 
 // tslint:disable:no-unused-expression
 
@@ -103,13 +104,12 @@ describe(nameof(XmlNode), () => {
 
         it('inserts before an only child', () => {
 
-            const domNode = createDomNode(`
+            const parent = parseXml(`
                 <root>
                     <child></child>
                 </root>
             `, true);
 
-            const parent = XmlNode.fromDomNode(domNode);
             const child = parent.childNodes[0];
             const newChild: XmlNode = {
                 nodeName: 'new-child',
@@ -142,9 +142,8 @@ describe(nameof(XmlNode), () => {
 
         it('inserts into an empty child collection', () => {
 
-            const domNode = createDomNode(`<root></root>`, true);
+            const parent = parseXml(`<root></root>`, true);
 
-            const parent = XmlNode.fromDomNode(domNode);
             const child: XmlNode = {
                 nodeName: 'new-child',
                 nodeType: XmlNodeType.General
@@ -171,13 +170,12 @@ describe(nameof(XmlNode), () => {
 
         it('appends a child', () => {
 
-            const domNode = createDomNode(`
+            const parent = parseXml(`
                 <root>
                     <child></child>
                 </root>
             `, true);
 
-            const parent = XmlNode.fromDomNode(domNode);
             const child = parent.childNodes[0];
             const newChild: XmlNode = {
                 nodeName: 'new-child',

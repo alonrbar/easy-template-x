@@ -248,7 +248,7 @@ describe(nameof(TemplateHandler), () => {
 
         const data: any = {
             'תלמידים': [],
-            'עמוד חדש': '<w:t><w:br w:type="page"/></w:t>'
+            'עמוד חדש': '<w:br w:type="page"/>'
         };
 
         const studentsCount = 3;

@@ -1,29 +1,14 @@
 import { MissingArgumentError } from './errors';
-import { platform } from './utils';
 import { XmlNode } from './xmlNode';
 
-// tslint:disable:variable-name
-
-//
-// platform specific modules
-//
-
-let xmlServices: any;
-if (platform.isNode) {
-    xmlServices = require("xmldom");
-} else {
-    xmlServices = window;
-}
-const DomParserType: typeof DOMParser = xmlServices.DOMParser;
-
-//
-// parser class
-//
+// always use DOMParser from 'xmldom' since
+// it handles xml namespaces better
+const DomParserType = require("xmldom").DOMParser;  // tslint:disable-line:variable-name
 
 export class XmlParser {
 
     private static xmlHeader = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
-    private static readonly parser = new DomParserType();
+    private static readonly parser: DOMParser = new DomParserType();
 
     public parse(str: string): XmlNode {
         const doc = this.domParse(str);
