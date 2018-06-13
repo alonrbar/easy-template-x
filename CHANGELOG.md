@@ -2,6 +2,12 @@
 
 ## [Unreleased](https://github.com/alonrbar/easy-template-x/tree/develop)
 
+## [0.3.1 - 2018-06-12](https://github.com/alonrbar/easy-template-x/tree/v0.3.1)
+
+### Added
+
+- Add readme badges
+
 ## [0.3.0 - 2018-06-12](https://github.com/alonrbar/easy-template-x/tree/v0.3.0)
 
 ### Added
