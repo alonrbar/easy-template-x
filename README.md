@@ -4,6 +4,7 @@ Generate docx documents from templates, in Node or in the browser.
 
 - [Prior art and motivation](#prior-art-and-motivation)
 - [Short Example](#short-example)
+- [Writing your own plugins](#writing-your-own-plugins)
 - [API](#api)
 - [Limitations](#limitations)
 - [Changelog](#changelog)
@@ -62,34 +63,45 @@ Output:
 ## Writing your own plugins
 
 To write a plugin inherit from the [TemplatePlugin](./src/plugins/templatePlugin.ts) class.  
-The base class provides two methods you can implement and a set of utilities to
+The base class provides two methods you can implement and a set of [utilities](./src/plugins/templatePlugin.ts) to
 make it easier to do the actual xml modification.
 
 Example plugin implementation ([source](./src/plugins/rawXmlPlugin.ts)):
 
 ```javascript
+/**
+ * A plugin that inserts raw xml to the document.
+ */
 export class RawXmlPlugin extends TemplatePlugin {
 
-    // declare your prefix:
-    // this plugin replaces tags that starts with @
-    // for instance {@my-tag}
+    // Declare your prefix:
+    // This plugin replaces tags that starts with a @ sign.
+    // For instance {@my-tag}
     public readonly prefixes: TagPrefix[] = [{
         prefix: '@',
         tagType: 'rawXml',
         tagDisposition: TagDisposition.SelfClosed
     }];
 
-    // plugin logic goes here:
+    // Plugin logic goes here:
     public simpleTagReplacements(tag: Tag, data: ScopeData): void {
 
+        // Tag.xmlTextNode always reference the actual xml text node.
+        // In MS Word each text node is wrapped by a <w:t> node so we retrieve that.
         const wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
 
+        // Get the value to use from the input data.
         const value = data.getScopeData();
         if (typeof value === 'string') {
+
+            // If it's a string parse it as xml and insert.
             const newNode = this.utilities.xmlParser.parse(value);
             XmlNode.insertBefore(newNode, wordTextNode);
         }
 
+        // Remove the placeholder node.
+        // We can be sure that only the placeholder is removed since easy-template-x
+        // makes sure that each tag is isolated into it's own separate <w:t> node.
         XmlNode.remove(wordTextNode);
     }
 }
@@ -101,7 +113,7 @@ TODO
 
 ## Limitations
 
-Iterating table rows is currently not supported.
+Iterating table rows is currently not supported. Feel free to write your own plugin for that ;)
 
 ## Changelog
 
