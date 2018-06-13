@@ -1,11 +1,11 @@
 export class MissingStartDelimiterError extends Error {
 
-    public readonly tagName: string;
+    public readonly closeTagText: string;
 
-    constructor(tagName: string) {
-        super(`Tag '${tagName}' does not have an opening delimiter.`);
+    constructor(closeTagText: string) {
+        super(`Open delimiter is missing from '${closeTagText}'.`);
 
-        this.tagName = tagName;
+        this.closeTagText = closeTagText;
 
         // typescript hack: https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
         Object.setPrototypeOf(this, MissingStartDelimiterError.prototype);

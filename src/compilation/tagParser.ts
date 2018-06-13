@@ -30,14 +30,14 @@ export class TagParser {
 
             // close before open
             if (!openedTag && !delimiter.isOpen) {
-                // TODO: extract tag name
-                throw new MissingStartDelimiterError('Unknown');
+                const closeTagText = delimiter.xmlTextNode.textContent;
+                throw new MissingStartDelimiterError(closeTagText);
             }
 
             // open before close
             if (openedTag && delimiter.isOpen) {
-                // TODO: extract tag name
-                throw new MissingCloseDelimiterError('Unknown');
+                const openTagText = openedDelimiter.xmlTextNode.textContent;
+                throw new MissingCloseDelimiterError(openTagText);
             }
 
             // valid open
