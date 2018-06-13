@@ -12,8 +12,7 @@ export class TextPlugin extends TemplatePlugin {
     }];
 
     /**
-     * Replace the node text content with the specified value. The value is
-     * xml-encoded by the plugin.
+     * Replace the node text content with the specified value.
      */
     public simpleTagReplacements(tag: Tag, data: ScopeData): void {
 

@@ -91,7 +91,7 @@ export namespace XmlNode {
 
     export function serialize(node: XmlNode): string {
         if (isTextNode(node))
-            return encodeValue(node.textContent) || '';
+            return encodeValue(node.textContent || '');
 
         // attributes
         let attributes = '';
