@@ -2,11 +2,22 @@
 
 ## [Unreleased](https://github.com/alonrbar/easy-template-x/tree/develop)
 
+## [0.3.0 - 2018-06-12](https://github.com/alonrbar/easy-template-x/tree/v0.3.0)
+
+### Added
+
+- Preserve leading and trailing whitespace
+- More info on missing delimiter errors
+
 ## [0.2.1 - 2018-06-12](https://github.com/alonrbar/easy-template-x/tree/v0.2.1)
+
+### Fixed
 
 - Various bug fixes
 
 ## [0.2.0 - 2018-06-12](https://github.com/alonrbar/easy-template-x/tree/v0.2.0)
+
+### Added
 
 - Typings file
 

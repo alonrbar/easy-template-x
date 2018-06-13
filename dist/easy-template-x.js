@@ -1998,9 +1998,9 @@ var missingCloseDelimiterError_extends = (undefined && undefined.__extends) || (
 })();
 var MissingCloseDelimiterError = (function (_super) {
     missingCloseDelimiterError_extends(MissingCloseDelimiterError, _super);
-    function MissingCloseDelimiterError(tagName) {
-        var _this = _super.call(this, "Tag '" + tagName + "' does not have a closing delimiter.") || this;
-        _this.tagName = tagName;
+    function MissingCloseDelimiterError(openDelimiterText) {
+        var _this = _super.call(this, "Close delimiter is missing from '" + openDelimiterText + "'.") || this;
+        _this.openDelimiterText = openDelimiterText;
         Object.setPrototypeOf(_this, MissingCloseDelimiterError.prototype);
         return _this;
     }
@@ -2021,9 +2021,9 @@ var missingStartDelimiterError_extends = (undefined && undefined.__extends) || (
 })();
 var MissingStartDelimiterError = (function (_super) {
     missingStartDelimiterError_extends(MissingStartDelimiterError, _super);
-    function MissingStartDelimiterError(tagName) {
-        var _this = _super.call(this, "Tag '" + tagName + "' does not have an opening delimiter.") || this;
-        _this.tagName = tagName;
+    function MissingStartDelimiterError(closeDelimiterText) {
+        var _this = _super.call(this, "Open delimiter is missing from '" + closeDelimiterText + "'.") || this;
+        _this.closeDelimiterText = closeDelimiterText;
         Object.setPrototypeOf(_this, MissingStartDelimiterError.prototype);
         return _this;
     }
@@ -2670,10 +2670,12 @@ var tagParser_TagParser = (function () {
         for (var _i = 0, delimiters_1 = delimiters; _i < delimiters_1.length; _i++) {
             var delimiter = delimiters_1[_i];
             if (!openedTag && !delimiter.isOpen) {
-                throw new errors["MissingStartDelimiterError"]('Unknown');
+                var closeTagText = delimiter.xmlTextNode.textContent;
+                throw new errors["MissingStartDelimiterError"](closeTagText);
             }
             if (openedTag && delimiter.isOpen) {
-                throw new errors["MissingCloseDelimiterError"]('Unknown');
+                var openTagText = openedDelimiter.xmlTextNode.textContent;
+                throw new errors["MissingCloseDelimiterError"](openTagText);
             }
             if (!openedTag && delimiter.isOpen) {
                 openedTag = new Tag();
@@ -3196,6 +3198,13 @@ var textPlugin_TextPlugin = (function (_super) {
     };
     TextPlugin.prototype.replaceSingleLine = function (textNode, text) {
         textNode.textContent = text;
+        var wordTextNode = this.utilities.docxParser.containingTextNode(textNode);
+        if (!wordTextNode.attributes) {
+            wordTextNode.attributes = [];
+        }
+        if (!wordTextNode.attributes.find(function (attr) { return attr.name === 'xml:space'; })) {
+            wordTextNode.attributes.push(this.getSpacePreserveAttribute());
+        }
     };
     TextPlugin.prototype.replaceMultiLine = function (textNode, lines) {
         var runNode = this.utilities.docxParser.containingRunNode(textNode);
@@ -3207,6 +3216,12 @@ var textPlugin_TextPlugin = (function (_super) {
             xmlNode_XmlNode.appendChild(runNode, lineNode);
         }
     };
+    TextPlugin.prototype.getSpacePreserveAttribute = function () {
+        return {
+            name: 'xml:space',
+            value: 'preserve'
+        };
+    };
     TextPlugin.prototype.getLineBreak = function () {
         return {
             nodeType: XmlNodeType.General,
@@ -3215,6 +3230,7 @@ var textPlugin_TextPlugin = (function (_super) {
     };
     TextPlugin.prototype.createWordTextNode = function (text) {
         var wordTextNode = xmlNode_XmlNode.createGeneralNode(docxParser_DocxParser.TEXT_NODE);
+        wordTextNode.attributes = [this.getSpacePreserveAttribute()];
         wordTextNode.childNodes = [
             xmlNode_XmlNode.createTextNode(text)
         ];

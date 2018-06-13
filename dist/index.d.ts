@@ -419,13 +419,13 @@ export declare class MissingArgumentError extends Error {
 }
 
 export declare class MissingStartDelimiterError extends Error {
-    readonly tagName: string;
-    constructor(tagName: string);
+    readonly closeDelimiterText: string;
+    constructor(closeDelimiterText: string);
 }
 
 export declare class MissingCloseDelimiterError extends Error {
-    readonly tagName: string;
-    constructor(tagName: string);
+    readonly openDelimiterText: string;
+    constructor(openDelimiterText: string);
 }
 
 export declare class UnknownPrefixError extends Error {
