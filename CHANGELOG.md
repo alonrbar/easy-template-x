@@ -2,19 +2,19 @@
 
 ## [Unreleased](https://github.com/alonrbar/easy-template-x/tree/develop)
 
-## [0.3.2 - 2018-06-12](https://github.com/alonrbar/easy-template-x/tree/v0.3.2)
+## [0.3.2 - 2018-06-22](https://github.com/alonrbar/easy-template-x/tree/v0.3.2)
 
 ### Fixed
 
 - Fix serialization of text nodes with empty values.
 
-## [0.3.1 - 2018-06-12](https://github.com/alonrbar/easy-template-x/tree/v0.3.1)
+## [0.3.1 - 2018-06-13](https://github.com/alonrbar/easy-template-x/tree/v0.3.1)
 
 ### Added
 
 - Add readme badges
 
-## [0.3.0 - 2018-06-12](https://github.com/alonrbar/easy-template-x/tree/v0.3.0)
+## [0.3.0 - 2018-06-13](https://github.com/alonrbar/easy-template-x/tree/v0.3.0)
 
 ### Added
 
