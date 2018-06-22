@@ -7,6 +7,28 @@ import { parseXml } from './testUtils';
 
 describe(nameof(XmlNode), () => {
 
+    describe(nameof(XmlNode.serialize), () => {
+
+        it('serializes a simple text node', () => {
+            const node = XmlNode.createTextNode('hello');
+            const str = XmlNode.serialize(node);
+            expect(str).to.eql('hello');
+        });
+
+        it('serializes a text node with null value as an empty string', () => {
+            const node = XmlNode.createTextNode(null);
+            const str = XmlNode.serialize(node);
+            expect(str).to.eql('');
+        });
+
+        it('serializes a text node with undefined value as an empty string', () => {
+            const node = XmlNode.createTextNode(undefined);
+            const str = XmlNode.serialize(node);
+            expect(str).to.eql('');
+        });
+
+    });
+
     describe(nameof(XmlNode.fromDomNode), () => {
 
         it('creates a valid xml node from a single dom node', () => {

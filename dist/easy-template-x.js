@@ -2255,7 +2255,7 @@ var xmlNode_XmlNode;
     XmlNode.encodeValue = encodeValue;
     function serialize(node) {
         if (isTextNode(node))
-            return encodeValue(node.textContent) || '';
+            return encodeValue(node.textContent || '');
         var attributes = '';
         if (node.attributes && node.attributes.length) {
             attributes = ' ' + node.attributes

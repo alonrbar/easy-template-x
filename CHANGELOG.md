@@ -2,6 +2,12 @@
 
 ## [Unreleased](https://github.com/alonrbar/easy-template-x/tree/develop)
 
+## [0.3.2 - 2018-06-12](https://github.com/alonrbar/easy-template-x/tree/v0.3.2)
+
+### Fixed
+
+- Fix serialization of text nodes with empty values.
+
 ## [0.3.1 - 2018-06-12](https://github.com/alonrbar/easy-template-x/tree/v0.3.1)
 
 ### Added
