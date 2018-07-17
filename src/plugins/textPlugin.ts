@@ -44,7 +44,7 @@ export class TextPlugin extends TemplatePlugin {
 
         const runNode = this.utilities.docxParser.containingRunNode(textNode);
 
-        // first lint
+        // first line
         textNode.textContent = lines[0];
 
         // other lines

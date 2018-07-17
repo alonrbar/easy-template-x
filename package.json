@@ -1,7 +1,14 @@
 {
   "name": "easy-template-x",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Generate docx documents from templates, in Node or in the browser.",
+  "keywords": [
+    "template",
+    "word",
+    "office",
+    "microsoft",
+    "ms"
+  ],
   "author": "Alon Bar",
   "license": "MIT",
   "homepage": "https://github.com/alonrbar/easy-template-x",

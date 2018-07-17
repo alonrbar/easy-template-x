@@ -114,7 +114,7 @@ export class RawXmlPlugin extends TemplatePlugin {
 
 ## API
 
-TODO
+TODO - Meanwhile, you can checkout the [typings](./dist/index.d.ts) file.
 
 ## Limitations
 
