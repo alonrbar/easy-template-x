@@ -8,9 +8,11 @@ Generate docx documents from templates, in Node or in the browser.
 [![dependencies](https://david-dm.org/alonrbar/easy-template-x/dev-status.svg)](https://github.com/alonrbar/easy-template-x)
 
 - [Prior art and motivation](#prior-art-and-motivation)
-- [Short Example](#short-example)
+- [Node Example](#node-example)
+- [Browser Example](#browser-example)
 - [Writing your own plugins](#writing-your-own-plugins)
 - [API](#api)
+- [Binary Formats](#binary-formats)
 - [Limitations](#limitations)
 - [Changelog](#changelog)
 
@@ -35,15 +37,16 @@ It was also inspired by `docxtemplater` modules system and introduces a similar
 in **TypeScript** and the code base provides a lot of comments and explanation
 inside, thus making it as easy as possible to write your own custom plugins.
 
-## Short Example
-
-Below is a Node example but the library works on the browser as well.
+## Node Example
 
 ```javascript
+import * as fs from 'fs';
 import { TemplateHandler } from 'easy-template-x';
 
+// 1. read template file
 const templateFile = fs.readFileSync('myTemplate.docx');
 
+// 2. process the template
 const data = {
     posts: [
         { author: 'Alon Bar', text: 'Very important\ntext here!' },
@@ -54,6 +57,7 @@ const data = {
 const handler = new TemplateHandler();
 const doc = await handler.process(templateFile, data);
 
+// 3. save output
 fs.writeFileSync('myTemplate - output.docx', doc);
 ```
 
@@ -64,6 +68,61 @@ Input:
 Output:
 
 ![output document](./docs/assets/template-out.png?raw=true)
+
+## Browser Example
+
+The following example produces the same output while running in the browser.
+Notice that the actual template processing (step 2) is exactly the same as in the previous Node example.
+
+```javascript
+import { TemplateHandler } from 'easy-template-x';
+
+// 1. read template file
+
+// (in this example we're loading the template by performing  
+//  an AJAX call using the fetch API, another common way to  
+//  get your hand on a Blob is to use an HTML File Input)
+const response = await fetch('http://somewhere.com/myTemplate.docx');
+const templateFile = await response.blob();
+
+// 2. process the template
+const data = {
+    posts: [
+        { author: 'Alon Bar', text: 'Very important\ntext here!' },
+        { author: 'Alon Bar', text: 'Forgot to mention that...' }
+    ]
+};
+
+const handler = new TemplateHandler();
+const doc = await handler.process(templateFile, data);
+
+// 3. save output
+saveFile('myTemplate - output.docx', doc);
+
+function saveFile(filename, blob) {
+
+    // see: https://stackoverflow.com/questions/19327749/javascript-blob-filename-without-link
+
+    // get downloadable url from the blob
+    const blobUrl = URL.createObjectURL(blob);
+
+    // create temp link element
+    let link = document.createElement("a");
+    link.download = filename;
+    link.href = blobUrl;
+
+    // use the link to invoke a download
+    document.body.appendChild(link);
+    link.click();
+
+    // remove the link
+    setTimeout(() => {
+        link.remove();
+        window.URL.revokeObjectURL(blobUrl);
+        link = null;
+    }, 0);
+}
+```
 
 ## Writing your own plugins
 
@@ -115,6 +174,14 @@ export class RawXmlPlugin extends TemplatePlugin {
 ## API
 
 TODO - Meanwhile, you can checkout the [typings](./dist/index.d.ts) file.
+
+## Binary Formats
+
+The library supports the following binary formats:
+
+- [Blob](https://developer.mozilla.org/en-US/docs/Web/API/Blob) (browser)
+- [Buffer](https://nodejs.org/api/buffer.html) (node)
+- [ArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer) (browser and node)
 
 ## Limitations
 

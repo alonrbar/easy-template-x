@@ -2,6 +2,12 @@
 
 ## [Unreleased](https://github.com/alonrbar/easy-template-x/tree/develop)
 
+## [0.3.4 - 2018-09-12](https://github.com/alonrbar/easy-template-x/tree/v0.3.4)
+
+### Added
+
+- Full browser example in readme file.
+
 ## [0.3.3 - 2018-07-17](https://github.com/alonrbar/easy-template-x/tree/v0.3.3)
 
 ### Added
