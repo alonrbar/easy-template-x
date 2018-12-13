@@ -18,9 +18,6 @@ export class LoopPlugin extends TemplatePlugin {
         }
     ];
 
-    /**
-     * @inheritDoc
-     */
     public containerTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): void {
 
         let value: any[] = data.getScopeData();
@@ -34,7 +31,6 @@ export class LoopPlugin extends TemplatePlugin {
         let firstNode = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
         let lastNode = this.utilities.docxParser.containingParagraphNode(closeTag.xmlTextNode);
         let middleNodes: XmlNode[];
-        const sameNodes = (firstNode === lastNode);
 
         // extract relevant content        
         const result = this.splitParagraphs(openTag.xmlTextNode, closeTag.xmlTextNode);
@@ -52,7 +48,7 @@ export class LoopPlugin extends TemplatePlugin {
         const compiledNodes = this.compile(repeatedNodes, data, context);
 
         // merge back to the document
-        this.mergeBack(compiledNodes, firstNode, lastNode, sameNodes);
+        this.mergeBack(compiledNodes, firstNode, lastNode);
     }
 
     private splitParagraphs(openTagNode: XmlNode, closeTagNode: XmlNode): ExtractParagraphsResult {
@@ -143,7 +139,7 @@ export class LoopPlugin extends TemplatePlugin {
         return compiledNodeGroups;
     }
 
-    private mergeBack(nodeGroups: XmlNode[][], firstParagraph: XmlNode, lastParagraph: XmlNode, sameNodes: boolean): void {
+    private mergeBack(nodeGroups: XmlNode[][], firstParagraph: XmlNode, lastParagraph: XmlNode): void {
 
         let mergeTo = firstParagraph;
         for (const curNodeGroup of nodeGroups) {
