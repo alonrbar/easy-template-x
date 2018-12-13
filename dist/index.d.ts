@@ -413,6 +413,11 @@ export declare class RawXmlPlugin extends TemplatePlugin {
 // errors
 //
 
+export declare class MalformedFileError extends Error {
+    readonly expectedFileType: string;
+    constructor(expectedFileType: string);
+}
+
 export declare class MaxXmlDepthError extends Error {
     readonly maxDepth: number;
     constructor(maxDepth: number);

@@ -1,7 +1,7 @@
 import * as JSZip from 'jszip';
 import { DelimiterSearcher, ScopeData, Tag, TagParser, TemplateCompiler, TemplateContext } from './compilation';
 import { DocxParser } from './docxParser';
-import { UnsupportedFileTypeError } from './errors';
+import { MalformedFileError, UnsupportedFileTypeError } from './errors';
 import { FileType } from './fileType';
 import { TemplateHandlerOptions } from './templateHandlerOptions';
 import { Binary, IMap, pushMany } from './utils';
@@ -113,7 +113,16 @@ export class TemplateHandler {
     //
 
     private async loadDocx(file: Binary): Promise<JSZip> {
-        const docFile = await JSZip.loadAsync(file);
+        
+        // load the zip file
+        let docFile: JSZip;
+        try {
+            docFile = await JSZip.loadAsync(file);
+        } catch {
+            throw new MalformedFileError('docx');
+        }
+
+        // verify it's a docx file
         const fileType = FileType.getFileType(docFile);
         if (fileType !== FileType.Docx)
             throw new UnsupportedFileTypeError(fileType);

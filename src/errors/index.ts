@@ -1,3 +1,4 @@
+export * from './malformedFileError';
 export * from './maxXmlDepthError';
 export * from './missingArgumentError';
 export * from './missingCloseDelimiterError';
