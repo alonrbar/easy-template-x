@@ -8,6 +8,8 @@ export declare class TemplateHandler {
     constructor(options?: TemplateHandlerOptions);
     
     process<T extends Binary>(templateFile: T, data: any): Promise<T>;
+
+    parseTags(templateFile: Binary): Promise<Tag[]>;
     
     getText(docxFile: Binary): Promise<string>;
 }
@@ -213,6 +215,8 @@ export declare class TemplateCompiler {
      * specified data.
      */
     compile(node: XmlNode, data: ScopeData, context: TemplateContext): void;
+
+    parseTags(node: XmlNode): Tag[];
 }
 
 export declare class DelimiterMark {

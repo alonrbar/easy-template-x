@@ -30,9 +30,14 @@ export class TemplateCompiler {
      * specified data.
      */
     public compile(node: XmlNode, data: ScopeData, context: TemplateContext): void {
+        const tags = this.parseTags(node);
+        this.doTagReplacements(tags, data, context);
+    }
+
+    public parseTags(node: XmlNode): Tag[] {
         const delimiters = this.delimiterSearcher.findDelimiters(node);
         const tags = this.tagParser.parse(delimiters);
-        this.doTagReplacements(tags, data, context);
+        return tags;
     }
 
     //

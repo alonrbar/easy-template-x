@@ -2754,9 +2754,13 @@ var templateCompiler_TemplateCompiler = (function () {
         this.plugins = plugins;
     }
     TemplateCompiler.prototype.compile = function (node, data, context) {
+        var tags = this.parseTags(node);
+        this.doTagReplacements(tags, data, context);
+    };
+    TemplateCompiler.prototype.parseTags = function (node) {
         var delimiters = this.delimiterSearcher.findDelimiters(node);
         var tags = this.tagParser.parse(delimiters);
-        this.doTagReplacements(tags, data, context);
+        return tags;
     };
     TemplateCompiler.prototype.doTagReplacements = function (tags, data, context) {
         var _loop_1 = function (i) {
@@ -3464,6 +3468,28 @@ var templateHandler_TemplateHandler = (function () {
                         }
                         outputType = binary["Binary"].toJsZipOutputType(templateFile);
                         return [2, docFile.generateAsync({ type: outputType })];
+                }
+            });
+        });
+    };
+    TemplateHandler.prototype.parseTags = function (templateFile) {
+        return __awaiter(this, void 0, void 0, function () {
+            var docFile, contentDocuments, tags, _i, _a, file, docTags;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0: return [4, this.loadDocx(templateFile)];
+                    case 1:
+                        docFile = _b.sent();
+                        return [4, this.parseContentDocuments(docFile)];
+                    case 2:
+                        contentDocuments = _b.sent();
+                        tags = [];
+                        for (_i = 0, _a = Object.keys(contentDocuments); _i < _a.length; _i++) {
+                            file = _a[_i];
+                            docTags = this.compiler.parseTags(contentDocuments[file]);
+                            pushMany(tags, docTags);
+                        }
+                        return [2, tags];
                 }
             });
         });

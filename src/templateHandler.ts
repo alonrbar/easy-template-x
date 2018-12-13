@@ -1,10 +1,10 @@
 import * as JSZip from 'jszip';
-import { DelimiterSearcher, ScopeData, TagParser, TemplateCompiler, TemplateContext } from './compilation';
+import { DelimiterSearcher, ScopeData, Tag, TagParser, TemplateCompiler, TemplateContext } from './compilation';
 import { DocxParser } from './docxParser';
 import { UnsupportedFileTypeError } from './errors';
 import { FileType } from './fileType';
 import { TemplateHandlerOptions } from './templateHandlerOptions';
-import { Binary, IMap } from './utils';
+import { Binary, IMap, pushMany } from './utils';
 import { XmlNode } from './xmlNode';
 import { XmlParser } from './xmlParser';
 
@@ -80,6 +80,24 @@ export class TemplateHandler {
         // export
         const outputType: JSZip.OutputType = Binary.toJsZipOutputType(templateFile);
         return docFile.generateAsync({ type: outputType }) as Promise<T>;
+    }
+
+    public async parseTags(templateFile: Binary): Promise<Tag[]> {
+
+        // load the docx (zip) file
+        const docFile = await this.loadDocx(templateFile);
+
+        // extract content as xml documents
+        const contentDocuments = await this.parseContentDocuments(docFile);
+
+        // parse tags
+        const tags: Tag[] = [];
+        for (const file of Object.keys(contentDocuments)) {
+            const docTags = this.compiler.parseTags(contentDocuments[file]);
+            pushMany(tags, docTags);
+        }
+
+        return tags;
     }
 
     public async getText(docxFile: Binary): Promise<string> {

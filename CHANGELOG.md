@@ -2,6 +2,12 @@
 
 ## [Unreleased](https://github.com/alonrbar/easy-template-x/tree/develop)
 
+## [0.4.0 - 2018-13-12](https://github.com/alonrbar/easy-template-x/tree/v0.3.5)
+
+### Added
+
+- Easily find out what tags are present in a given template (TemplateHandler.parseTags).
+
 ## [0.3.4 - 2018-09-12](https://github.com/alonrbar/easy-template-x/tree/v0.3.4)
 
 ### Added
