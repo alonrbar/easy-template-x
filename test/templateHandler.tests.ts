@@ -113,13 +113,13 @@ describe(nameof(TemplateHandler), () => {
 
             const template: Buffer = fs.readFileSync("./test/res/loop - table.docx");
             const templateText = await handler.getText(template);
-            expect(templateText.trim()).to.be.equal("{#loop}Some Text{prop}{/loop}");
+            expect(templateText.trim()).to.be.equal("{#loop}Repeat this text {prop} And this also…{/loop}");
 
             const data = {
+                outProp: 'I am out!',
                 loop: [
                     { prop: 'first' },
-                    { prop: 'second' },
-                    { prop: 'third' }
+                    { prop: 'second' }
                 ]
             };
 
@@ -127,8 +127,8 @@ describe(nameof(TemplateHandler), () => {
 
             fs.writeFileSync('/temp/loop - table - output.docx', doc);
 
-            // const docText = await handler.getText(doc);
-            // expect(docText).to.be.equal("first!second!");
+            const docText = await handler.getText(doc);
+            expect(docText).to.be.equal("Repeat this text first And this also…Repeat this text second And this also…");
         });
 
         it("replaces a loop with open and close tag in the same paragraph correctly", async () => {

@@ -32,6 +32,10 @@ export class LoopTablePlugin extends TemplatePlugin {
         let lastRow = this.utilities.docxParser.containingTableRowNode(closeTag.xmlTextNode);
         const rowsToRepeat = XmlNode.siblingsInRange(firstRow, lastRow);
 
+        // remove the loop tags
+        XmlNode.remove(openTag.xmlTextNode);
+        XmlNode.remove(closeTag.xmlTextNode);
+
         // repeat (loop) the content
         const repeatedNodes = this.repeat(rowsToRepeat, value.length);
 
@@ -39,7 +43,7 @@ export class LoopTablePlugin extends TemplatePlugin {
         // (this step can be optimized in the future if we'll keep track of the
         // path to each token and use that to create new tokens instead of
         // search through the text again)
-        const compiledNodes = repeatedNodes; // this.compile(repeatedNodes, data, context);
+        const compiledNodes = this.compile(repeatedNodes, data, context);
 
         // merge back to the document
         this.mergeBack(compiledNodes, firstRow, lastRow);
