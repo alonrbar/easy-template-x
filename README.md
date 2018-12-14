@@ -185,10 +185,6 @@ The library supports the following binary formats:
 - [Buffer](https://nodejs.org/api/buffer.html) (node)
 - [ArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer) (browser and node)
 
-## Limitations
-
-Iterating table rows is currently not supported. Feel free to write your own plugin for that ;)
-
 ## Changelog
 
 The change log can be found [here](https://github.com/alonrbar/easy-template-x/blob/master/CHANGELOG.md).
