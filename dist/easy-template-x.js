@@ -1932,15 +1932,15 @@ module.exports = g;
 /***/ }),
 
 /***/ "./src/errors/index.ts":
-/*!*****************************************!*\
-  !*** ./src/errors/index.ts + 9 modules ***!
-  \*****************************************/
-/*! exports provided: MaxXmlDepthError, MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, UnclosedTagError, UnidentifiedFileTypeError, UnknownPrefixError, UnopenedTagError, UnsupportedFileTypeError */
+/*!******************************************!*\
+  !*** ./src/errors/index.ts + 10 modules ***!
+  \******************************************/
+/*! exports provided: MalformedFileError, MaxXmlDepthError, MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, UnclosedTagError, UnidentifiedFileTypeError, UnknownPrefixError, UnopenedTagError, UnsupportedFileTypeError */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 
-// CONCATENATED MODULE: ./src/errors/maxXmlDepthError.ts
+// CONCATENATED MODULE: ./src/errors/malformedFileError.ts
 var __extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -1951,8 +1951,31 @@ var __extends = (undefined && undefined.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var MalformedFileError = (function (_super) {
+    __extends(MalformedFileError, _super);
+    function MalformedFileError(expectedFileType) {
+        var _this = _super.call(this, "Malformed file detected. Make sure the file is a valid " + expectedFileType + " file.") || this;
+        _this.expectedFileType = expectedFileType;
+        Object.setPrototypeOf(_this, MalformedFileError.prototype);
+        return _this;
+    }
+    return MalformedFileError;
+}(Error));
+
+
+// CONCATENATED MODULE: ./src/errors/maxXmlDepthError.ts
+var maxXmlDepthError_extends = (undefined && undefined.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var MaxXmlDepthError = (function (_super) {
-    __extends(MaxXmlDepthError, _super);
+    maxXmlDepthError_extends(MaxXmlDepthError, _super);
     function MaxXmlDepthError(maxDepth) {
         var _this = _super.call(this, "XML maximum depth reached (max depth: " + maxDepth + ").") || this;
         _this.maxDepth = maxDepth;
@@ -2145,6 +2168,7 @@ var UnsupportedFileTypeError = (function (_super) {
 
 
 // CONCATENATED MODULE: ./src/errors/index.ts
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MalformedFileError", function() { return MalformedFileError; });
 /* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MaxXmlDepthError", function() { return MaxXmlDepthError; });
 /* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MissingArgumentError", function() { return MissingArgumentError; });
 /* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MissingCloseDelimiterError", function() { return MissingCloseDelimiterError; });
@@ -2165,13 +2189,14 @@ var UnsupportedFileTypeError = (function (_super) {
 
 
 
+
 /***/ }),
 
 /***/ "./src/index.ts":
 /*!***********************************!*\
-  !*** ./src/index.ts + 22 modules ***!
+  !*** ./src/index.ts + 25 modules ***!
   \***********************************/
-/*! exports provided: Delimiters, DocxParser, TemplateHandler, TemplateHandlerOptions, Binary, XmlNodeType, TEXT_NODE_NAME_VALUE, XmlNode, XmlParser, DelimiterMark, DelimiterSearcher, ScopeData, TagDisposition, Tag, TagParser, TemplateCompiler, MaxXmlDepthError, MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, UnclosedTagError, UnidentifiedFileTypeError, UnknownPrefixError, UnopenedTagError, UnsupportedFileTypeError, createDefaultPlugins, LoopPlugin, RawXmlPlugin, TemplatePlugin, TextPlugin */
+/*! exports provided: Delimiters, DocxParser, TemplateHandler, TemplateHandlerOptions, Binary, XmlNodeType, TEXT_NODE_NAME_VALUE, XmlNode, XmlParser, DelimiterMark, DelimiterSearcher, ScopeData, TagDisposition, Tag, TagParser, TemplateCompiler, MalformedFileError, MaxXmlDepthError, MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, UnclosedTagError, UnidentifiedFileTypeError, UnknownPrefixError, UnopenedTagError, UnsupportedFileTypeError, createDefaultPlugins, LoopPlugin, RawXmlPlugin, TemplatePlugin, TextPlugin */
 /*! ModuleConcatenation bailout: Cannot concat with ./src/errors/index.ts because of ./src/utils/binary.ts */
 /*! ModuleConcatenation bailout: Cannot concat with ./src/utils/binary.ts (<- Module uses injected variables (Buffer)) */
 /*! ModuleConcatenation bailout: Cannot concat with external "jszip" (<- Module is not an ECMAScript module) */
@@ -2189,7 +2214,7 @@ var DelimiterMark = (function () {
 }());
 
 
-// EXTERNAL MODULE: ./src/errors/index.ts + 9 modules
+// EXTERNAL MODULE: ./src/errors/index.ts + 10 modules
 var errors = __webpack_require__("./src/errors/index.ts");
 
 // CONCATENATED MODULE: ./src/utils/array.ts
@@ -2505,6 +2530,38 @@ var xmlNode_XmlNode;
         return [root, split];
     }
     XmlNode.splitByChild = splitByChild;
+    function findParent(node, predicate) {
+        if (!node)
+            return null;
+        while (node.parentNode) {
+            if (predicate(node))
+                return node;
+            node = node.parentNode;
+        }
+        return null;
+    }
+    XmlNode.findParent = findParent;
+    function findParentByName(node, nodeName) {
+        return XmlNode.findParent(node, function (n) { return n.nodeName === nodeName; });
+    }
+    XmlNode.findParentByName = findParentByName;
+    function siblingsInRange(firstNode, lastNode) {
+        if (!firstNode)
+            throw new errors["MissingArgumentError"](nameof(firstNode));
+        if (!lastNode)
+            throw new errors["MissingArgumentError"](nameof(lastNode));
+        var range = [];
+        var curNode = firstNode;
+        while (curNode && curNode !== lastNode) {
+            range.push(curNode);
+            curNode = curNode.nextSibling;
+        }
+        if (!curNode)
+            throw new Error('Nodes are not siblings.');
+        range.push(lastNode);
+        return range;
+    }
+    XmlNode.siblingsInRange = siblingsInRange;
     function cloneNodeDeep(original) {
         var clone = {};
         clone.nodeType = original.nodeType;
@@ -2823,194 +2880,6 @@ var templateCompiler_TemplateCompiler = (function () {
 
 
 
-// CONCATENATED MODULE: ./src/plugins/templatePlugin.ts
-var TemplatePlugin = (function () {
-    function TemplatePlugin() {
-    }
-    TemplatePlugin.prototype.setUtilities = function (utilities) {
-        this.utilities = utilities;
-    };
-    TemplatePlugin.prototype.simpleTagReplacements = function (tag, data, context) {
-    };
-    TemplatePlugin.prototype.containerTagReplacements = function (tags, data, context) {
-    };
-    return TemplatePlugin;
-}());
-
-
-// CONCATENATED MODULE: ./src/plugins/loopPlugin.ts
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-
-
-
-
-var loopPlugin_LoopPlugin = (function (_super) {
-    __extends(LoopPlugin, _super);
-    function LoopPlugin() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.prefixes = [
-            {
-                prefix: '#',
-                tagType: 'loop',
-                tagDisposition: TagDisposition.Open
-            },
-            {
-                prefix: '/',
-                tagType: 'loop',
-                tagDisposition: TagDisposition.Close
-            }
-        ];
-        return _this;
-    }
-    LoopPlugin.prototype.containerTagReplacements = function (tags, data, context) {
-        var value = data.getScopeData();
-        if (!value || !Array.isArray(value) || !value.length)
-            value = [];
-        var openTag = tags[0];
-        var closeTag = last(tags);
-        var firstNode = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
-        var lastNode = this.utilities.docxParser.containingParagraphNode(closeTag.xmlTextNode);
-        var middleNodes;
-        var sameNodes = (firstNode === lastNode);
-        var result = this.splitParagraphs(openTag.xmlTextNode, closeTag.xmlTextNode);
-        firstNode = result.firstParagraph;
-        lastNode = result.lastParagraph;
-        middleNodes = result.middleParagraphs;
-        var repeatedNodes = this.repeat(middleNodes, value.length);
-        var compiledNodes = this.compile(repeatedNodes, data, context);
-        this.mergeBack(compiledNodes, firstNode, lastNode, sameNodes);
-    };
-    LoopPlugin.prototype.splitParagraphs = function (openTagNode, closeTagNode) {
-        var firstParagraph = this.utilities.docxParser.containingParagraphNode(openTagNode);
-        var lastParagraph = this.utilities.docxParser.containingParagraphNode(closeTagNode);
-        var areSame = (firstParagraph === lastParagraph);
-        var parent = firstParagraph.parentNode;
-        var firstParagraphIndex = parent.childNodes.indexOf(firstParagraph);
-        var lastParagraphIndex = areSame ? firstParagraphIndex : parent.childNodes.indexOf(lastParagraph);
-        var splitResult = xmlNode_XmlNode.splitByChild(firstParagraph, openTagNode, true);
-        firstParagraph = splitResult[0];
-        var firstParagraphSplit = splitResult[1];
-        if (areSame)
-            lastParagraph = firstParagraphSplit;
-        splitResult = xmlNode_XmlNode.splitByChild(lastParagraph, closeTagNode, true);
-        var lastParagraphSplit = splitResult[0];
-        lastParagraph = splitResult[1];
-        xmlNode_XmlNode.removeChild(parent, firstParagraphIndex + 1);
-        if (!areSame)
-            xmlNode_XmlNode.removeChild(parent, lastParagraphIndex);
-        firstParagraphSplit.parentNode = null;
-        lastParagraphSplit.parentNode = null;
-        var middleParagraphs;
-        if (areSame) {
-            this.utilities.docxParser.joinParagraphs(firstParagraphSplit, lastParagraphSplit);
-            middleParagraphs = [firstParagraphSplit];
-        }
-        else {
-            var inBetween = xmlNode_XmlNode.removeSiblings(firstParagraph, lastParagraph);
-            middleParagraphs = [firstParagraphSplit].concat(inBetween).concat(lastParagraphSplit);
-        }
-        return {
-            firstParagraph: firstParagraph,
-            middleParagraphs: middleParagraphs,
-            lastParagraph: lastParagraph
-        };
-    };
-    LoopPlugin.prototype.repeat = function (nodes, times) {
-        if (!nodes.length || !times)
-            return [];
-        var allResults = [];
-        for (var i = 0; i < times; i++) {
-            var curResult = nodes.map(function (node) { return xmlNode_XmlNode.cloneNode(node, true); });
-            allResults.push(curResult);
-        }
-        return allResults;
-    };
-    LoopPlugin.prototype.compile = function (nodeGroups, data, context) {
-        var compiledNodeGroups = [];
-        var _loop_1 = function (i) {
-            var curNodes = nodeGroups[i];
-            var dummyRootNode = xmlNode_XmlNode.createGeneralNode('dummyRootNode');
-            curNodes.forEach(function (node) { return xmlNode_XmlNode.appendChild(dummyRootNode, node); });
-            data.path.push(i);
-            this_1.utilities.compiler.compile(dummyRootNode, data, context);
-            data.path.pop();
-            var curResult = [];
-            while (dummyRootNode.childNodes && dummyRootNode.childNodes.length) {
-                var child = xmlNode_XmlNode.removeChild(dummyRootNode, 0);
-                curResult.push(child);
-            }
-            compiledNodeGroups.push(curResult);
-        };
-        var this_1 = this;
-        for (var i = 0; i < nodeGroups.length; i++) {
-            _loop_1(i);
-        }
-        return compiledNodeGroups;
-    };
-    LoopPlugin.prototype.mergeBack = function (nodeGroups, firstParagraph, lastParagraph, sameNodes) {
-        var mergeTo = firstParagraph;
-        for (var _i = 0, nodeGroups_1 = nodeGroups; _i < nodeGroups_1.length; _i++) {
-            var curNodeGroup = nodeGroups_1[_i];
-            this.utilities.docxParser.joinParagraphs(mergeTo, curNodeGroup[0]);
-            for (var i = 1; i < curNodeGroup.length; i++) {
-                xmlNode_XmlNode.insertBefore(curNodeGroup[i], lastParagraph);
-                mergeTo = curNodeGroup[i];
-            }
-        }
-        this.utilities.docxParser.joinParagraphs(mergeTo, lastParagraph);
-        xmlNode_XmlNode.remove(lastParagraph);
-    };
-    return LoopPlugin;
-}(TemplatePlugin));
-
-
-// CONCATENATED MODULE: ./src/plugins/rawXmlPlugin.ts
-var rawXmlPlugin_extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-
-
-
-var rawXmlPlugin_RawXmlPlugin = (function (_super) {
-    rawXmlPlugin_extends(RawXmlPlugin, _super);
-    function RawXmlPlugin() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.prefixes = [{
-                prefix: '@',
-                tagType: 'rawXml',
-                tagDisposition: TagDisposition.SelfClosed
-            }];
-        return _this;
-    }
-    RawXmlPlugin.prototype.simpleTagReplacements = function (tag, data) {
-        var wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
-        var value = data.getScopeData();
-        if (typeof value === 'string') {
-            var newNode = this.utilities.xmlParser.parse(value);
-            xmlNode_XmlNode.insertBefore(newNode, wordTextNode);
-        }
-        xmlNode_XmlNode.remove(wordTextNode);
-    };
-    return RawXmlPlugin;
-}(TemplatePlugin));
-
-
 // CONCATENATED MODULE: ./src/docxParser.ts
 
 var docxParser_DocxParser = (function () {
@@ -3136,33 +3005,275 @@ var docxParser_DocxParser = (function () {
             return null;
         if (!xmlNode_XmlNode.isTextNode(node))
             throw new Error("'Invalid argument " + "node" + ". Expected a XmlTextNode.");
-        var genNode = node;
-        while (genNode.parentNode) {
-            if (genNode.nodeName === DocxParser.TEXT_NODE)
-                return genNode;
-            genNode = genNode.parentNode;
-        }
-        return null;
+        return xmlNode_XmlNode.findParentByName(node, DocxParser.TEXT_NODE);
     };
     DocxParser.prototype.containingRunNode = function (node) {
-        if (!node)
-            return null;
-        if (node.nodeName === DocxParser.RUN_NODE)
-            return node;
-        return this.containingRunNode(node.parentNode);
+        return xmlNode_XmlNode.findParentByName(node, DocxParser.RUN_NODE);
     };
     DocxParser.prototype.containingParagraphNode = function (node) {
-        if (!node)
-            return null;
-        if (node.nodeName === DocxParser.PARAGRAPH_NODE)
-            return node;
-        return this.containingParagraphNode(node.parentNode);
+        return xmlNode_XmlNode.findParentByName(node, DocxParser.PARAGRAPH_NODE);
     };
+    DocxParser.prototype.containingTableRowNode = function (node) {
+        return xmlNode_XmlNode.findParentByName(node, DocxParser.TABLE_ROW_NODE);
+    };
+    DocxParser.TABLE_ROW_NODE = 'w:tr';
+    DocxParser.TABLE_CELL_NODE = 'w:tc';
     DocxParser.PARAGRAPH_NODE = 'w:p';
     DocxParser.RUN_NODE = 'w:r';
     DocxParser.TEXT_NODE = 'w:t';
     return DocxParser;
 }());
+
+
+// CONCATENATED MODULE: ./src/plugins/loop/loopParagraphHelper.ts
+
+var loopParagraphHelper_LoopParagraphHelper = (function () {
+    function LoopParagraphHelper() {
+    }
+    LoopParagraphHelper.prototype.setUtilities = function (utilities) {
+        this.utilities = utilities;
+    };
+    LoopParagraphHelper.prototype.splitBefore = function (openTag, closeTag) {
+        var firstParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
+        var lastParagraph = this.utilities.docxParser.containingParagraphNode(closeTag.xmlTextNode);
+        var areSame = (firstParagraph === lastParagraph);
+        var parent = firstParagraph.parentNode;
+        var firstParagraphIndex = parent.childNodes.indexOf(firstParagraph);
+        var lastParagraphIndex = areSame ? firstParagraphIndex : parent.childNodes.indexOf(lastParagraph);
+        var splitResult = xmlNode_XmlNode.splitByChild(firstParagraph, openTag.xmlTextNode, true);
+        firstParagraph = splitResult[0];
+        var firstParagraphSplit = splitResult[1];
+        if (areSame)
+            lastParagraph = firstParagraphSplit;
+        splitResult = xmlNode_XmlNode.splitByChild(lastParagraph, closeTag.xmlTextNode, true);
+        var lastParagraphSplit = splitResult[0];
+        lastParagraph = splitResult[1];
+        xmlNode_XmlNode.removeChild(parent, firstParagraphIndex + 1);
+        if (!areSame)
+            xmlNode_XmlNode.removeChild(parent, lastParagraphIndex);
+        firstParagraphSplit.parentNode = null;
+        lastParagraphSplit.parentNode = null;
+        var middleParagraphs;
+        if (areSame) {
+            this.utilities.docxParser.joinParagraphs(firstParagraphSplit, lastParagraphSplit);
+            middleParagraphs = [firstParagraphSplit];
+        }
+        else {
+            var inBetween = xmlNode_XmlNode.removeSiblings(firstParagraph, lastParagraph);
+            middleParagraphs = [firstParagraphSplit].concat(inBetween).concat(lastParagraphSplit);
+        }
+        return {
+            firstNode: firstParagraph,
+            nodesToRepeat: middleParagraphs,
+            lastNode: lastParagraph
+        };
+    };
+    LoopParagraphHelper.prototype.mergeBack = function (middleParagraphs, firstParagraph, lastParagraph) {
+        var mergeTo = firstParagraph;
+        for (var _i = 0, middleParagraphs_1 = middleParagraphs; _i < middleParagraphs_1.length; _i++) {
+            var curParagraphsGroup = middleParagraphs_1[_i];
+            this.utilities.docxParser.joinParagraphs(mergeTo, curParagraphsGroup[0]);
+            for (var i = 1; i < curParagraphsGroup.length; i++) {
+                xmlNode_XmlNode.insertBefore(curParagraphsGroup[i], lastParagraph);
+                mergeTo = curParagraphsGroup[i];
+            }
+        }
+        this.utilities.docxParser.joinParagraphs(mergeTo, lastParagraph);
+        xmlNode_XmlNode.remove(lastParagraph);
+    };
+    return LoopParagraphHelper;
+}());
+
+
+// CONCATENATED MODULE: ./src/plugins/loop/loopTableHelper.ts
+
+var loopTableHelper_LoopTableHelper = (function () {
+    function LoopTableHelper() {
+    }
+    LoopTableHelper.prototype.setUtilities = function (utilities) {
+        this.utilities = utilities;
+    };
+    LoopTableHelper.prototype.splitBefore = function (openTag, closeTag) {
+        var firstRow = this.utilities.docxParser.containingTableRowNode(openTag.xmlTextNode);
+        var lastRow = this.utilities.docxParser.containingTableRowNode(closeTag.xmlTextNode);
+        var rowsToRepeat = xmlNode_XmlNode.siblingsInRange(firstRow, lastRow);
+        xmlNode_XmlNode.remove(openTag.xmlTextNode);
+        xmlNode_XmlNode.remove(closeTag.xmlTextNode);
+        return {
+            firstNode: firstRow,
+            nodesToRepeat: rowsToRepeat,
+            lastNode: lastRow
+        };
+    };
+    LoopTableHelper.prototype.mergeBack = function (rowGroups, firstRow, lastRow) {
+        for (var _i = 0, rowGroups_1 = rowGroups; _i < rowGroups_1.length; _i++) {
+            var curRowsGroup = rowGroups_1[_i];
+            for (var _a = 0, curRowsGroup_1 = curRowsGroup; _a < curRowsGroup_1.length; _a++) {
+                var row = curRowsGroup_1[_a];
+                xmlNode_XmlNode.insertBefore(row, lastRow);
+            }
+        }
+        xmlNode_XmlNode.remove(firstRow);
+        if (firstRow !== lastRow) {
+            xmlNode_XmlNode.remove(lastRow);
+        }
+    };
+    return LoopTableHelper;
+}());
+
+
+// CONCATENATED MODULE: ./src/plugins/loop/index.ts
+
+
+
+// CONCATENATED MODULE: ./src/plugins/templatePlugin.ts
+var TemplatePlugin = (function () {
+    function TemplatePlugin() {
+    }
+    TemplatePlugin.prototype.setUtilities = function (utilities) {
+        this.utilities = utilities;
+    };
+    TemplatePlugin.prototype.simpleTagReplacements = function (tag, data, context) {
+    };
+    TemplatePlugin.prototype.containerTagReplacements = function (tags, data, context) {
+    };
+    return TemplatePlugin;
+}());
+
+
+// CONCATENATED MODULE: ./src/plugins/loopPlugin.ts
+var __extends = (undefined && undefined.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+
+
+
+
+
+var loopPlugin_LoopPlugin = (function (_super) {
+    __extends(LoopPlugin, _super);
+    function LoopPlugin() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.prefixes = [
+            {
+                prefix: '#',
+                tagType: 'loop',
+                tagDisposition: TagDisposition.Open
+            },
+            {
+                prefix: '/',
+                tagType: 'loop',
+                tagDisposition: TagDisposition.Close
+            }
+        ];
+        _this.loopParagraph = new loopParagraphHelper_LoopParagraphHelper();
+        _this.loopTable = new loopTableHelper_LoopTableHelper();
+        return _this;
+    }
+    LoopPlugin.prototype.setUtilities = function (utilities) {
+        this.utilities = utilities;
+        this.loopParagraph.setUtilities(utilities);
+        this.loopTable.setUtilities(utilities);
+    };
+    LoopPlugin.prototype.containerTagReplacements = function (tags, data, context) {
+        var value = data.getScopeData();
+        if (!value || !Array.isArray(value) || !value.length)
+            value = [];
+        var openTag = tags[0];
+        var closeTag = last(tags);
+        var firstParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
+        var loopHelper;
+        if (firstParagraph.parentNode && firstParagraph.parentNode.nodeName === docxParser_DocxParser.TABLE_CELL_NODE) {
+            loopHelper = this.loopTable;
+        }
+        else {
+            loopHelper = this.loopParagraph;
+        }
+        var _a = loopHelper.splitBefore(openTag, closeTag), firstNode = _a.firstNode, nodesToRepeat = _a.nodesToRepeat, lastNode = _a.lastNode;
+        var repeatedNodes = this.repeat(nodesToRepeat, value.length);
+        var compiledNodes = this.compile(repeatedNodes, data, context);
+        loopHelper.mergeBack(compiledNodes, firstNode, lastNode);
+    };
+    LoopPlugin.prototype.repeat = function (nodes, times) {
+        if (!nodes.length || !times)
+            return [];
+        var allResults = [];
+        for (var i = 0; i < times; i++) {
+            var curResult = nodes.map(function (node) { return xmlNode_XmlNode.cloneNode(node, true); });
+            allResults.push(curResult);
+        }
+        return allResults;
+    };
+    LoopPlugin.prototype.compile = function (nodeGroups, data, context) {
+        var compiledNodeGroups = [];
+        var _loop_1 = function (i) {
+            var curNodes = nodeGroups[i];
+            var dummyRootNode = xmlNode_XmlNode.createGeneralNode('dummyRootNode');
+            curNodes.forEach(function (node) { return xmlNode_XmlNode.appendChild(dummyRootNode, node); });
+            data.path.push(i);
+            this_1.utilities.compiler.compile(dummyRootNode, data, context);
+            data.path.pop();
+            var curResult = [];
+            while (dummyRootNode.childNodes && dummyRootNode.childNodes.length) {
+                var child = xmlNode_XmlNode.removeChild(dummyRootNode, 0);
+                curResult.push(child);
+            }
+            compiledNodeGroups.push(curResult);
+        };
+        var this_1 = this;
+        for (var i = 0; i < nodeGroups.length; i++) {
+            _loop_1(i);
+        }
+        return compiledNodeGroups;
+    };
+    return LoopPlugin;
+}(TemplatePlugin));
+
+
+// CONCATENATED MODULE: ./src/plugins/rawXmlPlugin.ts
+var rawXmlPlugin_extends = (undefined && undefined.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+
+
+var rawXmlPlugin_RawXmlPlugin = (function (_super) {
+    rawXmlPlugin_extends(RawXmlPlugin, _super);
+    function RawXmlPlugin() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.prefixes = [{
+                prefix: '@',
+                tagType: 'rawXml',
+                tagDisposition: TagDisposition.SelfClosed
+            }];
+        return _this;
+    }
+    RawXmlPlugin.prototype.simpleTagReplacements = function (tag, data) {
+        var wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
+        var value = data.getScopeData();
+        if (typeof value === 'string') {
+            var newNode = this.utilities.xmlParser.parse(value);
+            xmlNode_XmlNode.insertBefore(newNode, wordTextNode);
+        }
+        xmlNode_XmlNode.remove(wordTextNode);
+    };
+    return RawXmlPlugin;
+}(TemplatePlugin));
 
 
 // CONCATENATED MODULE: ./src/plugins/textPlugin.ts
@@ -3514,12 +3625,19 @@ var templateHandler_TemplateHandler = (function () {
     };
     TemplateHandler.prototype.loadDocx = function (file) {
         return __awaiter(this, void 0, void 0, function () {
-            var docFile, fileType;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4, external_jszip_["loadAsync"](file)];
+            var docFile, _a, fileType;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _b.trys.push([0, 2, , 3]);
+                        return [4, external_jszip_["loadAsync"](file)];
                     case 1:
-                        docFile = _a.sent();
+                        docFile = _b.sent();
+                        return [3, 3];
+                    case 2:
+                        _a = _b.sent();
+                        throw new errors["MalformedFileError"]('docx');
+                    case 3:
                         fileType = fileType_FileType.getFileType(docFile);
                         if (fileType !== fileType_FileType.Docx)
                             throw new errors["UnsupportedFileTypeError"](fileType);
@@ -3567,6 +3685,7 @@ var templateHandler_TemplateHandler = (function () {
 /* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "Tag", function() { return Tag; });
 /* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "TagParser", function() { return tagParser_TagParser; });
 /* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "TemplateCompiler", function() { return templateCompiler_TemplateCompiler; });
+/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MalformedFileError", function() { return errors["MalformedFileError"]; });
 /* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MaxXmlDepthError", function() { return errors["MaxXmlDepthError"]; });
 /* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MissingArgumentError", function() { return errors["MissingArgumentError"]; });
 /* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MissingCloseDelimiterError", function() { return errors["MissingCloseDelimiterError"]; });
