@@ -3,6 +3,8 @@ import { XmlNode, XmlTextNode } from './xmlNode';
 
 export class DocxParser {
 
+    public static readonly TABLE_ROW_NODE = 'w:tr';
+    public static readonly TABLE_CELL_NODE = 'w:tc';
     public static readonly PARAGRAPH_NODE = 'w:p';
     public static readonly RUN_NODE = 'w:r';
     public static readonly TEXT_NODE = 'w:t';
@@ -183,7 +185,7 @@ export class DocxParser {
     }
 
     /**
-     * Search for the first child **Word** text node (i.e. a <w:t> node).
+     * Search for the first direct child **Word** text node (i.e. a <w:t> node).
      */
     public firstTextNodeChild(node: XmlNode): XmlNode {
 
@@ -215,41 +217,27 @@ export class DocxParser {
         if (!XmlNode.isTextNode(node))
             throw new Error(`'Invalid argument ${nameof(node)}. Expected a XmlTextNode.`);
 
-        let genNode = (node as XmlNode);
-        while (genNode.parentNode) {
-
-            if (genNode.nodeName === DocxParser.TEXT_NODE)
-                return genNode;
-
-            genNode = genNode.parentNode;
-        }
-
-        return null;
+        return XmlNode.findParentByName(node, DocxParser.TEXT_NODE);
     }
 
     /**
      * Search **upwards** for the first run node.
      */
     public containingRunNode(node: XmlNode): XmlNode {
-        if (!node)
-            return null;
-
-        if (node.nodeName === DocxParser.RUN_NODE)
-            return node;
-
-        return this.containingRunNode(node.parentNode);
+        return XmlNode.findParentByName(node, DocxParser.RUN_NODE);
     }
 
     /**
      * Search **upwards** for the first paragraph node.
      */
     public containingParagraphNode(node: XmlNode): XmlNode {
-        if (!node)
-            return null;
+        return XmlNode.findParentByName(node, DocxParser.PARAGRAPH_NODE);
+    }
 
-        if (node.nodeName === DocxParser.PARAGRAPH_NODE)
-            return node;
-
-        return this.containingParagraphNode(node.parentNode);
+    /**
+     * Search **upwards** for the first "table row" node.
+     */
+    public containingTableRowNode(node: XmlNode): XmlNode {
+        return XmlNode.findParentByName(node, DocxParser.TABLE_ROW_NODE);
     }
 }

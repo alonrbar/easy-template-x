@@ -107,6 +107,30 @@ describe(nameof(TemplateHandler), () => {
             expect(docText).to.be.equal("first!second!");
         });
 
+        it("replaces table row loops correctly", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template: Buffer = fs.readFileSync("./test/res/loop - table.docx");
+            const templateText = await handler.getText(template);
+            expect(templateText.trim()).to.be.equal("{#loop}Some Text{prop}{/loop}");
+
+            const data = {
+                loop: [
+                    { prop: 'first' },
+                    { prop: 'second' },
+                    { prop: 'third' }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            fs.writeFileSync('/temp/loop - table - output.docx', doc);
+
+            // const docText = await handler.getText(doc);
+            // expect(docText).to.be.equal("first!second!");
+        });
+
         it("replaces a loop with open and close tag in the same paragraph correctly", async () => {
 
             const handler = new TemplateHandler();

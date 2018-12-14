@@ -441,7 +441,7 @@ export namespace XmlNode {
      * @param root The node to split
      * @param markerNode The node that marks the split position.      
      */
-    export function splitByChild(root: XmlNode, markerNode: XmlNode, removeMarkerNode: boolean): [ XmlNode, XmlNode ] {
+    export function splitByChild(root: XmlNode, markerNode: XmlNode, removeMarkerNode: boolean): [XmlNode, XmlNode] {
 
         // find the split path
         const path = getDescendantPath(root, markerNode);
@@ -464,7 +464,49 @@ export namespace XmlNode {
             XmlNode.removeChild(root, root.childNodes.length - 1);
         }
 
-        return [ root, split ];
+        return [root, split];
+    }
+
+    export function findParent(node: XmlNode, predicate: (node: XmlNode) => boolean): XmlNode {
+        if (!node)
+            return null;
+
+        while (node.parentNode) {
+
+            if (predicate(node))
+                return node;
+
+            node = node.parentNode;
+        }
+
+        return null;
+    }
+
+    export function findParentByName(node: XmlNode, nodeName: string): XmlNode {
+        return XmlNode.findParent(node, n => n.nodeName === nodeName);
+    }
+
+    /**
+     * Returns all siblings between 'firstNode' and 'lastNode' inclusive.
+     */
+    export function siblingsInRange(firstNode: XmlNode, lastNode: XmlNode): XmlNode[] {
+        if (!firstNode)
+            throw new MissingArgumentError(nameof(firstNode));
+        if (!lastNode)
+            throw new MissingArgumentError(nameof(lastNode));
+
+        const range: XmlNode[] = [];
+        let curNode = firstNode;
+        while (curNode && curNode !== lastNode) {
+            range.push(curNode);
+            curNode = curNode.nextSibling;
+        }
+
+        if (!curNode)
+            throw new Error('Nodes are not siblings.');
+
+        range.push(lastNode);
+        return range;
     }
 
     //
