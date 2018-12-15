@@ -276,10 +276,7 @@ describe(nameof(TemplateHandler), () => {
                 }
             }
 
-            const begin = Date.now();
             const doc = await handler.process(template, data);
-            const end = Date.now();
-            console.log(`==> nested loop speed test took ${end - begin}ms`); // tslint:disable-line:no-console
 
             fs.writeFileSync('/temp/nested loop speed test - output.docx', doc);
 
@@ -328,13 +325,10 @@ describe(nameof(TemplateHandler), () => {
                 data['תלמידים'].push(student);
             }
 
-            const begin = Date.now();
             const doc = await handler.process(template, data);
-            const end = Date.now();
-            console.log(`==> real life test took ${end - begin}ms`); // tslint:disable-line:no-console
 
             fs.writeFileSync('/temp/real life - output.docx', doc);
-        }).timeout(10000);
+        });
     });
 
     describe(nameof(TemplateHandler.prototype.parseTags), () => {
