@@ -4,11 +4,12 @@
 
 ### Added
 
-- Loop table rows.  
+- Loop lists and table rows.  
   Notice: The loop logic for tables is a bit different than the logic of the
           existing paragraph loop. Instead of repeating the content in between
           the opening and closing tags it repeats entire rows (including content
           in the row that appears before the opening or after the closing tag).
+          The same goes for lists - the entire bullet is repeated.
 - Throw MalformedFileError when fails to open template file as zip.
 
 ## [0.4.0 - 2018-13-12](https://github.com/alonrbar/easy-template-x/tree/v0.4.0)
