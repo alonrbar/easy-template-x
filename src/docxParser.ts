@@ -3,33 +3,37 @@ import { XmlNode, XmlTextNode } from './xmlNode';
 
 export class DocxParser {
 
-    public static readonly TEXT_NODE = 'w:t';    
-    private static readonly PARAGRAPH_NODE = 'w:p';
-    private static readonly PARAGRAPH_PROPERTIES_NODE = 'w:pPr';
-    private static readonly RUN_NODE = 'w:r';
-    private static readonly TABLE_ROW_NODE = 'w:tr';
-    private static readonly TABLE_CELL_NODE = 'w:tc';
-    private static readonly NUMBER_PROPERTIES_NODE = 'w:numPr';
+    /*
+     * Docx intro:
+     * 
+     * In Word text nodes are contained in "run" nodes (which specifies text
+     * properties such as font and color). The "run" nodes in turn are
+     * contained in paragraph nodes which is the core unit of content.
+     * 
+     * Example:
+     *
+     * <w:p>    <-- paragraph
+     *   <w:r>      <-- run
+     *     <w:rPr>      <-- run properties
+     *       <w:b/>     <-- bold
+     *     </w:rPr>
+     *     <w:t>This is text.</w:t>     <-- actual text
+     *   </w:r>
+     * </w:p> 
+     *
+     * see: http://officeopenxml.com/WPcontentOverview.php
+     */
 
-    // In Word text nodes are contained in "run" nodes (which specifies text
-    // properties such as font and color). The "run" nodes in turn are
-    // contained in paragraph nodes which is the core unit of content.
-    //
-    // Example:
-    //
-    // <w:p>    <-- paragraph
-    //   <w:r>      <-- run
-    //     <w:rPr>      <-- run properties
-    //       <w:b/>     <-- bold
-    //     </w:rPr>
-    //     <w:t>This is text.</w:t>     <-- actual text
-    //   </w:r>
-    // </w:p> 
-    //
-    // see: http://officeopenxml.com/WPcontentOverview.php
+    public static readonly PARAGRAPH_NODE = 'w:p';
+    public static readonly PARAGRAPH_PROPERTIES_NODE = 'w:pPr';
+    public static readonly RUN_NODE = 'w:r';
+    public static readonly TEXT_NODE = 'w:t';
+    public static readonly TABLE_ROW_NODE = 'w:tr';
+    public static readonly TABLE_CELL_NODE = 'w:tc';
+    public static readonly NUMBER_PROPERTIES_NODE = 'w:numPr';
 
     //
-    // content files
+    // docx structure
     //
 
     public contentFilePaths(zip: JSZip) {
@@ -55,7 +59,7 @@ export class DocxParser {
             return "word/document2.xml";
         }
         return undefined;
-    }
+    }    
 
     //
     // content manipulation
@@ -208,7 +212,7 @@ export class DocxParser {
 
     public isListParagraph(paragraphNode: XmlNode): boolean {
         const paragraphProperties = this.paragraphPropertiesNode(paragraphNode);
-        const listNumberProperties =  XmlNode.findChildByName(paragraphProperties, DocxParser.NUMBER_PROPERTIES_NODE);
+        const listNumberProperties = XmlNode.findChildByName(paragraphProperties, DocxParser.NUMBER_PROPERTIES_NODE);
         return !!listNumberProperties;
     }
 

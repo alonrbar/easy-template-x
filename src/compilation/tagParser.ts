@@ -78,7 +78,7 @@ export class TagParser {
      * Example: 
      * 
      * Input text node: "some text {some tag} some more text" 
-     * Output text nodes: [ "some text ", "{tag1}", " some more text" ]
+     * Output text nodes: [ "some text ", "{some tag}", " some more text" ]
      */
     private normalizeTagNodes(openDelimiter: DelimiterMark, closeDelimiter: DelimiterMark): number {
 
