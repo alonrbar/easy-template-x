@@ -131,6 +131,38 @@ describe(nameof(TemplateHandler), () => {
             expect(docText).to.be.equal("Repeat this text first And this also…Repeat this text second And this also…");
         });
 
+        it("replaces list loops correctly", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template: Buffer = fs.readFileSync("./test/res/loop - list.docx");
+            const templateText = await handler.getText(template);
+            expect(templateText.trim()).to.be.equal("{#loop1}Hi{#loop2}{prop}{/loop2}{/loop1}");
+
+            const data = {
+                loop1: [
+                    {
+                        loop2: [
+                            { prop: 'first' },
+                            { prop: 'second' }
+                        ]
+                    },
+                    {
+                        loop2: [
+                            { prop: 'third' },
+                            { prop: 'forth' }
+                        ]
+                    }]
+            };
+
+            const doc = await handler.process(template, data);
+
+            fs.writeFileSync('/temp/loop - list - output.docx', doc);
+
+            const docText = await handler.getText(doc);
+            expect(docText).to.be.equal("HifirstsecondHithirdforth");
+        });
+
         it("replaces a loop with open and close tag in the same paragraph correctly", async () => {
 
             const handler = new TemplateHandler();
@@ -308,7 +340,7 @@ describe(nameof(TemplateHandler), () => {
     describe(nameof(TemplateHandler.prototype.parseTags), () => {
 
         it("returns parsed tags", async () => {
-            
+
             const handler = new TemplateHandler();
 
             const template: Buffer = fs.readFileSync("./test/res/nested loop.docx");

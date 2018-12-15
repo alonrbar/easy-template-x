@@ -3,11 +3,13 @@ import { XmlNode, XmlTextNode } from './xmlNode';
 
 export class DocxParser {
 
-    public static readonly TABLE_ROW_NODE = 'w:tr';
-    public static readonly TABLE_CELL_NODE = 'w:tc';
-    public static readonly PARAGRAPH_NODE = 'w:p';
-    public static readonly RUN_NODE = 'w:r';
-    public static readonly TEXT_NODE = 'w:t';
+    public static readonly TEXT_NODE = 'w:t';    
+    private static readonly PARAGRAPH_NODE = 'w:p';
+    private static readonly PARAGRAPH_PROPERTIES_NODE = 'w:pPr';
+    private static readonly RUN_NODE = 'w:r';
+    private static readonly TABLE_ROW_NODE = 'w:tr';
+    private static readonly TABLE_CELL_NODE = 'w:tc';
+    private static readonly NUMBER_PROPERTIES_NODE = 'w:numPr';
 
     // In Word text nodes are contained in "run" nodes (which specifies text
     // properties such as font and color). The "run" nodes in turn are
@@ -25,6 +27,10 @@ export class DocxParser {
     // </w:p> 
     //
     // see: http://officeopenxml.com/WPcontentOverview.php
+
+    //
+    // content files
+    //
 
     public contentFilePaths(zip: JSZip) {
         const coreFiles = [
@@ -50,6 +56,10 @@ export class DocxParser {
         }
         return undefined;
     }
+
+    //
+    // content manipulation
+    //
 
     /**
      * Split the text node into two text nodes, each with it's own wrapping <w:t> node.
@@ -182,6 +192,31 @@ export class DocxParser {
                 childIndex++;
             }
         }
+    }
+
+    //
+    // node queries
+    //
+
+    public isTableCellNode(node: XmlNode): boolean {
+        return node.nodeName === DocxParser.TABLE_CELL_NODE;
+    }
+
+    public isParagraphNode(node: XmlNode): boolean {
+        return node.nodeName === DocxParser.PARAGRAPH_NODE;
+    }
+
+    public isListParagraph(paragraphNode: XmlNode): boolean {
+        const paragraphProperties = this.paragraphPropertiesNode(paragraphNode);
+        const listNumberProperties =  XmlNode.findChildByName(paragraphProperties, DocxParser.NUMBER_PROPERTIES_NODE);
+        return !!listNumberProperties;
+    }
+
+    public paragraphPropertiesNode(paragraphNode: XmlNode): XmlNode {
+        if (!this.isParagraphNode(paragraphNode))
+            throw new Error(`Expected paragraph node but received a '${paragraphNode.nodeName}' node.`);
+
+        return XmlNode.findChildByName(paragraphNode, DocxParser.PARAGRAPH_PROPERTIES_NODE);
     }
 
     /**

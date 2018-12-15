@@ -2,9 +2,11 @@ import { Tag } from '../../compilation';
 import { XmlNode } from '../../xmlNode';
 import { PluginUtilities } from '../templatePlugin';
 
-export interface ILoopHelper {
+export interface ILoopStrategy {
 
     setUtilities(utilities: PluginUtilities): void;
+
+    isApplicable(openTag: Tag, closeTag: Tag): boolean;
 
     splitBefore(openTag: Tag, closeTag: Tag): SplitBeforeResult;
     

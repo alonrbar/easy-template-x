@@ -1,14 +1,18 @@
 import { Tag } from '../../compilation';
 import { XmlNode } from '../../xmlNode';
 import { PluginUtilities } from '../templatePlugin';
-import { ILoopHelper, SplitBeforeResult } from './iLoopHelper';
+import { ILoopStrategy, SplitBeforeResult } from './iLoopStrategy';
 
-export class LoopParagraphHelper implements ILoopHelper {
+export class LoopParagraphStrategy implements ILoopStrategy {
 
     private utilities: PluginUtilities;
 
     public setUtilities(utilities: PluginUtilities) {
         this.utilities = utilities;
+    }
+
+    public isApplicable(openTag: Tag, closeTag: Tag): boolean {
+        return true;
     }
 
     public splitBefore(openTag: Tag, closeTag: Tag): SplitBeforeResult {

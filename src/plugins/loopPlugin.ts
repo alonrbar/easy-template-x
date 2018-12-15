@@ -1,8 +1,7 @@
 import { ScopeData, Tag, TagDisposition, TagPrefix, TemplateContext } from '../compilation';
-import { DocxParser } from '../docxParser';
 import { last } from '../utils';
 import { XmlNode } from '../xmlNode';
-import { ILoopHelper, LoopParagraphHelper, LoopTableHelper } from './loop';
+import { ILoopStrategy, LoopListStrategy, LoopParagraphStrategy, LoopTableStrategy } from './loop';
 import { PluginUtilities, TemplatePlugin } from './templatePlugin';
 
 export class LoopPlugin extends TemplatePlugin {
@@ -20,13 +19,15 @@ export class LoopPlugin extends TemplatePlugin {
         }
     ];
 
-    private readonly loopParagraph = new LoopParagraphHelper();
-    private readonly loopTable = new LoopTableHelper();
+    private readonly loopStrategies: ILoopStrategy[] = [
+        new LoopTableStrategy(),
+        new LoopListStrategy(),
+        new LoopParagraphStrategy() // the default strategy
+    ];
 
     public setUtilities(utilities: PluginUtilities) {
         this.utilities = utilities;
-        this.loopParagraph.setUtilities(utilities);
-        this.loopTable.setUtilities(utilities);
+        this.loopStrategies.forEach(strategy => strategy.setUtilities(utilities));
     }
 
     public containerTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): void {
@@ -39,18 +40,14 @@ export class LoopPlugin extends TemplatePlugin {
         // vars
         const openTag = tags[0];
         const closeTag = last(tags);
-        const firstParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
 
-        // select the suitable helper
-        let loopHelper: ILoopHelper;
-        if (firstParagraph.parentNode && firstParagraph.parentNode.nodeName === DocxParser.TABLE_CELL_NODE) {
-            loopHelper = this.loopTable;
-        } else {
-            loopHelper = this.loopParagraph;
-        }
+        // select the suitable strategy
+        const loopStrategy = this.loopStrategies.find(strategy => strategy.isApplicable(openTag, closeTag));
+        if (!loopStrategy)
+            throw new Error(`No loop strategy found for tag '${openTag.rawText}'.`);
 
         // prepare to loop
-        const { firstNode, nodesToRepeat, lastNode } = loopHelper.splitBefore(openTag, closeTag);
+        const { firstNode, nodesToRepeat, lastNode } = loopStrategy.splitBefore(openTag, closeTag);
 
         // repeat (loop) the content
         const repeatedNodes = this.repeat(nodesToRepeat, value.length);
@@ -62,7 +59,7 @@ export class LoopPlugin extends TemplatePlugin {
         const compiledNodes = this.compile(repeatedNodes, data, context);
 
         // merge back to the document
-        loopHelper.mergeBack(compiledNodes, firstNode, lastNode);
+        loopStrategy.mergeBack(compiledNodes, firstNode, lastNode);
     }
 
     private repeat(nodes: XmlNode[], times: number): XmlNode[][] {

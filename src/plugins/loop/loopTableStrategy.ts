@@ -1,14 +1,21 @@
 import { Tag } from '../../compilation';
 import { XmlNode } from '../../xmlNode';
 import { PluginUtilities } from '../templatePlugin';
-import { ILoopHelper, SplitBeforeResult } from './iLoopHelper';
+import { ILoopStrategy, SplitBeforeResult } from './iLoopStrategy';
 
-export class LoopTableHelper implements ILoopHelper {
+export class LoopTableStrategy implements ILoopStrategy {
 
     private utilities: PluginUtilities;
 
     public setUtilities(utilities: PluginUtilities) {
         this.utilities = utilities;
+    }
+
+    public isApplicable(openTag: Tag, closeTag: Tag): boolean {
+        const containingParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
+        if (!containingParagraph.parentNode)
+            return false;
+        return this.utilities.docxParser.isTableCellNode(containingParagraph.parentNode);
     }
 
     public splitBefore(openTag: Tag, closeTag: Tag): SplitBeforeResult {

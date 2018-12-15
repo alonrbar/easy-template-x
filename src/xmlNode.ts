@@ -486,6 +486,12 @@ export namespace XmlNode {
         return XmlNode.findParent(node, n => n.nodeName === nodeName);
     }
 
+    export function findChildByName(node: XmlNode, childName: string): XmlNode {
+        if (!node)
+            return null;
+        return (node.childNodes || []).find(child => child.nodeName === childName);
+    }
+
     /**
      * Returns all siblings between 'firstNode' and 'lastNode' inclusive.
      */
