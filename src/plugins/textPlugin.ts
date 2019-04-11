@@ -35,7 +35,7 @@ export class TextPlugin extends TemplatePlugin {
         if (!wordTextNode.attributes) {
             wordTextNode.attributes = [];
         }
-        if (!wordTextNode.attributes.find(attr => attr.name === 'xml:space')) {
+        if (!wordTextNode.attributes.filter(attr => attr.name === 'xml:space')[0]) {
             wordTextNode.attributes.push(this.getSpacePreserveAttribute());
         }
     }
@@ -81,5 +81,5 @@ export class TextPlugin extends TemplatePlugin {
             XmlNode.createTextNode(text)
         ];
         return wordTextNode;
-    }    
+    }
 }
