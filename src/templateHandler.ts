@@ -100,12 +100,20 @@ export class TemplateHandler {
         return tags;
     }
 
+    /**
+     * Get the text content of the main document file.
+     */
     public async getText(docxFile: Binary): Promise<string> {
-        const zipFile = await this.loadDocx(docxFile);
-        const mainXmlFile = this.docxParser.mainFilePath(zipFile);
-        const xmlContent = await zipFile.files[mainXmlFile].async('text');
-        const document = this.xmlParser.domParse(xmlContent);
-        return document.documentElement.textContent;
+        const root = await this.getDomRoot(docxFile);
+        return root.textContent;
+    }
+
+    /**
+     * Get the xml tree of the main document file.
+     */
+    public async getXml(docxFile: Binary): Promise<XmlNode> {
+        const root = await this.getDomRoot(docxFile);
+        return XmlNode.fromDomNode(root);
     }
 
     //
@@ -151,5 +159,13 @@ export class TemplateHandler {
         }
 
         return contentDocuments;
+    }
+
+    private async getDomRoot(docxFile: Binary): Promise<Node> {
+        const zipFile = await this.loadDocx(docxFile);
+        const mainXmlFile = this.docxParser.mainFilePath(zipFile);
+        const xmlContent = await zipFile.files[mainXmlFile].async('text');
+        const document = this.xmlParser.domParse(xmlContent);
+        return document.documentElement;
     }
 }

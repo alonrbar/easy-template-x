@@ -51,10 +51,13 @@ describe(nameof(TemplateHandler), () => {
 
             const doc = await handler.process(template, data);
 
-            fs.writeFileSync('/temp/simple - multiline - output.docx', doc);
-
             const docText = await handler.getText(doc);
             expect(docText.trim()).toEqual("first linesecond line");
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // fs.writeFileSync('/temp/simple - multiline - output.docx', doc);
         });
 
         it("escapes xml special characters", async () => {
@@ -75,17 +78,20 @@ describe(nameof(TemplateHandler), () => {
 
             const doc = await handler.process(template, data);
 
-            fs.writeFileSync('/temp/simple - escape chars - output.docx', doc);
-
             const docText = await handler.getText(doc);
             expect(docText.trim()).toEqual("i'm special </w:r>");
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // fs.writeFileSync('/temp/simple - escape chars - output.docx', doc);
         });
 
         it("replaces loops correctly", async () => {
 
             const handler = new TemplateHandler();
 
-            const template: Buffer = fs.readFileSync("./test/res/loop.docx");
+            const template: Buffer = fs.readFileSync("./test/res/loop - simple.docx");
             const templateText = await handler.getText(template);
             expect(templateText.trim()).toEqual("{#loop_prop}{simple_prop}!{/loop_prop}");
 
@@ -98,10 +104,13 @@ describe(nameof(TemplateHandler), () => {
 
             const doc = await handler.process(template, data);
 
-            fs.writeFileSync('/temp/simple loop - output.docx', doc);
-
             const docText = await handler.getText(doc);
             expect(docText).toEqual("first!second!");
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // fs.writeFileSync('/temp/simple loop - output.docx', doc);
         });
 
         it("replaces table row loops correctly", async () => {
@@ -122,10 +131,13 @@ describe(nameof(TemplateHandler), () => {
 
             const doc = await handler.process(template, data);
 
-            fs.writeFileSync('/temp/loop - table - output.docx', doc);
-
             const docText = await handler.getText(doc);
             expect(docText).toEqual("Repeat this text first And this also…Repeat this text second And this also…");
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // fs.writeFileSync('/temp/loop - table - output.docx', doc);
         });
 
         it("replaces list loops correctly", async () => {
@@ -154,10 +166,13 @@ describe(nameof(TemplateHandler), () => {
 
             const doc = await handler.process(template, data);
 
-            fs.writeFileSync('/temp/loop - list - output.docx', doc);
-
             const docText = await handler.getText(doc);
             expect(docText).toEqual("HifirstsecondHithirdforth");
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // fs.writeFileSync('/temp/loop - list - output.docx', doc);
         });
 
         it("replaces a loop with open and close tag in the same paragraph correctly", async () => {
@@ -177,10 +192,13 @@ describe(nameof(TemplateHandler), () => {
 
             const doc = await handler.process(template, data);
 
-            fs.writeFileSync('/temp/simple loop - same line - output.docx', doc);
-
             const docText = await handler.getText(doc);
             expect(docText).toEqual("first!second!");
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // fs.writeFileSync('/temp/simple loop - same line - output.docx', doc);
         });
 
         it("replaces a loop whose items have several properties", async () => {
@@ -210,17 +228,20 @@ describe(nameof(TemplateHandler), () => {
 
             const doc = await handler.process(template, data);
 
-            fs.writeFileSync('/temp/loop - multi props - output.docx', doc);
-
             const docText = await handler.getText(doc);
             expect(docText).toEqual("first!second!third!forth!fifth!sixth!");
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // fs.writeFileSync('/temp/loop - multi props - output.docx', doc);
         });
 
         it("replaces nested loops correctly", async () => {
 
             const handler = new TemplateHandler();
 
-            const template: Buffer = fs.readFileSync("./test/res/nested loop.docx");
+            const template: Buffer = fs.readFileSync("./test/res/loop - nested.docx");
             const templateText = await handler.getText(template);
             expect(templateText.trim()).toEqual("{#loop_prop1}hi!{#loop_prop2}{simple_prop}!{/loop_prop2}{/loop_prop1}");
 
@@ -245,13 +266,18 @@ describe(nameof(TemplateHandler), () => {
 
             const docText = await handler.getText(doc);
             expect(docText).toEqual("hi!first!second!hi!third!forth!");
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // fs.writeFileSync('/temp/nested loop - output.docx', doc);
         });
 
         it("replaces nested loops fast enough", async () => {
 
             const handler = new TemplateHandler();
 
-            const template: Buffer = fs.readFileSync("./test/res/nested loop with image.docx");
+            const template: Buffer = fs.readFileSync("./test/res/loop - nested with image.docx");
 
             const data = {
                 loop_prop1: [
@@ -273,11 +299,10 @@ describe(nameof(TemplateHandler), () => {
                 }
             }
 
-            const doc = await handler.process(template, data);
+            await handler.process(template, data);
 
-            fs.writeFileSync('/temp/nested loop speed test - output.docx', doc);
-
-        });
+            // fs.writeFileSync('/temp/nested loop speed test - output.docx', doc);
+        }, 5 * 1000);
 
         it("handles a real life template (in Hebrew)", async () => {
 
@@ -322,9 +347,9 @@ describe(nameof(TemplateHandler), () => {
                 data['תלמידים'].push(student);
             }
 
-            const doc = await handler.process(template, data);
+            await handler.process(template, data);
 
-            fs.writeFileSync('/temp/real life - output.docx', doc);
+            // fs.writeFileSync('/temp/real life - output.docx', doc);
         });
     });
 
@@ -334,7 +359,7 @@ describe(nameof(TemplateHandler), () => {
 
             const handler = new TemplateHandler();
 
-            const template: Buffer = fs.readFileSync("./test/res/nested loop.docx");
+            const template: Buffer = fs.readFileSync("./test/res/loop - nested.docx");
             const templateText = await handler.getText(template);
             expect(templateText.trim()).toEqual("{#loop_prop1}hi!{#loop_prop2}{simple_prop}!{/loop_prop2}{/loop_prop1}");
 

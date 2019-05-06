@@ -11,7 +11,15 @@ export declare class TemplateHandler {
 
     parseTags(templateFile: Binary): Promise<Tag[]>;
     
+    /**
+     * Get the text content of the main document file.
+     */
     getText(docxFile: Binary): Promise<string>;
+
+    /**
+     * Get the text content of the main document file.
+     */
+    getXml(docxFile: Binary): Promise<XmlNode>;
 }
 
 export declare class TemplateHandlerOptions {
