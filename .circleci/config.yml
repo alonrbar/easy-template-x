@@ -24,5 +24,8 @@ jobs:
       - run: yarn typecheck
       - run: yarn lint
       - run: yarn test --ci --runInBand
+      - store_artifacts:
+          path: test-reports
+          destination: test-reports
       - store_test_results:
           path: test-reports
