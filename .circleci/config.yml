@@ -25,4 +25,4 @@ jobs:
       - run: yarn lint
       - run: yarn test
       - store_test_results:
-          path: test-results
+          path: test-reports
