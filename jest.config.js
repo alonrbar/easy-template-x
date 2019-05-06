@@ -7,6 +7,6 @@ module.exports = {
     testRegex: "/test/.*[.]tests[.]ts$",
     reporters: [
         "default",
-        ["jest-junit", { outputDirectory: "test-reports" }]
+        ["jest-junit", { outputDirectory: "test-reports/junit" }]
     ]
 };
