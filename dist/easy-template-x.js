@@ -1931,1795 +1931,2663 @@ module.exports = g;
 
 /***/ }),
 
-/***/ "./src/errors/index.ts":
+/***/ "./src/compilation/delimiterMark.ts":
 /*!******************************************!*\
-  !*** ./src/errors/index.ts + 10 modules ***!
+  !*** ./src/compilation/delimiterMark.ts ***!
   \******************************************/
-/*! exports provided: MalformedFileError, MaxXmlDepthError, MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, UnclosedTagError, UnidentifiedFileTypeError, UnknownPrefixError, UnopenedTagError, UnsupportedFileTypeError */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-// CONCATENATED MODULE: ./src/errors/malformedFileError.ts
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var MalformedFileError = (function (_super) {
-    __extends(MalformedFileError, _super);
-    function MalformedFileError(expectedFileType) {
-        var _this = _super.call(this, "Malformed file detected. Make sure the file is a valid " + expectedFileType + " file.") || this;
-        _this.expectedFileType = expectedFileType;
-        Object.setPrototypeOf(_this, MalformedFileError.prototype);
-        return _this;
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.DelimiterMark = void 0;
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class DelimiterMark {
+  /**
+   * Index inside the text node
+   */
+
+  /**
+   * Is this an open delimiter or a close delimiter
+   */
+  constructor(initial) {
+    _defineProperty(this, "xmlTextNode", void 0);
+
+    _defineProperty(this, "index", void 0);
+
+    _defineProperty(this, "isOpen", void 0);
+
+    Object.assign(this, initial);
+  }
+
+}
+
+exports.DelimiterMark = DelimiterMark;
+
+/***/ }),
+
+/***/ "./src/compilation/delimiterSearcher.ts":
+/*!**********************************************!*\
+  !*** ./src/compilation/delimiterSearcher.ts ***!
+  \**********************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.DelimiterSearcher = void 0;
+
+var _errors = __webpack_require__(/*! ../errors */ "./src/errors/index.ts");
+
+var _utils = __webpack_require__(/*! ../utils */ "./src/utils/index.ts");
+
+var _xmlNode = __webpack_require__(/*! ../xmlNode */ "./src/xmlNode.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class DelimiterSearcher {
+  constructor() {
+    _defineProperty(this, "maxXmlDepth", 20);
+
+    _defineProperty(this, "startDelimiter", "{");
+
+    _defineProperty(this, "endDelimiter", "}");
+  }
+
+  findDelimiters(node) {
+    const delimiters = [];
+    this.findRecurse(node, delimiters, 0);
+    return delimiters;
+  }
+
+  findRecurse(node, delimiters, depth) {
+    if (depth > this.maxXmlDepth) throw new _errors.MaxXmlDepthError(this.maxXmlDepth);
+    if (!node) return; // process self
+
+    if (_xmlNode.XmlNode.isTextNode(node)) {
+      const curTokens = this.findInNode(node);
+
+      if (curTokens.length) {
+        (0, _utils.pushMany)(delimiters, curTokens);
+      }
+
+      return;
+    } // process child nodes
+
+
+    const childNodesLength = node.childNodes ? node.childNodes.length : 0;
+
+    for (let i = 0; i < childNodesLength; i++) {
+      const child = node.childNodes[i];
+      this.findRecurse(child, delimiters, depth + 1);
     }
-    return MalformedFileError;
-}(Error));
+  }
+
+  findInNode(node) {
+    if (!node.textContent) {
+      return [];
+    } // TODO: support delimiters longer than one character
 
 
-// CONCATENATED MODULE: ./src/errors/maxXmlDepthError.ts
-var maxXmlDepthError_extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var MaxXmlDepthError = (function (_super) {
-    maxXmlDepthError_extends(MaxXmlDepthError, _super);
-    function MaxXmlDepthError(maxDepth) {
-        var _this = _super.call(this, "XML maximum depth reached (max depth: " + maxDepth + ").") || this;
-        _this.maxDepth = maxDepth;
-        Object.setPrototypeOf(_this, MaxXmlDepthError.prototype);
-        return _this;
+    const delimiterMarks = [];
+
+    for (let i = 0; i < node.textContent.length; i++) {
+      if (node.textContent[i] === this.startDelimiter) {
+        delimiterMarks.push({
+          index: i,
+          isOpen: true,
+          xmlTextNode: node
+        });
+      } else if (node.textContent[i] === this.endDelimiter) {
+        delimiterMarks.push({
+          index: i,
+          isOpen: false,
+          xmlTextNode: node
+        });
+      }
     }
-    return MaxXmlDepthError;
-}(Error));
+
+    return delimiterMarks;
+  }
+
+}
+
+exports.DelimiterSearcher = DelimiterSearcher;
+
+/***/ }),
+
+/***/ "./src/compilation/index.ts":
+/*!**********************************!*\
+  !*** ./src/compilation/index.ts ***!
+  \**********************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 
 
-// CONCATENATED MODULE: ./src/errors/missingArgumentError.ts
-var missingArgumentError_extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var MissingArgumentError = (function (_super) {
-    missingArgumentError_extends(MissingArgumentError, _super);
-    function MissingArgumentError(argName) {
-        var _this = _super.call(this, "Argument '" + argName + "' is missing.") || this;
-        Object.setPrototypeOf(_this, MissingArgumentError.prototype);
-        return _this;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _delimiterMark = __webpack_require__(/*! ./delimiterMark */ "./src/compilation/delimiterMark.ts");
+
+Object.keys(_delimiterMark).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _delimiterMark[key];
     }
-    return MissingArgumentError;
-}(Error));
+  });
+});
 
+var _delimiterSearcher = __webpack_require__(/*! ./delimiterSearcher */ "./src/compilation/delimiterSearcher.ts");
 
-// CONCATENATED MODULE: ./src/errors/missingCloseDelimiterError.ts
-var missingCloseDelimiterError_extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var MissingCloseDelimiterError = (function (_super) {
-    missingCloseDelimiterError_extends(MissingCloseDelimiterError, _super);
-    function MissingCloseDelimiterError(openDelimiterText) {
-        var _this = _super.call(this, "Close delimiter is missing from '" + openDelimiterText + "'.") || this;
-        _this.openDelimiterText = openDelimiterText;
-        Object.setPrototypeOf(_this, MissingCloseDelimiterError.prototype);
-        return _this;
+Object.keys(_delimiterSearcher).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _delimiterSearcher[key];
     }
-    return MissingCloseDelimiterError;
-}(Error));
+  });
+});
 
+var _scopeData = __webpack_require__(/*! ./scopeData */ "./src/compilation/scopeData.ts");
 
-// CONCATENATED MODULE: ./src/errors/missingStartDelimiterError.ts
-var missingStartDelimiterError_extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var MissingStartDelimiterError = (function (_super) {
-    missingStartDelimiterError_extends(MissingStartDelimiterError, _super);
-    function MissingStartDelimiterError(closeDelimiterText) {
-        var _this = _super.call(this, "Open delimiter is missing from '" + closeDelimiterText + "'.") || this;
-        _this.closeDelimiterText = closeDelimiterText;
-        Object.setPrototypeOf(_this, MissingStartDelimiterError.prototype);
-        return _this;
+Object.keys(_scopeData).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _scopeData[key];
     }
-    return MissingStartDelimiterError;
-}(Error));
+  });
+});
 
+var _tag = __webpack_require__(/*! ./tag */ "./src/compilation/tag.ts");
 
-// CONCATENATED MODULE: ./src/errors/unclosedTagError.ts
-var unclosedTagError_extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var UnclosedTagError = (function (_super) {
-    unclosedTagError_extends(UnclosedTagError, _super);
-    function UnclosedTagError(tagName) {
-        var _this = _super.call(this, "Tag '" + tagName + "' is never closed.") || this;
-        _this.tagName = tagName;
-        Object.setPrototypeOf(_this, UnclosedTagError.prototype);
-        return _this;
+Object.keys(_tag).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _tag[key];
     }
-    return UnclosedTagError;
-}(Error));
+  });
+});
 
+var _tagParser = __webpack_require__(/*! ./tagParser */ "./src/compilation/tagParser.ts");
 
-// CONCATENATED MODULE: ./src/errors/unidentifiedFileTypeError.ts
-var unidentifiedFileTypeError_extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var UnidentifiedFileTypeError = (function (_super) {
-    unidentifiedFileTypeError_extends(UnidentifiedFileTypeError, _super);
-    function UnidentifiedFileTypeError() {
-        var _this = _super.call(this, "The filetype for this file could not be identified, is this file corrupted?") || this;
-        Object.setPrototypeOf(_this, UnidentifiedFileTypeError.prototype);
-        return _this;
+Object.keys(_tagParser).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _tagParser[key];
     }
-    return UnidentifiedFileTypeError;
-}(Error));
+  });
+});
 
+var _templateCompiler = __webpack_require__(/*! ./templateCompiler */ "./src/compilation/templateCompiler.ts");
 
-// CONCATENATED MODULE: ./src/errors/unknownPrefixError.ts
-var unknownPrefixError_extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var UnknownPrefixError = (function (_super) {
-    unknownPrefixError_extends(UnknownPrefixError, _super);
-    function UnknownPrefixError(tagRawText) {
-        var _this = _super.call(this, "Tag '" + tagRawText + "' does not match any of the known prefixes.") || this;
-        _this.tagRawText = tagRawText;
-        Object.setPrototypeOf(_this, UnknownPrefixError.prototype);
-        return _this;
+Object.keys(_templateCompiler).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _templateCompiler[key];
     }
-    return UnknownPrefixError;
-}(Error));
+  });
+});
 
+var _templateContext = __webpack_require__(/*! ./templateContext */ "./src/compilation/templateContext.ts");
 
-// CONCATENATED MODULE: ./src/errors/unopenedTagError.ts
-var unopenedTagError_extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var UnopenedTagError = (function (_super) {
-    unopenedTagError_extends(UnopenedTagError, _super);
-    function UnopenedTagError(tagName) {
-        var _this = _super.call(this, "Tag '" + tagName + "' is closed but was never opened.") || this;
-        _this.tagName = tagName;
-        Object.setPrototypeOf(_this, UnopenedTagError.prototype);
-        return _this;
+Object.keys(_templateContext).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _templateContext[key];
     }
-    return UnopenedTagError;
-}(Error));
+  });
+});
+
+/***/ }),
+
+/***/ "./src/compilation/scopeData.ts":
+/*!**************************************!*\
+  !*** ./src/compilation/scopeData.ts ***!
+  \**************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 
 
-// CONCATENATED MODULE: ./src/errors/unsupportedFileTypeError.ts
-var unsupportedFileTypeError_extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var UnsupportedFileTypeError = (function (_super) {
-    unsupportedFileTypeError_extends(UnsupportedFileTypeError, _super);
-    function UnsupportedFileTypeError(fileType) {
-        var _this = _super.call(this, "Filetype \"" + fileType + "\" is not supported.") || this;
-        Object.setPrototypeOf(_this, UnsupportedFileTypeError.prototype);
-        return _this;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.ScopeData = void 0;
+
+var _utils = __webpack_require__(/*! ../utils */ "./src/utils/index.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+const getProp = __webpack_require__(/*! lodash.get */ "lodash.get");
+
+class ScopeData {
+  constructor(data) {
+    _defineProperty(this, "path", []);
+
+    _defineProperty(this, "allData", void 0);
+
+    this.allData = data;
+  }
+
+  getScopeData() {
+    const lastKey = (0, _utils.last)(this.path);
+    let result;
+    let curPath = this.path.slice();
+
+    while (result === undefined && curPath.length) {
+      const curScopePath = curPath.slice(0, curPath.length - 1);
+      result = getProp(this.allData, curScopePath.concat(lastKey));
+      curPath = curScopePath;
     }
-    return UnsupportedFileTypeError;
-}(Error));
+
+    return result;
+  }
+
+}
+
+exports.ScopeData = ScopeData;
+
+/***/ }),
+
+/***/ "./src/compilation/tag.ts":
+/*!********************************!*\
+  !*** ./src/compilation/tag.ts ***!
+  \********************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 
 
-// CONCATENATED MODULE: ./src/errors/index.ts
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MalformedFileError", function() { return MalformedFileError; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MaxXmlDepthError", function() { return MaxXmlDepthError; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MissingArgumentError", function() { return MissingArgumentError; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MissingCloseDelimiterError", function() { return MissingCloseDelimiterError; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MissingStartDelimiterError", function() { return MissingStartDelimiterError; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "UnclosedTagError", function() { return UnclosedTagError; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "UnidentifiedFileTypeError", function() { return UnidentifiedFileTypeError; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "UnknownPrefixError", function() { return UnknownPrefixError; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "UnopenedTagError", function() { return UnopenedTagError; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "UnsupportedFileTypeError", function() { return UnsupportedFileTypeError; });
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Tag = exports.TagDisposition = void 0;
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+let TagDisposition;
+exports.TagDisposition = TagDisposition;
+
+(function (TagDisposition) {
+  TagDisposition["Open"] = "Open";
+  TagDisposition["Close"] = "Close";
+  TagDisposition["SelfClosed"] = "SelfClosed";
+})(TagDisposition || (exports.TagDisposition = TagDisposition = {}));
+
+class Tag {
+  constructor(initial) {
+    _defineProperty(this, "name", void 0);
+
+    _defineProperty(this, "type", void 0);
+
+    _defineProperty(this, "rawText", void 0);
+
+    _defineProperty(this, "disposition", void 0);
+
+    _defineProperty(this, "xmlTextNode", void 0);
+
+    Object.assign(this, initial);
+  }
+
+}
+
+exports.Tag = Tag;
+
+/***/ }),
+
+/***/ "./src/compilation/tagParser.ts":
+/*!**************************************!*\
+  !*** ./src/compilation/tagParser.ts ***!
+  \**************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.TagParser = void 0;
+
+var _errors = __webpack_require__(/*! ../errors */ "./src/errors/index.ts");
+
+var _tag = __webpack_require__(/*! ./tag */ "./src/compilation/tag.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class TagParser {
+  constructor(tagPrefixes, docParser) {
+    this.tagPrefixes = tagPrefixes;
+    this.docParser = docParser;
+
+    _defineProperty(this, "startDelimiter", "{");
+
+    _defineProperty(this, "endDelimiter", "}");
+
+    if (!tagPrefixes || !tagPrefixes.length) throw new _errors.MissingArgumentError("tagPrefixes");
+    if (!docParser) throw new _errors.MissingArgumentError("docParser");
+  }
+
+  parse(delimiters) {
+    const tags = [];
+    let openedTag;
+    let openedDelimiter;
+    let lastNormalizedNode;
+    let lastInflictedOffset;
+
+    for (const delimiter of delimiters) {
+      // close before open
+      if (!openedTag && !delimiter.isOpen) {
+        const closeTagText = delimiter.xmlTextNode.textContent;
+        throw new _errors.MissingStartDelimiterError(closeTagText);
+      } // open before close
 
 
+      if (openedTag && delimiter.isOpen) {
+        const openTagText = openedDelimiter.xmlTextNode.textContent;
+        throw new _errors.MissingCloseDelimiterError(openTagText);
+      } // valid open
 
 
+      if (!openedTag && delimiter.isOpen) {
+        openedTag = new _tag.Tag();
+        openedDelimiter = delimiter;
+      } // valid close
 
 
+      if (openedTag && !delimiter.isOpen) {
+        // normalize the underlying xml structure
+        // (make sure the tag's node only includes the tag's text)
+        if (lastNormalizedNode === openedDelimiter.xmlTextNode) {
+          openedDelimiter.index -= lastInflictedOffset;
+        }
+
+        if (lastNormalizedNode === delimiter.xmlTextNode) {
+          delimiter.index -= lastInflictedOffset;
+        }
+
+        lastNormalizedNode = delimiter.xmlTextNode;
+        lastInflictedOffset = this.normalizeTagNodes(openedDelimiter, delimiter);
+        openedTag.xmlTextNode = openedDelimiter.xmlTextNode; // extract tag info from tag's text
+
+        this.processTag(openedTag);
+        tags.push(openedTag);
+        openedTag = null;
+        openedDelimiter = null;
+      }
+    }
+
+    return tags;
+  }
+  /**
+   * Consolidate all tag's text into a single text node.
+   * 
+   * Example: 
+   * 
+   * Input text node: "some text {some tag} some more text" 
+   * Output text nodes: [ "some text ", "{some tag}", " some more text" ]
+   */
 
 
+  normalizeTagNodes(openDelimiter, closeDelimiter) {
+    // we change the node's text and therefor needs to update following delimiters
+    let inflictedOffset = 0;
+    let startTextNode = openDelimiter.xmlTextNode;
+    let endTextNode = closeDelimiter.xmlTextNode;
+    const sameNode = startTextNode === endTextNode; // trim start
+
+    if (openDelimiter.index > 0) {
+      inflictedOffset += openDelimiter.index;
+      this.docParser.splitTextNode(startTextNode, openDelimiter.index, true);
+    } // trim end
+
+
+    if (closeDelimiter.index < endTextNode.textContent.length - 1) {
+      inflictedOffset += closeDelimiter.index + 1;
+      endTextNode = this.docParser.splitTextNode(endTextNode, closeDelimiter.index + 1, true);
+
+      if (sameNode) {
+        startTextNode = endTextNode;
+      }
+    } // join nodes
+
+
+    if (!sameNode) {
+      this.docParser.joinTextNodesRange(startTextNode, endTextNode);
+      endTextNode = startTextNode;
+    } // update references
+
+
+    openDelimiter.xmlTextNode = startTextNode;
+    closeDelimiter.xmlTextNode = endTextNode; // return the created offset
+
+    return inflictedOffset;
+  }
+
+  processTag(tag) {
+    tag.rawText = tag.xmlTextNode.textContent;
+
+    for (const prefix of this.tagPrefixes) {
+      // TODO: compile regex once
+      const pattern = `^[${this.startDelimiter}](\\s*?)${prefix.prefix}(.*?)[${this.endDelimiter}]`;
+      const regex = new RegExp(pattern, 'gmi');
+      const match = regex.exec(tag.rawText);
+
+      if (match && match.length) {
+        tag.name = match[2];
+        tag.type = prefix.tagType;
+        tag.disposition = prefix.tagDisposition;
+        break;
+      }
+    }
+
+    if (!tag.name) throw new _errors.UnknownPrefixError(tag.rawText);
+  }
+
+}
+
+exports.TagParser = TagParser;
+
+/***/ }),
+
+/***/ "./src/compilation/templateCompiler.ts":
+/*!*********************************************!*\
+  !*** ./src/compilation/templateCompiler.ts ***!
+  \*********************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.TemplateCompiler = void 0;
+
+var _errors = __webpack_require__(/*! ../errors */ "./src/errors/index.ts");
+
+var _tag = __webpack_require__(/*! ./tag */ "./src/compilation/tag.ts");
+
+/**
+ * The TemplateCompiler works roughly the same way as a source code compiler.
+ * It's main steps are:
+ * 
+ * 1. find delimiters (lexical analysis) :: (Document) => DelimiterMark[]
+ * 2. extract tags (syntax analysis) :: (DelimiterMark[]) => Tag[]
+ * 3. perform document replace (code generation) :: (Tag[], data) => Document*
+ * 
+ * see: https://en.wikipedia.org/wiki/Compiler
+ */
+class TemplateCompiler {
+  constructor(delimiterSearcher, tagParser, plugins) {
+    this.delimiterSearcher = delimiterSearcher;
+    this.tagParser = tagParser;
+    this.plugins = plugins;
+  }
+  /**
+   * Compiles the template and performs the required replacements using the
+   * specified data.
+   */
+
+
+  compile(node, data, context) {
+    const tags = this.parseTags(node);
+    this.doTagReplacements(tags, data, context);
+  }
+
+  parseTags(node) {
+    const delimiters = this.delimiterSearcher.findDelimiters(node);
+    const tags = this.tagParser.parse(delimiters);
+    return tags;
+  } //
+  // private methods
+  //
+
+
+  doTagReplacements(tags, data, context) {
+    for (let i = 0; i < tags.length; i++) {
+      const tag = tags[i];
+      data.path.push(tag.name);
+
+      if (tag.disposition === _tag.TagDisposition.SelfClosed) {
+        // replace simple tag
+        for (const plugin of this.plugins) {
+          if (plugin.prefixes.some(prefix => prefix.tagType === tag.type)) {
+            plugin.simpleTagReplacements(tag, data, context);
+            break;
+          }
+        }
+      } else if (tag.disposition === _tag.TagDisposition.Open) {
+        // get all tags between the open and close tags
+        const j = this.findCloseTagIndex(i, tag, tags);
+        const scopeTags = tags.slice(i, j + 1);
+        i = j; // replace container tag
+
+        for (const plugin of this.plugins) {
+          if (plugin.prefixes.some(prefix => prefix.tagType === tag.type)) {
+            plugin.containerTagReplacements(scopeTags, data, context);
+            break;
+          }
+        }
+      }
+
+      data.path.pop();
+    }
+  }
+
+  findCloseTagIndex(fromIndex, openTag, tags) {
+    let i = fromIndex;
+
+    for (; i < tags.length; i++) {
+      const closeTag = tags[i];
+
+      if (closeTag.name === openTag.name && closeTag.type === openTag.type && closeTag.disposition === _tag.TagDisposition.Close) {
+        break;
+      }
+    }
+
+    if (i === tags.length) {
+      throw new _errors.UnclosedTagError(openTag.name);
+    }
+
+    return i;
+  }
+
+}
+
+exports.TemplateCompiler = TemplateCompiler;
+
+/***/ }),
+
+/***/ "./src/compilation/templateContext.ts":
+/*!********************************************!*\
+  !*** ./src/compilation/templateContext.ts ***!
+  \********************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 
 
 /***/ }),
 
-/***/ "./src/index.ts":
-/*!***********************************!*\
-  !*** ./src/index.ts + 25 modules ***!
-  \***********************************/
-/*! exports provided: Delimiters, DocxParser, TemplateHandler, TemplateHandlerOptions, Binary, XmlNodeType, TEXT_NODE_NAME_VALUE, XmlNode, XmlParser, DelimiterMark, DelimiterSearcher, ScopeData, TagDisposition, Tag, TagParser, TemplateCompiler, MalformedFileError, MaxXmlDepthError, MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, UnclosedTagError, UnidentifiedFileTypeError, UnknownPrefixError, UnopenedTagError, UnsupportedFileTypeError, createDefaultPlugins, LoopPlugin, RawXmlPlugin, TemplatePlugin, TextPlugin */
-/*! ModuleConcatenation bailout: Cannot concat with ./src/errors/index.ts because of ./src/utils/binary.ts */
-/*! ModuleConcatenation bailout: Cannot concat with ./src/utils/binary.ts (<- Module uses injected variables (Buffer)) */
-/*! ModuleConcatenation bailout: Cannot concat with external "jszip" (<- Module is not an ECMAScript module) */
-/*! ModuleConcatenation bailout: Cannot concat with external "xmldom" (<- Module is not an ECMAScript module) */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ "./src/delimiters.ts":
+/*!***************************!*\
+  !*** ./src/delimiters.ts ***!
+  \***************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-// CONCATENATED MODULE: ./src/compilation/delimiterMark.ts
-var DelimiterMark = (function () {
-    function DelimiterMark(initial) {
-        Object.assign(this, initial);
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Delimiters = void 0;
+
+var _xmlNode = __webpack_require__(/*! ./xmlNode */ "./src/xmlNode.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class Delimiters {
+  constructor(initial) {
+    _defineProperty(this, "start", "{");
+
+    _defineProperty(this, "end", "}");
+
+    if (initial) {
+      if (initial.start) this.start = _xmlNode.XmlNode.encodeValue(initial.start);
+      if (initial.end) this.end = _xmlNode.XmlNode.encodeValue(initial.end);
     }
-    return DelimiterMark;
-}());
 
+    if (!this.start || !this.end) throw new Error('Both delimiters must be specified.');
+    if (this.start === this.end) throw new Error('Start and end delimiters can not be the same.');
+    if (this.start.length > 1 || this.end.length > 1) throw new Error(`Only single character delimiters supported (start: '${this.start}', end: '${this.end}').`);
+  }
 
-// EXTERNAL MODULE: ./src/errors/index.ts + 10 modules
-var errors = __webpack_require__("./src/errors/index.ts");
-
-// CONCATENATED MODULE: ./src/utils/array.ts
-function pushMany(destArray, items) {
-    Array.prototype.push.apply(destArray, items);
 }
-function last(array) {
-    if (!array.length)
-        return undefined;
-    return array[array.length - 1];
+
+exports.Delimiters = Delimiters;
+
+/***/ }),
+
+/***/ "./src/docxParser.ts":
+/*!***************************!*\
+  !*** ./src/docxParser.ts ***!
+  \***************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.DocxParser = void 0;
+
+var _xmlNode = __webpack_require__(/*! ./xmlNode */ "./src/xmlNode.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class DocxParser {
+  /*
+   * Docx intro:
+   * 
+   * In Word text nodes are contained in "run" nodes (which specifies text
+   * properties such as font and color). The "run" nodes in turn are
+   * contained in paragraph nodes which is the core unit of content.
+   * 
+   * Example:
+   *
+   * <w:p>    <-- paragraph
+   *   <w:r>      <-- run
+   *     <w:rPr>      <-- run properties
+   *       <w:b/>     <-- bold
+   *     </w:rPr>
+   *     <w:t>This is text.</w:t>     <-- actual text
+   *   </w:r>
+   * </w:p> 
+   *
+   * see: http://officeopenxml.com/WPcontentOverview.php
+   */
+  //
+  // docx structure
+  //
+  contentFilePaths(zip) {
+    const coreFiles = [// "docProps/core.xml",
+    "word/document.xml", "word/document2.xml"]; // const headersAndFooters = zip
+    //     .file(/word\/(header|footer)\d+\.xml/)
+    //     .map(file => file.name);
+
+    return coreFiles;
+  }
+
+  mainFilePath(zip) {
+    if (zip.files["word/document.xml"]) {
+      return "word/document.xml";
+    }
+
+    if (zip.files["word/document2.xml"]) {
+      return "word/document2.xml";
+    }
+
+    return undefined;
+  } //
+  // content manipulation
+  //
+
+  /**
+   * Split the text node into two text nodes, each with it's own wrapping <w:t> node.
+   * Returns the newly created text node.
+   * 
+   * @param textNode 
+   * @param splitIndex 
+   * @param addBefore Should the new node be added before or after the original node.
+   */
+
+
+  splitTextNode(textNode, splitIndex, addBefore) {
+    let firstXmlTextNode;
+    let secondXmlTextNode; // split nodes
+
+    const wordTextNode = this.containingTextNode(textNode);
+
+    const newWordTextNode = _xmlNode.XmlNode.cloneNode(wordTextNode, true);
+
+    if (addBefore) {
+      // insert new node before existing one
+      _xmlNode.XmlNode.insertBefore(newWordTextNode, wordTextNode);
+
+      firstXmlTextNode = _xmlNode.XmlNode.lastTextChild(newWordTextNode);
+      secondXmlTextNode = textNode;
+    } else {
+      // insert new node after existing one
+      const curIndex = wordTextNode.parentNode.childNodes.indexOf(wordTextNode);
+
+      _xmlNode.XmlNode.insertChild(wordTextNode.parentNode, newWordTextNode, curIndex + 1);
+
+      firstXmlTextNode = textNode;
+      secondXmlTextNode = _xmlNode.XmlNode.lastTextChild(newWordTextNode);
+    } // edit text
+
+
+    const firstText = firstXmlTextNode.textContent;
+    const secondText = secondXmlTextNode.textContent;
+    firstXmlTextNode.textContent = firstText.substring(0, splitIndex);
+    secondXmlTextNode.textContent = secondText.substring(splitIndex);
+    return addBefore ? firstXmlTextNode : secondXmlTextNode;
+  }
+  /**
+   * Move all text between the 'from' and 'to' nodes to the 'from' node.
+   */
+
+
+  joinTextNodesRange(from, to) {
+    // find run nodes
+    const firstRunNode = this.containingRunNode(from);
+    const secondRunNode = this.containingRunNode(to);
+    const paragraphNode = firstRunNode.parentNode;
+    if (secondRunNode.parentNode !== paragraphNode) throw new Error('Can not join text nodes from separate paragraphs.'); // find "word text nodes"
+
+    const firstWordTextNode = this.containingTextNode(from);
+    const secondWordTextNode = this.containingTextNode(to);
+    const totalText = []; // iterate runs
+
+    let curRunNode = firstRunNode;
+
+    while (curRunNode) {
+      // iterate text nodes
+      let curWordTextNode;
+
+      if (curRunNode === firstRunNode) {
+        curWordTextNode = firstWordTextNode;
+      } else {
+        curWordTextNode = this.firstTextNodeChild(curRunNode);
+      }
+
+      while (curWordTextNode) {
+        if (curWordTextNode.nodeName !== DocxParser.TEXT_NODE) continue; // move text to first node
+
+        const curXmlTextNode = _xmlNode.XmlNode.lastTextChild(curWordTextNode);
+
+        totalText.push(curXmlTextNode.textContent); // next text node
+
+        const textToRemove = curWordTextNode;
+
+        if (curWordTextNode === secondWordTextNode) {
+          curWordTextNode = null;
+        } else {
+          curWordTextNode = curWordTextNode.nextSibling;
+        } // remove current text node
+
+
+        if (textToRemove !== firstWordTextNode) {
+          _xmlNode.XmlNode.remove(textToRemove);
+        }
+      } // next run
+
+
+      const runToRemove = curRunNode;
+
+      if (curRunNode === secondRunNode) {
+        curRunNode = null;
+      } else {
+        curRunNode = curRunNode.nextSibling;
+      } // remove current run
+
+
+      if (!runToRemove.childNodes || !runToRemove.childNodes.length) {
+        _xmlNode.XmlNode.remove(runToRemove);
+      }
+    } // set the text content
+
+
+    const firstXmlTextNode = _xmlNode.XmlNode.lastTextChild(firstWordTextNode);
+
+    firstXmlTextNode.textContent = totalText.join('');
+  }
+  /**
+   * Take all runs from 'second' and move them to 'first'.
+   */
+
+
+  joinParagraphs(first, second) {
+    if (first === second) return;
+    let childIndex = 0;
+
+    while (second.childNodes && childIndex < second.childNodes.length) {
+      const curChild = second.childNodes[childIndex];
+
+      if (curChild.nodeName === DocxParser.RUN_NODE) {
+        _xmlNode.XmlNode.removeChild(second, childIndex);
+
+        _xmlNode.XmlNode.appendChild(first, curChild);
+      } else {
+        childIndex++;
+      }
+    }
+  } //
+  // node queries
+  //
+
+
+  isTableCellNode(node) {
+    return node.nodeName === DocxParser.TABLE_CELL_NODE;
+  }
+
+  isParagraphNode(node) {
+    return node.nodeName === DocxParser.PARAGRAPH_NODE;
+  }
+
+  isListParagraph(paragraphNode) {
+    const paragraphProperties = this.paragraphPropertiesNode(paragraphNode);
+
+    const listNumberProperties = _xmlNode.XmlNode.findChildByName(paragraphProperties, DocxParser.NUMBER_PROPERTIES_NODE);
+
+    return !!listNumberProperties;
+  }
+
+  paragraphPropertiesNode(paragraphNode) {
+    if (!this.isParagraphNode(paragraphNode)) throw new Error(`Expected paragraph node but received a '${paragraphNode.nodeName}' node.`);
+    return _xmlNode.XmlNode.findChildByName(paragraphNode, DocxParser.PARAGRAPH_PROPERTIES_NODE);
+  }
+  /**
+   * Search for the first direct child **Word** text node (i.e. a <w:t> node).
+   */
+
+
+  firstTextNodeChild(node) {
+    if (!node) return null;
+    if (node.nodeName !== DocxParser.RUN_NODE) return null;
+    if (!node.childNodes) return null;
+
+    for (const child of node.childNodes) {
+      if (child.nodeName === DocxParser.TEXT_NODE) return child;
+    }
+
+    return null;
+  }
+  /**
+   * Search **upwards** for the first **Word** text node (i.e. a <w:t> node).
+   */
+
+
+  containingTextNode(node) {
+    if (!node) return null;
+    if (!_xmlNode.XmlNode.isTextNode(node)) throw new Error(`'Invalid argument ${"node"}. Expected a XmlTextNode.`);
+    return _xmlNode.XmlNode.findParentByName(node, DocxParser.TEXT_NODE);
+  }
+  /**
+   * Search **upwards** for the first run node.
+   */
+
+
+  containingRunNode(node) {
+    return _xmlNode.XmlNode.findParentByName(node, DocxParser.RUN_NODE);
+  }
+  /**
+   * Search **upwards** for the first paragraph node.
+   */
+
+
+  containingParagraphNode(node) {
+    return _xmlNode.XmlNode.findParentByName(node, DocxParser.PARAGRAPH_NODE);
+  }
+  /**
+   * Search **upwards** for the first "table row" node.
+   */
+
+
+  containingTableRowNode(node) {
+    return _xmlNode.XmlNode.findParentByName(node, DocxParser.TABLE_ROW_NODE);
+  }
+
 }
 
-// EXTERNAL MODULE: ./src/utils/binary.ts
-var binary = __webpack_require__("./src/utils/binary.ts");
+exports.DocxParser = DocxParser;
 
-// CONCATENATED MODULE: ./src/utils/index.ts
+_defineProperty(DocxParser, "PARAGRAPH_NODE", 'w:p');
+
+_defineProperty(DocxParser, "PARAGRAPH_PROPERTIES_NODE", 'w:pPr');
+
+_defineProperty(DocxParser, "RUN_NODE", 'w:r');
+
+_defineProperty(DocxParser, "TEXT_NODE", 'w:t');
+
+_defineProperty(DocxParser, "TABLE_ROW_NODE", 'w:tr');
+
+_defineProperty(DocxParser, "TABLE_CELL_NODE", 'w:tc');
+
+_defineProperty(DocxParser, "NUMBER_PROPERTIES_NODE", 'w:numPr');
+
+/***/ }),
+
+/***/ "./src/errors/index.ts":
+/*!*****************************!*\
+  !*** ./src/errors/index.ts ***!
+  \*****************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 
-// CONCATENATED MODULE: ./src/xmlNode.ts
+var _malformedFileError = __webpack_require__(/*! ./malformedFileError */ "./src/errors/malformedFileError.ts");
 
-
-var XmlNodeType;
-(function (XmlNodeType) {
-    XmlNodeType["Text"] = "Text";
-    XmlNodeType["General"] = "General";
-})(XmlNodeType || (XmlNodeType = {}));
-var TEXT_NODE_NAME_VALUE = '#text';
-var xmlNode_XmlNode;
-(function (XmlNode) {
-    XmlNode.TEXT_NODE_NAME = TEXT_NODE_NAME_VALUE;
-    function createTextNode(text) {
-        return {
-            nodeType: XmlNodeType.Text,
-            nodeName: XmlNode.TEXT_NODE_NAME,
-            textContent: text
-        };
+Object.keys(_malformedFileError).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _malformedFileError[key];
     }
-    XmlNode.createTextNode = createTextNode;
-    function createGeneralNode(name) {
-        return {
-            nodeType: XmlNodeType.General,
-            nodeName: name
-        };
+  });
+});
+
+var _maxXmlDepthError = __webpack_require__(/*! ./maxXmlDepthError */ "./src/errors/maxXmlDepthError.ts");
+
+Object.keys(_maxXmlDepthError).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _maxXmlDepthError[key];
     }
-    XmlNode.createGeneralNode = createGeneralNode;
-    function encodeValue(str) {
-        if (str === null || str === undefined)
-            throw new errors["MissingArgumentError"]("str");
-        if (typeof str !== 'string')
-            throw new TypeError("Expected a string, got '" + str.constructor.name + "'.");
-        return str.replace(/[<>&'"]/g, function (c) {
-            switch (c) {
-                case '<': return '&lt;';
-                case '>': return '&gt;';
-                case '&': return '&amp;';
-                case '\'': return '&apos;';
-                case '"': return '&quot;';
-            }
-            return '';
-        });
+  });
+});
+
+var _missingArgumentError = __webpack_require__(/*! ./missingArgumentError */ "./src/errors/missingArgumentError.ts");
+
+Object.keys(_missingArgumentError).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _missingArgumentError[key];
     }
-    XmlNode.encodeValue = encodeValue;
-    function serialize(node) {
-        if (isTextNode(node))
-            return encodeValue(node.textContent || '');
-        var attributes = '';
-        if (node.attributes && node.attributes.length) {
-            attributes = ' ' + node.attributes
-                .map(function (attr) { return attr.name + "=\"" + attr.value + "\""; })
-                .join(' ');
-        }
-        var hasChildren = (node.childNodes || []).length > 0;
-        var suffix = hasChildren ? '' : '/';
-        var openTag = "<" + node.nodeName + attributes + suffix + ">";
-        var xml;
-        if (hasChildren) {
-            var childrenXml = node.childNodes
-                .map(function (child) { return serialize(child); })
-                .join('');
-            var closeTag = "</" + node.nodeName + ">";
-            xml = openTag + childrenXml + closeTag;
-        }
-        else {
-            xml = openTag;
-        }
-        return xml;
+  });
+});
+
+var _missingCloseDelimiterError = __webpack_require__(/*! ./missingCloseDelimiterError */ "./src/errors/missingCloseDelimiterError.ts");
+
+Object.keys(_missingCloseDelimiterError).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _missingCloseDelimiterError[key];
     }
-    XmlNode.serialize = serialize;
-    function fromDomNode(domNode) {
-        var xmlNode;
-        if (domNode.nodeType === domNode.TEXT_NODE) {
-            xmlNode = createTextNode(domNode.textContent);
-        }
-        else {
-            xmlNode = createGeneralNode(domNode.nodeName);
-            if (domNode.nodeType === domNode.ELEMENT_NODE) {
-                var attributes = domNode.attributes;
-                if (attributes) {
-                    xmlNode.attributes = [];
-                    for (var i = 0; i < attributes.length; i++) {
-                        var curAttribute = attributes.item(i);
-                        xmlNode.attributes.push({
-                            name: curAttribute.name,
-                            value: curAttribute.value
-                        });
-                    }
-                }
-            }
-        }
-        if (domNode.childNodes) {
-            xmlNode.childNodes = [];
-            var prevChild = void 0;
-            for (var i = 0; i < domNode.childNodes.length; i++) {
-                var domChild = domNode.childNodes.item(i);
-                var curChild = fromDomNode(domChild);
-                xmlNode.childNodes.push(curChild);
-                curChild.parentNode = xmlNode;
-                if (prevChild) {
-                    prevChild.nextSibling = curChild;
-                }
-                prevChild = curChild;
-            }
-        }
-        return xmlNode;
+  });
+});
+
+var _missingStartDelimiterError = __webpack_require__(/*! ./missingStartDelimiterError */ "./src/errors/missingStartDelimiterError.ts");
+
+Object.keys(_missingStartDelimiterError).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _missingStartDelimiterError[key];
     }
-    XmlNode.fromDomNode = fromDomNode;
-    function isTextNode(node) {
-        if (node.nodeType === XmlNodeType.Text || node.nodeName === XmlNode.TEXT_NODE_NAME) {
-            if (!(node.nodeType === XmlNodeType.Text && node.nodeName === XmlNode.TEXT_NODE_NAME)) {
-                throw new Error("Invalid text node. Type: '" + node.nodeType + "', Name: '" + node.nodeName + "'.");
-            }
-            return true;
-        }
-        return false;
+  });
+});
+
+var _unclosedTagError = __webpack_require__(/*! ./unclosedTagError */ "./src/errors/unclosedTagError.ts");
+
+Object.keys(_unclosedTagError).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _unclosedTagError[key];
     }
-    XmlNode.isTextNode = isTextNode;
-    function cloneNode(node, deep) {
-        if (!node)
-            throw new errors["MissingArgumentError"](nameof(node));
-        if (!deep) {
-            var clone = Object.assign({}, node);
-            clone.parentNode = null;
-            clone.childNodes = (node.childNodes ? [] : null);
-            clone.nextSibling = null;
-            return clone;
-        }
-        else {
-            var clone = cloneNodeDeep(node);
-            clone.parentNode = null;
-            return clone;
-        }
+  });
+});
+
+var _unidentifiedFileTypeError = __webpack_require__(/*! ./unidentifiedFileTypeError */ "./src/errors/unidentifiedFileTypeError.ts");
+
+Object.keys(_unidentifiedFileTypeError).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _unidentifiedFileTypeError[key];
     }
-    XmlNode.cloneNode = cloneNode;
-    function insertBefore(newNode, referenceNode) {
-        if (!newNode)
-            throw new errors["MissingArgumentError"](nameof(newNode));
-        if (!referenceNode)
-            throw new errors["MissingArgumentError"](nameof(referenceNode));
-        if (!referenceNode.parentNode)
-            throw new Error("'" + nameof(referenceNode) + "' has no parent");
-        var childNodes = referenceNode.parentNode.childNodes;
-        var beforeNodeIndex = childNodes.indexOf(referenceNode);
-        XmlNode.insertChild(referenceNode.parentNode, newNode, beforeNodeIndex);
+  });
+});
+
+var _unknownPrefixError = __webpack_require__(/*! ./unknownPrefixError */ "./src/errors/unknownPrefixError.ts");
+
+Object.keys(_unknownPrefixError).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _unknownPrefixError[key];
     }
-    XmlNode.insertBefore = insertBefore;
-    function insertAfter(newNode, referenceNode) {
-        if (!newNode)
-            throw new errors["MissingArgumentError"](nameof(newNode));
-        if (!referenceNode)
-            throw new errors["MissingArgumentError"](nameof(referenceNode));
-        if (!referenceNode.parentNode)
-            throw new Error("'" + nameof(referenceNode) + "' has no parent");
-        var childNodes = referenceNode.parentNode.childNodes;
-        var referenceNodeIndex = childNodes.indexOf(referenceNode);
-        XmlNode.insertChild(referenceNode.parentNode, newNode, referenceNodeIndex + 1);
+  });
+});
+
+var _unopenedTagError = __webpack_require__(/*! ./unopenedTagError */ "./src/errors/unopenedTagError.ts");
+
+Object.keys(_unopenedTagError).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _unopenedTagError[key];
     }
-    XmlNode.insertAfter = insertAfter;
-    function insertChild(parent, child, childIndex) {
-        if (!parent)
-            throw new errors["MissingArgumentError"](nameof(parent));
-        if (isTextNode(parent))
-            throw new Error('Appending children to text nodes is forbidden');
-        if (!child)
-            throw new errors["MissingArgumentError"](nameof(child));
-        if (!parent.childNodes)
-            parent.childNodes = [];
-        if (childIndex === parent.childNodes.length) {
-            XmlNode.appendChild(parent, child);
-            return;
-        }
-        if (childIndex > parent.childNodes.length)
-            throw new RangeError("Child index " + childIndex + " is out of range. Parent has only " + parent.childNodes.length + " child nodes.");
-        child.parentNode = parent;
-        var childAfter = parent.childNodes[childIndex];
-        child.nextSibling = childAfter;
-        if (childIndex > 0) {
-            var childBefore = parent.childNodes[childIndex - 1];
-            childBefore.nextSibling = child;
-        }
-        parent.childNodes.splice(childIndex, 0, child);
+  });
+});
+
+var _unsupportedFileTypeError = __webpack_require__(/*! ./unsupportedFileTypeError */ "./src/errors/unsupportedFileTypeError.ts");
+
+Object.keys(_unsupportedFileTypeError).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _unsupportedFileTypeError[key];
     }
-    XmlNode.insertChild = insertChild;
-    function appendChild(parent, child) {
-        if (!parent)
-            throw new errors["MissingArgumentError"](nameof(parent));
-        if (isTextNode(parent))
-            throw new Error('Appending children to text nodes is forbidden');
-        if (!child)
-            throw new errors["MissingArgumentError"](nameof(child));
-        if (!parent.childNodes)
-            parent.childNodes = [];
-        if (parent.childNodes.length) {
-            var currentLastChild = parent.childNodes[parent.childNodes.length - 1];
-            currentLastChild.nextSibling = child;
-        }
-        child.nextSibling = null;
-        child.parentNode = parent;
-        parent.childNodes.push(child);
+  });
+});
+
+/***/ }),
+
+/***/ "./src/errors/malformedFileError.ts":
+/*!******************************************!*\
+  !*** ./src/errors/malformedFileError.ts ***!
+  \******************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.MalformedFileError = void 0;
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class MalformedFileError extends Error {
+  constructor(expectedFileType) {
+    super(`Malformed file detected. Make sure the file is a valid ${expectedFileType} file.`);
+
+    _defineProperty(this, "expectedFileType", void 0);
+
+    this.expectedFileType = expectedFileType; // typescript hack: https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+
+    Object.setPrototypeOf(this, MalformedFileError.prototype);
+  }
+
+}
+
+exports.MalformedFileError = MalformedFileError;
+
+/***/ }),
+
+/***/ "./src/errors/maxXmlDepthError.ts":
+/*!****************************************!*\
+  !*** ./src/errors/maxXmlDepthError.ts ***!
+  \****************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.MaxXmlDepthError = void 0;
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class MaxXmlDepthError extends Error {
+  constructor(maxDepth) {
+    super(`XML maximum depth reached (max depth: ${maxDepth}).`);
+
+    _defineProperty(this, "maxDepth", void 0);
+
+    this.maxDepth = maxDepth; // typescript hack: https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+
+    Object.setPrototypeOf(this, MaxXmlDepthError.prototype);
+  }
+
+}
+
+exports.MaxXmlDepthError = MaxXmlDepthError;
+
+/***/ }),
+
+/***/ "./src/errors/missingArgumentError.ts":
+/*!********************************************!*\
+  !*** ./src/errors/missingArgumentError.ts ***!
+  \********************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.MissingArgumentError = void 0;
+
+class MissingArgumentError extends Error {
+  constructor(argName) {
+    super(`Argument '${argName}' is missing.`); // typescript hack: https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+
+    Object.setPrototypeOf(this, MissingArgumentError.prototype);
+  }
+
+}
+
+exports.MissingArgumentError = MissingArgumentError;
+
+/***/ }),
+
+/***/ "./src/errors/missingCloseDelimiterError.ts":
+/*!**************************************************!*\
+  !*** ./src/errors/missingCloseDelimiterError.ts ***!
+  \**************************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.MissingCloseDelimiterError = void 0;
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class MissingCloseDelimiterError extends Error {
+  constructor(openDelimiterText) {
+    super(`Close delimiter is missing from '${openDelimiterText}'.`);
+
+    _defineProperty(this, "openDelimiterText", void 0);
+
+    this.openDelimiterText = openDelimiterText; // typescript hack: https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+
+    Object.setPrototypeOf(this, MissingCloseDelimiterError.prototype);
+  }
+
+}
+
+exports.MissingCloseDelimiterError = MissingCloseDelimiterError;
+
+/***/ }),
+
+/***/ "./src/errors/missingStartDelimiterError.ts":
+/*!**************************************************!*\
+  !*** ./src/errors/missingStartDelimiterError.ts ***!
+  \**************************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.MissingStartDelimiterError = void 0;
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class MissingStartDelimiterError extends Error {
+  constructor(closeDelimiterText) {
+    super(`Open delimiter is missing from '${closeDelimiterText}'.`);
+
+    _defineProperty(this, "closeDelimiterText", void 0);
+
+    this.closeDelimiterText = closeDelimiterText; // typescript hack: https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+
+    Object.setPrototypeOf(this, MissingStartDelimiterError.prototype);
+  }
+
+}
+
+exports.MissingStartDelimiterError = MissingStartDelimiterError;
+
+/***/ }),
+
+/***/ "./src/errors/unclosedTagError.ts":
+/*!****************************************!*\
+  !*** ./src/errors/unclosedTagError.ts ***!
+  \****************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.UnclosedTagError = void 0;
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class UnclosedTagError extends Error {
+  constructor(tagName) {
+    super(`Tag '${tagName}' is never closed.`);
+
+    _defineProperty(this, "tagName", void 0);
+
+    this.tagName = tagName; // typescript hack: https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+
+    Object.setPrototypeOf(this, UnclosedTagError.prototype);
+  }
+
+}
+
+exports.UnclosedTagError = UnclosedTagError;
+
+/***/ }),
+
+/***/ "./src/errors/unidentifiedFileTypeError.ts":
+/*!*************************************************!*\
+  !*** ./src/errors/unidentifiedFileTypeError.ts ***!
+  \*************************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.UnidentifiedFileTypeError = void 0;
+
+class UnidentifiedFileTypeError extends Error {
+  constructor() {
+    super(`The filetype for this file could not be identified, is this file corrupted?`); // typescript hack: https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+
+    Object.setPrototypeOf(this, UnidentifiedFileTypeError.prototype);
+  }
+
+}
+
+exports.UnidentifiedFileTypeError = UnidentifiedFileTypeError;
+
+/***/ }),
+
+/***/ "./src/errors/unknownPrefixError.ts":
+/*!******************************************!*\
+  !*** ./src/errors/unknownPrefixError.ts ***!
+  \******************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.UnknownPrefixError = void 0;
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class UnknownPrefixError extends Error {
+  constructor(tagRawText) {
+    super(`Tag '${tagRawText}' does not match any of the known prefixes.`);
+
+    _defineProperty(this, "tagRawText", void 0);
+
+    this.tagRawText = tagRawText; // typescript hack: https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+
+    Object.setPrototypeOf(this, UnknownPrefixError.prototype);
+  }
+
+}
+
+exports.UnknownPrefixError = UnknownPrefixError;
+
+/***/ }),
+
+/***/ "./src/errors/unopenedTagError.ts":
+/*!****************************************!*\
+  !*** ./src/errors/unopenedTagError.ts ***!
+  \****************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.UnopenedTagError = void 0;
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class UnopenedTagError extends Error {
+  constructor(tagName) {
+    super(`Tag '${tagName}' is closed but was never opened.`);
+
+    _defineProperty(this, "tagName", void 0);
+
+    this.tagName = tagName; // typescript hack: https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+
+    Object.setPrototypeOf(this, UnopenedTagError.prototype);
+  }
+
+}
+
+exports.UnopenedTagError = UnopenedTagError;
+
+/***/ }),
+
+/***/ "./src/errors/unsupportedFileTypeError.ts":
+/*!************************************************!*\
+  !*** ./src/errors/unsupportedFileTypeError.ts ***!
+  \************************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.UnsupportedFileTypeError = void 0;
+
+class UnsupportedFileTypeError extends Error {
+  constructor(fileType) {
+    super(`Filetype "${fileType}" is not supported.`); // typescript hack: https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+
+    Object.setPrototypeOf(this, UnsupportedFileTypeError.prototype);
+  }
+
+}
+
+exports.UnsupportedFileTypeError = UnsupportedFileTypeError;
+
+/***/ }),
+
+/***/ "./src/fileType.ts":
+/*!*************************!*\
+  !*** ./src/fileType.ts ***!
+  \*************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.FileTypeHelper = exports.FileType = void 0;
+
+var _errors = __webpack_require__(/*! ./errors */ "./src/errors/index.ts");
+
+let FileType;
+exports.FileType = FileType;
+
+(function (FileType) {
+  FileType["Docx"] = "docx";
+  FileType["Pptx"] = "pptx";
+  FileType["Odt"] = "odt";
+})(FileType || (exports.FileType = FileType = {}));
+
+class FileTypeHelper {
+  static getFileType(zipFile) {
+    if (FileTypeHelper.isDocx(zipFile)) return FileType.Docx;
+    if (FileTypeHelper.isPptx(zipFile)) return FileType.Pptx;
+    if (FileTypeHelper.isOdt(zipFile)) return FileType.Odt;
+    throw new _errors.UnidentifiedFileTypeError();
+  }
+
+  static isDocx(zipFile) {
+    return !!(zipFile.files["word/document.xml"] || zipFile.files["word/document2.xml"]);
+  }
+
+  static isPptx(zipFile) {
+    return !!zipFile.files["ppt/presentation.xml"];
+  }
+
+  static isOdt(zipFile) {
+    return !!zipFile.files['mimetype'];
+  }
+
+}
+
+exports.FileTypeHelper = FileTypeHelper;
+
+/***/ }),
+
+/***/ "./src/index.ts":
+/*!**********************!*\
+  !*** ./src/index.ts ***!
+  \**********************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _compilation = __webpack_require__(/*! ./compilation */ "./src/compilation/index.ts");
+
+Object.keys(_compilation).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _compilation[key];
     }
-    XmlNode.appendChild = appendChild;
-    function remove(node) {
-        if (!node)
-            throw new errors["MissingArgumentError"](nameof(node));
-        if (!node.parentNode)
-            throw new Error('Node has no parent');
-        removeChild(node.parentNode, node);
+  });
+});
+
+var _errors = __webpack_require__(/*! ./errors */ "./src/errors/index.ts");
+
+Object.keys(_errors).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _errors[key];
     }
-    XmlNode.remove = remove;
-    function removeChild(parent, childOrIndex) {
-        if (!parent)
-            throw new errors["MissingArgumentError"](nameof(parent));
-        if (childOrIndex === null || childOrIndex === undefined)
-            throw new errors["MissingArgumentError"](nameof(childOrIndex));
-        if (!parent.childNodes || !parent.childNodes.length)
-            throw new Error('Parent node has node children');
-        var childIndex;
-        if (typeof childOrIndex === 'number') {
-            childIndex = childOrIndex;
-        }
-        else {
-            childIndex = parent.childNodes.indexOf(childOrIndex);
-            if (childIndex === -1)
-                throw new Error('Specified child node is not a child of the specified parent');
-        }
-        if (childIndex >= parent.childNodes.length)
-            throw new RangeError("Child index " + childIndex + " is out of range. Parent has only " + parent.childNodes.length + " child nodes.");
-        var child = parent.childNodes[childIndex];
-        if (childIndex > 0) {
-            var beforeChild = parent.childNodes[childIndex - 1];
-            beforeChild.nextSibling = child.nextSibling;
-        }
-        child.parentNode = null;
-        child.nextSibling = null;
-        return parent.childNodes.splice(childIndex, 1)[0];
+  });
+});
+
+var _plugins = __webpack_require__(/*! ./plugins */ "./src/plugins/index.ts");
+
+Object.keys(_plugins).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _plugins[key];
     }
-    XmlNode.removeChild = removeChild;
-    function lastTextChild(node) {
-        if (isTextNode(node)) {
-            return node;
-        }
-        if (node.childNodes) {
-            var allTextNodes = node.childNodes.filter(function (child) { return isTextNode(child); });
-            if (allTextNodes.length) {
-                var lastTextNode = last(allTextNodes);
-                if (!lastTextNode.textContent)
-                    lastTextNode.textContent = '';
-                return lastTextNode;
-            }
-        }
-        var newTextNode = {
-            nodeType: XmlNodeType.Text,
-            nodeName: XmlNode.TEXT_NODE_NAME,
-            textContent: ''
-        };
-        appendChild(node, newTextNode);
-        return newTextNode;
+  });
+});
+
+var _delimiters = __webpack_require__(/*! ./delimiters */ "./src/delimiters.ts");
+
+Object.keys(_delimiters).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _delimiters[key];
     }
-    XmlNode.lastTextChild = lastTextChild;
-    function removeSiblings(from, to) {
-        if (from === to)
-            return [];
-        var removed = [];
-        var lastRemoved;
-        from = from.nextSibling;
-        while (from !== to) {
-            var removeMe = from;
-            from = from.nextSibling;
-            XmlNode.remove(removeMe);
-            removed.push(removeMe);
-            if (lastRemoved)
-                lastRemoved.nextSibling = removeMe;
-            lastRemoved = removeMe;
-        }
-        return removed;
+  });
+});
+
+var _docxParser = __webpack_require__(/*! ./docxParser */ "./src/docxParser.ts");
+
+Object.keys(_docxParser).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _docxParser[key];
     }
-    XmlNode.removeSiblings = removeSiblings;
-    function splitByChild(root, markerNode, removeMarkerNode) {
-        var path = getDescendantPath(root, markerNode);
-        var split = XmlNode.cloneNode(root, false);
-        var childIndex = path[0] + 1;
-        while (childIndex < root.childNodes.length) {
-            var curChild = root.childNodes[childIndex];
-            XmlNode.remove(curChild);
-            XmlNode.appendChild(split, curChild);
-        }
-        if (root.parentNode) {
-            XmlNode.insertAfter(split, root);
-        }
-        if (removeMarkerNode && root.childNodes.length) {
-            XmlNode.removeChild(root, root.childNodes.length - 1);
-        }
-        return [root, split];
+  });
+});
+
+var _templateHandler = __webpack_require__(/*! ./templateHandler */ "./src/templateHandler.ts");
+
+Object.keys(_templateHandler).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _templateHandler[key];
     }
-    XmlNode.splitByChild = splitByChild;
-    function findParent(node, predicate) {
-        if (!node)
-            return null;
-        while (node.parentNode) {
-            if (predicate(node))
-                return node;
-            node = node.parentNode;
-        }
-        return null;
+  });
+});
+
+var _templateHandlerOptions = __webpack_require__(/*! ./templateHandlerOptions */ "./src/templateHandlerOptions.ts");
+
+Object.keys(_templateHandlerOptions).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _templateHandlerOptions[key];
     }
-    XmlNode.findParent = findParent;
-    function findParentByName(node, nodeName) {
-        return XmlNode.findParent(node, function (n) { return n.nodeName === nodeName; });
+  });
+});
+
+var _binary = __webpack_require__(/*! ./utils/binary */ "./src/utils/binary.ts");
+
+Object.keys(_binary).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _binary[key];
     }
-    XmlNode.findParentByName = findParentByName;
-    function siblingsInRange(firstNode, lastNode) {
-        if (!firstNode)
-            throw new errors["MissingArgumentError"](nameof(firstNode));
-        if (!lastNode)
-            throw new errors["MissingArgumentError"](nameof(lastNode));
-        var range = [];
-        var curNode = firstNode;
-        while (curNode && curNode !== lastNode) {
-            range.push(curNode);
-            curNode = curNode.nextSibling;
-        }
-        if (!curNode)
-            throw new Error('Nodes are not siblings.');
-        range.push(lastNode);
-        return range;
+  });
+});
+
+var _xmlNode = __webpack_require__(/*! ./xmlNode */ "./src/xmlNode.ts");
+
+Object.keys(_xmlNode).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _xmlNode[key];
     }
-    XmlNode.siblingsInRange = siblingsInRange;
-    function cloneNodeDeep(original) {
-        var clone = {};
-        clone.nodeType = original.nodeType;
-        clone.nodeName = original.nodeName;
-        if (isTextNode(original)) {
-            clone.textContent = original.textContent;
-        }
-        else {
-            var attributes = original.attributes;
-            if (attributes) {
-                clone.attributes = attributes.map(function (attr) { return ({ name: attr.name, value: attr.value }); });
-            }
-        }
-        if (original.childNodes) {
-            clone.childNodes = [];
-            var prevChildClone = void 0;
-            for (var _i = 0, _a = original.childNodes; _i < _a.length; _i++) {
-                var child = _a[_i];
-                var childClone = cloneNodeDeep(child);
-                clone.childNodes.push(childClone);
-                childClone.parentNode = clone;
-                if (prevChildClone) {
-                    prevChildClone.nextSibling = childClone;
-                }
-                prevChildClone = childClone;
-            }
-        }
-        return clone;
+  });
+});
+
+var _xmlParser = __webpack_require__(/*! ./xmlParser */ "./src/xmlParser.ts");
+
+Object.keys(_xmlParser).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _xmlParser[key];
     }
-    function getDescendantPath(root, descendant) {
-        var path = [];
-        var node = descendant;
-        while (node !== root) {
-            var parent_1 = node.parentNode;
-            if (!parent_1)
-                throw new Error("Argument " + nameof(descendant) + " is not a descendant of " + nameof(root));
-            var curChildIndex = parent_1.childNodes.indexOf(node);
-            path.push(curChildIndex);
-            node = parent_1;
-        }
-        return path.reverse();
-    }
-})(xmlNode_XmlNode || (xmlNode_XmlNode = {}));
+  });
+});
 
-// CONCATENATED MODULE: ./src/compilation/delimiterSearcher.ts
+/***/ }),
+
+/***/ "./src/plugins/defaultPlugins.ts":
+/*!***************************************!*\
+  !*** ./src/plugins/defaultPlugins.ts ***!
+  \***************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.createDefaultPlugins = createDefaultPlugins;
 
-var delimiterSearcher_DelimiterSearcher = (function () {
-    function DelimiterSearcher() {
-        this.maxXmlDepth = 20;
-        this.startDelimiter = "{";
-        this.endDelimiter = "}";
-    }
-    DelimiterSearcher.prototype.findDelimiters = function (node) {
-        var delimiters = [];
-        this.findRecurse(node, delimiters, 0);
-        return delimiters;
-    };
-    DelimiterSearcher.prototype.findRecurse = function (node, delimiters, depth) {
-        if (depth > this.maxXmlDepth)
-            throw new errors["MaxXmlDepthError"](this.maxXmlDepth);
-        if (!node)
-            return;
-        if (xmlNode_XmlNode.isTextNode(node)) {
-            var curTokens = this.findInNode(node);
-            if (curTokens.length) {
-                pushMany(delimiters, curTokens);
-            }
-            return;
-        }
-        var childNodesLength = (node.childNodes ? node.childNodes.length : 0);
-        for (var i = 0; i < childNodesLength; i++) {
-            var child = node.childNodes[i];
-            this.findRecurse(child, delimiters, depth + 1);
-        }
-    };
-    DelimiterSearcher.prototype.findInNode = function (node) {
-        if (!node.textContent) {
-            return [];
-        }
-        var delimiterMarks = [];
-        for (var i = 0; i < node.textContent.length; i++) {
-            if (node.textContent[i] === this.startDelimiter) {
-                delimiterMarks.push({
-                    index: i,
-                    isOpen: true,
-                    xmlTextNode: node
-                });
-            }
-            else if (node.textContent[i] === this.endDelimiter) {
-                delimiterMarks.push({
-                    index: i,
-                    isOpen: false,
-                    xmlTextNode: node
-                });
-            }
-        }
-        return delimiterMarks;
-    };
-    return DelimiterSearcher;
-}());
+var _loopPlugin = __webpack_require__(/*! ./loopPlugin */ "./src/plugins/loopPlugin.ts");
 
+var _rawXmlPlugin = __webpack_require__(/*! ./rawXmlPlugin */ "./src/plugins/rawXmlPlugin.ts");
 
-// CONCATENATED MODULE: ./src/compilation/scopeData.ts
-
-var getProp = __webpack_require__(/*! lodash.get */ "lodash.get");
-var scopeData_ScopeData = (function () {
-    function ScopeData(data) {
-        this.path = [];
-        this.allData = data;
-    }
-    ScopeData.prototype.getScopeData = function () {
-        var lastKey = last(this.path);
-        var result;
-        var curPath = this.path.slice();
-        while (result === undefined && curPath.length) {
-            var curScopePath = curPath.slice(0, curPath.length - 1);
-            result = getProp(this.allData, curScopePath.concat(lastKey));
-            curPath = curScopePath;
-        }
-        return result;
-    };
-    return ScopeData;
-}());
-
-
-// CONCATENATED MODULE: ./src/compilation/tag.ts
-var TagDisposition;
-(function (TagDisposition) {
-    TagDisposition["Open"] = "Open";
-    TagDisposition["Close"] = "Close";
-    TagDisposition["SelfClosed"] = "SelfClosed";
-})(TagDisposition || (TagDisposition = {}));
-var Tag = (function () {
-    function Tag(initial) {
-        Object.assign(this, initial);
-    }
-    return Tag;
-}());
-
-
-// CONCATENATED MODULE: ./src/compilation/tagParser.ts
-
-
-var tagParser_TagParser = (function () {
-    function TagParser(tagPrefixes, docParser) {
-        this.tagPrefixes = tagPrefixes;
-        this.docParser = docParser;
-        this.startDelimiter = "{";
-        this.endDelimiter = "}";
-        if (!tagPrefixes || !tagPrefixes.length)
-            throw new errors["MissingArgumentError"]("tagPrefixes");
-        if (!docParser)
-            throw new errors["MissingArgumentError"]("docParser");
-    }
-    TagParser.prototype.parse = function (delimiters) {
-        var tags = [];
-        var openedTag;
-        var openedDelimiter;
-        var lastNormalizedNode;
-        var lastInflictedOffset;
-        for (var _i = 0, delimiters_1 = delimiters; _i < delimiters_1.length; _i++) {
-            var delimiter = delimiters_1[_i];
-            if (!openedTag && !delimiter.isOpen) {
-                var closeTagText = delimiter.xmlTextNode.textContent;
-                throw new errors["MissingStartDelimiterError"](closeTagText);
-            }
-            if (openedTag && delimiter.isOpen) {
-                var openTagText = openedDelimiter.xmlTextNode.textContent;
-                throw new errors["MissingCloseDelimiterError"](openTagText);
-            }
-            if (!openedTag && delimiter.isOpen) {
-                openedTag = new Tag();
-                openedDelimiter = delimiter;
-            }
-            if (openedTag && !delimiter.isOpen) {
-                if (lastNormalizedNode === openedDelimiter.xmlTextNode) {
-                    openedDelimiter.index -= lastInflictedOffset;
-                }
-                if (lastNormalizedNode === delimiter.xmlTextNode) {
-                    delimiter.index -= lastInflictedOffset;
-                }
-                lastNormalizedNode = delimiter.xmlTextNode;
-                lastInflictedOffset = this.normalizeTagNodes(openedDelimiter, delimiter);
-                openedTag.xmlTextNode = openedDelimiter.xmlTextNode;
-                this.processTag(openedTag);
-                tags.push(openedTag);
-                openedTag = null;
-                openedDelimiter = null;
-            }
-        }
-        return tags;
-    };
-    TagParser.prototype.normalizeTagNodes = function (openDelimiter, closeDelimiter) {
-        var inflictedOffset = 0;
-        var startTextNode = openDelimiter.xmlTextNode;
-        var endTextNode = closeDelimiter.xmlTextNode;
-        var sameNode = (startTextNode === endTextNode);
-        if (openDelimiter.index > 0) {
-            inflictedOffset += openDelimiter.index;
-            this.docParser.splitTextNode(startTextNode, openDelimiter.index, true);
-        }
-        if (closeDelimiter.index < endTextNode.textContent.length - 1) {
-            inflictedOffset += closeDelimiter.index + 1;
-            endTextNode = this.docParser.splitTextNode(endTextNode, closeDelimiter.index + 1, true);
-            if (sameNode) {
-                startTextNode = endTextNode;
-            }
-        }
-        if (!sameNode) {
-            this.docParser.joinTextNodesRange(startTextNode, endTextNode);
-            endTextNode = startTextNode;
-        }
-        openDelimiter.xmlTextNode = startTextNode;
-        closeDelimiter.xmlTextNode = endTextNode;
-        return inflictedOffset;
-    };
-    TagParser.prototype.processTag = function (tag) {
-        tag.rawText = tag.xmlTextNode.textContent;
-        for (var _i = 0, _a = this.tagPrefixes; _i < _a.length; _i++) {
-            var prefix = _a[_i];
-            var pattern = "^[" + this.startDelimiter + "](\\s*?)" + prefix.prefix + "(.*?)[" + this.endDelimiter + "]";
-            var regex = new RegExp(pattern, 'gmi');
-            var match = regex.exec(tag.rawText);
-            if (match && match.length) {
-                tag.name = match[2];
-                tag.type = prefix.tagType;
-                tag.disposition = prefix.tagDisposition;
-                break;
-            }
-        }
-        if (!tag.name)
-            throw new errors["UnknownPrefixError"](tag.rawText);
-    };
-    return TagParser;
-}());
-
-
-// CONCATENATED MODULE: ./src/compilation/templateCompiler.ts
-
-
-var templateCompiler_TemplateCompiler = (function () {
-    function TemplateCompiler(delimiterSearcher, tagParser, plugins) {
-        this.delimiterSearcher = delimiterSearcher;
-        this.tagParser = tagParser;
-        this.plugins = plugins;
-    }
-    TemplateCompiler.prototype.compile = function (node, data, context) {
-        var tags = this.parseTags(node);
-        this.doTagReplacements(tags, data, context);
-    };
-    TemplateCompiler.prototype.parseTags = function (node) {
-        var delimiters = this.delimiterSearcher.findDelimiters(node);
-        var tags = this.tagParser.parse(delimiters);
-        return tags;
-    };
-    TemplateCompiler.prototype.doTagReplacements = function (tags, data, context) {
-        var _loop_1 = function (i) {
-            var tag = tags[i];
-            data.path.push(tag.name);
-            if (tag.disposition === TagDisposition.SelfClosed) {
-                for (var _i = 0, _a = this_1.plugins; _i < _a.length; _i++) {
-                    var plugin = _a[_i];
-                    if (plugin.prefixes.some(function (prefix) { return prefix.tagType === tag.type; })) {
-                        plugin.simpleTagReplacements(tag, data, context);
-                        break;
-                    }
-                }
-            }
-            else if (tag.disposition === TagDisposition.Open) {
-                var j = this_1.findCloseTagIndex(i, tag, tags);
-                var scopeTags = tags.slice(i, j + 1);
-                i = j;
-                for (var _b = 0, _c = this_1.plugins; _b < _c.length; _b++) {
-                    var plugin = _c[_b];
-                    if (plugin.prefixes.some(function (prefix) { return prefix.tagType === tag.type; })) {
-                        plugin.containerTagReplacements(scopeTags, data, context);
-                        break;
-                    }
-                }
-            }
-            data.path.pop();
-            out_i_1 = i;
-        };
-        var this_1 = this, out_i_1;
-        for (var i = 0; i < tags.length; i++) {
-            _loop_1(i);
-            i = out_i_1;
-        }
-    };
-    TemplateCompiler.prototype.findCloseTagIndex = function (fromIndex, openTag, tags) {
-        var i = fromIndex;
-        for (; i < tags.length; i++) {
-            var closeTag = tags[i];
-            if (closeTag.name === openTag.name &&
-                closeTag.type === openTag.type &&
-                closeTag.disposition === TagDisposition.Close) {
-                break;
-            }
-        }
-        if (i === tags.length) {
-            throw new errors["UnclosedTagError"](openTag.name);
-        }
-        return i;
-    };
-    return TemplateCompiler;
-}());
-
-
-// CONCATENATED MODULE: ./src/compilation/index.ts
-
-
-
-
-
-
-
-// CONCATENATED MODULE: ./src/docxParser.ts
-
-var docxParser_DocxParser = (function () {
-    function DocxParser() {
-    }
-    DocxParser.prototype.contentFilePaths = function (zip) {
-        var coreFiles = [
-            "word/document.xml",
-            "word/document2.xml"
-        ];
-        return coreFiles;
-    };
-    DocxParser.prototype.mainFilePath = function (zip) {
-        if (zip.files["word/document.xml"]) {
-            return "word/document.xml";
-        }
-        if (zip.files["word/document2.xml"]) {
-            return "word/document2.xml";
-        }
-        return undefined;
-    };
-    DocxParser.prototype.splitTextNode = function (textNode, splitIndex, addBefore) {
-        var firstXmlTextNode;
-        var secondXmlTextNode;
-        var wordTextNode = this.containingTextNode(textNode);
-        var newWordTextNode = xmlNode_XmlNode.cloneNode(wordTextNode, true);
-        if (addBefore) {
-            xmlNode_XmlNode.insertBefore(newWordTextNode, wordTextNode);
-            firstXmlTextNode = xmlNode_XmlNode.lastTextChild(newWordTextNode);
-            secondXmlTextNode = textNode;
-        }
-        else {
-            var curIndex = wordTextNode.parentNode.childNodes.indexOf(wordTextNode);
-            xmlNode_XmlNode.insertChild(wordTextNode.parentNode, newWordTextNode, curIndex + 1);
-            firstXmlTextNode = textNode;
-            secondXmlTextNode = xmlNode_XmlNode.lastTextChild(newWordTextNode);
-        }
-        var firstText = firstXmlTextNode.textContent;
-        var secondText = secondXmlTextNode.textContent;
-        firstXmlTextNode.textContent = firstText.substring(0, splitIndex);
-        secondXmlTextNode.textContent = secondText.substring(splitIndex);
-        return (addBefore ? firstXmlTextNode : secondXmlTextNode);
-    };
-    DocxParser.prototype.joinTextNodesRange = function (from, to) {
-        var firstRunNode = this.containingRunNode(from);
-        var secondRunNode = this.containingRunNode(to);
-        var paragraphNode = firstRunNode.parentNode;
-        if (secondRunNode.parentNode !== paragraphNode)
-            throw new Error('Can not join text nodes from separate paragraphs.');
-        var firstWordTextNode = this.containingTextNode(from);
-        var secondWordTextNode = this.containingTextNode(to);
-        var totalText = [];
-        var curRunNode = firstRunNode;
-        while (curRunNode) {
-            var curWordTextNode = void 0;
-            if (curRunNode === firstRunNode) {
-                curWordTextNode = firstWordTextNode;
-            }
-            else {
-                curWordTextNode = this.firstTextNodeChild(curRunNode);
-            }
-            while (curWordTextNode) {
-                if (curWordTextNode.nodeName !== DocxParser.TEXT_NODE)
-                    continue;
-                var curXmlTextNode = xmlNode_XmlNode.lastTextChild(curWordTextNode);
-                totalText.push(curXmlTextNode.textContent);
-                var textToRemove = curWordTextNode;
-                if (curWordTextNode === secondWordTextNode) {
-                    curWordTextNode = null;
-                }
-                else {
-                    curWordTextNode = curWordTextNode.nextSibling;
-                }
-                if (textToRemove !== firstWordTextNode) {
-                    xmlNode_XmlNode.remove(textToRemove);
-                }
-            }
-            var runToRemove = curRunNode;
-            if (curRunNode === secondRunNode) {
-                curRunNode = null;
-            }
-            else {
-                curRunNode = curRunNode.nextSibling;
-            }
-            if (!runToRemove.childNodes || !runToRemove.childNodes.length) {
-                xmlNode_XmlNode.remove(runToRemove);
-            }
-        }
-        var firstXmlTextNode = xmlNode_XmlNode.lastTextChild(firstWordTextNode);
-        firstXmlTextNode.textContent = totalText.join('');
-    };
-    DocxParser.prototype.joinParagraphs = function (first, second) {
-        if (first === second)
-            return;
-        var childIndex = 0;
-        while (second.childNodes && childIndex < second.childNodes.length) {
-            var curChild = second.childNodes[childIndex];
-            if (curChild.nodeName === DocxParser.RUN_NODE) {
-                xmlNode_XmlNode.removeChild(second, childIndex);
-                xmlNode_XmlNode.appendChild(first, curChild);
-            }
-            else {
-                childIndex++;
-            }
-        }
-    };
-    DocxParser.prototype.firstTextNodeChild = function (node) {
-        if (!node)
-            return null;
-        if (node.nodeName !== DocxParser.RUN_NODE)
-            return null;
-        if (!node.childNodes)
-            return null;
-        for (var _i = 0, _a = node.childNodes; _i < _a.length; _i++) {
-            var child = _a[_i];
-            if (child.nodeName === DocxParser.TEXT_NODE)
-                return child;
-        }
-        return null;
-    };
-    DocxParser.prototype.containingTextNode = function (node) {
-        if (!node)
-            return null;
-        if (!xmlNode_XmlNode.isTextNode(node))
-            throw new Error("'Invalid argument " + "node" + ". Expected a XmlTextNode.");
-        return xmlNode_XmlNode.findParentByName(node, DocxParser.TEXT_NODE);
-    };
-    DocxParser.prototype.containingRunNode = function (node) {
-        return xmlNode_XmlNode.findParentByName(node, DocxParser.RUN_NODE);
-    };
-    DocxParser.prototype.containingParagraphNode = function (node) {
-        return xmlNode_XmlNode.findParentByName(node, DocxParser.PARAGRAPH_NODE);
-    };
-    DocxParser.prototype.containingTableRowNode = function (node) {
-        return xmlNode_XmlNode.findParentByName(node, DocxParser.TABLE_ROW_NODE);
-    };
-    DocxParser.TABLE_ROW_NODE = 'w:tr';
-    DocxParser.TABLE_CELL_NODE = 'w:tc';
-    DocxParser.PARAGRAPH_NODE = 'w:p';
-    DocxParser.RUN_NODE = 'w:r';
-    DocxParser.TEXT_NODE = 'w:t';
-    return DocxParser;
-}());
-
-
-// CONCATENATED MODULE: ./src/plugins/loop/loopParagraphHelper.ts
-
-var loopParagraphHelper_LoopParagraphHelper = (function () {
-    function LoopParagraphHelper() {
-    }
-    LoopParagraphHelper.prototype.setUtilities = function (utilities) {
-        this.utilities = utilities;
-    };
-    LoopParagraphHelper.prototype.splitBefore = function (openTag, closeTag) {
-        var firstParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
-        var lastParagraph = this.utilities.docxParser.containingParagraphNode(closeTag.xmlTextNode);
-        var areSame = (firstParagraph === lastParagraph);
-        var parent = firstParagraph.parentNode;
-        var firstParagraphIndex = parent.childNodes.indexOf(firstParagraph);
-        var lastParagraphIndex = areSame ? firstParagraphIndex : parent.childNodes.indexOf(lastParagraph);
-        var splitResult = xmlNode_XmlNode.splitByChild(firstParagraph, openTag.xmlTextNode, true);
-        firstParagraph = splitResult[0];
-        var firstParagraphSplit = splitResult[1];
-        if (areSame)
-            lastParagraph = firstParagraphSplit;
-        splitResult = xmlNode_XmlNode.splitByChild(lastParagraph, closeTag.xmlTextNode, true);
-        var lastParagraphSplit = splitResult[0];
-        lastParagraph = splitResult[1];
-        xmlNode_XmlNode.removeChild(parent, firstParagraphIndex + 1);
-        if (!areSame)
-            xmlNode_XmlNode.removeChild(parent, lastParagraphIndex);
-        firstParagraphSplit.parentNode = null;
-        lastParagraphSplit.parentNode = null;
-        var middleParagraphs;
-        if (areSame) {
-            this.utilities.docxParser.joinParagraphs(firstParagraphSplit, lastParagraphSplit);
-            middleParagraphs = [firstParagraphSplit];
-        }
-        else {
-            var inBetween = xmlNode_XmlNode.removeSiblings(firstParagraph, lastParagraph);
-            middleParagraphs = [firstParagraphSplit].concat(inBetween).concat(lastParagraphSplit);
-        }
-        return {
-            firstNode: firstParagraph,
-            nodesToRepeat: middleParagraphs,
-            lastNode: lastParagraph
-        };
-    };
-    LoopParagraphHelper.prototype.mergeBack = function (middleParagraphs, firstParagraph, lastParagraph) {
-        var mergeTo = firstParagraph;
-        for (var _i = 0, middleParagraphs_1 = middleParagraphs; _i < middleParagraphs_1.length; _i++) {
-            var curParagraphsGroup = middleParagraphs_1[_i];
-            this.utilities.docxParser.joinParagraphs(mergeTo, curParagraphsGroup[0]);
-            for (var i = 1; i < curParagraphsGroup.length; i++) {
-                xmlNode_XmlNode.insertBefore(curParagraphsGroup[i], lastParagraph);
-                mergeTo = curParagraphsGroup[i];
-            }
-        }
-        this.utilities.docxParser.joinParagraphs(mergeTo, lastParagraph);
-        xmlNode_XmlNode.remove(lastParagraph);
-    };
-    return LoopParagraphHelper;
-}());
-
-
-// CONCATENATED MODULE: ./src/plugins/loop/loopTableHelper.ts
-
-var loopTableHelper_LoopTableHelper = (function () {
-    function LoopTableHelper() {
-    }
-    LoopTableHelper.prototype.setUtilities = function (utilities) {
-        this.utilities = utilities;
-    };
-    LoopTableHelper.prototype.splitBefore = function (openTag, closeTag) {
-        var firstRow = this.utilities.docxParser.containingTableRowNode(openTag.xmlTextNode);
-        var lastRow = this.utilities.docxParser.containingTableRowNode(closeTag.xmlTextNode);
-        var rowsToRepeat = xmlNode_XmlNode.siblingsInRange(firstRow, lastRow);
-        xmlNode_XmlNode.remove(openTag.xmlTextNode);
-        xmlNode_XmlNode.remove(closeTag.xmlTextNode);
-        return {
-            firstNode: firstRow,
-            nodesToRepeat: rowsToRepeat,
-            lastNode: lastRow
-        };
-    };
-    LoopTableHelper.prototype.mergeBack = function (rowGroups, firstRow, lastRow) {
-        for (var _i = 0, rowGroups_1 = rowGroups; _i < rowGroups_1.length; _i++) {
-            var curRowsGroup = rowGroups_1[_i];
-            for (var _a = 0, curRowsGroup_1 = curRowsGroup; _a < curRowsGroup_1.length; _a++) {
-                var row = curRowsGroup_1[_a];
-                xmlNode_XmlNode.insertBefore(row, lastRow);
-            }
-        }
-        xmlNode_XmlNode.remove(firstRow);
-        if (firstRow !== lastRow) {
-            xmlNode_XmlNode.remove(lastRow);
-        }
-    };
-    return LoopTableHelper;
-}());
-
-
-// CONCATENATED MODULE: ./src/plugins/loop/index.ts
-
-
-
-// CONCATENATED MODULE: ./src/plugins/templatePlugin.ts
-var TemplatePlugin = (function () {
-    function TemplatePlugin() {
-    }
-    TemplatePlugin.prototype.setUtilities = function (utilities) {
-        this.utilities = utilities;
-    };
-    TemplatePlugin.prototype.simpleTagReplacements = function (tag, data, context) {
-    };
-    TemplatePlugin.prototype.containerTagReplacements = function (tags, data, context) {
-    };
-    return TemplatePlugin;
-}());
-
-
-// CONCATENATED MODULE: ./src/plugins/loopPlugin.ts
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-
-
-
-
-
-
-var loopPlugin_LoopPlugin = (function (_super) {
-    __extends(LoopPlugin, _super);
-    function LoopPlugin() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.prefixes = [
-            {
-                prefix: '#',
-                tagType: 'loop',
-                tagDisposition: TagDisposition.Open
-            },
-            {
-                prefix: '/',
-                tagType: 'loop',
-                tagDisposition: TagDisposition.Close
-            }
-        ];
-        _this.loopParagraph = new loopParagraphHelper_LoopParagraphHelper();
-        _this.loopTable = new loopTableHelper_LoopTableHelper();
-        return _this;
-    }
-    LoopPlugin.prototype.setUtilities = function (utilities) {
-        this.utilities = utilities;
-        this.loopParagraph.setUtilities(utilities);
-        this.loopTable.setUtilities(utilities);
-    };
-    LoopPlugin.prototype.containerTagReplacements = function (tags, data, context) {
-        var value = data.getScopeData();
-        if (!value || !Array.isArray(value) || !value.length)
-            value = [];
-        var openTag = tags[0];
-        var closeTag = last(tags);
-        var firstParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
-        var loopHelper;
-        if (firstParagraph.parentNode && firstParagraph.parentNode.nodeName === docxParser_DocxParser.TABLE_CELL_NODE) {
-            loopHelper = this.loopTable;
-        }
-        else {
-            loopHelper = this.loopParagraph;
-        }
-        var _a = loopHelper.splitBefore(openTag, closeTag), firstNode = _a.firstNode, nodesToRepeat = _a.nodesToRepeat, lastNode = _a.lastNode;
-        var repeatedNodes = this.repeat(nodesToRepeat, value.length);
-        var compiledNodes = this.compile(repeatedNodes, data, context);
-        loopHelper.mergeBack(compiledNodes, firstNode, lastNode);
-    };
-    LoopPlugin.prototype.repeat = function (nodes, times) {
-        if (!nodes.length || !times)
-            return [];
-        var allResults = [];
-        for (var i = 0; i < times; i++) {
-            var curResult = nodes.map(function (node) { return xmlNode_XmlNode.cloneNode(node, true); });
-            allResults.push(curResult);
-        }
-        return allResults;
-    };
-    LoopPlugin.prototype.compile = function (nodeGroups, data, context) {
-        var compiledNodeGroups = [];
-        var _loop_1 = function (i) {
-            var curNodes = nodeGroups[i];
-            var dummyRootNode = xmlNode_XmlNode.createGeneralNode('dummyRootNode');
-            curNodes.forEach(function (node) { return xmlNode_XmlNode.appendChild(dummyRootNode, node); });
-            data.path.push(i);
-            this_1.utilities.compiler.compile(dummyRootNode, data, context);
-            data.path.pop();
-            var curResult = [];
-            while (dummyRootNode.childNodes && dummyRootNode.childNodes.length) {
-                var child = xmlNode_XmlNode.removeChild(dummyRootNode, 0);
-                curResult.push(child);
-            }
-            compiledNodeGroups.push(curResult);
-        };
-        var this_1 = this;
-        for (var i = 0; i < nodeGroups.length; i++) {
-            _loop_1(i);
-        }
-        return compiledNodeGroups;
-    };
-    return LoopPlugin;
-}(TemplatePlugin));
-
-
-// CONCATENATED MODULE: ./src/plugins/rawXmlPlugin.ts
-var rawXmlPlugin_extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-
-
-
-var rawXmlPlugin_RawXmlPlugin = (function (_super) {
-    rawXmlPlugin_extends(RawXmlPlugin, _super);
-    function RawXmlPlugin() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.prefixes = [{
-                prefix: '@',
-                tagType: 'rawXml',
-                tagDisposition: TagDisposition.SelfClosed
-            }];
-        return _this;
-    }
-    RawXmlPlugin.prototype.simpleTagReplacements = function (tag, data) {
-        var wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
-        var value = data.getScopeData();
-        if (typeof value === 'string') {
-            var newNode = this.utilities.xmlParser.parse(value);
-            xmlNode_XmlNode.insertBefore(newNode, wordTextNode);
-        }
-        xmlNode_XmlNode.remove(wordTextNode);
-    };
-    return RawXmlPlugin;
-}(TemplatePlugin));
-
-
-// CONCATENATED MODULE: ./src/plugins/textPlugin.ts
-var textPlugin_extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-
-
-
-
-var textPlugin_TextPlugin = (function (_super) {
-    textPlugin_extends(TextPlugin, _super);
-    function TextPlugin() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.prefixes = [{
-                prefix: '',
-                tagType: 'text',
-                tagDisposition: TagDisposition.SelfClosed
-            }];
-        return _this;
-    }
-    TextPlugin.prototype.simpleTagReplacements = function (tag, data) {
-        var value = (data.getScopeData() || '').split('\n');
-        if (value.length < 2) {
-            this.replaceSingleLine(tag.xmlTextNode, value.length ? value[0] : '');
-        }
-        else {
-            this.replaceMultiLine(tag.xmlTextNode, value);
-        }
-    };
-    TextPlugin.prototype.replaceSingleLine = function (textNode, text) {
-        textNode.textContent = text;
-        var wordTextNode = this.utilities.docxParser.containingTextNode(textNode);
-        if (!wordTextNode.attributes) {
-            wordTextNode.attributes = [];
-        }
-        if (!wordTextNode.attributes.find(function (attr) { return attr.name === 'xml:space'; })) {
-            wordTextNode.attributes.push(this.getSpacePreserveAttribute());
-        }
-    };
-    TextPlugin.prototype.replaceMultiLine = function (textNode, lines) {
-        var runNode = this.utilities.docxParser.containingRunNode(textNode);
-        textNode.textContent = lines[0];
-        for (var i = 1; i < lines.length; i++) {
-            var lineBreak = this.getLineBreak();
-            xmlNode_XmlNode.appendChild(runNode, lineBreak);
-            var lineNode = this.createWordTextNode(lines[i]);
-            xmlNode_XmlNode.appendChild(runNode, lineNode);
-        }
-    };
-    TextPlugin.prototype.getSpacePreserveAttribute = function () {
-        return {
-            name: 'xml:space',
-            value: 'preserve'
-        };
-    };
-    TextPlugin.prototype.getLineBreak = function () {
-        return {
-            nodeType: XmlNodeType.General,
-            nodeName: 'w:br'
-        };
-    };
-    TextPlugin.prototype.createWordTextNode = function (text) {
-        var wordTextNode = xmlNode_XmlNode.createGeneralNode(docxParser_DocxParser.TEXT_NODE);
-        wordTextNode.attributes = [this.getSpacePreserveAttribute()];
-        wordTextNode.childNodes = [
-            xmlNode_XmlNode.createTextNode(text)
-        ];
-        return wordTextNode;
-    };
-    return TextPlugin;
-}(TemplatePlugin));
-
-
-// CONCATENATED MODULE: ./src/plugins/defaultPlugins.ts
-
-
+var _textPlugin = __webpack_require__(/*! ./textPlugin */ "./src/plugins/textPlugin.ts");
 
 function createDefaultPlugins() {
-    return [
-        new loopPlugin_LoopPlugin(),
-        new rawXmlPlugin_RawXmlPlugin(),
-        new textPlugin_TextPlugin()
-    ];
+  return [new _loopPlugin.LoopPlugin(), new _rawXmlPlugin.RawXmlPlugin(), new _textPlugin.TextPlugin()];
 }
 
-// CONCATENATED MODULE: ./src/plugins/index.ts
+/***/ }),
+
+/***/ "./src/plugins/index.ts":
+/*!******************************!*\
+  !*** ./src/plugins/index.ts ***!
+  \******************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 
+var _defaultPlugins = __webpack_require__(/*! ./defaultPlugins */ "./src/plugins/defaultPlugins.ts");
 
-
-
-// CONCATENATED MODULE: ./src/delimiters.ts
-
-var delimiters_Delimiters = (function () {
-    function Delimiters(initial) {
-        this.start = "{";
-        this.end = "}";
-        if (initial) {
-            if (initial.start)
-                this.start = xmlNode_XmlNode.encodeValue(initial.start);
-            if (initial.end)
-                this.end = xmlNode_XmlNode.encodeValue(initial.end);
-        }
-        if (!this.start || !this.end)
-            throw new Error('Both delimiters must be specified.');
-        if (this.start === this.end)
-            throw new Error('Start and end delimiters can not be the same.');
-        if (this.start.length > 1 || this.end.length > 1)
-            throw new Error("Only single character delimiters supported (start: '" + this.start + "', end: '" + this.end + "').");
+Object.keys(_defaultPlugins).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _defaultPlugins[key];
     }
-    return Delimiters;
-}());
+  });
+});
 
+var _loopPlugin = __webpack_require__(/*! ./loopPlugin */ "./src/plugins/loopPlugin.ts");
 
-// EXTERNAL MODULE: external "jszip"
-var external_jszip_ = __webpack_require__("jszip");
-
-// CONCATENATED MODULE: ./src/fileType.ts
-
-var fileType_FileType;
-(function (FileType) {
-    FileType["Docx"] = "docx";
-    FileType["Pptx"] = "pptx";
-    FileType["Odt"] = "odt";
-})(fileType_FileType || (fileType_FileType = {}));
-(function (FileType) {
-    function getFileType(zipFile) {
-        if (isDocx(zipFile))
-            return FileType.Docx;
-        if (isPptx(zipFile))
-            return FileType.Pptx;
-        if (isOdt(zipFile))
-            return FileType.Odt;
-        throw new errors["UnidentifiedFileTypeError"]();
+Object.keys(_loopPlugin).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _loopPlugin[key];
     }
-    FileType.getFileType = getFileType;
-    function isDocx(zipFile) {
-        return !!(zipFile.files["word/document.xml"] || zipFile.files["word/document2.xml"]);
+  });
+});
+
+var _rawXmlPlugin = __webpack_require__(/*! ./rawXmlPlugin */ "./src/plugins/rawXmlPlugin.ts");
+
+Object.keys(_rawXmlPlugin).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _rawXmlPlugin[key];
     }
-    FileType.isDocx = isDocx;
-    function isPptx(zipFile) {
-        return !!zipFile.files["ppt/presentation.xml"];
+  });
+});
+
+var _templatePlugin = __webpack_require__(/*! ./templatePlugin */ "./src/plugins/templatePlugin.ts");
+
+Object.keys(_templatePlugin).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _templatePlugin[key];
     }
-    FileType.isPptx = isPptx;
-    function isOdt(zipFile) {
-        return !!zipFile.files['mimetype'];
+  });
+});
+
+var _textPlugin = __webpack_require__(/*! ./textPlugin */ "./src/plugins/textPlugin.ts");
+
+Object.keys(_textPlugin).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _textPlugin[key];
     }
-    FileType.isOdt = isOdt;
-})(fileType_FileType || (fileType_FileType = {}));
+  });
+});
 
-// CONCATENATED MODULE: ./src/templateHandlerOptions.ts
+/***/ }),
+
+/***/ "./src/plugins/loop/iLoopStrategy.ts":
+/*!*******************************************!*\
+  !*** ./src/plugins/loop/iLoopStrategy.ts ***!
+  \*******************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 
 
-var templateHandlerOptions_TemplateHandlerOptions = (function () {
-    function TemplateHandlerOptions(initial) {
-        this.plugins = createDefaultPlugins();
-        this.delimiters = new delimiters_Delimiters();
-        this.maxXmlDepth = 20;
-        Object.assign(this, initial);
-        if (initial) {
-            this.delimiters = new delimiters_Delimiters(initial.delimiters);
-        }
-        if (!this.plugins.length) {
-            throw new Error('Plugins list can not be empty');
-        }
+/***/ }),
+
+/***/ "./src/plugins/loop/index.ts":
+/*!***********************************!*\
+  !*** ./src/plugins/loop/index.ts ***!
+  \***********************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _iLoopStrategy = __webpack_require__(/*! ./iLoopStrategy */ "./src/plugins/loop/iLoopStrategy.ts");
+
+Object.keys(_iLoopStrategy).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _iLoopStrategy[key];
     }
-    return TemplateHandlerOptions;
-}());
+  });
+});
 
+var _loopListStrategy = __webpack_require__(/*! ./loopListStrategy */ "./src/plugins/loop/loopListStrategy.ts");
 
-// EXTERNAL MODULE: external "xmldom"
-var external_xmldom_ = __webpack_require__("xmldom");
-
-// CONCATENATED MODULE: ./src/xmlParser.ts
-
-
-
-var xmlParser_XmlParser = (function () {
-    function XmlParser() {
+Object.keys(_loopListStrategy).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _loopListStrategy[key];
     }
-    XmlParser.prototype.parse = function (str) {
-        var doc = this.domParse(str);
-        return xmlNode_XmlNode.fromDomNode(doc.documentElement);
+  });
+});
+
+var _loopParagraphStrategy = __webpack_require__(/*! ./loopParagraphStrategy */ "./src/plugins/loop/loopParagraphStrategy.ts");
+
+Object.keys(_loopParagraphStrategy).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _loopParagraphStrategy[key];
+    }
+  });
+});
+
+var _loopTableStrategy = __webpack_require__(/*! ./loopTableStrategy */ "./src/plugins/loop/loopTableStrategy.ts");
+
+Object.keys(_loopTableStrategy).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _loopTableStrategy[key];
+    }
+  });
+});
+
+/***/ }),
+
+/***/ "./src/plugins/loop/loopListStrategy.ts":
+/*!**********************************************!*\
+  !*** ./src/plugins/loop/loopListStrategy.ts ***!
+  \**********************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.LoopListStrategy = void 0;
+
+var _xmlNode = __webpack_require__(/*! ../../xmlNode */ "./src/xmlNode.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class LoopListStrategy {
+  constructor() {
+    _defineProperty(this, "utilities", void 0);
+  }
+
+  setUtilities(utilities) {
+    this.utilities = utilities;
+  }
+
+  isApplicable(openTag, closeTag) {
+    const containingParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
+    return this.utilities.docxParser.isListParagraph(containingParagraph);
+  }
+
+  splitBefore(openTag, closeTag) {
+    const firstParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
+    const lastParagraph = this.utilities.docxParser.containingParagraphNode(closeTag.xmlTextNode);
+
+    const paragraphsToRepeat = _xmlNode.XmlNode.siblingsInRange(firstParagraph, lastParagraph); // remove the loop tags
+
+
+    _xmlNode.XmlNode.remove(openTag.xmlTextNode);
+
+    _xmlNode.XmlNode.remove(closeTag.xmlTextNode);
+
+    return {
+      firstNode: firstParagraph,
+      nodesToRepeat: paragraphsToRepeat,
+      lastNode: lastParagraph
     };
-    XmlParser.prototype.domParse = function (str) {
-        if (str === null || str === undefined)
-            throw new errors["MissingArgumentError"]("str");
-        return XmlParser.parser.parseFromString(str, "text/xml");
-    };
-    XmlParser.prototype.serialize = function (xmlNode) {
-        return XmlParser.xmlHeader + xmlNode_XmlNode.serialize(xmlNode);
-    };
-    XmlParser.xmlHeader = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
-    XmlParser.parser = new external_xmldom_["DOMParser"]();
-    return XmlParser;
-}());
+  }
+
+  mergeBack(paragraphGroups, firstParagraph, lastParagraphs) {
+    for (const curParagraphsGroup of paragraphGroups) {
+      for (const paragraph of curParagraphsGroup) {
+        _xmlNode.XmlNode.insertBefore(paragraph, lastParagraphs);
+      }
+    } // remove the old paragraphs
 
 
-// CONCATENATED MODULE: ./src/templateHandler.ts
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    _xmlNode.XmlNode.remove(firstParagraph);
+
+    if (firstParagraph !== lastParagraphs) {
+      _xmlNode.XmlNode.remove(lastParagraphs);
+    }
+  }
+
+}
+
+exports.LoopListStrategy = LoopListStrategy;
+
+/***/ }),
+
+/***/ "./src/plugins/loop/loopParagraphStrategy.ts":
+/*!***************************************************!*\
+  !*** ./src/plugins/loop/loopParagraphStrategy.ts ***!
+  \***************************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.LoopParagraphStrategy = void 0;
+
+var _xmlNode = __webpack_require__(/*! ../../xmlNode */ "./src/xmlNode.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class LoopParagraphStrategy {
+  constructor() {
+    _defineProperty(this, "utilities", void 0);
+  }
+
+  setUtilities(utilities) {
+    this.utilities = utilities;
+  }
+
+  isApplicable(openTag, closeTag) {
+    return true;
+  }
+
+  splitBefore(openTag, closeTag) {
+    // gather some info
+    let firstParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
+    let lastParagraph = this.utilities.docxParser.containingParagraphNode(closeTag.xmlTextNode);
+    const areSame = firstParagraph === lastParagraph;
+    const parent = firstParagraph.parentNode;
+    const firstParagraphIndex = parent.childNodes.indexOf(firstParagraph);
+    const lastParagraphIndex = areSame ? firstParagraphIndex : parent.childNodes.indexOf(lastParagraph); // split first paragraphs
+
+    let splitResult = _xmlNode.XmlNode.splitByChild(firstParagraph, openTag.xmlTextNode, true);
+
+    firstParagraph = splitResult[0];
+    const firstParagraphSplit = splitResult[1];
+    if (areSame) lastParagraph = firstParagraphSplit; // split last paragraph
+
+    splitResult = _xmlNode.XmlNode.splitByChild(lastParagraph, closeTag.xmlTextNode, true);
+    const lastParagraphSplit = splitResult[0];
+    lastParagraph = splitResult[1]; // fix references
+
+    _xmlNode.XmlNode.removeChild(parent, firstParagraphIndex + 1);
+
+    if (!areSame) _xmlNode.XmlNode.removeChild(parent, lastParagraphIndex);
+    firstParagraphSplit.parentNode = null;
+    lastParagraphSplit.parentNode = null; // extract all paragraphs in between
+
+    let middleParagraphs;
+
+    if (areSame) {
+      this.utilities.docxParser.joinParagraphs(firstParagraphSplit, lastParagraphSplit);
+      middleParagraphs = [firstParagraphSplit];
+    } else {
+      const inBetween = _xmlNode.XmlNode.removeSiblings(firstParagraph, lastParagraph);
+
+      middleParagraphs = [firstParagraphSplit].concat(inBetween).concat(lastParagraphSplit);
+    }
+
+    return {
+      firstNode: firstParagraph,
+      nodesToRepeat: middleParagraphs,
+      lastNode: lastParagraph
+    };
+  }
+
+  mergeBack(middleParagraphs, firstParagraph, lastParagraph) {
+    let mergeTo = firstParagraph;
+
+    for (const curParagraphsGroup of middleParagraphs) {
+      // merge first paragraphs
+      this.utilities.docxParser.joinParagraphs(mergeTo, curParagraphsGroup[0]); // add middle and last paragraphs to the original document
+
+      for (let i = 1; i < curParagraphsGroup.length; i++) {
+        _xmlNode.XmlNode.insertBefore(curParagraphsGroup[i], lastParagraph);
+
+        mergeTo = curParagraphsGroup[i];
+      }
+    } // merge last paragraph
+
+
+    this.utilities.docxParser.joinParagraphs(mergeTo, lastParagraph); // remove the old last paragraph (was merged into the new one)
+
+    _xmlNode.XmlNode.remove(lastParagraph);
+  }
+
+}
+
+exports.LoopParagraphStrategy = LoopParagraphStrategy;
+
+/***/ }),
+
+/***/ "./src/plugins/loop/loopTableStrategy.ts":
+/*!***********************************************!*\
+  !*** ./src/plugins/loop/loopTableStrategy.ts ***!
+  \***********************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.LoopTableStrategy = void 0;
+
+var _xmlNode = __webpack_require__(/*! ../../xmlNode */ "./src/xmlNode.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class LoopTableStrategy {
+  constructor() {
+    _defineProperty(this, "utilities", void 0);
+  }
+
+  setUtilities(utilities) {
+    this.utilities = utilities;
+  }
+
+  isApplicable(openTag, closeTag) {
+    const containingParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
+    if (!containingParagraph.parentNode) return false;
+    return this.utilities.docxParser.isTableCellNode(containingParagraph.parentNode);
+  }
+
+  splitBefore(openTag, closeTag) {
+    const firstRow = this.utilities.docxParser.containingTableRowNode(openTag.xmlTextNode);
+    const lastRow = this.utilities.docxParser.containingTableRowNode(closeTag.xmlTextNode);
+
+    const rowsToRepeat = _xmlNode.XmlNode.siblingsInRange(firstRow, lastRow); // remove the loop tags
+
+
+    _xmlNode.XmlNode.remove(openTag.xmlTextNode);
+
+    _xmlNode.XmlNode.remove(closeTag.xmlTextNode);
+
+    return {
+      firstNode: firstRow,
+      nodesToRepeat: rowsToRepeat,
+      lastNode: lastRow
+    };
+  }
+
+  mergeBack(rowGroups, firstRow, lastRow) {
+    for (const curRowsGroup of rowGroups) {
+      for (const row of curRowsGroup) {
+        _xmlNode.XmlNode.insertBefore(row, lastRow);
+      }
+    } // remove the old rows
+
+
+    _xmlNode.XmlNode.remove(firstRow);
+
+    if (firstRow !== lastRow) {
+      _xmlNode.XmlNode.remove(lastRow);
+    }
+  }
+
+}
+
+exports.LoopTableStrategy = LoopTableStrategy;
+
+/***/ }),
+
+/***/ "./src/plugins/loopPlugin.ts":
+/*!***********************************!*\
+  !*** ./src/plugins/loopPlugin.ts ***!
+  \***********************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.LoopPlugin = void 0;
+
+var _compilation = __webpack_require__(/*! ../compilation */ "./src/compilation/index.ts");
+
+var _utils = __webpack_require__(/*! ../utils */ "./src/utils/index.ts");
+
+var _xmlNode = __webpack_require__(/*! ../xmlNode */ "./src/xmlNode.ts");
+
+var _loop = __webpack_require__(/*! ./loop */ "./src/plugins/loop/index.ts");
+
+var _templatePlugin = __webpack_require__(/*! ./templatePlugin */ "./src/plugins/templatePlugin.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class LoopPlugin extends _templatePlugin.TemplatePlugin {
+  constructor(...args) {
+    super(...args);
+
+    _defineProperty(this, "prefixes", [{
+      prefix: '#',
+      tagType: 'loop',
+      tagDisposition: _compilation.TagDisposition.Open
+    }, {
+      prefix: '/',
+      tagType: 'loop',
+      tagDisposition: _compilation.TagDisposition.Close
+    }]);
+
+    _defineProperty(this, "loopStrategies", [new _loop.LoopTableStrategy(), new _loop.LoopListStrategy(), new _loop.LoopParagraphStrategy() // the default strategy
+    ]);
+  }
+
+  setUtilities(utilities) {
+    this.utilities = utilities;
+    this.loopStrategies.forEach(strategy => strategy.setUtilities(utilities));
+  }
+
+  containerTagReplacements(tags, data, context) {
+    let value = data.getScopeData();
+    if (!value || !Array.isArray(value) || !value.length) value = []; // vars
+
+    const openTag = tags[0];
+    const closeTag = (0, _utils.last)(tags); // select the suitable strategy
+
+    const loopStrategy = this.loopStrategies.find(strategy => strategy.isApplicable(openTag, closeTag));
+    if (!loopStrategy) throw new Error(`No loop strategy found for tag '${openTag.rawText}'.`); // prepare to loop
+
+    const {
+      firstNode,
+      nodesToRepeat,
+      lastNode
+    } = loopStrategy.splitBefore(openTag, closeTag); // repeat (loop) the content
+
+    const repeatedNodes = this.repeat(nodesToRepeat, value.length); // recursive compilation 
+    // (this step can be optimized in the future if we'll keep track of the
+    // path to each token and use that to create new tokens instead of
+    // search through the text again)
+
+    const compiledNodes = this.compile(repeatedNodes, data, context); // merge back to the document
+
+    loopStrategy.mergeBack(compiledNodes, firstNode, lastNode);
+  }
+
+  repeat(nodes, times) {
+    if (!nodes.length || !times) return [];
+    const allResults = [];
+
+    for (let i = 0; i < times; i++) {
+      const curResult = nodes.map(node => _xmlNode.XmlNode.cloneNode(node, true));
+      allResults.push(curResult);
+    }
+
+    return allResults;
+  }
+
+  compile(nodeGroups, data, context) {
+    const compiledNodeGroups = []; // compile each node group with it's relevant data
+
+    for (let i = 0; i < nodeGroups.length; i++) {
+      // create dummy root node
+      const curNodes = nodeGroups[i];
+
+      const dummyRootNode = _xmlNode.XmlNode.createGeneralNode('dummyRootNode');
+
+      curNodes.forEach(node => _xmlNode.XmlNode.appendChild(dummyRootNode, node)); // compile the new root
+
+      data.path.push(i);
+      this.utilities.compiler.compile(dummyRootNode, data, context);
+      data.path.pop(); // disconnect from dummy root
+
+      const curResult = [];
+
+      while (dummyRootNode.childNodes && dummyRootNode.childNodes.length) {
+        const child = _xmlNode.XmlNode.removeChild(dummyRootNode, 0);
+
+        curResult.push(child);
+      }
+
+      compiledNodeGroups.push(curResult);
+    }
+
+    return compiledNodeGroups;
+  }
+
+}
+
+exports.LoopPlugin = LoopPlugin;
+
+/***/ }),
+
+/***/ "./src/plugins/rawXmlPlugin.ts":
+/*!*************************************!*\
+  !*** ./src/plugins/rawXmlPlugin.ts ***!
+  \*************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.RawXmlPlugin = void 0;
+
+var _compilation = __webpack_require__(/*! ../compilation */ "./src/compilation/index.ts");
+
+var _xmlNode = __webpack_require__(/*! ../xmlNode */ "./src/xmlNode.ts");
+
+var _templatePlugin = __webpack_require__(/*! ./templatePlugin */ "./src/plugins/templatePlugin.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class RawXmlPlugin extends _templatePlugin.TemplatePlugin {
+  constructor(...args) {
+    super(...args);
+
+    _defineProperty(this, "prefixes", [{
+      prefix: '@',
+      tagType: 'rawXml',
+      tagDisposition: _compilation.TagDisposition.SelfClosed
+    }]);
+  }
+
+  /**
+   * Replace the current <w:t> node with the specified xml markup.
+   */
+  simpleTagReplacements(tag, data) {
+    const wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
+    const value = data.getScopeData();
+
+    if (typeof value === 'string') {
+      const newNode = this.utilities.xmlParser.parse(value);
+
+      _xmlNode.XmlNode.insertBefore(newNode, wordTextNode);
+    }
+
+    _xmlNode.XmlNode.remove(wordTextNode);
+  }
+
+}
+
+exports.RawXmlPlugin = RawXmlPlugin;
+
+/***/ }),
+
+/***/ "./src/plugins/templatePlugin.ts":
+/*!***************************************!*\
+  !*** ./src/plugins/templatePlugin.ts ***!
+  \***************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.TemplatePlugin = void 0;
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+/* eslint-disable @typescript-eslint/member-ordering */
+class TemplatePlugin {
+  constructor() {
+    _defineProperty(this, "utilities", void 0);
+  }
+
+  /**
+   * Called by the TemplateHandler at runtime.
+   */
+  setUtilities(utilities) {
+    this.utilities = utilities;
+  }
+  /**
+   * This method is called for each self-closing tag.
+   * It should implement the specific document manipulation required by the tag.
+   */
+
+
+  simpleTagReplacements(tag, data, context) {} // noop
+
+  /**
+   * This method is called for each container tag. It should implement the
+   * specific document manipulation required by the tag.
+   *
+   * @param tags All tags between the opening tag and closing tag (inclusive,
+   * i.e. tags[0] is the opening tag and the last item in the tags array is
+   * the closing tag).
+   */
+
+
+  containerTagReplacements(tags, data, context) {// noop
+  }
+
+}
+
+exports.TemplatePlugin = TemplatePlugin;
+
+/***/ }),
+
+/***/ "./src/plugins/textPlugin.ts":
+/*!***********************************!*\
+  !*** ./src/plugins/textPlugin.ts ***!
+  \***********************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.TextPlugin = void 0;
+
+var _compilation = __webpack_require__(/*! ../compilation */ "./src/compilation/index.ts");
+
+var _docxParser = __webpack_require__(/*! ../docxParser */ "./src/docxParser.ts");
+
+var _xmlNode = __webpack_require__(/*! ../xmlNode */ "./src/xmlNode.ts");
+
+var _templatePlugin = __webpack_require__(/*! ./templatePlugin */ "./src/plugins/templatePlugin.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class TextPlugin extends _templatePlugin.TemplatePlugin {
+  constructor(...args) {
+    super(...args);
+
+    _defineProperty(this, "prefixes", [{
+      prefix: '',
+      tagType: 'text',
+      tagDisposition: _compilation.TagDisposition.SelfClosed
+    }]);
+  }
+
+  /**
+   * Replace the node text content with the specified value.
+   */
+  simpleTagReplacements(tag, data) {
+    const value = (data.getScopeData() || '').split('\n');
+
+    if (value.length < 2) {
+      this.replaceSingleLine(tag.xmlTextNode, value.length ? value[0] : '');
+    } else {
+      this.replaceMultiLine(tag.xmlTextNode, value);
+    }
+  }
+
+  replaceSingleLine(textNode, text) {
+    // set text
+    textNode.textContent = text; // make sure leading and trailing whitespace are preserved
+
+    const wordTextNode = this.utilities.docxParser.containingTextNode(textNode);
+
+    if (!wordTextNode.attributes) {
+      wordTextNode.attributes = [];
+    }
+
+    if (!wordTextNode.attributes.find(attr => attr.name === 'xml:space')) {
+      wordTextNode.attributes.push(this.getSpacePreserveAttribute());
+    }
+  }
+
+  replaceMultiLine(textNode, lines) {
+    const runNode = this.utilities.docxParser.containingRunNode(textNode); // first line
+
+    textNode.textContent = lines[0]; // other lines
+
+    for (let i = 1; i < lines.length; i++) {
+      // add line break
+      const lineBreak = this.getLineBreak();
+
+      _xmlNode.XmlNode.appendChild(runNode, lineBreak); // add text
+
+
+      const lineNode = this.createWordTextNode(lines[i]);
+
+      _xmlNode.XmlNode.appendChild(runNode, lineNode);
+    }
+  }
+
+  getSpacePreserveAttribute() {
+    return {
+      name: 'xml:space',
+      value: 'preserve'
+    };
+  }
+
+  getLineBreak() {
+    return {
+      nodeType: _xmlNode.XmlNodeType.General,
+      nodeName: 'w:br'
+    };
+  }
+
+  createWordTextNode(text) {
+    const wordTextNode = _xmlNode.XmlNode.createGeneralNode(_docxParser.DocxParser.TEXT_NODE);
+
+    wordTextNode.attributes = [this.getSpacePreserveAttribute()];
+    wordTextNode.childNodes = [_xmlNode.XmlNode.createTextNode(text)];
+    return wordTextNode;
+  }
+
+}
+
+exports.TextPlugin = TextPlugin;
+
+/***/ }),
+
+/***/ "./src/templateHandler.ts":
+/*!********************************!*\
+  !*** ./src/templateHandler.ts ***!
+  \********************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.TemplateHandler = void 0;
+
+var JSZip = __webpack_require__(/*! jszip */ "jszip");
+
+var _compilation = __webpack_require__(/*! ./compilation */ "./src/compilation/index.ts");
+
+var _docxParser = __webpack_require__(/*! ./docxParser */ "./src/docxParser.ts");
+
+var _errors = __webpack_require__(/*! ./errors */ "./src/errors/index.ts");
+
+var _fileType = __webpack_require__(/*! ./fileType */ "./src/fileType.ts");
+
+var _templateHandlerOptions = __webpack_require__(/*! ./templateHandlerOptions */ "./src/templateHandlerOptions.ts");
+
+var _utils = __webpack_require__(/*! ./utils */ "./src/utils/index.ts");
+
+var _xmlNode = __webpack_require__(/*! ./xmlNode */ "./src/xmlNode.ts");
+
+var _xmlParser = __webpack_require__(/*! ./xmlParser */ "./src/xmlParser.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class TemplateHandler {
+  constructor(options) {
+    _defineProperty(this, "docxParser", new _docxParser.DocxParser());
+
+    _defineProperty(this, "xmlParser", new _xmlParser.XmlParser());
+
+    _defineProperty(this, "compiler", void 0);
+
+    _defineProperty(this, "options", void 0);
+
+    this.options = new _templateHandlerOptions.TemplateHandlerOptions(options); //
+    // this is the library's composition root
+    //
+
+    const delimiterSearcher = new _compilation.DelimiterSearcher();
+    delimiterSearcher.startDelimiter = this.options.delimiters.start;
+    delimiterSearcher.endDelimiter = this.options.delimiters.end;
+    delimiterSearcher.maxXmlDepth = this.options.maxXmlDepth;
+    const prefixes = this.options.plugins.map(plugin => plugin.prefixes).reduce((total, current) => total.concat(current), []);
+    const tagParser = new _compilation.TagParser(prefixes, this.docxParser);
+    tagParser.startDelimiter = this.options.delimiters.start;
+    tagParser.endDelimiter = this.options.delimiters.end;
+    this.compiler = new _compilation.TemplateCompiler(delimiterSearcher, tagParser, this.options.plugins);
+    this.options.plugins.forEach(plugin => {
+      plugin.setUtilities({
+        xmlParser: this.xmlParser,
+        docxParser: this.docxParser,
+        compiler: this.compiler
+      });
     });
-};
-var __generator = (undefined && undefined.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+  }
+
+  async process(templateFile, data) {
+    // load the docx (zip) file
+    const docFile = await this.loadDocx(templateFile); // extract content as xml documents
+
+    const contentDocuments = await this.parseContentDocuments(docFile); // process content (do replacements)        
+
+    const scopeData = new _compilation.ScopeData(data);
+    const context = {
+      zipFile: docFile,
+      currentFilePath: null
+    };
+
+    for (const file of Object.keys(contentDocuments)) {
+      context.currentFilePath = file;
+      this.compiler.compile(contentDocuments[file], scopeData, context);
+    } // update the docx file
+
+
+    for (const file of Object.keys(contentDocuments)) {
+      const processedFile = contentDocuments[file];
+      const xmlContent = this.xmlParser.serialize(processedFile);
+      docFile.file(file, xmlContent, {
+        createFolders: true
+      });
+    } // export
+
+
+    const outputType = _utils.Binary.toJsZipOutputType(templateFile);
+
+    return docFile.generateAsync({
+      type: outputType
+    });
+  }
+
+  async parseTags(templateFile) {
+    // load the docx (zip) file
+    const docFile = await this.loadDocx(templateFile); // extract content as xml documents
+
+    const contentDocuments = await this.parseContentDocuments(docFile); // parse tags
+
+    const tags = [];
+
+    for (const file of Object.keys(contentDocuments)) {
+      const docTags = this.compiler.parseTags(contentDocuments[file]);
+      (0, _utils.pushMany)(tags, docTags);
     }
-};
+
+    return tags;
+  }
+  /**
+   * Get the text content of the main document file.
+   */
 
 
+  async getText(docxFile) {
+    const root = await this.getDomRoot(docxFile);
+    return root.textContent;
+  }
+  /**
+   * Get the xml tree of the main document file.
+   */
 
 
+  async getXml(docxFile) {
+    const root = await this.getDomRoot(docxFile);
+    return _xmlNode.XmlNode.fromDomNode(root);
+  } //
+  // private methods
+  //
 
 
+  async loadDocx(file) {
+    // load the zip file
+    let docFile;
+
+    try {
+      docFile = await JSZip.loadAsync(file);
+    } catch (_unused) {
+      throw new _errors.MalformedFileError('docx');
+    } // verify it's a docx file
 
 
-var templateHandler_TemplateHandler = (function () {
-    function TemplateHandler(options) {
-        var _this = this;
-        this.docxParser = new docxParser_DocxParser();
-        this.xmlParser = new xmlParser_XmlParser();
-        this.options = new templateHandlerOptions_TemplateHandlerOptions(options);
-        var delimiterSearcher = new delimiterSearcher_DelimiterSearcher();
-        delimiterSearcher.startDelimiter = this.options.delimiters.start;
-        delimiterSearcher.endDelimiter = this.options.delimiters.end;
-        delimiterSearcher.maxXmlDepth = this.options.maxXmlDepth;
-        var prefixes = this.options.plugins
-            .map(function (plugin) { return plugin.prefixes; })
-            .reduce(function (total, current) { return total.concat(current); }, []);
-        var tagParser = new tagParser_TagParser(prefixes, this.docxParser);
-        tagParser.startDelimiter = this.options.delimiters.start;
-        tagParser.endDelimiter = this.options.delimiters.end;
-        this.compiler = new templateCompiler_TemplateCompiler(delimiterSearcher, tagParser, this.options.plugins);
-        this.options.plugins.forEach(function (plugin) {
-            plugin.setUtilities({
-                xmlParser: _this.xmlParser,
-                docxParser: _this.docxParser,
-                compiler: _this.compiler
-            });
-        });
+    const fileType = _fileType.FileTypeHelper.getFileType(docFile);
+
+    if (fileType !== _fileType.FileType.Docx) throw new _errors.UnsupportedFileTypeError(fileType);
+    return docFile;
+  }
+  /**
+   * Returns a map where the key is the **file path** and the value is a **parsed document**.
+   */
+
+
+  async parseContentDocuments(docFile) {
+    const contentFiles = this.docxParser.contentFilePaths(docFile); // some content files may not always exist (footer.xml for example)
+
+    const existingContentFiles = contentFiles.filter(file => docFile.files[file]);
+    const contentDocuments = {};
+
+    for (const file of existingContentFiles) {
+      // extract the content from the content file
+      const textContent = await docFile.files[file].async('text'); // parse the content as xml
+
+      contentDocuments[file] = this.xmlParser.parse(textContent);
     }
-    TemplateHandler.prototype.process = function (templateFile, data) {
-        return __awaiter(this, void 0, void 0, function () {
-            var docFile, contentDocuments, scopeData, context, _i, _a, file, _b, _c, file, processedFile, xmlContent, outputType;
-            return __generator(this, function (_d) {
-                switch (_d.label) {
-                    case 0: return [4, this.loadDocx(templateFile)];
-                    case 1:
-                        docFile = _d.sent();
-                        return [4, this.parseContentDocuments(docFile)];
-                    case 2:
-                        contentDocuments = _d.sent();
-                        scopeData = new scopeData_ScopeData(data);
-                        context = {
-                            zipFile: docFile,
-                            currentFilePath: null
-                        };
-                        for (_i = 0, _a = Object.keys(contentDocuments); _i < _a.length; _i++) {
-                            file = _a[_i];
-                            context.currentFilePath = file;
-                            this.compiler.compile(contentDocuments[file], scopeData, context);
-                        }
-                        for (_b = 0, _c = Object.keys(contentDocuments); _b < _c.length; _b++) {
-                            file = _c[_b];
-                            processedFile = contentDocuments[file];
-                            xmlContent = this.xmlParser.serialize(processedFile);
-                            docFile.file(file, xmlContent, { createFolders: true });
-                        }
-                        outputType = binary["Binary"].toJsZipOutputType(templateFile);
-                        return [2, docFile.generateAsync({ type: outputType })];
-                }
-            });
-        });
-    };
-    TemplateHandler.prototype.parseTags = function (templateFile) {
-        return __awaiter(this, void 0, void 0, function () {
-            var docFile, contentDocuments, tags, _i, _a, file, docTags;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0: return [4, this.loadDocx(templateFile)];
-                    case 1:
-                        docFile = _b.sent();
-                        return [4, this.parseContentDocuments(docFile)];
-                    case 2:
-                        contentDocuments = _b.sent();
-                        tags = [];
-                        for (_i = 0, _a = Object.keys(contentDocuments); _i < _a.length; _i++) {
-                            file = _a[_i];
-                            docTags = this.compiler.parseTags(contentDocuments[file]);
-                            pushMany(tags, docTags);
-                        }
-                        return [2, tags];
-                }
-            });
-        });
-    };
-    TemplateHandler.prototype.getText = function (docxFile) {
-        return __awaiter(this, void 0, void 0, function () {
-            var zipFile, mainXmlFile, xmlContent, document;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4, this.loadDocx(docxFile)];
-                    case 1:
-                        zipFile = _a.sent();
-                        mainXmlFile = this.docxParser.mainFilePath(zipFile);
-                        return [4, zipFile.files[mainXmlFile].async('text')];
-                    case 2:
-                        xmlContent = _a.sent();
-                        document = this.xmlParser.domParse(xmlContent);
-                        return [2, document.documentElement.textContent];
-                }
-            });
-        });
-    };
-    TemplateHandler.prototype.loadDocx = function (file) {
-        return __awaiter(this, void 0, void 0, function () {
-            var docFile, _a, fileType;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        _b.trys.push([0, 2, , 3]);
-                        return [4, external_jszip_["loadAsync"](file)];
-                    case 1:
-                        docFile = _b.sent();
-                        return [3, 3];
-                    case 2:
-                        _a = _b.sent();
-                        throw new errors["MalformedFileError"]('docx');
-                    case 3:
-                        fileType = fileType_FileType.getFileType(docFile);
-                        if (fileType !== fileType_FileType.Docx)
-                            throw new errors["UnsupportedFileTypeError"](fileType);
-                        return [2, docFile];
-                }
-            });
-        });
-    };
-    TemplateHandler.prototype.parseContentDocuments = function (docFile) {
-        return __awaiter(this, void 0, void 0, function () {
-            var contentFiles, existingContentFiles, contentDocuments, _i, existingContentFiles_1, file, textContent;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        contentFiles = this.docxParser.contentFilePaths(docFile);
-                        existingContentFiles = contentFiles.filter(function (file) { return docFile.files[file]; });
-                        contentDocuments = {};
-                        _i = 0, existingContentFiles_1 = existingContentFiles;
-                        _a.label = 1;
-                    case 1:
-                        if (!(_i < existingContentFiles_1.length)) return [3, 4];
-                        file = existingContentFiles_1[_i];
-                        return [4, docFile.files[file].async('text')];
-                    case 2:
-                        textContent = _a.sent();
-                        contentDocuments[file] = this.xmlParser.parse(textContent);
-                        _a.label = 3;
-                    case 3:
-                        _i++;
-                        return [3, 1];
-                    case 4: return [2, contentDocuments];
-                }
-            });
-        });
-    };
-    return TemplateHandler;
-}());
+
+    return contentDocuments;
+  }
+
+  async getDomRoot(docxFile) {
+    const zipFile = await this.loadDocx(docxFile);
+    const mainXmlFile = this.docxParser.mainFilePath(zipFile);
+    const xmlContent = await zipFile.files[mainXmlFile].async('text');
+    const document = this.xmlParser.domParse(xmlContent);
+    return document.documentElement;
+  }
+
+}
+
+exports.TemplateHandler = TemplateHandler;
+
+/***/ }),
+
+/***/ "./src/templateHandlerOptions.ts":
+/*!***************************************!*\
+  !*** ./src/templateHandlerOptions.ts ***!
+  \***************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 
 
-// CONCATENATED MODULE: ./src/index.ts
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "DelimiterMark", function() { return DelimiterMark; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "DelimiterSearcher", function() { return delimiterSearcher_DelimiterSearcher; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "ScopeData", function() { return scopeData_ScopeData; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "TagDisposition", function() { return TagDisposition; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "Tag", function() { return Tag; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "TagParser", function() { return tagParser_TagParser; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "TemplateCompiler", function() { return templateCompiler_TemplateCompiler; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MalformedFileError", function() { return errors["MalformedFileError"]; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MaxXmlDepthError", function() { return errors["MaxXmlDepthError"]; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MissingArgumentError", function() { return errors["MissingArgumentError"]; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MissingCloseDelimiterError", function() { return errors["MissingCloseDelimiterError"]; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "MissingStartDelimiterError", function() { return errors["MissingStartDelimiterError"]; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "UnclosedTagError", function() { return errors["UnclosedTagError"]; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "UnidentifiedFileTypeError", function() { return errors["UnidentifiedFileTypeError"]; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "UnknownPrefixError", function() { return errors["UnknownPrefixError"]; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "UnopenedTagError", function() { return errors["UnopenedTagError"]; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "UnsupportedFileTypeError", function() { return errors["UnsupportedFileTypeError"]; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "createDefaultPlugins", function() { return createDefaultPlugins; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "LoopPlugin", function() { return loopPlugin_LoopPlugin; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "RawXmlPlugin", function() { return rawXmlPlugin_RawXmlPlugin; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "TemplatePlugin", function() { return TemplatePlugin; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "TextPlugin", function() { return textPlugin_TextPlugin; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "Delimiters", function() { return delimiters_Delimiters; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "DocxParser", function() { return docxParser_DocxParser; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "TemplateHandler", function() { return templateHandler_TemplateHandler; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "TemplateHandlerOptions", function() { return templateHandlerOptions_TemplateHandlerOptions; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "Binary", function() { return binary["Binary"]; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "XmlNodeType", function() { return XmlNodeType; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "TEXT_NODE_NAME_VALUE", function() { return TEXT_NODE_NAME_VALUE; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "XmlNode", function() { return xmlNode_XmlNode; });
-/* concated harmony reexport */__webpack_require__.d(__webpack_exports__, "XmlParser", function() { return xmlParser_XmlParser; });
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.TemplateHandlerOptions = void 0;
+
+var _delimiters = __webpack_require__(/*! ./delimiters */ "./src/delimiters.ts");
+
+var _plugins = __webpack_require__(/*! ./plugins */ "./src/plugins/index.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+// tslint:disable:whitespace
+class TemplateHandlerOptions {
+  constructor(initial) {
+    _defineProperty(this, "plugins", (0, _plugins.createDefaultPlugins)());
+
+    _defineProperty(this, "delimiters", new _delimiters.Delimiters());
+
+    _defineProperty(this, "maxXmlDepth", 20);
+
+    Object.assign(this, initial);
+
+    if (initial) {
+      this.delimiters = new _delimiters.Delimiters(initial.delimiters);
+    }
+
+    if (!this.plugins.length) {
+      throw new Error('Plugins list can not be empty');
+    }
+  }
+
+} // tslint:enable
 
 
+exports.TemplateHandlerOptions = TemplateHandlerOptions;
+
+/***/ }),
+
+/***/ "./src/utils/array.ts":
+/*!****************************!*\
+  !*** ./src/utils/array.ts ***!
+  \****************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.pushMany = pushMany;
+exports.last = last;
 
+function pushMany(destArray, items) {
+  Array.prototype.push.apply(destArray, items);
+}
 
-
-
-
-
-
+function last(array) {
+  if (!array.length) return undefined;
+  return array[array.length - 1];
+}
 
 /***/ }),
 
@@ -3727,32 +4595,667 @@ var templateHandler_TemplateHandler = (function () {
 /*!*****************************!*\
   !*** ./src/utils/binary.ts ***!
   \*****************************/
-/*! exports provided: Binary */
-/*! ModuleConcatenation bailout: Module uses injected variables (Buffer) */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function(Buffer) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Binary", function() { return Binary; });
-/* harmony import */ var _errors__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../errors */ "./src/errors/index.ts");
+/* WEBPACK VAR INJECTION */(function(Buffer) {
 
-var Binary;
-(function (Binary) {
-    function toJsZipOutputType(binary) {
-        if (!binary)
-            throw new _errors__WEBPACK_IMPORTED_MODULE_0__["MissingArgumentError"]("binary");
-        if (typeof Blob !== 'undefined' && binary instanceof Blob)
-            return 'blob';
-        if (typeof ArrayBuffer !== 'undefined' && binary instanceof ArrayBuffer)
-            return 'arraybuffer';
-        if (typeof Buffer !== 'undefined' && binary instanceof Buffer)
-            return 'nodebuffer';
-        throw new Error("Binary type '" + binary.constructor.name + "' is not supported.");
-    }
-    Binary.toJsZipOutputType = toJsZipOutputType;
-})(Binary || (Binary = {}));
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Binary = void 0;
 
+var _errors = __webpack_require__(/*! ../errors */ "./src/errors/index.ts");
+
+const Binary = {
+  toJsZipOutputType(binary) {
+    if (!binary) throw new _errors.MissingArgumentError("binary");
+    if (typeof Blob !== 'undefined' && binary instanceof Blob) return 'blob';
+    if (typeof ArrayBuffer !== 'undefined' && binary instanceof ArrayBuffer) return 'arraybuffer';
+    if (typeof Buffer !== 'undefined' && binary instanceof Buffer) return 'nodebuffer';
+    throw new Error(`Binary type '${binary.constructor.name}' is not supported.`);
+  }
+
+};
+exports.Binary = Binary;
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../node_modules/buffer/index.js */ "./node_modules/buffer/index.js").Buffer))
+
+/***/ }),
+
+/***/ "./src/utils/index.ts":
+/*!****************************!*\
+  !*** ./src/utils/index.ts ***!
+  \****************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _array = __webpack_require__(/*! ./array */ "./src/utils/array.ts");
+
+Object.keys(_array).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _array[key];
+    }
+  });
+});
+
+var _binary = __webpack_require__(/*! ./binary */ "./src/utils/binary.ts");
+
+Object.keys(_binary).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _binary[key];
+    }
+  });
+});
+
+var _types = __webpack_require__(/*! ./types */ "./src/utils/types.ts");
+
+Object.keys(_types).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _types[key];
+    }
+  });
+});
+
+/***/ }),
+
+/***/ "./src/utils/types.ts":
+/*!****************************!*\
+  !*** ./src/utils/types.ts ***!
+  \****************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/***/ }),
+
+/***/ "./src/xmlNode.ts":
+/*!************************!*\
+  !*** ./src/xmlNode.ts ***!
+  \************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.XmlNode = exports.TEXT_NODE_NAME = exports.XmlNodeType = void 0;
+
+var _errors = __webpack_require__(/*! ./errors */ "./src/errors/index.ts");
+
+var _utils = __webpack_require__(/*! ./utils */ "./src/utils/index.ts");
+
+let XmlNodeType;
+exports.XmlNodeType = XmlNodeType;
+
+(function (XmlNodeType) {
+  XmlNodeType["Text"] = "Text";
+  XmlNodeType["General"] = "General";
+})(XmlNodeType || (exports.XmlNodeType = XmlNodeType = {}));
+
+const TEXT_NODE_NAME = '#text'; // see: https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeName
+
+exports.TEXT_NODE_NAME = TEXT_NODE_NAME;
+const XmlNode = {
+  //
+  // factories
+  //
+  createTextNode(text) {
+    return {
+      nodeType: XmlNodeType.Text,
+      nodeName: TEXT_NODE_NAME,
+      textContent: text
+    };
+  },
+
+  createGeneralNode(name) {
+    return {
+      nodeType: XmlNodeType.General,
+      nodeName: name
+    };
+  },
+
+  //
+  // serialization
+  //
+
+  /**
+   * Encode string to make it safe to use inside xml tags.
+   * 
+   * https://stackoverflow.com/questions/7918868/how-to-escape-xml-entities-in-javascript
+   */
+  encodeValue(str) {
+    if (str === null || str === undefined) throw new _errors.MissingArgumentError("str");
+    if (typeof str !== 'string') throw new TypeError(`Expected a string, got '${str.constructor.name}'.`);
+    return str.replace(/[<>&'"]/g, c => {
+      switch (c) {
+        case '<':
+          return '&lt;';
+
+        case '>':
+          return '&gt;';
+
+        case '&':
+          return '&amp;';
+
+        case '\'':
+          return '&apos;';
+
+        case '"':
+          return '&quot;';
+      }
+
+      return '';
+    });
+  },
+
+  serialize(node) {
+    if (this.isTextNode(node)) return this.encodeValue(node.textContent || ''); // attributes
+
+    let attributes = '';
+
+    if (node.attributes && node.attributes.length) {
+      attributes = ' ' + node.attributes.map(attr => `${attr.name}="${attr.value}"`).join(' ');
+    } // open tag
+
+
+    const hasChildren = (node.childNodes || []).length > 0;
+    const suffix = hasChildren ? '' : '/';
+    const openTag = `<${node.nodeName}${attributes}${suffix}>`;
+    let xml;
+
+    if (hasChildren) {
+      // child nodes
+      const childrenXml = node.childNodes.map(child => this.serialize(child)).join(''); // close tag
+
+      const closeTag = `</${node.nodeName}>`;
+      xml = openTag + childrenXml + closeTag;
+    } else {
+      xml = openTag;
+    }
+
+    return xml;
+  },
+
+  /**
+   * The conversion is always deep.
+   */
+  fromDomNode(domNode) {
+    let xmlNode; // basic properties
+
+    if (domNode.nodeType === domNode.TEXT_NODE) {
+      xmlNode = this.createTextNode(domNode.textContent);
+    } else {
+      xmlNode = this.createGeneralNode(domNode.nodeName); // attributes
+
+      if (domNode.nodeType === domNode.ELEMENT_NODE) {
+        const attributes = domNode.attributes;
+
+        if (attributes) {
+          xmlNode.attributes = [];
+
+          for (let i = 0; i < attributes.length; i++) {
+            const curAttribute = attributes.item(i);
+            xmlNode.attributes.push({
+              name: curAttribute.name,
+              value: curAttribute.value
+            });
+          }
+        }
+      }
+    } // children
+
+
+    if (domNode.childNodes) {
+      xmlNode.childNodes = [];
+      let prevChild;
+
+      for (let i = 0; i < domNode.childNodes.length; i++) {
+        // clone child
+        const domChild = domNode.childNodes.item(i);
+        const curChild = this.fromDomNode(domChild); // set references                
+
+        xmlNode.childNodes.push(curChild);
+        curChild.parentNode = xmlNode;
+
+        if (prevChild) {
+          prevChild.nextSibling = curChild;
+        }
+
+        prevChild = curChild;
+      }
+    }
+
+    return xmlNode;
+  },
+
+  //
+  // core functions
+  //
+  isTextNode(node) {
+    if (node.nodeType === XmlNodeType.Text || node.nodeName === TEXT_NODE_NAME) {
+      if (!(node.nodeType === XmlNodeType.Text && node.nodeName === TEXT_NODE_NAME)) {
+        throw new Error(`Invalid text node. Type: '${node.nodeType}', Name: '${node.nodeName}'.`);
+      }
+
+      return true;
+    }
+
+    return false;
+  },
+
+  cloneNode(node, deep) {
+    if (!node) throw new _errors.MissingArgumentError("node");
+
+    if (!deep) {
+      const clone = Object.assign({}, node);
+      clone.parentNode = null;
+      clone.childNodes = node.childNodes ? [] : null;
+      clone.nextSibling = null;
+      return clone;
+    } else {
+      const clone = cloneNodeDeep(node);
+      clone.parentNode = null;
+      return clone;
+    }
+  },
+
+  /**
+   * Insert the node as a new sibling, before the original node.
+   *
+   * * **Note**: It is more efficient to use the insertChild function if you
+   *   already know the relevant index.
+   */
+  insertBefore(newNode, referenceNode) {
+    if (!newNode) throw new _errors.MissingArgumentError("newNode");
+    if (!referenceNode) throw new _errors.MissingArgumentError("referenceNode");
+    if (!referenceNode.parentNode) throw new Error(`'${"referenceNode"}' has no parent`);
+    const childNodes = referenceNode.parentNode.childNodes;
+    const beforeNodeIndex = childNodes.indexOf(referenceNode);
+    XmlNode.insertChild(referenceNode.parentNode, newNode, beforeNodeIndex);
+  },
+
+  /**
+   * Insert the node as a new sibling, after the original node.
+   *
+   * * **Note**: It is more efficient to use the insertChild function if you
+   *   already know the relevant index.
+   */
+  insertAfter(newNode, referenceNode) {
+    if (!newNode) throw new _errors.MissingArgumentError("newNode");
+    if (!referenceNode) throw new _errors.MissingArgumentError("referenceNode");
+    if (!referenceNode.parentNode) throw new Error(`'${"referenceNode"}' has no parent`);
+    const childNodes = referenceNode.parentNode.childNodes;
+    const referenceNodeIndex = childNodes.indexOf(referenceNode);
+    XmlNode.insertChild(referenceNode.parentNode, newNode, referenceNodeIndex + 1);
+  },
+
+  insertChild(parent, child, childIndex) {
+    if (!parent) throw new _errors.MissingArgumentError("parent");
+    if (XmlNode.isTextNode(parent)) throw new Error('Appending children to text nodes is forbidden');
+    if (!child) throw new _errors.MissingArgumentError("child");
+    if (!parent.childNodes) parent.childNodes = []; // revert to append
+
+    if (childIndex === parent.childNodes.length) {
+      XmlNode.appendChild(parent, child);
+      return;
+    }
+
+    if (childIndex > parent.childNodes.length) throw new RangeError(`Child index ${childIndex} is out of range. Parent has only ${parent.childNodes.length} child nodes.`); // update references
+
+    child.parentNode = parent;
+    const childAfter = parent.childNodes[childIndex];
+    child.nextSibling = childAfter;
+
+    if (childIndex > 0) {
+      const childBefore = parent.childNodes[childIndex - 1];
+      childBefore.nextSibling = child;
+    } // append
+
+
+    parent.childNodes.splice(childIndex, 0, child);
+  },
+
+  appendChild(parent, child) {
+    if (!parent) throw new _errors.MissingArgumentError("parent");
+    if (XmlNode.isTextNode(parent)) throw new Error('Appending children to text nodes is forbidden');
+    if (!child) throw new _errors.MissingArgumentError("child");
+    if (!parent.childNodes) parent.childNodes = []; // update references
+
+    if (parent.childNodes.length) {
+      const currentLastChild = parent.childNodes[parent.childNodes.length - 1];
+      currentLastChild.nextSibling = child;
+    }
+
+    child.nextSibling = null;
+    child.parentNode = parent; // append
+
+    parent.childNodes.push(child);
+  },
+
+  /**
+   * Removes the node from it's parent.
+   * 
+   * * **Note**: It is more efficient to call removeChild(parent, childIndex).
+   */
+  remove(node) {
+    if (!node) throw new _errors.MissingArgumentError("node");
+    if (!node.parentNode) throw new Error('Node has no parent');
+    removeChild(node.parentNode, node);
+  },
+
+  removeChild,
+
+  //
+  // utility functions
+  //    
+
+  /**
+   * Gets the last direct child text node if it exists. Otherwise creates a
+   * new text node, appends it to 'node' and return the newly created text
+   * node.
+   *
+   * The function also makes sure the returned text node has a valid string
+   * value.
+   */
+  lastTextChild(node) {
+    if (XmlNode.isTextNode(node)) {
+      return node;
+    } // existing text nodes
+
+
+    if (node.childNodes) {
+      const allTextNodes = node.childNodes.filter(child => XmlNode.isTextNode(child));
+
+      if (allTextNodes.length) {
+        const lastTextNode = (0, _utils.last)(allTextNodes);
+        if (!lastTextNode.textContent) lastTextNode.textContent = '';
+        return lastTextNode;
+      }
+    } // create new text node
+
+
+    const newTextNode = {
+      nodeType: XmlNodeType.Text,
+      nodeName: TEXT_NODE_NAME,
+      textContent: ''
+    };
+    XmlNode.appendChild(node, newTextNode);
+    return newTextNode;
+  },
+
+  /**
+   * Remove sibling nodes between 'from' and 'to' excluding both.
+   * Return the removed nodes.
+   */
+  removeSiblings(from, to) {
+    if (from === to) return [];
+    const removed = [];
+    let lastRemoved;
+    from = from.nextSibling;
+
+    while (from !== to) {
+      const removeMe = from;
+      from = from.nextSibling;
+      XmlNode.remove(removeMe);
+      removed.push(removeMe);
+      if (lastRemoved) lastRemoved.nextSibling = removeMe;
+      lastRemoved = removeMe;
+    }
+
+    return removed;
+  },
+
+  /**
+   * Split the original node into two sibling nodes.
+   * Returns both nodes.
+   *
+   * @param root The node to split
+   * @param markerNode The node that marks the split position.      
+   */
+  splitByChild(root, markerNode, removeMarkerNode) {
+    // find the split path
+    const path = getDescendantPath(root, markerNode); // split
+
+    const split = XmlNode.cloneNode(root, false);
+    const childIndex = path[0] + 1;
+
+    while (childIndex < root.childNodes.length) {
+      const curChild = root.childNodes[childIndex];
+      XmlNode.remove(curChild);
+      XmlNode.appendChild(split, curChild);
+    }
+
+    if (root.parentNode) {
+      XmlNode.insertAfter(split, root);
+    } // remove marker node
+
+
+    if (removeMarkerNode && root.childNodes.length) {
+      XmlNode.removeChild(root, root.childNodes.length - 1);
+    }
+
+    return [root, split];
+  },
+
+  findParent(node, predicate) {
+    if (!node) return null;
+
+    while (node.parentNode) {
+      if (predicate(node)) return node;
+      node = node.parentNode;
+    }
+
+    return null;
+  },
+
+  findParentByName(node, nodeName) {
+    return XmlNode.findParent(node, n => n.nodeName === nodeName);
+  },
+
+  findChildByName(node, childName) {
+    if (!node) return null;
+    return (node.childNodes || []).find(child => child.nodeName === childName);
+  },
+
+  /**
+   * Returns all siblings between 'firstNode' and 'lastNode' inclusive.
+   */
+  siblingsInRange(firstNode, lastNode) {
+    if (!firstNode) throw new _errors.MissingArgumentError("firstNode");
+    if (!lastNode) throw new _errors.MissingArgumentError("lastNode");
+    const range = [];
+    let curNode = firstNode;
+
+    while (curNode && curNode !== lastNode) {
+      range.push(curNode);
+      curNode = curNode.nextSibling;
+    }
+
+    if (!curNode) throw new Error('Nodes are not siblings.');
+    range.push(lastNode);
+    return range;
+  }
+
+}; //
+// overloaded functions
+//
+
+/**
+ * Remove a child node from it's parent. Returns the removed child.
+ * 
+ * * **Note:** Prefer calling with explicit index.
+ */
+
+exports.XmlNode = XmlNode;
+
+function removeChild(parent, childOrIndex) {
+  if (!parent) throw new _errors.MissingArgumentError("parent");
+  if (childOrIndex === null || childOrIndex === undefined) throw new _errors.MissingArgumentError("childOrIndex");
+  if (!parent.childNodes || !parent.childNodes.length) throw new Error('Parent node has node children'); // get child index
+
+  let childIndex;
+
+  if (typeof childOrIndex === 'number') {
+    childIndex = childOrIndex;
+  } else {
+    childIndex = parent.childNodes.indexOf(childOrIndex);
+    if (childIndex === -1) throw new Error('Specified child node is not a child of the specified parent');
+  }
+
+  if (childIndex >= parent.childNodes.length) throw new RangeError(`Child index ${childIndex} is out of range. Parent has only ${parent.childNodes.length} child nodes.`); // update references
+
+  const child = parent.childNodes[childIndex];
+
+  if (childIndex > 0) {
+    const beforeChild = parent.childNodes[childIndex - 1];
+    beforeChild.nextSibling = child.nextSibling;
+  }
+
+  child.parentNode = null;
+  child.nextSibling = null; // remove and return
+
+  return parent.childNodes.splice(childIndex, 1)[0];
+} //
+// private functions
+//
+
+
+function cloneNodeDeep(original) {
+  const clone = {}; // basic properties
+
+  clone.nodeType = original.nodeType;
+  clone.nodeName = original.nodeName;
+
+  if (XmlNode.isTextNode(original)) {
+    clone.textContent = original.textContent;
+  } else {
+    const attributes = original.attributes;
+
+    if (attributes) {
+      clone.attributes = attributes.map(attr => ({
+        name: attr.name,
+        value: attr.value
+      }));
+    }
+  } // children
+
+
+  if (original.childNodes) {
+    clone.childNodes = [];
+    let prevChildClone;
+
+    for (const child of original.childNodes) {
+      // clone child
+      const childClone = cloneNodeDeep(child); // set references                
+
+      clone.childNodes.push(childClone);
+      childClone.parentNode = clone;
+
+      if (prevChildClone) {
+        prevChildClone.nextSibling = childClone;
+      }
+
+      prevChildClone = childClone;
+    }
+  }
+
+  return clone;
+}
+
+function getDescendantPath(root, descendant) {
+  const path = [];
+  let node = descendant;
+
+  while (node !== root) {
+    const parent = node.parentNode;
+    if (!parent) throw new Error(`Argument ${"descendant"} is not a descendant of ${"root"}`);
+    const curChildIndex = parent.childNodes.indexOf(node);
+    path.push(curChildIndex);
+    node = parent;
+  }
+
+  return path.reverse();
+}
+
+/***/ }),
+
+/***/ "./src/xmlParser.ts":
+/*!**************************!*\
+  !*** ./src/xmlParser.ts ***!
+  \**************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.XmlParser = void 0;
+
+var xmldom = __webpack_require__(/*! xmldom */ "xmldom");
+
+var _errors = __webpack_require__(/*! ./errors */ "./src/errors/index.ts");
+
+var _xmlNode = __webpack_require__(/*! ./xmlNode */ "./src/xmlNode.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class XmlParser {
+  /**
+   * We always use the DOMParser from 'xmldom', even in the browser since it
+   * handles xml namespaces more forgivingly (required mainly by the
+   * RawXmlPlugin).
+   */
+  parse(str) {
+    const doc = this.domParse(str);
+    return _xmlNode.XmlNode.fromDomNode(doc.documentElement);
+  }
+
+  domParse(str) {
+    if (str === null || str === undefined) throw new _errors.MissingArgumentError("str");
+    return XmlParser.parser.parseFromString(str, "text/xml");
+  }
+
+  serialize(xmlNode) {
+    return XmlParser.xmlHeader + _xmlNode.XmlNode.serialize(xmlNode);
+  }
+
+}
+
+exports.XmlParser = XmlParser;
+
+_defineProperty(XmlParser, "xmlHeader", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>');
+
+_defineProperty(XmlParser, "parser", new xmldom.DOMParser());
 
 /***/ }),
 
