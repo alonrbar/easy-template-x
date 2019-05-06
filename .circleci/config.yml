@@ -24,3 +24,5 @@ jobs:
       - run: yarn typecheck
       - run: yarn lint
       - run: yarn test
+      - store_test_results:
+        path: test-results
