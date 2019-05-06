@@ -1,10 +1,7 @@
-import { expect } from 'chai';
 import * as fs from 'fs';
 import { TagDisposition } from 'src/compilation/tag';
 import { TemplateHandler } from 'src/templateHandler';
 import { randomParagraphs, randomWords } from './testUtils';
-
-// tslint:disable:no-unused-expression object-literal-key-quotes
 
 describe(nameof(TemplateHandler), () => {
 
@@ -22,7 +19,7 @@ describe(nameof(TemplateHandler), () => {
 
             const template: Buffer = fs.readFileSync("./test/res/simple.docx");
             const templateText = await handler.getText(template);
-            expect(templateText.trim()).to.be.equal("{simple_prop}");
+            expect(templateText.trim()).toEqual("{simple_prop}");
 
             // replace tags
 
@@ -33,7 +30,7 @@ describe(nameof(TemplateHandler), () => {
             const doc = await handler.process(template, data);
 
             const docText = await handler.getText(doc);
-            expect(docText.trim()).to.be.equal("hello world");
+            expect(docText.trim()).toEqual("hello world");
         });
 
         it("replaces newlines with <w:br/>", async () => {
@@ -44,7 +41,7 @@ describe(nameof(TemplateHandler), () => {
 
             const template: Buffer = fs.readFileSync("./test/res/simple.docx");
             const templateText = await handler.getText(template);
-            expect(templateText.trim()).to.be.equal("{simple_prop}");
+            expect(templateText.trim()).toEqual("{simple_prop}");
 
             // replace tags
 
@@ -57,7 +54,7 @@ describe(nameof(TemplateHandler), () => {
             fs.writeFileSync('/temp/simple - multiline - output.docx', doc);
 
             const docText = await handler.getText(doc);
-            expect(docText.trim()).to.be.equal("first linesecond line");
+            expect(docText.trim()).toEqual("first linesecond line");
         });
 
         it("escapes xml special characters", async () => {
@@ -68,7 +65,7 @@ describe(nameof(TemplateHandler), () => {
 
             const template: Buffer = fs.readFileSync("./test/res/simple.docx");
             const templateText = await handler.getText(template);
-            expect(templateText.trim()).to.be.equal("{simple_prop}");
+            expect(templateText.trim()).toEqual("{simple_prop}");
 
             // replace tags
 
@@ -81,7 +78,7 @@ describe(nameof(TemplateHandler), () => {
             fs.writeFileSync('/temp/simple - escape chars - output.docx', doc);
 
             const docText = await handler.getText(doc);
-            expect(docText.trim()).to.be.equal("i'm special </w:r>");
+            expect(docText.trim()).toEqual("i'm special </w:r>");
         });
 
         it("replaces loops correctly", async () => {
@@ -90,7 +87,7 @@ describe(nameof(TemplateHandler), () => {
 
             const template: Buffer = fs.readFileSync("./test/res/loop.docx");
             const templateText = await handler.getText(template);
-            expect(templateText.trim()).to.be.equal("{#loop_prop}{simple_prop}!{/loop_prop}");
+            expect(templateText.trim()).toEqual("{#loop_prop}{simple_prop}!{/loop_prop}");
 
             const data = {
                 loop_prop: [
@@ -104,7 +101,7 @@ describe(nameof(TemplateHandler), () => {
             fs.writeFileSync('/temp/simple loop - output.docx', doc);
 
             const docText = await handler.getText(doc);
-            expect(docText).to.be.equal("first!second!");
+            expect(docText).toEqual("first!second!");
         });
 
         it("replaces table row loops correctly", async () => {
@@ -113,7 +110,7 @@ describe(nameof(TemplateHandler), () => {
 
             const template: Buffer = fs.readFileSync("./test/res/loop - table.docx");
             const templateText = await handler.getText(template);
-            expect(templateText.trim()).to.be.equal("{#loop}Repeat this text {prop} And this also…{/loop}");
+            expect(templateText.trim()).toEqual("{#loop}Repeat this text {prop} And this also…{/loop}");
 
             const data = {
                 outProp: 'I am out!',
@@ -128,7 +125,7 @@ describe(nameof(TemplateHandler), () => {
             fs.writeFileSync('/temp/loop - table - output.docx', doc);
 
             const docText = await handler.getText(doc);
-            expect(docText).to.be.equal("Repeat this text first And this also…Repeat this text second And this also…");
+            expect(docText).toEqual("Repeat this text first And this also…Repeat this text second And this also…");
         });
 
         it("replaces list loops correctly", async () => {
@@ -137,7 +134,7 @@ describe(nameof(TemplateHandler), () => {
 
             const template: Buffer = fs.readFileSync("./test/res/loop - list.docx");
             const templateText = await handler.getText(template);
-            expect(templateText.trim()).to.be.equal("{#loop1}Hi{#loop2}{prop}{/loop2}{/loop1}");
+            expect(templateText.trim()).toEqual("{#loop1}Hi{#loop2}{prop}{/loop2}{/loop1}");
 
             const data = {
                 loop1: [
@@ -160,7 +157,7 @@ describe(nameof(TemplateHandler), () => {
             fs.writeFileSync('/temp/loop - list - output.docx', doc);
 
             const docText = await handler.getText(doc);
-            expect(docText).to.be.equal("HifirstsecondHithirdforth");
+            expect(docText).toEqual("HifirstsecondHithirdforth");
         });
 
         it("replaces a loop with open and close tag in the same paragraph correctly", async () => {
@@ -169,7 +166,7 @@ describe(nameof(TemplateHandler), () => {
 
             const template: Buffer = fs.readFileSync("./test/res/loop - same line.docx");
             const templateText = await handler.getText(template);
-            expect(templateText.trim()).to.be.equal("{#loop_prop}{simple_prop}!{/loop_prop}");
+            expect(templateText.trim()).toEqual("{#loop_prop}{simple_prop}!{/loop_prop}");
 
             const data = {
                 loop_prop: [
@@ -183,7 +180,7 @@ describe(nameof(TemplateHandler), () => {
             fs.writeFileSync('/temp/simple loop - same line - output.docx', doc);
 
             const docText = await handler.getText(doc);
-            expect(docText).to.be.equal("first!second!");
+            expect(docText).toEqual("first!second!");
         });
 
         it("replaces a loop whose items have several properties", async () => {
@@ -192,7 +189,7 @@ describe(nameof(TemplateHandler), () => {
 
             const template: Buffer = fs.readFileSync("./test/res/loop - multi props.docx");
             const templateText = await handler.getText(template);
-            expect(templateText.trim()).to.be.equal(
+            expect(templateText.trim()).toEqual(
                 "{#loop_prop}{simple_prop1}!{simple_prop2}!{simple_prop3}!{/loop_prop}"
             );
 
@@ -216,7 +213,7 @@ describe(nameof(TemplateHandler), () => {
             fs.writeFileSync('/temp/loop - multi props - output.docx', doc);
 
             const docText = await handler.getText(doc);
-            expect(docText).to.be.equal("first!second!third!forth!fifth!sixth!");
+            expect(docText).toEqual("first!second!third!forth!fifth!sixth!");
         });
 
         it("replaces nested loops correctly", async () => {
@@ -225,7 +222,7 @@ describe(nameof(TemplateHandler), () => {
 
             const template: Buffer = fs.readFileSync("./test/res/nested loop.docx");
             const templateText = await handler.getText(template);
-            expect(templateText.trim()).to.be.equal("{#loop_prop1}hi!{#loop_prop2}{simple_prop}!{/loop_prop2}{/loop_prop1}");
+            expect(templateText.trim()).toEqual("{#loop_prop1}hi!{#loop_prop2}{simple_prop}!{/loop_prop2}{/loop_prop1}");
 
             const data = {
                 loop_prop1: [
@@ -247,7 +244,7 @@ describe(nameof(TemplateHandler), () => {
             const doc = await handler.process(template, data);
 
             const docText = await handler.getText(doc);
-            expect(docText).to.be.equal("hi!first!second!hi!third!forth!");
+            expect(docText).toEqual("hi!first!second!hi!third!forth!");
         });
 
         it("replaces nested loops fast enough", async () => {
@@ -280,7 +277,7 @@ describe(nameof(TemplateHandler), () => {
 
             fs.writeFileSync('/temp/nested loop speed test - output.docx', doc);
 
-        }).timeout(10000);
+        });
 
         it("handles a real life template (in Hebrew)", async () => {
 
@@ -339,21 +336,21 @@ describe(nameof(TemplateHandler), () => {
 
             const template: Buffer = fs.readFileSync("./test/res/nested loop.docx");
             const templateText = await handler.getText(template);
-            expect(templateText.trim()).to.be.equal("{#loop_prop1}hi!{#loop_prop2}{simple_prop}!{/loop_prop2}{/loop_prop1}");
+            expect(templateText.trim()).toEqual("{#loop_prop1}hi!{#loop_prop2}{simple_prop}!{/loop_prop2}{/loop_prop1}");
 
             const tags = await handler.parseTags(template);
 
-            expect(tags.length).to.equal(5);
-            expect(tags[0].name).to.eql('loop_prop1');
-            expect(tags[0].disposition).to.eql(TagDisposition.Open);
-            expect(tags[1].name).to.eql('loop_prop2');
-            expect(tags[1].disposition).to.eql(TagDisposition.Open);
-            expect(tags[2].name).to.eql('simple_prop');
-            expect(tags[2].disposition).to.eql(TagDisposition.SelfClosed);
-            expect(tags[3].name).to.eql('loop_prop2');
-            expect(tags[3].disposition).to.eql(TagDisposition.Close);
-            expect(tags[4].name).to.eql('loop_prop1');
-            expect(tags[4].disposition).to.eql(TagDisposition.Close);
+            expect(tags.length).toEqual(5);
+            expect(tags[0].name).toEqual('loop_prop1');
+            expect(tags[0].disposition).toEqual(TagDisposition.Open);
+            expect(tags[1].name).toEqual('loop_prop2');
+            expect(tags[1].disposition).toEqual(TagDisposition.Open);
+            expect(tags[2].name).toEqual('simple_prop');
+            expect(tags[2].disposition).toEqual(TagDisposition.SelfClosed);
+            expect(tags[3].name).toEqual('loop_prop2');
+            expect(tags[3].disposition).toEqual(TagDisposition.Close);
+            expect(tags[4].name).toEqual('loop_prop1');
+            expect(tags[4].disposition).toEqual(TagDisposition.Close);
         });
     });
 });

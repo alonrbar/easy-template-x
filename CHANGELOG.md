@@ -12,6 +12,10 @@
           The same goes for lists - the entire bullet is repeated.
 - Throw MalformedFileError when fails to open template file as zip.
 
+### Changed
+
+- Change stack to Babel, Jest and ESLint.
+
 ## [0.4.0 - 2018-13-12](https://github.com/alonrbar/easy-template-x/tree/v0.4.0)
 
 ### Added

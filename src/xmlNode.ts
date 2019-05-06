@@ -16,11 +16,11 @@ export interface XmlNodeBase {
     nextSibling?: XmlNode;
 }
 
-export const TEXT_NODE_NAME_VALUE = '#text'; // see: https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeName
+export const TEXT_NODE_NAME = '#text'; // see: https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeName
 
 export interface XmlTextNode extends XmlNodeBase {
     nodeType: XmlNodeType.Text;
-    nodeName: typeof TEXT_NODE_NAME_VALUE;
+    nodeName: typeof TEXT_NODE_NAME;
     textContent: string;
 }
 
@@ -34,33 +34,26 @@ export interface XmlAttribute {
     value: string;
 }
 
-// tslint:disable-next-line:no-namespace
-export namespace XmlNode {
-
-    //
-    // constants
-    //
-
-    export const TEXT_NODE_NAME = TEXT_NODE_NAME_VALUE;
+export const XmlNode = {
 
     //
     // factories
     //
 
-    export function createTextNode(text?: string): XmlTextNode {
+    createTextNode(text?: string): XmlTextNode {
         return {
             nodeType: XmlNodeType.Text,
-            nodeName: XmlNode.TEXT_NODE_NAME,
+            nodeName: TEXT_NODE_NAME,
             textContent: text
         };
-    }
+    },
 
-    export function createGeneralNode(name: string): XmlGeneralNode {
+    createGeneralNode(name: string): XmlGeneralNode {
         return {
             nodeType: XmlNodeType.General,
             nodeName: name
         };
-    }
+    },
 
     //
     // serialization
@@ -71,7 +64,7 @@ export namespace XmlNode {
      * 
      * https://stackoverflow.com/questions/7918868/how-to-escape-xml-entities-in-javascript
      */
-    export function encodeValue(str: string): string {
+    encodeValue(str: string): string {
         if (str === null || str === undefined)
             throw new MissingArgumentError(nameof(str));
         if (typeof str !== 'string')
@@ -87,11 +80,11 @@ export namespace XmlNode {
             }
             return '';
         });
-    }
+    },
 
-    export function serialize(node: XmlNode): string {
-        if (isTextNode(node))
-            return encodeValue(node.textContent || '');
+    serialize(node: XmlNode): string {
+        if (this.isTextNode(node))
+            return this.encodeValue(node.textContent || '');
 
         // attributes
         let attributes = '';
@@ -112,7 +105,7 @@ export namespace XmlNode {
 
             // child nodes
             const childrenXml = node.childNodes
-                .map(child => serialize(child))
+                .map(child => this.serialize(child))
                 .join('');
 
             // close tag
@@ -124,22 +117,22 @@ export namespace XmlNode {
         }
 
         return xml;
-    }
+    },
 
     /**
      * The conversion is always deep.
      */
-    export function fromDomNode(domNode: Node): XmlNode {
+    fromDomNode(domNode: Node): XmlNode {
         let xmlNode: XmlNode;
 
         // basic properties
         if (domNode.nodeType === domNode.TEXT_NODE) {
 
-            xmlNode = createTextNode(domNode.textContent);
+            xmlNode = this.createTextNode(domNode.textContent);
 
         } else {
 
-            xmlNode = createGeneralNode(domNode.nodeName);
+            xmlNode = this.createGeneralNode(domNode.nodeName);
 
             // attributes
             if (domNode.nodeType === domNode.ELEMENT_NODE) {
@@ -165,7 +158,7 @@ export namespace XmlNode {
 
                 // clone child
                 const domChild = domNode.childNodes.item(i);
-                const curChild = fromDomNode(domChild);
+                const curChild = this.fromDomNode(domChild);
 
                 // set references                
                 xmlNode.childNodes.push(curChild);
@@ -178,13 +171,13 @@ export namespace XmlNode {
         }
 
         return xmlNode as XmlNode;
-    }
+    },
 
     //
     // core functions
     //
 
-    export function isTextNode(node: XmlNode): node is XmlTextNode {
+    isTextNode(node: XmlNode): node is XmlTextNode {
         if (node.nodeType === XmlNodeType.Text || node.nodeName === TEXT_NODE_NAME) {
             if (!(node.nodeType === XmlNodeType.Text && node.nodeName === TEXT_NODE_NAME)) {
                 throw new Error(`Invalid text node. Type: '${node.nodeType}', Name: '${node.nodeName}'.`);
@@ -192,9 +185,9 @@ export namespace XmlNode {
             return true;
         }
         return false;
-    }
+    },
 
-    export function cloneNode(node: XmlNode, deep: boolean): XmlNode {
+    cloneNode(node: XmlNode, deep: boolean): XmlNode {
         if (!node)
             throw new MissingArgumentError(nameof(node));
 
@@ -209,7 +202,7 @@ export namespace XmlNode {
             clone.parentNode = null;
             return clone;
         }
-    }
+    },
 
     /**
      * Insert the node as a new sibling, before the original node.
@@ -217,7 +210,7 @@ export namespace XmlNode {
      * * **Note**: It is more efficient to use the insertChild function if you
      *   already know the relevant index.
      */
-    export function insertBefore(newNode: XmlNode, referenceNode: XmlNode): void {
+    insertBefore(newNode: XmlNode, referenceNode: XmlNode): void {
         if (!newNode)
             throw new MissingArgumentError(nameof(newNode));
         if (!referenceNode)
@@ -229,7 +222,7 @@ export namespace XmlNode {
         const childNodes = referenceNode.parentNode.childNodes;
         const beforeNodeIndex = childNodes.indexOf(referenceNode);
         XmlNode.insertChild(referenceNode.parentNode, newNode, beforeNodeIndex);
-    }
+    },
 
     /**
      * Insert the node as a new sibling, after the original node.
@@ -237,7 +230,7 @@ export namespace XmlNode {
      * * **Note**: It is more efficient to use the insertChild function if you
      *   already know the relevant index.
      */
-    export function insertAfter(newNode: XmlNode, referenceNode: XmlNode): void {
+    insertAfter(newNode: XmlNode, referenceNode: XmlNode): void {
         if (!newNode)
             throw new MissingArgumentError(nameof(newNode));
         if (!referenceNode)
@@ -249,12 +242,12 @@ export namespace XmlNode {
         const childNodes = referenceNode.parentNode.childNodes;
         const referenceNodeIndex = childNodes.indexOf(referenceNode);
         XmlNode.insertChild(referenceNode.parentNode, newNode, referenceNodeIndex + 1);
-    }
+    },
 
-    export function insertChild(parent: XmlNode, child: XmlNode, childIndex: number): void {
+    insertChild(parent: XmlNode, child: XmlNode, childIndex: number): void {
         if (!parent)
             throw new MissingArgumentError(nameof(parent));
-        if (isTextNode(parent))
+        if (XmlNode.isTextNode(parent))
             throw new Error('Appending children to text nodes is forbidden');
         if (!child)
             throw new MissingArgumentError(nameof(child));
@@ -284,12 +277,12 @@ export namespace XmlNode {
 
         // append
         parent.childNodes.splice(childIndex, 0, child);
-    }
+    },
 
-    export function appendChild(parent: XmlNode, child: XmlNode): void {
+    appendChild(parent: XmlNode, child: XmlNode): void {
         if (!parent)
             throw new MissingArgumentError(nameof(parent));
-        if (isTextNode(parent))
+        if (XmlNode.isTextNode(parent))
             throw new Error('Appending children to text nodes is forbidden');
         if (!child)
             throw new MissingArgumentError(nameof(child));
@@ -307,14 +300,14 @@ export namespace XmlNode {
 
         // append
         parent.childNodes.push(child);
-    }
+    },
 
     /**
      * Removes the node from it's parent.
      * 
      * * **Note**: It is more efficient to call removeChild(parent, childIndex).
      */
-    export function remove(node: XmlNode): void {
+    remove(node: XmlNode): void {
         if (!node)
             throw new MissingArgumentError(nameof(node));
 
@@ -322,52 +315,9 @@ export namespace XmlNode {
             throw new Error('Node has no parent');
 
         removeChild(node.parentNode, node);
-    }
+    },
 
-    /**
-     * Remove a child node from it's parent. Returns the removed child.
-     * 
-     * * **Note:** Prefer calling with explicit index.
-     */
-    export function removeChild(parent: XmlNode, child: XmlNode): XmlNode;
-    /**
-     * Remove a child node from it's parent. Returns the removed child.
-     */
-    export function removeChild(parent: XmlNode, childIndex: number): XmlNode;
-    export function removeChild(parent: XmlNode, childOrIndex: XmlNode | number): XmlNode {
-        if (!parent)
-            throw new MissingArgumentError(nameof(parent));
-        if (childOrIndex === null || childOrIndex === undefined)
-            throw new MissingArgumentError(nameof(childOrIndex));
-
-        if (!parent.childNodes || !parent.childNodes.length)
-            throw new Error('Parent node has node children');
-
-        // get child index
-        let childIndex: number;
-        if (typeof childOrIndex === 'number') {
-            childIndex = childOrIndex;
-        } else {
-            childIndex = parent.childNodes.indexOf(childOrIndex);
-            if (childIndex === -1)
-                throw new Error('Specified child node is not a child of the specified parent');
-        }
-
-        if (childIndex >= parent.childNodes.length)
-            throw new RangeError(`Child index ${childIndex} is out of range. Parent has only ${parent.childNodes.length} child nodes.`);
-
-        // update references
-        const child = parent.childNodes[childIndex];
-        if (childIndex > 0) {
-            const beforeChild = parent.childNodes[childIndex - 1];
-            beforeChild.nextSibling = child.nextSibling;
-        }
-        child.parentNode = null;
-        child.nextSibling = null;
-
-        // remove and return
-        return parent.childNodes.splice(childIndex, 1)[0];
-    }
+    removeChild,
 
     //
     // utility functions
@@ -381,14 +331,14 @@ export namespace XmlNode {
      * The function also makes sure the returned text node has a valid string
      * value.
      */
-    export function lastTextChild(node: XmlNode): XmlTextNode {
-        if (isTextNode(node)) {
+    lastTextChild(node: XmlNode): XmlTextNode {
+        if (XmlNode.isTextNode(node)) {
             return node;
         }
 
         // existing text nodes
         if (node.childNodes) {
-            const allTextNodes = node.childNodes.filter(child => isTextNode(child)) as XmlTextNode[];
+            const allTextNodes = node.childNodes.filter(child => XmlNode.isTextNode(child)) as XmlTextNode[];
             if (allTextNodes.length) {
                 const lastTextNode = last(allTextNodes);
                 if (!lastTextNode.textContent)
@@ -404,15 +354,15 @@ export namespace XmlNode {
             textContent: ''
         };
 
-        appendChild(node, newTextNode);
+        XmlNode.appendChild(node, newTextNode);
         return newTextNode;
-    }
+    },
 
     /**
      * Remove sibling nodes between 'from' and 'to' excluding both.
      * Return the removed nodes.
      */
-    export function removeSiblings(from: XmlNode, to: XmlNode): XmlNode[] {
+    removeSiblings(from: XmlNode, to: XmlNode): XmlNode[] {
         if (from === to)
             return [];
 
@@ -432,7 +382,7 @@ export namespace XmlNode {
         }
 
         return removed;
-    }
+    },
 
     /**
      * Split the original node into two sibling nodes.
@@ -441,7 +391,7 @@ export namespace XmlNode {
      * @param root The node to split
      * @param markerNode The node that marks the split position.      
      */
-    export function splitByChild(root: XmlNode, markerNode: XmlNode, removeMarkerNode: boolean): [XmlNode, XmlNode] {
+    splitByChild(root: XmlNode, markerNode: XmlNode, removeMarkerNode: boolean): [XmlNode, XmlNode] {
 
         // find the split path
         const path = getDescendantPath(root, markerNode);
@@ -465,9 +415,9 @@ export namespace XmlNode {
         }
 
         return [root, split];
-    }
+    },
 
-    export function findParent(node: XmlNode, predicate: (node: XmlNode) => boolean): XmlNode {
+    findParent(node: XmlNode, predicate: (node: XmlNode) => boolean): XmlNode {
         if (!node)
             return null;
 
@@ -480,22 +430,22 @@ export namespace XmlNode {
         }
 
         return null;
-    }
+    },
 
-    export function findParentByName(node: XmlNode, nodeName: string): XmlNode {
+    findParentByName(node: XmlNode, nodeName: string): XmlNode {
         return XmlNode.findParent(node, n => n.nodeName === nodeName);
-    }
+    },
 
-    export function findChildByName(node: XmlNode, childName: string): XmlNode {
+    findChildByName(node: XmlNode, childName: string): XmlNode {
         if (!node)
             return null;
         return (node.childNodes || []).find(child => child.nodeName === childName);
-    }
+    },
 
     /**
      * Returns all siblings between 'firstNode' and 'lastNode' inclusive.
      */
-    export function siblingsInRange(firstNode: XmlNode, lastNode: XmlNode): XmlNode[] {
+    siblingsInRange(firstNode: XmlNode, lastNode: XmlNode): XmlNode[] {
         if (!firstNode)
             throw new MissingArgumentError(nameof(firstNode));
         if (!lastNode)
@@ -514,64 +464,113 @@ export namespace XmlNode {
         range.push(lastNode);
         return range;
     }
+};
 
-    //
-    // private functions
-    //
+//
+// overloaded functions
+//
 
-    function cloneNodeDeep(original: XmlNode): XmlNode {
+/**
+ * Remove a child node from it's parent. Returns the removed child.
+ * 
+ * * **Note:** Prefer calling with explicit index.
+ */
+function removeChild(parent: XmlNode, child: XmlNode): XmlNode;
+/**
+ * Remove a child node from it's parent. Returns the removed child.
+ */
+function removeChild(parent: XmlNode, childIndex: number): XmlNode;
+function removeChild(parent: XmlNode, childOrIndex: XmlNode | number): XmlNode {
+    if (!parent)
+        throw new MissingArgumentError(nameof(parent));
+    if (childOrIndex === null || childOrIndex === undefined)
+        throw new MissingArgumentError(nameof(childOrIndex));
 
-        const clone: XmlNode = ({} as any);
+    if (!parent.childNodes || !parent.childNodes.length)
+        throw new Error('Parent node has node children');
 
-        // basic properties
-        clone.nodeType = original.nodeType;
-        clone.nodeName = original.nodeName;
-        if (isTextNode(original)) {
-            (clone as XmlTextNode).textContent = original.textContent;
-        } else {
-            const attributes = original.attributes;
-            if (attributes) {
-                (clone as XmlGeneralNode).attributes = attributes.map(attr => ({ name: attr.name, value: attr.value }));
-            }
-        }
-
-        // children
-        if (original.childNodes) {
-            clone.childNodes = [];
-            let prevChildClone: XmlNode;
-            for (const child of original.childNodes) {
-
-                // clone child
-                const childClone = cloneNodeDeep(child);
-
-                // set references                
-                clone.childNodes.push(childClone);
-                childClone.parentNode = clone;
-                if (prevChildClone) {
-                    prevChildClone.nextSibling = childClone;
-                }
-                prevChildClone = childClone;
-            }
-        }
-
-        return clone;
+    // get child index
+    let childIndex: number;
+    if (typeof childOrIndex === 'number') {
+        childIndex = childOrIndex;
+    } else {
+        childIndex = parent.childNodes.indexOf(childOrIndex);
+        if (childIndex === -1)
+            throw new Error('Specified child node is not a child of the specified parent');
     }
 
-    function getDescendantPath(root: XmlNode, descendant: XmlNode): number[] {
-        const path: number[] = [];
+    if (childIndex >= parent.childNodes.length)
+        throw new RangeError(`Child index ${childIndex} is out of range. Parent has only ${parent.childNodes.length} child nodes.`);
 
-        let node = descendant;
-        while (node !== root) {
-            const parent = node.parentNode;
-            if (!parent)
-                throw new Error(`Argument ${nameof(descendant)} is not a descendant of ${nameof(root)}`);
-
-            const curChildIndex = parent.childNodes.indexOf(node);
-            path.push(curChildIndex);
-
-            node = parent;
-        }
-
-        return path.reverse();
+    // update references
+    const child = parent.childNodes[childIndex];
+    if (childIndex > 0) {
+        const beforeChild = parent.childNodes[childIndex - 1];
+        beforeChild.nextSibling = child.nextSibling;
     }
+    child.parentNode = null;
+    child.nextSibling = null;
+
+    // remove and return
+    return parent.childNodes.splice(childIndex, 1)[0];
+}
+
+//
+// private functions
+//
+
+function cloneNodeDeep(original: XmlNode): XmlNode {
+
+    const clone: XmlNode = ({} as any);
+
+    // basic properties
+    clone.nodeType = original.nodeType;
+    clone.nodeName = original.nodeName;
+    if (XmlNode.isTextNode(original)) {
+        (clone as XmlTextNode).textContent = original.textContent;
+    } else {
+        const attributes = original.attributes;
+        if (attributes) {
+            (clone as XmlGeneralNode).attributes = attributes.map(attr => ({ name: attr.name, value: attr.value }));
+        }
+    }
+
+    // children
+    if (original.childNodes) {
+        clone.childNodes = [];
+        let prevChildClone: XmlNode;
+        for (const child of original.childNodes) {
+
+            // clone child
+            const childClone = cloneNodeDeep(child);
+
+            // set references                
+            clone.childNodes.push(childClone);
+            childClone.parentNode = clone;
+            if (prevChildClone) {
+                prevChildClone.nextSibling = childClone;
+            }
+            prevChildClone = childClone;
+        }
+    }
+
+    return clone;
+}
+
+function getDescendantPath(root: XmlNode, descendant: XmlNode): number[] {
+    const path: number[] = [];
+
+    let node = descendant;
+    while (node !== root) {
+        const parent = node.parentNode;
+        if (!parent)
+            throw new Error(`Argument ${nameof(descendant)} is not a descendant of ${nameof(root)}`);
+
+        const curChildIndex = parent.childNodes.indexOf(node);
+        path.push(curChildIndex);
+
+        node = parent;
+    }
+
+    return path.reverse();
 }

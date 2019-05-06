@@ -3,10 +3,9 @@ import { MissingArgumentError } from '../errors';
 
 export type Binary = Blob | Buffer | ArrayBuffer;
 
-// tslint:disable-next-line:no-namespace
-export namespace Binary {
+export const Binary = {
 
-    export function toJsZipOutputType(binary: Binary): JSZip.OutputType {
+    toJsZipOutputType(binary: Binary): JSZip.OutputType {
         if (!binary)
             throw new MissingArgumentError(nameof(binary));
 
@@ -18,6 +17,5 @@ export namespace Binary {
             return 'nodebuffer';
 
         throw new Error(`Binary type '${(binary as any).constructor.name}' is not supported.`);
-
     }
-}
+};

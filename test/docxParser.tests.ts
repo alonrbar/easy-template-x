@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import { DocxParser } from 'src/docxParser';
 import { XmlTextNode } from 'src/xmlNode';
 import { parseXml } from './testUtils';
@@ -19,17 +18,17 @@ describe(nameof(DocxParser), () => {
             `);
             const runNode = paragraphNode.childNodes[0];
             const firstXmlTextNode = runNode.childNodes[0].childNodes[0] as XmlTextNode;
-            expect(firstXmlTextNode.textContent).to.eql('1');
+            expect(firstXmlTextNode.textContent).toEqual('1');
             const lastXmlTextNode = runNode.childNodes[2].childNodes[0] as XmlTextNode;
-            expect(lastXmlTextNode.textContent).to.eql('3');
+            expect(lastXmlTextNode.textContent).toEqual('3');
 
             const parser = new DocxParser();
             parser.joinTextNodesRange(firstXmlTextNode, lastXmlTextNode);
 
-            expect(runNode.childNodes.length).to.eql(1);
-            expect(runNode.childNodes[0].childNodes.length).to.eql(1);
-            expect(runNode.childNodes[0].childNodes[0]).to.eql(firstXmlTextNode);
-            expect(firstXmlTextNode.textContent).to.eql('123');
+            expect(runNode.childNodes.length).toEqual(1);
+            expect(runNode.childNodes[0].childNodes.length).toEqual(1);
+            expect(runNode.childNodes[0].childNodes[0]).toEqual(firstXmlTextNode);
+            expect(firstXmlTextNode.textContent).toEqual('123');
         });
 
         it('joins a range of text nodes from three different runs', () => {
@@ -51,19 +50,19 @@ describe(nameof(DocxParser), () => {
             `);
             const firstRunNode = paragraphNode.childNodes[0];
             const firstXmlTextNode = firstRunNode.childNodes[0].childNodes[0] as XmlTextNode;
-            expect(firstXmlTextNode.textContent).to.eql('1');
+            expect(firstXmlTextNode.textContent).toEqual('1');
             const thirdRunNode = paragraphNode.childNodes[2];
             const lastXmlTextNode = thirdRunNode.childNodes[1].childNodes[0] as XmlTextNode;
-            expect(lastXmlTextNode.textContent).to.eql('6');
+            expect(lastXmlTextNode.textContent).toEqual('6');
 
             const parser = new DocxParser();
             parser.joinTextNodesRange(firstXmlTextNode, lastXmlTextNode);
 
-            expect(paragraphNode.childNodes.length).to.eql(1);
-            expect(firstRunNode.childNodes.length).to.eql(1);
-            expect(firstRunNode.childNodes[0].childNodes.length).to.eql(1);
-            expect(firstRunNode.childNodes[0].childNodes[0]).to.eql(firstXmlTextNode);
-            expect(firstXmlTextNode.textContent).to.eql('123456');
+            expect(paragraphNode.childNodes.length).toEqual(1);
+            expect(firstRunNode.childNodes.length).toEqual(1);
+            expect(firstRunNode.childNodes[0].childNodes.length).toEqual(1);
+            expect(firstRunNode.childNodes[0].childNodes[0]).toEqual(firstXmlTextNode);
+            expect(firstXmlTextNode.textContent).toEqual('123456');
         });
 
         it('does not join nodes from outside the specified range', () => {
@@ -89,11 +88,11 @@ describe(nameof(DocxParser), () => {
             
             const fromRunNode = paragraphNode.childNodes[1];
             const fromXmlTextNode = fromRunNode.childNodes[1].childNodes[0] as XmlTextNode;
-            expect(fromXmlTextNode.textContent).to.eql('2');
+            expect(fromXmlTextNode.textContent).toEqual('2');
 
             const toRunNode = paragraphNode.childNodes[2];
             const toXmlTextNode = toRunNode.childNodes[0].childNodes[0] as XmlTextNode;
-            expect(toXmlTextNode.textContent).to.eql('4');
+            expect(toXmlTextNode.textContent).toEqual('4');
 
             // parse
 
@@ -102,11 +101,11 @@ describe(nameof(DocxParser), () => {
 
             // assert
 
-            expect(paragraphNode.childNodes.length).to.eql(3);
-            expect(fromRunNode.childNodes.length).to.eql(2);
-            expect(fromRunNode.childNodes[1].childNodes.length).to.eql(1);
-            expect(fromRunNode.childNodes[1].childNodes[0]).to.eql(fromXmlTextNode);
-            expect(fromXmlTextNode.textContent).to.eql('234');
+            expect(paragraphNode.childNodes.length).toEqual(3);
+            expect(fromRunNode.childNodes.length).toEqual(2);
+            expect(fromRunNode.childNodes[1].childNodes.length).toEqual(1);
+            expect(fromRunNode.childNodes[1].childNodes[0]).toEqual(fromXmlTextNode);
+            expect(fromXmlTextNode.textContent).toEqual('234');
         });
 
     });

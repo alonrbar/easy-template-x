@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import { DelimiterMark } from 'src/compilation/delimiterMark';
 import { TagDisposition } from 'src/compilation/tag';
 import { TagParser } from 'src/compilation/tagParser';
@@ -46,17 +45,17 @@ describe(nameof(TagParser), () => {
         const parser = createTagParser();
         const tags = parser.parse(delimiters);
 
-        expect(tags.length).to.eql(2);
+        expect(tags.length).toEqual(2);
 
         // open tag
-        expect(tags[0].disposition).to.eql(TagDisposition.Open);
-        expect(tags[0].name).to.eql('loop');
-        expect(tags[0].rawText).to.eql('{#loop}');
+        expect(tags[0].disposition).toEqual(TagDisposition.Open);
+        expect(tags[0].name).toEqual('loop');
+        expect(tags[0].rawText).toEqual('{#loop}');
 
         // close tag
-        expect(tags[1].disposition).to.eql(TagDisposition.Close);
-        expect(tags[1].name).to.eql('loop');
-        expect(tags[1].rawText).to.eql('{/loop}');
+        expect(tags[1].disposition).toEqual(TagDisposition.Close);
+        expect(tags[1].name).toEqual('loop');
+        expect(tags[1].rawText).toEqual('{/loop}');
     });
 
     it('parses correctly a butterfly }{', () => {
@@ -101,17 +100,17 @@ describe(nameof(TagParser), () => {
         const parser = createTagParser();
         const tags = parser.parse(delimiters);
 
-        expect(tags.length).to.eql(2);
+        expect(tags.length).toEqual(2);
 
         // open tag
-        expect(tags[0].disposition).to.eql(TagDisposition.Open);
-        expect(tags[0].name).to.eql('loop');
-        expect(tags[0].rawText).to.eql('{#loop}');
+        expect(tags[0].disposition).toEqual(TagDisposition.Open);
+        expect(tags[0].name).toEqual('loop');
+        expect(tags[0].rawText).toEqual('{#loop}');
 
         // close tag
-        expect(tags[1].disposition).to.eql(TagDisposition.Close);
-        expect(tags[1].name).to.eql('loop');
-        expect(tags[1].rawText).to.eql('{/loop}');
+        expect(tags[1].disposition).toEqual(TagDisposition.Close);
+        expect(tags[1].name).toEqual('loop');
+        expect(tags[1].rawText).toEqual('{/loop}');
     });
 
     it('parses correctly a splitted simple tag', () => {
@@ -144,12 +143,12 @@ describe(nameof(TagParser), () => {
         const parser = createTagParser();
         const tags = parser.parse(delimiters);
 
-        expect(tags.length).to.eql(1);
+        expect(tags.length).toEqual(1);
 
         // tag
-        expect(tags[0].disposition).to.eql(TagDisposition.Open);
-        expect(tags[0].name).to.eql('loop');
-        expect(tags[0].rawText).to.eql('{#loop}');
+        expect(tags[0].disposition).toEqual(TagDisposition.Open);
+        expect(tags[0].name).toEqual('loop');
+        expect(tags[0].rawText).toEqual('{#loop}');
     });
 
 });

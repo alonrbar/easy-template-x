@@ -14,7 +14,7 @@ module.exports = {
     externals: [nodeExternals()],
     module: {
         rules: [
-            { test: /.ts$/, use: ['ts-loader', 'ts-nameof-loader'] }
+            { test: /.ts$/, use: 'babel-loader' }
         ]
     },
     resolve: {

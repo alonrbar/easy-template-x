@@ -7,32 +7,31 @@ export enum FileType {
     Odt = 'odt'
 }
 
-// tslint:disable-next-line:no-namespace
-export namespace FileType {
+export class FileTypeHelper {
 
-    export function getFileType(zipFile: JSZip): FileType {
+    public static getFileType(zipFile: JSZip): FileType {
 
-        if (isDocx(zipFile))
+        if (FileTypeHelper.isDocx(zipFile))
             return FileType.Docx;
 
-        if (isPptx(zipFile))
+        if (FileTypeHelper.isPptx(zipFile))
             return FileType.Pptx;
 
-        if (isOdt(zipFile))
+        if (FileTypeHelper.isOdt(zipFile))
             return FileType.Odt;
 
         throw new UnidentifiedFileTypeError();
     }
 
-    export function isDocx(zipFile: JSZip): boolean {
+    public static isDocx(zipFile: JSZip): boolean {
         return !!(zipFile.files["word/document.xml"] || zipFile.files["word/document2.xml"]);
     }
 
-    export function isPptx(zipFile: JSZip): boolean {
+    public static isPptx(zipFile: JSZip): boolean {
         return !!zipFile.files["ppt/presentation.xml"];
     }
 
-    export function isOdt(zipFile: JSZip): boolean {
+    public static isOdt(zipFile: JSZip): boolean {
         return !!zipFile.files['mimetype'];
     }
 }

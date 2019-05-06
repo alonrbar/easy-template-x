@@ -2,6 +2,7 @@
 /.vscode/settings.json
 /node_modules
 /out
+/test-reports
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
