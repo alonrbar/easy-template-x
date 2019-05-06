@@ -23,6 +23,7 @@ jobs:
 
       - run: yarn typecheck
       - run: yarn lint
-      - run: yarn test
-      - store_test_results:
-          path: test-reports
+      - run: 
+          command: yarn test --ci --runInBand
+          environment:
+            JEST_JUNIT_OUTPUT: "reports/junit/js-test-results.xml"
