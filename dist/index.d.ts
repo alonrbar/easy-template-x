@@ -17,7 +17,7 @@ export declare class TemplateHandler {
     getText(docxFile: Binary): Promise<string>;
 
     /**
-     * Get the text content of the main document file.
+     * Get the xml tree of the main document file.
      */
     getXml(docxFile: Binary): Promise<XmlNode>;
 }
