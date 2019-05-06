@@ -2,7 +2,7 @@
 
 Generate docx documents from templates, in Node or in the browser.
 
-[![CircleCI](https://circleci.com/gh/alonrbar/easy-template-x.svg?style=shield)](https://circleci.com/gh/alonrbar/easy-template-x/tree/develop)
+[![CircleCI](https://circleci.com/gh/alonrbar/easy-template-x.svg?style=shield)](https://circleci.com/gh/alonrbar/easy-template-x)
 [![npm version](https://img.shields.io/npm/v/easy-template-x.svg)](https://www.npmjs.com/package/easy-template-x)
 [![npm license](https://img.shields.io/npm/l/easy-template-x.svg)](https://www.npmjs.com/package/easy-template-x)
 [![dependencies](https://david-dm.org/alonrbar/easy-template-x.svg)](https://github.com/alonrbar/easy-template-x)
