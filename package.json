@@ -28,7 +28,6 @@
   ],
   "scripts": {
     "dev": "webpack --config webpack.dev.js --watch",
-    "compile": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"./{src,test}/**/!(*.d).ts\"",
     "test": "jest --verbose",

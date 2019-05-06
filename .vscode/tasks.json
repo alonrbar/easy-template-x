@@ -5,7 +5,7 @@
     "tasks": [
         {
             "type": "npm",
-            "script": "compile",
+            "script": "typecheck",
             "problemMatcher": [
                 "$tsc"
             ],
