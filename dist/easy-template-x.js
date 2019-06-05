@@ -4254,12 +4254,14 @@ class TextPlugin extends _templatePlugin.TemplatePlugin {
    * Replace the node text content with the specified value.
    */
   simpleTagReplacements(tag, data) {
-    const value = (data.getScopeData() || '').split('\n');
+    const value = data.getScopeData();
+    const stringValue = value === null || value === undefined ? '' : value.toString();
+    const lines = stringValue.split('\n');
 
-    if (value.length < 2) {
-      this.replaceSingleLine(tag.xmlTextNode, value.length ? value[0] : '');
+    if (lines.length < 2) {
+      this.replaceSingleLine(tag.xmlTextNode, lines.length ? lines[0] : '');
     } else {
-      this.replaceMultiLine(tag.xmlTextNode, value);
+      this.replaceMultiLine(tag.xmlTextNode, lines);
     }
   }
 

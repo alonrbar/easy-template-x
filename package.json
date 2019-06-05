@@ -1,6 +1,6 @@
 {
   "name": "easy-template-x",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Generate docx documents from templates, in Node or in the browser.",
   "keywords": [
     "docx",

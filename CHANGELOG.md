@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.5.1 - 2019-06-05](https://github.com/alonrbar/easy-template-x/tree/v0.5.1)
+
+### Fixed
+
+- Handle non-textual values (numbers, booleans...) in TextPlugin.
+
 ## [0.5.0 - 2019-05-07](https://github.com/alonrbar/easy-template-x/tree/v0.5.0)
 
 ### Added
