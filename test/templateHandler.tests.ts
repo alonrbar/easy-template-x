@@ -33,6 +33,28 @@ describe(nameof(TemplateHandler), () => {
             expect(docText.trim()).toEqual("hello world");
         });
 
+        it("handles numeric values", async () => {
+
+            const handler = new TemplateHandler();
+
+            // load the template
+
+            const template: Buffer = fs.readFileSync("./test/res/simple.docx");
+            const templateText = await handler.getText(template);
+            expect(templateText.trim()).toEqual("{simple_prop}");
+
+            // replace tags
+
+            const data = {
+                simple_prop: 123
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docText = await handler.getText(doc);
+            expect(docText.trim()).toEqual("123");
+        });
+
         it("replaces newlines with <w:br/>", async () => {
 
             const handler = new TemplateHandler();
