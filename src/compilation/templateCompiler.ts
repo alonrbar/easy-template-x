@@ -1,5 +1,7 @@
 import { UnclosedTagError } from '../errors';
 import { TemplatePlugin } from '../plugins';
+import { toDictionary } from '../utils/array';
+import { IMap } from '../utils/types';
 import { XmlNode } from '../xmlNode';
 import { DelimiterSearcher } from './delimiterSearcher';
 import { ScopeData } from './scopeData';
@@ -19,10 +21,16 @@ import { TemplateContext } from './templateContext';
  */
 export class TemplateCompiler {
 
+    public defaultTagType = 'text'; // TODO: import constant
+
+    private readonly pluginsLookup: IMap<TemplatePlugin>;
+
     constructor(
         private readonly delimiterSearcher: DelimiterSearcher,
         private readonly tagParser: TagParser,
-        private readonly plugins: TemplatePlugin[]) {
+        plugins: TemplatePlugin[]
+    ) {
+        this.pluginsLookup = toDictionary(plugins, p => p.tagType);
     }
 
     /**
@@ -46,35 +54,41 @@ export class TemplateCompiler {
 
     private doTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): void {
 
-        for (let i = 0; i < tags.length; i++) {
+        for (let tagIndex = 0; tagIndex < tags.length; tagIndex++) {
 
-            const tag = tags[i];
+            const tag = tags[tagIndex];
             data.path.push(tag.name);
+
+            // detect tag type
+            // TODO: add test for rawXml plugin since no test failed...
+            if (!tag.type) {
+                const scopeData = data.getScopeData();
+                if (scopeData && typeof scopeData._type === 'string') {
+                    tag.type = scopeData._type;
+                } else {
+                    tag.type = this.defaultTagType;
+                }
+            }
+            const plugin = this.pluginsLookup[tag.type];
+
+            // no plugin matches the given tag type - skip processing it
+            if (!plugin)
+                continue;
 
             if (tag.disposition === TagDisposition.SelfClosed) {
 
-                // replace simple tag
-                for (const plugin of this.plugins) {
-                    if (plugin.prefixes.some(prefix => prefix.tagType === tag.type)) {
-                        plugin.simpleTagReplacements(tag, data, context);
-                        break;
-                    }
-                }
+                // replace simple tag                
+                plugin.simpleTagReplacements(tag, data, context);
 
             } else if (tag.disposition === TagDisposition.Open) {
 
                 // get all tags between the open and close tags
-                const j = this.findCloseTagIndex(i, tag, tags);
-                const scopeTags = tags.slice(i, j + 1);
-                i = j;
+                const closingTagIndex = this.findCloseTagIndex(tagIndex, tag, tags);
+                const scopeTags = tags.slice(tagIndex, closingTagIndex + 1);
+                tagIndex = closingTagIndex;
 
                 // replace container tag
-                for (const plugin of this.plugins) {
-                    if (plugin.prefixes.some(prefix => prefix.tagType === tag.type)) {
-                        plugin.containerTagReplacements(scopeTags, data, context);
-                        break;
-                    }
-                }
+                plugin.containerTagReplacements(scopeTags, data, context);
             }
 
             data.path.pop();

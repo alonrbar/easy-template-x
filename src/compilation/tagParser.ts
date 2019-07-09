@@ -1,28 +1,31 @@
+import { Delimiters } from '../delimiters';
 import { DocxParser } from '../docxParser';
-import { MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, UnknownPrefixError } from '../errors';
+import { MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError } from '../errors';
 import { XmlTextNode } from '../xmlNode';
 import { DelimiterMark } from './delimiterMark';
-import { Tag, TagPrefix } from './tag';
+import { Tag, TagDisposition } from './tag';
 
 export class TagParser {
 
-    public startDelimiter = "{";
-    public endDelimiter = "}";
+    public containerTagType = 'loop'; // TODO: import constant
+
+    private readonly tagRegex: RegExp;
 
     constructor(
-        private readonly tagPrefixes: TagPrefix[],
-        private readonly docParser: DocxParser
+        private readonly docParser: DocxParser,
+        delimiters?: Delimiters
     ) {
-        if (!tagPrefixes || !tagPrefixes.length)
-            throw new MissingArgumentError(nameof(tagPrefixes));
         if (!docParser)
             throw new MissingArgumentError(nameof(docParser));
+        delimiters = delimiters || new Delimiters();
+
+        this.tagRegex = new RegExp(`^[${delimiters.tagStart}](.*?)[${delimiters.tagEnd}]`, 'mi');
     }
 
     public parse(delimiters: DelimiterMark[]): Tag[] {
         const tags: Tag[] = [];
 
-        let openedTag: Tag;
+        let openedTag: Partial<Tag>;
         let openedDelimiter: DelimiterMark;
         let lastNormalizedNode: XmlTextNode;
         let lastInflictedOffset: number;
@@ -42,7 +45,7 @@ export class TagParser {
 
             // valid open
             if (!openedTag && delimiter.isOpen) {
-                openedTag = new Tag();
+                openedTag = {};
                 openedDelimiter = delimiter;
             }
 
@@ -62,8 +65,8 @@ export class TagParser {
                 openedTag.xmlTextNode = openedDelimiter.xmlTextNode;
 
                 // extract tag info from tag's text
-                this.processTag(openedTag);
-                tags.push(openedTag);
+                this.processTag(openedTag as Tag);
+                tags.push(openedTag as Tag);
                 openedTag = null;
                 openedDelimiter = null;
             }
@@ -120,22 +123,30 @@ export class TagParser {
 
     private processTag(tag: Tag): void {
         tag.rawText = tag.xmlTextNode.textContent;
-        for (const prefix of this.tagPrefixes) {
 
-            // TODO: compile regex once
-            const pattern = `^[${this.startDelimiter}](\\s*?)${prefix.prefix}(.*?)[${this.endDelimiter}]`;
-            const regex = new RegExp(pattern, 'gmi');
+        const tagParts = this.tagRegex.exec(tag.rawText);
+        const tagContent = (tagParts[1] || '').trim();
+        if (!tagContent || !tagContent.length) {
+            tag.disposition = TagDisposition.SelfClosed;
+            // TODO: test empty tag handling
+            return;
+        }        
 
-            const match = regex.exec(tag.rawText);
-            if (match && match.length) {
-                tag.name = match[2];
-                tag.type = prefix.tagType;
-                tag.disposition = prefix.tagDisposition;
-                break;
-            }
+        if (tagContent[0] === '#') {
+            tag.type = this.containerTagType;
+            tag.disposition = TagDisposition.Open;
+            tag.name = tagContent.slice(1);
+
+        } else if (tagContent[0] === '/') {
+            tag.type = this.containerTagType;
+            tag.disposition = TagDisposition.Close;
+            tag.name = tagContent.slice(1);
+
+        } else {
+            // note: tag type will be assigned by the TemplateCompiler
+            // TODO: am i sure i want to split tag.type assignment?
+            tag.disposition = TagDisposition.SelfClosed;
+            tag.name = tagContent;
         }
-
-        if (!tag.name)
-            throw new UnknownPrefixError(tag.rawText);
     }
 }

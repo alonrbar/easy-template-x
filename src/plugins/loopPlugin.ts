@@ -1,4 +1,4 @@
-import { ScopeData, Tag, TagDisposition, TagPrefix, TemplateContext } from '../compilation';
+import { ScopeData, Tag, TemplateContext } from '../compilation';
 import { last } from '../utils';
 import { XmlNode } from '../xmlNode';
 import { ILoopStrategy, LoopListStrategy, LoopParagraphStrategy, LoopTableStrategy } from './loop';
@@ -6,18 +6,7 @@ import { PluginUtilities, TemplatePlugin } from './templatePlugin';
 
 export class LoopPlugin extends TemplatePlugin {
 
-    public readonly prefixes: TagPrefix[] = [
-        {
-            prefix: '#',
-            tagType: 'loop',
-            tagDisposition: TagDisposition.Open
-        },
-        {
-            prefix: '/',
-            tagType: 'loop',
-            tagDisposition: TagDisposition.Close
-        }
-    ];
+    public readonly tagType = 'loop';
 
     private readonly loopStrategies: ILoopStrategy[] = [
         new LoopTableStrategy(),
@@ -28,7 +17,7 @@ export class LoopPlugin extends TemplatePlugin {
     public setUtilities(utilities: PluginUtilities) {
         this.utilities = utilities;
         this.loopStrategies.forEach(strategy => strategy.setUtilities(utilities));
-    }
+    }    
 
     public containerTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): void {
 

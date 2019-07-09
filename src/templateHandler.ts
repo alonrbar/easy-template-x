@@ -24,17 +24,11 @@ export class TemplateHandler {
         //
 
         const delimiterSearcher = new DelimiterSearcher();
-        delimiterSearcher.startDelimiter = this.options.delimiters.start;
-        delimiterSearcher.endDelimiter = this.options.delimiters.end;
+        delimiterSearcher.startDelimiter = this.options.delimiters.tagStart;
+        delimiterSearcher.endDelimiter = this.options.delimiters.tagEnd;
         delimiterSearcher.maxXmlDepth = this.options.maxXmlDepth;
 
-        const prefixes = this.options.plugins
-            .map(plugin => plugin.prefixes)
-            .reduce((total, current) => total.concat(current), []);
-
-        const tagParser = new TagParser(prefixes, this.docxParser);
-        tagParser.startDelimiter = this.options.delimiters.start;
-        tagParser.endDelimiter = this.options.delimiters.end;
+        const tagParser = new TagParser(this.docxParser, this.options.delimiters);
 
         this.compiler = new TemplateCompiler(
             delimiterSearcher,

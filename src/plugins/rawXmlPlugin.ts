@@ -1,14 +1,10 @@
-import { ScopeData, Tag, TagDisposition, TagPrefix } from '../compilation';
+import { ScopeData, Tag } from '../compilation';
 import { XmlNode } from '../xmlNode';
 import { TemplatePlugin } from './templatePlugin';
 
 export class RawXmlPlugin extends TemplatePlugin {
 
-    public readonly prefixes: TagPrefix[] = [{
-        prefix: '@',
-        tagType: 'rawXml',
-        tagDisposition: TagDisposition.SelfClosed
-    }];
+    public readonly tagType = 'rawXml';
 
     /**
      * Replace the current <w:t> node with the specified xml markup.

@@ -1,4 +1,4 @@
-import { ScopeData, Tag, TagPrefix, TemplateCompiler, TemplateContext } from '../compilation';
+import { ScopeData, Tag, TemplateCompiler, TemplateContext } from '../compilation';
 import { DocxParser } from '../docxParser';
 import { XmlParser } from '../xmlParser';
 
@@ -12,7 +12,10 @@ export interface PluginUtilities {
 
 export abstract class TemplatePlugin {
 
-    public abstract get prefixes(): TagPrefix[];
+    /**
+     * The tag type this plugin handles.
+     */
+    public abstract get tagType(): string;
 
     protected utilities: PluginUtilities;
 

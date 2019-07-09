@@ -2,7 +2,6 @@ import { DelimiterMark } from 'src/compilation/delimiterMark';
 import { TagDisposition } from 'src/compilation/tag';
 import { TagParser } from 'src/compilation/tagParser';
 import { DocxParser } from 'src/docxParser';
-import { createDefaultPlugins } from 'src/plugins';
 import { XmlTextNode } from 'src/xmlNode';
 import { parseXml } from '../testUtils';
 
@@ -155,11 +154,6 @@ describe(nameof(TagParser), () => {
 
 function createTagParser(): TagParser {
 
-    const tagPrefixes = createDefaultPlugins()
-        .map(plugin => plugin.prefixes)
-        .reduce((total, current) => total.concat(current), []);
-
     const docxParser = new DocxParser();
-
-    return new TagParser(tagPrefixes, docxParser);
+    return new TagParser(docxParser);
 }

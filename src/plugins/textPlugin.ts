@@ -1,15 +1,11 @@
-import { ScopeData, Tag, TagDisposition, TagPrefix } from '../compilation';
+import { ScopeData, Tag } from '../compilation';
 import { DocxParser } from '../docxParser';
 import { XmlAttribute, XmlGeneralNode, XmlNode, XmlNodeType, XmlTextNode } from '../xmlNode';
 import { TemplatePlugin } from './templatePlugin';
 
 export class TextPlugin extends TemplatePlugin {
 
-    public readonly prefixes: TagPrefix[] = [{
-        prefix: '',
-        tagType: 'text',
-        tagDisposition: TagDisposition.SelfClosed
-    }];
+    public readonly tagType = 'text';
 
     /**
      * Replace the node text content with the specified value.
