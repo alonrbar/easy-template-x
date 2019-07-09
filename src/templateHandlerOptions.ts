@@ -1,7 +1,6 @@
 import { Delimiters } from './delimiters';
 import { createDefaultPlugins, TemplatePlugin } from './plugins';
 
-// tslint:disable:whitespace
 export class TemplateHandlerOptions {
 
     public plugins?: TemplatePlugin[] = createDefaultPlugins();
@@ -22,4 +21,3 @@ export class TemplateHandlerOptions {
         }
     }
 }
-// tslint:enable
