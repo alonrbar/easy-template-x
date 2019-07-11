@@ -1,6 +1,6 @@
 import { TEXT_NODE_NAME, XmlNode, XmlNodeType } from 'src/xmlNode';
 import { XmlParser } from 'src/xmlParser';
-import { parseXml } from './testUtils';
+import { parseXml } from '../testUtils';
 
 describe(nameof(XmlNode), () => {
 
