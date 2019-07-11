@@ -1,6 +1,7 @@
 import { DelimiterMark } from 'src/compilation/delimiterMark';
 import { TagDisposition } from 'src/compilation/tag';
 import { TagParser } from 'src/compilation/tagParser';
+import { Delimiters } from 'src/delimiters';
 import { DocxParser } from 'src/docxParser';
 import { XmlTextNode } from 'src/xmlNode';
 import { parseXml } from '../testUtils';
@@ -155,5 +156,6 @@ describe(nameof(TagParser), () => {
 function createTagParser(): TagParser {
 
     const docxParser = new DocxParser();
-    return new TagParser(docxParser);
+    const delimiters =  new Delimiters();
+    return new TagParser(docxParser, delimiters);
 }

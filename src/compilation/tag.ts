@@ -8,7 +8,6 @@ export enum TagDisposition {
 
 export interface Tag {    
     name: string;
-    type: string;
     /**
      * The full tag text, for instance: "{#my-tag}".
      */

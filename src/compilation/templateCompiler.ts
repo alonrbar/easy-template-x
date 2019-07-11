@@ -21,14 +21,14 @@ import { TemplateContext } from './templateContext';
  */
 export class TemplateCompiler {
 
-    public defaultTagType = 'text'; // TODO: import constant
-
     private readonly pluginsLookup: IMap<TemplatePlugin>;
 
     constructor(
         private readonly delimiterSearcher: DelimiterSearcher,
         private readonly tagParser: TagParser,
-        plugins: TemplatePlugin[]
+        plugins: TemplatePlugin[],
+        private readonly defaultTagType: string,
+        private readonly containerTagType: string
     ) {
         this.pluginsLookup = toDictionary(plugins, p => p.tagType);
     }
@@ -58,18 +58,8 @@ export class TemplateCompiler {
 
             const tag = tags[tagIndex];
             data.path.push(tag.name);
-
-            // detect tag type
-            // TODO: add test for rawXml plugin since no test failed...
-            if (!tag.type) {
-                const scopeData = data.getScopeData();
-                if (scopeData && typeof scopeData._type === 'string') {
-                    tag.type = scopeData._type;
-                } else {
-                    tag.type = this.defaultTagType;
-                }
-            }
-            const plugin = this.pluginsLookup[tag.type];
+            const tagType = this.detectTagType(tag, data);
+            const plugin = this.pluginsLookup[tagType];
 
             // no plugin matches the given tag type - skip processing it
             if (!plugin)
@@ -95,6 +85,20 @@ export class TemplateCompiler {
         }
     }
 
+    private detectTagType(tag: Tag, data: ScopeData): string {
+
+        // TODO: add test for rawXml plugin since no test failed...
+
+        if (tag.disposition === TagDisposition.Open || tag.disposition === TagDisposition.Close)
+            return this.containerTagType;
+
+        const scopeData = data.getScopeData();
+        if (scopeData && typeof scopeData._type === 'string')
+            return scopeData._type;
+
+        return this.defaultTagType;
+    }
+
     private findCloseTagIndex(fromIndex: number, openTag: Tag, tags: Tag[]): number {
 
         let i = fromIndex;
@@ -102,7 +106,6 @@ export class TemplateCompiler {
             const closeTag = tags[i];
             if (
                 closeTag.name === openTag.name &&
-                closeTag.type === openTag.type &&
                 closeTag.disposition === TagDisposition.Close
             ) {
                 break;

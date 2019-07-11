@@ -4,33 +4,33 @@ export class Delimiters {
 
     public tagStart = "{";
     public tagEnd = "}";
-    public containerTagOpenPrefix = "#"; // TODO: use this...
-    public containerTagClosingPrefix = "/"; // TODO: use this...
+    public containerTagOpen = "#";
+    public containerTagClose = "/";
 
     constructor(initial?: Delimiters) {
         Object.assign(this, initial);
 
-        if (!this.tagStart || !this.tagEnd)
-            throw new Error('Both delimiters must be specified.');
+        this.encodeAndValidate();
 
         if (this.tagStart === this.tagEnd)
-            throw new Error('Start and end delimiters can not be the same.');
+            throw new Error(`${nameof(this.tagStart)} can not be equal to ${nameof(this.tagEnd)}`);
 
-        if (this.tagStart.length > 1 || this.tagEnd.length > 1)
-            throw new Error(`Only single character delimiters supported (start: '${this.tagStart}', end: '${this.tagEnd}').`);
-
-        // TODO: more validation...
-
-        this.encodeValues();
+        if (this.containerTagOpen === this.containerTagClose)
+            throw new Error(`${nameof(this.containerTagOpen)} can not be equal to ${nameof(this.containerTagClose)}`);
     }
 
-    private encodeValues() {
-        const keysToEscape: (keyof Delimiters)[] = ['tagStart', 'tagEnd', 'containerTagOpenPrefix', 'containerTagClosingPrefix'];
-        for (const key of keysToEscape) {
+    private encodeAndValidate() {
+        const keys: (keyof Delimiters)[] = ['tagStart', 'tagEnd', 'containerTagOpen', 'containerTagClose'];
+        for (const key of keys) {
             const value = this[key];
-            if (value) {
-                this[key] = XmlNode.encodeValue(value);
-            }
+
+            if (!value)
+                throw new Error(`${key} must be specified.`);
+
+            if (value.length > 1)
+                throw new Error(`Only single character delimiters supported (${key}: '${value}').`);
+
+            this[key] = XmlNode.encodeValue(value);
         }
     }
 }

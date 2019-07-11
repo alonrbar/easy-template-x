@@ -3,9 +3,11 @@ import { DocxParser } from '../docxParser';
 import { XmlAttribute, XmlGeneralNode, XmlNode, XmlNodeType, XmlTextNode } from '../xmlNode';
 import { TemplatePlugin } from './templatePlugin';
 
+export const TEXT_TAG_TYPE = 'text';
+
 export class TextPlugin extends TemplatePlugin {
 
-    public readonly tagType = 'text';
+    public readonly tagType = TEXT_TAG_TYPE;
 
     /**
      * Replace the node text content with the specified value.

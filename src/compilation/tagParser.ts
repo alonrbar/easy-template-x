@@ -7,17 +7,16 @@ import { Tag, TagDisposition } from './tag';
 
 export class TagParser {
 
-    public containerTagType = 'loop'; // TODO: import constant
-
     private readonly tagRegex: RegExp;
 
     constructor(
         private readonly docParser: DocxParser,
-        delimiters?: Delimiters
+        private readonly delimiters: Delimiters
     ) {
         if (!docParser)
             throw new MissingArgumentError(nameof(docParser));
-        delimiters = delimiters || new Delimiters();
+        if (!delimiters)
+            throw new MissingArgumentError(nameof(delimiters));
 
         this.tagRegex = new RegExp(`^[${delimiters.tagStart}](.*?)[${delimiters.tagEnd}]`, 'mi');
     }
@@ -130,21 +129,18 @@ export class TagParser {
             tag.disposition = TagDisposition.SelfClosed;
             // TODO: test empty tag handling
             return;
-        }        
+        }
 
-        if (tagContent[0] === '#') {
-            tag.type = this.containerTagType;
+        if (tagContent[0] === this.delimiters.containerTagOpen) {
             tag.disposition = TagDisposition.Open;
             tag.name = tagContent.slice(1);
 
-        } else if (tagContent[0] === '/') {
-            tag.type = this.containerTagType;
+        } else if (tagContent[0] === this.delimiters.containerTagClose) {
             tag.disposition = TagDisposition.Close;
             tag.name = tagContent.slice(1);
 
         } else {
             // note: tag type will be assigned by the TemplateCompiler
-            // TODO: am i sure i want to split tag.type assignment?
             tag.disposition = TagDisposition.SelfClosed;
             tag.name = tagContent;
         }
