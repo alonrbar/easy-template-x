@@ -1,6 +1,6 @@
-import * as fs from 'fs';
 import { TagDisposition } from 'src/compilation/tag';
 import { TemplateHandler } from 'src/templateHandler';
+import { readFixture } from '../fixtures/utils';
 
 describe(nameof(TemplateHandler), () => {
 
@@ -14,7 +14,7 @@ describe(nameof(TemplateHandler), () => {
 
             const handler = new TemplateHandler();
 
-            const template: Buffer = fs.readFileSync("./test/fixtures/files/loop - nested.docx");
+            const template = readFixture("loop - nested.docx");
             const templateText = await handler.getText(template);
             expect(templateText.trim()).toEqual("{#loop_prop1}hi!{#loop_prop2}{simple_prop}!{/loop_prop2}{/loop_prop1}");
 

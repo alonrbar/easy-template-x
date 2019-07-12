@@ -1,6 +1,6 @@
-import * as fs from 'fs';
 import { TemplateHandler } from 'src/templateHandler';
 import { randomParagraphs, randomWords } from '../testUtils';
+import { readFixture } from './utils';
 
 describe(nameof(TemplateHandler.prototype.process), () => {
 
@@ -8,7 +8,7 @@ describe(nameof(TemplateHandler.prototype.process), () => {
 
         const handler = new TemplateHandler();
 
-        const template = readFile("real life - he.docx");
+        const template = readFixture("real life - he.docx");
 
         // const data = {
         //     'תלמידים': [
@@ -49,10 +49,6 @@ describe(nameof(TemplateHandler.prototype.process), () => {
 
         await handler.process(template, data);
 
-        // fs.writeFileSync('/temp/real life - output.docx', doc);
+        // writeTempFile('real life - output.docx', doc);
     });
 });
-
-function readFile(filename: string): Buffer {
-    return fs.readFileSync("./test/fixtures/files/" + filename);
-}

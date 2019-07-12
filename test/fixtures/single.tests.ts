@@ -1,5 +1,5 @@
-import * as fs from 'fs';
 import { TemplateHandler } from 'src/templateHandler';
+import { readFixture } from './utils';
 
 describe('single tag fixtures', () => {
     
@@ -9,7 +9,7 @@ describe('single tag fixtures', () => {
 
         // load the template
 
-        const template: Buffer = fs.readFileSync("./test/res/simple.docx");
+        const template: Buffer = readFixture("simple.docx");
         const templateText = await handler.getText(template);
         expect(templateText.trim()).toEqual("{simple_prop}");
 
@@ -31,7 +31,7 @@ describe('single tag fixtures', () => {
 
         // load the template
 
-        const template: Buffer = fs.readFileSync("./test/res/simple.docx");
+        const template: Buffer = readFixture("simple.docx");
         const templateText = await handler.getText(template);
         expect(templateText.trim()).toEqual("{simple_prop}");
 
@@ -53,7 +53,7 @@ describe('single tag fixtures', () => {
 
         // load the template
 
-        const template: Buffer = fs.readFileSync("./test/res/simple.docx");
+        const template: Buffer = readFixture("simple.docx");
         const templateText = await handler.getText(template);
         expect(templateText.trim()).toEqual("{simple_prop}");
 
@@ -71,7 +71,7 @@ describe('single tag fixtures', () => {
         const docXml = await handler.getXml(doc);
         expect(docXml).toMatchSnapshot();
 
-        // fs.writeFileSync('/temp/simple - multiline - output.docx', doc);
+        // writeTempFile('simple - multiline - output.docx', doc);
     });
 
     it("escapes xml special characters", async () => {
@@ -80,7 +80,7 @@ describe('single tag fixtures', () => {
 
         // load the template
 
-        const template: Buffer = fs.readFileSync("./test/res/simple.docx");
+        const template: Buffer = readFixture("simple.docx");
         const templateText = await handler.getText(template);
         expect(templateText.trim()).toEqual("{simple_prop}");
 
@@ -98,6 +98,6 @@ describe('single tag fixtures', () => {
         const docXml = await handler.getXml(doc);
         expect(docXml).toMatchSnapshot();
 
-        // fs.writeFileSync('/temp/simple - escape chars - output.docx', doc);
+        // writeTempFile('simple - escape chars - output.docx', doc);
     });
 });

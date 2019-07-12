@@ -1,5 +1,5 @@
-import * as fs from 'fs';
 import { TemplateHandler } from 'src/templateHandler';
+import { readFixture } from './utils';
 
 describe('loop fixtures', () => {
 
@@ -7,7 +7,7 @@ describe('loop fixtures', () => {
 
         const handler = new TemplateHandler();
 
-        const template = readFile('loop - simple.docx');
+        const template = readFixture('loop - simple.docx');
         const templateText = await handler.getText(template);
         expect(templateText.trim()).toEqual("{#loop_prop}{simple_prop}!{/loop_prop}");
 
@@ -26,14 +26,14 @@ describe('loop fixtures', () => {
         const docXml = await handler.getXml(doc);
         expect(docXml).toMatchSnapshot();
 
-        // fs.writeFileSync('/temp/simple loop - output.docx', doc);
+        // writeTempFile('simple loop - output.docx', doc);
     });
 
     it("replaces table row loops correctly", async () => {
 
         const handler = new TemplateHandler();
 
-        const template = readFile("loop - table.docx");
+        const template = readFixture("loop - table.docx");
         const templateText = await handler.getText(template);
         expect(templateText.trim()).toEqual("{#loop}Repeat this text {prop} And this also…{/loop}");
 
@@ -53,14 +53,14 @@ describe('loop fixtures', () => {
         const docXml = await handler.getXml(doc);
         expect(docXml).toMatchSnapshot();
 
-        // fs.writeFileSync('/temp/loop - table - output.docx', doc);
+        // writeTempFile('loop - table - output.docx', doc);
     });
 
     it("replaces list loops correctly", async () => {
 
         const handler = new TemplateHandler();
 
-        const template = readFile("loop - list.docx");
+        const template = readFixture("loop - list.docx");
         const templateText = await handler.getText(template);
         expect(templateText.trim()).toEqual("{#loop1}Hi{#loop2}{prop}{/loop2}{/loop1}");
 
@@ -88,14 +88,14 @@ describe('loop fixtures', () => {
         const docXml = await handler.getXml(doc);
         expect(docXml).toMatchSnapshot();
 
-        // fs.writeFileSync('/temp/loop - list - output.docx', doc);
+        // writeTempFile('loop - list - output.docx', doc);
     });
 
     it("replaces a loop with open and close tag in the same paragraph correctly", async () => {
 
         const handler = new TemplateHandler();
 
-        const template = readFile("loop - same line.docx");
+        const template = readFixture("loop - same line.docx");
         const templateText = await handler.getText(template);
         expect(templateText.trim()).toEqual("{#loop_prop}{simple_prop}!{/loop_prop}");
 
@@ -114,14 +114,14 @@ describe('loop fixtures', () => {
         const docXml = await handler.getXml(doc);
         expect(docXml).toMatchSnapshot();
 
-        // fs.writeFileSync('/temp/simple loop - same line - output.docx', doc);
+        // writeTempFile('simple loop - same line - output.docx', doc);
     });
 
     it("replaces a loop whose items have several properties", async () => {
 
         const handler = new TemplateHandler();
 
-        const template = readFile("loop - multi props.docx");
+        const template = readFixture("loop - multi props.docx");
         const templateText = await handler.getText(template);
         expect(templateText.trim()).toEqual(
             "{#loop_prop}{simple_prop1}!{simple_prop2}!{simple_prop3}!{/loop_prop}"
@@ -150,14 +150,14 @@ describe('loop fixtures', () => {
         const docXml = await handler.getXml(doc);
         expect(docXml).toMatchSnapshot();
 
-        // fs.writeFileSync('/temp/loop - multi props - output.docx', doc);
+        // writeTempFile('loop - multi props - output.docx', doc);
     });
 
     it("replaces nested loops correctly", async () => {
 
         const handler = new TemplateHandler();
 
-        const template = readFile("loop - nested.docx");
+        const template = readFixture("loop - nested.docx");
         const templateText = await handler.getText(template);
         expect(templateText.trim()).toEqual("{#loop_prop1}hi!{#loop_prop2}{simple_prop}!{/loop_prop2}{/loop_prop1}");
 
@@ -186,14 +186,14 @@ describe('loop fixtures', () => {
         const docXml = await handler.getXml(doc);
         expect(docXml).toMatchSnapshot();
 
-        // fs.writeFileSync('/temp/nested loop - output.docx', doc);
+        // writeTempFile('nested loop - output.docx', doc);
     });
 
     it("replaces nested loops fast enough", async () => {
 
         const handler = new TemplateHandler();
 
-        const template = readFile("loop - nested with image.docx");
+        const template = readFixture("loop - nested with image.docx");
 
         const data = {
             loop_prop1: [
@@ -217,11 +217,7 @@ describe('loop fixtures', () => {
 
         await handler.process(template, data);
 
-        // fs.writeFileSync('/temp/nested loop speed test - output.docx', doc);
+        // writeTempFile('nested loop speed test - output.docx', doc);
     }, 5 * 1000);
 
 });
-
-function readFile(filename: string): Buffer {
-    return fs.readFileSync("./test/fixtures/files/" + filename);
-}

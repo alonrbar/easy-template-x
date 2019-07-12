@@ -4,7 +4,7 @@ import { TagParser } from 'src/compilation/tagParser';
 import { Delimiters } from 'src/delimiters';
 import { DocxParser } from 'src/docxParser';
 import { XmlTextNode } from 'src/xmlNode';
-import { parseXml } from '../testUtils';
+import { parseXml } from '../../testUtils';
 
 describe(nameof(TagParser), () => {
 
