@@ -349,8 +349,6 @@ export declare class Tag {
     
     name: string;
     
-    type: string;
-    
     rawText: string;
     
     disposition: TagDisposition;
