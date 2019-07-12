@@ -1,7 +1,7 @@
 import { TemplateHandler } from 'src/templateHandler';
 import { readFixture } from './utils';
 
-describe('single tag fixtures', () => {
+describe('text tag fixtures', () => {
     
     it("replaces a single tag", async () => {
 

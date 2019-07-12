@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`single tag fixtures escapes xml special characters 1`] = `
+exports[`text tag fixtures escapes xml special characters 1`] = `
 Object {
   "attributes": Array [
     Object {
@@ -890,7 +890,7 @@ Object {
 }
 `;
 
-exports[`single tag fixtures replaces newlines with <w:br/> 1`] = `
+exports[`text tag fixtures replaces newlines with <w:br/> 1`] = `
 Object {
   "attributes": Array [
     Object {

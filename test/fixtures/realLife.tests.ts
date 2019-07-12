@@ -2,7 +2,7 @@ import { TemplateHandler } from 'src/templateHandler';
 import { randomParagraphs, randomWords } from '../testUtils';
 import { readFixture } from './utils';
 
-describe(nameof(TemplateHandler.prototype.process), () => {
+describe('real life fixtures', () => {
 
     it("handles a real life template (in Hebrew)", async () => {
 
