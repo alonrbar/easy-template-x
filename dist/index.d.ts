@@ -412,6 +412,11 @@ export declare class TextPlugin extends TemplatePlugin {
 export declare class LoopPlugin extends TemplatePlugin {
 }
 
+export interface RawXmlContent {
+    _type: 'rawXml';
+    xml: string;
+}
+
 export declare class RawXmlPlugin extends TemplatePlugin {
 }
 
@@ -465,6 +470,3 @@ export declare class UnidentifiedFileTypeError extends Error {
 export declare class UnsupportedFileTypeError extends Error {
     constructor(fileType: string);
 }
-
-
-

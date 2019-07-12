@@ -87,8 +87,6 @@ export class TemplateCompiler {
 
     private detectTagType(tag: Tag, data: ScopeData): string {
 
-        // TODO: add test for rawXml plugin since no test failed...
-
         if (tag.disposition === TagDisposition.Open || tag.disposition === TagDisposition.Close)
             return this.containerTagType;
 
