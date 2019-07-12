@@ -127,7 +127,6 @@ export class TagParser {
         const tagContent = (tagParts[1] || '').trim();
         if (!tagContent || !tagContent.length) {
             tag.disposition = TagDisposition.SelfClosed;
-            // TODO: test empty tag handling
             return;
         }
 
@@ -140,7 +139,6 @@ export class TagParser {
             tag.name = tagContent.slice(1);
 
         } else {
-            // note: tag type will be assigned by the TemplateCompiler
             tag.disposition = TagDisposition.SelfClosed;
             tag.name = tagContent;
         }

@@ -25,6 +25,26 @@ describe('single tag fixtures', () => {
         expect(docText.trim()).toEqual("hello world");
     });
 
+    it("removes empty tags", async () => {
+
+        const handler = new TemplateHandler();
+
+        // load the template
+
+        const template: Buffer = readFixture("empty tag.docx");
+        const templateText = await handler.getText(template);
+        expect(templateText.trim()).toEqual("{}{ }");
+
+        // replace tags
+
+        const data = { };
+
+        const doc = await handler.process(template, data);
+
+        const docText = await handler.getText(doc);
+        expect(docText.trim()).toEqual("");
+    });
+
     it("handles numeric values", async () => {
 
         const handler = new TemplateHandler();
