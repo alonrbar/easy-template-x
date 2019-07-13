@@ -1,4 +1,4 @@
-import { UnclosedTagError } from '../errors';
+import { UnclosedTagError, UnknownContentTypeError } from '../errors';
 import { TemplatePlugin } from '../plugins';
 import { toDictionary } from '../utils/array';
 import { IMap } from '../utils/types';
@@ -27,10 +27,10 @@ export class TemplateCompiler {
         private readonly delimiterSearcher: DelimiterSearcher,
         private readonly tagParser: TagParser,
         plugins: TemplatePlugin[],
-        private readonly defaultTagType: string,
-        private readonly containerTagType: string
+        private readonly defaultContentType: string,
+        private readonly containerContentType: string
     ) {
-        this.pluginsLookup = toDictionary(plugins, p => p.tagType);
+        this.pluginsLookup = toDictionary(plugins, p => p.contentType);
     }
 
     /**
@@ -58,12 +58,15 @@ export class TemplateCompiler {
 
             const tag = tags[tagIndex];
             data.path.push(tag.name);
-            const tagType = this.detectTagType(tag, data);
-            const plugin = this.pluginsLookup[tagType];
-
-            // no plugin matches the given tag type - skip processing it
-            if (!plugin)
-                continue;
+            const contentType = this.detectContentType(tag, data);
+            const plugin = this.pluginsLookup[contentType];
+            if (!plugin) {
+                throw new UnknownContentTypeError(
+                    contentType,
+                    tag.rawText,
+                    data.path.join('.')
+                );
+            }
 
             if (tag.disposition === TagDisposition.SelfClosed) {
 
@@ -85,16 +88,16 @@ export class TemplateCompiler {
         }
     }
 
-    private detectTagType(tag: Tag, data: ScopeData): string {
+    private detectContentType(tag: Tag, data: ScopeData): string {
 
         if (tag.disposition === TagDisposition.Open || tag.disposition === TagDisposition.Close)
-            return this.containerTagType;
+            return this.containerContentType;
 
         const scopeData = data.getScopeData();
         if (scopeData && typeof scopeData._type === 'string')
             return scopeData._type;
 
-        return this.defaultTagType;
+        return this.defaultContentType;
     }
 
     private findCloseTagIndex(fromIndex: number, openTag: Tag, tags: Tag[]): number {

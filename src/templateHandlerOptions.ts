@@ -1,13 +1,13 @@
 import { Delimiters } from './delimiters';
-import { createDefaultPlugins, LOOP_TAG_TYPE, TemplatePlugin, TEXT_TAG_TYPE } from './plugins';
+import { createDefaultPlugins, LOOP_CONTENT_TYPE, TemplatePlugin, TEXT_CONTENT_TYPE } from './plugins';
 
 export class TemplateHandlerOptions {
 
     public plugins?: TemplatePlugin[] = createDefaultPlugins();
 
-    public defaultPlugin = TEXT_TAG_TYPE;
+    public defaultContentType = TEXT_CONTENT_TYPE;
 
-    public containerPlugin = LOOP_TAG_TYPE;
+    public containerContentType = LOOP_CONTENT_TYPE;
 
     public delimiters?= new Delimiters();
 

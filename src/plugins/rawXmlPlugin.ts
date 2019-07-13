@@ -9,7 +9,7 @@ export interface RawXmlContent {
 
 export class RawXmlPlugin extends TemplatePlugin {
 
-    public readonly tagType = 'rawXml';
+    public readonly contentType = 'rawXml';
 
     /**
      * Replace the current <w:t> node with the specified xml markup.

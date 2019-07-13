@@ -34,8 +34,8 @@ export class TemplateHandler {
             delimiterSearcher,
             tagParser,
             this.options.plugins,
-            this.options.defaultPlugin,
-            this.options.containerPlugin
+            this.options.defaultContentType,
+            this.options.containerContentType
         );
 
         this.options.plugins.forEach(plugin => {

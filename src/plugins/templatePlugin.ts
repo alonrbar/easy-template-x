@@ -13,9 +13,9 @@ export interface PluginUtilities {
 export abstract class TemplatePlugin {
 
     /**
-     * The tag type this plugin handles.
+     * The content type this plugin handles.
      */
-    public abstract get tagType(): string;
+    public abstract get contentType(): string;
 
     protected utilities: PluginUtilities;
 

@@ -4,11 +4,11 @@ import { XmlNode } from '../xmlNode';
 import { ILoopStrategy, LoopListStrategy, LoopParagraphStrategy, LoopTableStrategy } from './loop';
 import { PluginUtilities, TemplatePlugin } from './templatePlugin';
 
-export const LOOP_TAG_TYPE = 'loop';
+export const LOOP_CONTENT_TYPE = 'loop';
 
 export class LoopPlugin extends TemplatePlugin {
 
-    public readonly tagType = LOOP_TAG_TYPE;
+    public readonly contentType = LOOP_CONTENT_TYPE;
 
     private readonly loopStrategies: ILoopStrategy[] = [
         new LoopTableStrategy(),
