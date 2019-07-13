@@ -435,6 +435,7 @@ export declare class MaxXmlDepthError extends Error {
 }
 
 export declare class MissingArgumentError extends Error {
+    argName: string;
     constructor(argName: string);
 }
 
@@ -448,9 +449,11 @@ export declare class MissingCloseDelimiterError extends Error {
     constructor(openDelimiterText: string);
 }
 
-export declare class UnknownPrefixError extends Error {
+export class UnknownContentTypeError extends Error {
     readonly tagRawText: string;
-    constructor(tagRawText: string);
+    readonly contentType: string;
+    readonly path: string;
+    constructor(contentType: string, tagRawText: string, path: string);
 }
 
 export declare class UnopenedTagError extends Error {
