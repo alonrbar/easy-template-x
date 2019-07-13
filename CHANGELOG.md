@@ -1,5 +1,42 @@
 # Change Log
 
+## [Unreleased](https://github.com/alonrbar/react-tablize/tree/develop)
+
+This version removes the notion of a "tag type" and uses instead the notion of "content type". Instead of inferring the type from the tag _prefix_ the type is now explicitly declared in the supplied JSON _data_.
+
+**Example:**
+
+_Before:_
+
+```text
+tag: "{@newPage}"  
+data: {  
+    newPage: "<w:br w:type="page"/>"
+}
+```
+
+_After:_
+
+```text
+tag: "{newPage}"
+data: {
+    newPage: {
+        _type: "rawXml",
+        xml: "<w:br w:type="page"/>"
+    }
+}
+```
+
+The only exceptions are the "loop" content type which still uses the "#" opening prefix and "/" closing prefix, and the "text" content type which is the default and does not requires explicitly stating it.
+
+### Changed
+
+- **BREAKING**: RawXmlPlugin requires data of the form { _type: 'rawXml', xml: string }.
+
+### Removed
+
+- **BREAKING**: Remove the `Tag.type` property.
+
 ## [0.5.2 - 2019-09-11](https://github.com/alonrbar/easy-template-x/tree/v0.5.2)
 
 ### Fixed
