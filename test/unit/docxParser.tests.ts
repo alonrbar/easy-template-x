@@ -1,5 +1,5 @@
-import { DocxParser } from 'src/docxParser';
-import { XmlTextNode } from 'src/xmlNode';
+import { DocxParser } from 'src/office';
+import { XmlTextNode } from 'src/xml';
 import { parseXml } from '../testUtils';
 
 describe(nameof(DocxParser), () => {

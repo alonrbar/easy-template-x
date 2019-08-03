@@ -1,6 +1,6 @@
 import { MaxXmlDepthError } from '../errors';
 import { pushMany } from '../utils';
-import { XmlNode, XmlTextNode } from '../xmlNode';
+import { XmlNode, XmlTextNode } from '../xml';
 import { DelimiterMark } from './delimiterMark';
 
 export class DelimiterSearcher {

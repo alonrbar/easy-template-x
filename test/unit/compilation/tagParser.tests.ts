@@ -2,8 +2,8 @@ import { DelimiterMark } from 'src/compilation/delimiterMark';
 import { TagDisposition } from 'src/compilation/tag';
 import { TagParser } from 'src/compilation/tagParser';
 import { Delimiters } from 'src/delimiters';
-import { DocxParser } from 'src/docxParser';
-import { XmlTextNode } from 'src/xmlNode';
+import { DocxParser } from 'src/office';
+import { XmlTextNode } from 'src/xml';
 import { parseXml } from '../../testUtils';
 
 describe(nameof(TagParser), () => {

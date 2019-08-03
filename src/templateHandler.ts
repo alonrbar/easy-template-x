@@ -1,12 +1,10 @@
 import * as JSZip from 'jszip';
 import { DelimiterSearcher, ScopeData, Tag, TagParser, TemplateCompiler, TemplateContext } from './compilation';
-import { DocxParser } from './docxParser';
-import { MalformedFileError, UnsupportedFileTypeError } from './errors';
-import { FileType, FileTypeHelper } from './fileType';
+import { MalformedFileError } from './errors';
+import { DocxParser } from './office';
 import { TemplateHandlerOptions } from './templateHandlerOptions';
 import { Binary, IMap, pushMany } from './utils';
-import { XmlNode } from './xmlNode';
-import { XmlParser } from './xmlParser';
+import { XmlNode, XmlParser } from './xml';
 
 export class TemplateHandler {
 
@@ -127,9 +125,8 @@ export class TemplateHandler {
         }
 
         // verify it's a docx file
-        const fileType = FileTypeHelper.getFileType(docFile);
-        if (fileType !== FileType.Docx)
-            throw new UnsupportedFileTypeError(fileType);
+        if (!this.docxParser.isDocx(docFile))
+            throw new MalformedFileError('docx');
 
         return docFile;
     }

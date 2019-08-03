@@ -1,5 +1,5 @@
 import * as xmldom from 'xmldom';
-import { MissingArgumentError } from './errors';
+import { MissingArgumentError } from '../errors';
 import { XmlNode } from './xmlNode';
 
 export class XmlParser {

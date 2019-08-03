@@ -1,5 +1,5 @@
-import { MissingArgumentError } from './errors';
-import { last } from './utils';
+import { MissingArgumentError } from '../errors';
+import { last } from '../utils';
 
 export enum XmlNodeType {
     Text = "Text",

@@ -1,5 +1,5 @@
 import * as JSZip from 'jszip';
-import { XmlNode, XmlTextNode } from './xmlNode';
+import { XmlNode, XmlTextNode } from '../xml';
 
 export class DocxParser {
 
@@ -36,6 +36,14 @@ export class DocxParser {
     // docx structure
     //
 
+    public isDocx(zip: JSZip): boolean {
+        return !!(zip.files["word/document.xml"] || zip.files["word/document2.xml"]);
+    }
+
+    public isPptx(zip: JSZip): boolean {
+        return !!zip.files["ppt/presentation.xml"];
+    }
+
     public contentFilePaths(zip: JSZip) {
         const coreFiles = [
             // "docProps/core.xml",
@@ -52,14 +60,18 @@ export class DocxParser {
     }
 
     public mainFilePath(zip: JSZip): string {
+
         if (zip.files["word/document.xml"]) {
             return "word/document.xml";
         }
+
+        // https://github.com/open-xml-templating/docxtemplater/issues/366
         if (zip.files["word/document2.xml"]) {
             return "word/document2.xml";
         }
+
         return undefined;
-    }    
+    }
 
     //
     // content manipulation

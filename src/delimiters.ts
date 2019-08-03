@@ -1,4 +1,4 @@
-import { XmlNode } from "./xmlNode";
+import { XmlNode } from "./xml";
 
 export class Delimiters {
 

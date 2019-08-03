@@ -1,5 +1,4 @@
-import { XmlNode } from 'src/xmlNode';
-import { XmlParser } from 'src/xmlParser';
+import { XmlNode, XmlParser } from 'src/xml';
 
 const lorem = require('lorem-ipsum');
 
