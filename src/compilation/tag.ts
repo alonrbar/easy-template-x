@@ -1,4 +1,4 @@
-import { XmlTextNode } from '../xmlNode';
+import { XmlTextNode } from '../xml';
 
 export enum TagDisposition {
     Open = "Open",

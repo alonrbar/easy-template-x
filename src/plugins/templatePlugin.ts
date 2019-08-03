@@ -1,6 +1,6 @@
 import { ScopeData, Tag, TemplateCompiler, TemplateContext } from '../compilation';
-import { DocxParser } from '../docxParser';
-import { XmlParser } from '../xmlParser';
+import { DocxParser } from '../office';
+import { XmlParser } from '../xml';
 
 export interface PluginUtilities {
     compiler: TemplateCompiler;

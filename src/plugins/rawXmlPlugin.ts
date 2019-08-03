@@ -1,5 +1,5 @@
 import { ScopeData, Tag } from '../compilation';
-import { XmlNode } from '../xmlNode';
+import { XmlNode } from '../xml';
 import { TemplatePlugin } from './templatePlugin';
 
 export interface RawXmlContent {

@@ -1,5 +1,5 @@
 import { Tag } from '../../compilation';
-import { XmlNode } from '../../xmlNode';
+import { XmlNode } from '../../xml';
 import { PluginUtilities } from '../templatePlugin';
 import { ILoopStrategy, SplitBeforeResult } from './iLoopStrategy';
 

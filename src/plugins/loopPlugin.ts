@@ -1,6 +1,6 @@
 import { ScopeData, Tag, TemplateContext } from '../compilation';
 import { last } from '../utils';
-import { XmlNode } from '../xmlNode';
+import { XmlNode } from '../xml';
 import { ILoopStrategy, LoopListStrategy, LoopParagraphStrategy, LoopTableStrategy } from './loop';
 import { PluginUtilities, TemplatePlugin } from './templatePlugin';
 

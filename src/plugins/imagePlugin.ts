@@ -1,14 +1,17 @@
 import * as JSZip from 'jszip';
 import { ScopeData, Tag, TemplateContext } from '../compilation';
 import { Binary } from '../utils';
-import { XmlTextNode, XmlNode } from '../xmlNode';
+import { XmlTextNode, XmlNode } from '../xml';
 import { TemplatePlugin } from './templatePlugin';
 
 let imageId = 1;
 
+export type ImageFormat = 'png' | 'jpeg';
+
 export interface ImageContent {
     _type: 'image';
     source: Binary;
+    format: ImageFormat;
     width?: number;
     height?: number;
 }
@@ -24,16 +27,12 @@ export class ImagePlugin extends TemplatePlugin {
             return;
 
         const id = imageId++;
-        const width = 100;
-        const height = 200;
-        const imagePath = this.addFileToZip(content.source, 'png', context.zipFile);
+        const imagePath = this.addFileToZip(content.source, content.format, context.zipFile);
         const relId = this.addRelsEntry(imagePath);
-        this.insertMarkup(tag.xmlTextNode, id, relId, width, height);
+        this.insertMarkup(tag.xmlTextNode, id, relId, content.width, content.height);
     }
 
     private insertMarkup(node: XmlTextNode, id: number, relId: string, width: number, height: number): void {
-        const cx = (width * 360e3).toFixed(0);
-        const cy = (height * 360e3).toFixed(0);
         const name = `Picture ${id}`;
         const imageMarkup = `
             <w:drawing>
@@ -46,7 +45,7 @@ export class ImagePlugin extends TemplatePlugin {
                     </wp:cNvGraphicFramePr>
                     <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
                         <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
-                            ${this.pictureMarkup(name, relId, cx, cy)}
+                            ${this.pictureMarkup(name, relId, width, height)}
                         </a:graphicData>
                     </a:graphic>
                 </wp:inline>
@@ -57,7 +56,7 @@ export class ImagePlugin extends TemplatePlugin {
         XmlNode.remove(node);
     }
 
-    private pictureMarkup(name: string, relId: string, cx: string, cy: string) {
+    private pictureMarkup(name: string, relId: string, width: number, height: number) {
         return `
             <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
                 <pic:nvPicPr>
@@ -82,7 +81,7 @@ export class ImagePlugin extends TemplatePlugin {
                 <pic:spPr bwMode="auto">
                     <a:xfrm>
                         <a:off x="0" y="0"/>
-                        <a:ext cx="${cx}" cy="${cy}"/>
+                        ${this.sizeMarkup(width, height)}
                     </a:xfrm>
                     <a:prstGeom prst="rect">
                         <a:avLst/>
@@ -94,6 +93,27 @@ export class ImagePlugin extends TemplatePlugin {
                 </pic:spPr>
             </pic:pic>
         `;
+    }
+
+    private sizeMarkup(width: number, height: number): string {
+
+        const hasWidth = Number.isFinite(width);
+        const hasHeight = Number.isFinite(height);
+
+        if (!hasWidth && !hasHeight)
+            return '';
+
+        let sizeString = '';
+        if (hasWidth) {
+            const cx = (width * 360e3).toFixed(0);
+            sizeString += ` cx="${cx}"`;
+        }
+        if (hasHeight) {
+            const cy = (height * 360e3).toFixed(0);
+            sizeString += ` cy="${cy}"`;
+        }
+
+        return `<a:ext${sizeString}/>`;
     }
 
     private addFileToZip(file: Binary, extension: string, zip: JSZip): string {
