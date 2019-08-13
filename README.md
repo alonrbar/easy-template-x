@@ -2,6 +2,8 @@
 
 ## NOTICE: Working on breaking changes - develop branch is unstable
 
+## TODO: Update readme and types
+
 Generate docx documents from templates, in Node or in the browser.
 
 [![CircleCI](https://circleci.com/gh/alonrbar/easy-template-x.svg?style=shield)](https://circleci.com/gh/alonrbar/easy-template-x)

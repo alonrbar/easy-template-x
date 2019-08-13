@@ -292,10 +292,6 @@ export declare class DocxParser {
     
     static readonly TEXT_NODE: string;
     
-    contentFilePaths(zip: JSZip): string[];
-    
-    mainFilePath(zip: JSZip): string;
-    
     /**
      * Split the text node into two text nodes, each with it's own wrapping <w:t> node.
      * Returns the newly created text node.

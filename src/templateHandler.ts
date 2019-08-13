@@ -1,15 +1,15 @@
 import * as JSZip from 'jszip';
 import { DelimiterSearcher, ScopeData, Tag, TagParser, TemplateCompiler, TemplateContext } from './compilation';
 import { MalformedFileError } from './errors';
-import { DocxParser } from './office';
+import { Docx, DocxParser } from './office';
 import { TemplateHandlerOptions } from './templateHandlerOptions';
-import { Binary, IMap, pushMany } from './utils';
+import { Binary, Constructor } from './utils';
 import { XmlNode, XmlParser } from './xml';
 
 export class TemplateHandler {
 
-    private readonly docxParser = new DocxParser();
     private readonly xmlParser = new XmlParser();
+    private readonly docxParser: DocxParser;
     private readonly compiler: TemplateCompiler;
 
     private readonly options: TemplateHandlerOptions;
@@ -20,6 +20,8 @@ export class TemplateHandler {
         //
         // this is the library's composition root
         //
+
+        this.docxParser = new DocxParser(this.xmlParser);
 
         const delimiterSearcher = new DelimiterSearcher();
         delimiterSearcher.startDelimiter = this.options.delimiters.tagStart;
@@ -47,118 +49,61 @@ export class TemplateHandler {
 
     public async process<T extends Binary>(templateFile: T, data: any): Promise<T> {
 
-        // load the docx (zip) file
-        const docFile = await this.loadDocx(templateFile);
-
-        // extract content as xml documents
-        const contentDocuments = await this.parseContentDocuments(docFile);
+        // load the docx file
+        const docx = await this.loadDocx(templateFile);
+        const document = await docx.getDocument();
 
         // process content (do replacements)        
         const scopeData = new ScopeData(data);
         const context: TemplateContext = {
-            zipFile: docFile,
-            currentFilePath: null
+            docx
         };
-        for (const file of Object.keys(contentDocuments)) {
-            context.currentFilePath = file;
-            this.compiler.compile(contentDocuments[file], scopeData, context);
-        }
+        this.compiler.compile(document, scopeData, context);
 
-        // update the docx file
-        for (const file of Object.keys(contentDocuments)) {
-            const processedFile = contentDocuments[file];
-            const xmlContent = this.xmlParser.serialize(processedFile);
-            docFile.file(file, xmlContent, { createFolders: true });
-        }
-
-        // export
-        const outputType: JSZip.OutputType = Binary.toJsZipOutputType(templateFile);
-        return docFile.generateAsync({ type: outputType }) as Promise<T>;
+        // export the result
+        return docx.export(templateFile.constructor as Constructor<T>);
     }
 
     public async parseTags(templateFile: Binary): Promise<Tag[]> {
-
-        // load the docx (zip) file
-        const docFile = await this.loadDocx(templateFile);
-
-        // extract content as xml documents
-        const contentDocuments = await this.parseContentDocuments(docFile);
-
-        // parse tags
-        const tags: Tag[] = [];
-        for (const file of Object.keys(contentDocuments)) {
-            const docTags = this.compiler.parseTags(contentDocuments[file]);
-            pushMany(tags, docTags);
-        }
-
-        return tags;
+        const docx = await this.loadDocx(templateFile);
+        const document = await docx.getDocument();
+        return this.compiler.parseTags(document);
     }
 
     /**
      * Get the text content of the main document file.
      */
     public async getText(docxFile: Binary): Promise<string> {
-        const root = await this.getDomRoot(docxFile);
-        return root.textContent;
+        const docx = await this.loadDocx(docxFile);
+        const text = await docx.getDocumentText();
+        return text;
     }
 
     /**
      * Get the xml tree of the main document file.
      */
     public async getXml(docxFile: Binary): Promise<XmlNode> {
-        const root = await this.getDomRoot(docxFile);
-        return XmlNode.fromDomNode(root);
+        const docx = await this.loadDocx(docxFile);
+        const document = await docx.getDocument();
+        return document;
     }
 
     //
     // private methods
     //
 
-    private async loadDocx(file: Binary): Promise<JSZip> {
-        
+    private async loadDocx(file: Binary): Promise<Docx> {
+
         // load the zip file
-        let docFile: JSZip;
+        let zip: JSZip;
         try {
-            docFile = await JSZip.loadAsync(file);
+            zip = await JSZip.loadAsync(file);
         } catch {
             throw new MalformedFileError('docx');
         }
 
-        // verify it's a docx file
-        if (!this.docxParser.isDocx(docFile))
-            throw new MalformedFileError('docx');
-
-        return docFile;
-    }
-
-    /**
-     * Returns a map where the key is the **file path** and the value is a **parsed document**.
-     */
-    private async parseContentDocuments(docFile: JSZip): Promise<IMap<XmlNode>> {
-
-        const contentFiles = this.docxParser.contentFilePaths(docFile);
-
-        // some content files may not always exist (footer.xml for example)
-        const existingContentFiles = contentFiles.filter(file => docFile.files[file]);
-
-        const contentDocuments: IMap<XmlNode> = {};
-        for (const file of existingContentFiles) {
-
-            // extract the content from the content file
-            const textContent = await docFile.files[file].async('text');
-
-            // parse the content as xml
-            contentDocuments[file] = this.xmlParser.parse(textContent);
-        }
-
-        return contentDocuments;
-    }
-
-    private async getDomRoot(docxFile: Binary): Promise<Node> {
-        const zipFile = await this.loadDocx(docxFile);
-        const mainXmlFile = this.docxParser.mainFilePath(zipFile);
-        const xmlContent = await zipFile.files[mainXmlFile].async('text');
-        const document = this.xmlParser.domParse(xmlContent);
-        return document.documentElement;
-    }
+        // load the docx file
+        const docx = this.docxParser.load(zip);
+        return docx;
+    }    
 }

@@ -1,6 +1,6 @@
 import { ScopeData, Tag } from '../compilation';
 import { DocxParser } from '../office';
-import { XmlAttribute, XmlGeneralNode, XmlNode, XmlNodeType, XmlTextNode } from '../xml';
+import { XmlAttribute, XmlGeneralNode, XmlNode, XmlTextNode } from '../xml';
 import { TemplatePlugin } from './templatePlugin';
 
 export const TEXT_CONTENT_TYPE = 'text';
@@ -68,10 +68,7 @@ export class TextPlugin extends TemplatePlugin {
     }
 
     private getLineBreak(): XmlNode {
-        return {
-            nodeType: XmlNodeType.General,
-            nodeName: 'w:br'
-        };
+        return XmlNode.createGeneralNode('w:br');
     }
 
     private createWordTextNode(text: string): XmlNode {

@@ -1,7 +1,7 @@
-import * as JSZip from 'jszip';
 import { ScopeData, Tag, TemplateContext } from '../compilation';
+import { MimeType } from '../mimeType';
 import { Binary } from '../utils';
-import { XmlTextNode, XmlNode } from '../xml';
+import { XmlNode } from '../xml';
 import { TemplatePlugin } from './templatePlugin';
 
 let imageId = 1;
@@ -17,29 +17,45 @@ export interface ImageContent {
 }
 
 export class ImagePlugin extends TemplatePlugin {
+
     public readonly contentType = 'image';
 
     public simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): void {
-        tag.xmlTextNode.textContent = '';
 
         const content: ImageContent = data.getScopeData();
-        if (!content || !content.source)
+        if (!content || !content.source) {
+            XmlNode.remove(tag.xmlTextNode);
             return;
+        }
 
-        const id = imageId++;
-        const imagePath = this.addFileToZip(content.source, content.format, context.zipFile);
-        const relId = this.addRelsEntry(imagePath);
-        this.insertMarkup(tag.xmlTextNode, id, relId, content.width, content.height);
+        const currentImageId = imageId++; // TODO: is this good enough?
+        const mimeType = this.getMimeType(content.format);
+        const relId = context.docx.addMedia(content.source, mimeType);
+        const imageXml = this.createMarkup(currentImageId, relId, content.width, content.height);
+
+        XmlNode.insertAfter(imageXml, tag.xmlTextNode);
+        XmlNode.remove(tag.xmlTextNode);
     }
 
-    private insertMarkup(node: XmlTextNode, id: number, relId: string, width: number, height: number): void {
-        const name = `Picture ${id}`;
+    private getMimeType(format: ImageFormat): MimeType {
+        switch (format) {
+            case 'jpeg':
+                return MimeType.Jpeg;
+            case 'png':
+                return MimeType.Png;
+            default:
+                throw new Error(`Image format '${format}' is not supported.`); // TODO: better error
+        }
+    }
+
+    private createMarkup(imageId: number, relId: string, width: number, height: number): XmlNode {
+        const name = `Picture ${imageId}`;
         const imageMarkup = `
             <w:drawing>
                 <wp:inline distT="0" distB="0" distL="0" distR="0">
                     <wp:extent cx="2679700" cy="4711700"/>
                     <wp:effectExtent l="0" t="0" r="6350" b="0"/>
-                    <wp:docPr id="${id}" name="${name}"/>
+                    <wp:docPr id="${imageId}" name="${name}"/>
                     <wp:cNvGraphicFramePr>
                         <a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/>
                     </wp:cNvGraphicFramePr>
@@ -52,8 +68,7 @@ export class ImagePlugin extends TemplatePlugin {
             </w:drawing>
         `;
         const imageXml = this.utilities.xmlParser.parse(imageMarkup);
-        XmlNode.insertAfter(imageXml, node);
-        XmlNode.remove(node);
+        return imageXml;
     }
 
     private pictureMarkup(name: string, relId: string, width: number, height: number) {
@@ -114,35 +129,5 @@ export class ImagePlugin extends TemplatePlugin {
         }
 
         return `<a:ext${sizeString}/>`;
-    }
-
-    private addFileToZip(file: Binary, extension: string, zip: JSZip): string {
-
-        // find image file name
-        const filenames = zip.folder('media').files;
-        let num = 0;
-        let filename = '';
-        do {
-            num++;
-            filename = `image${num}.${extension}`;
-        } while (filenames[filename]);
-
-        // add image
-        zip.folder('media').file(`image${num}.${extension}`, file);
-
-        return `media/${filename}`;
-    }
-
-    private addRelsEntry(path: string): string {
-        const relId = 'rId4';
-
-        const entry = XmlNode.createGeneralNode('Relationship');
-        entry.attributes = [
-            { name: "Id", value: relId },
-            { name: "Type", value: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" },
-            { name: "Target", value: path }
-        ];
-
-        return relId;
     }
 }

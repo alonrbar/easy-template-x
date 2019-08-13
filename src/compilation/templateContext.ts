@@ -1,6 +1,5 @@
-import * as JSZip from 'jszip';
+import { Docx } from '../office';
 
 export interface TemplateContext {
-    zipFile: JSZip;
-    currentFilePath: string;
+    docx: Docx;
 }

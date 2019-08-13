@@ -3,7 +3,7 @@ import { TagDisposition } from 'src/compilation/tag';
 import { TagParser } from 'src/compilation/tagParser';
 import { Delimiters } from 'src/delimiters';
 import { DocxParser } from 'src/office';
-import { XmlTextNode } from 'src/xml';
+import { XmlParser, XmlTextNode } from 'src/xml';
 import { parseXml } from '../../testUtils';
 
 describe(nameof(TagParser), () => {
@@ -155,7 +155,8 @@ describe(nameof(TagParser), () => {
 
 function createTagParser(): TagParser {
 
-    const docxParser = new DocxParser();
+    const xmlParser = new XmlParser();
+    const docxParser = new DocxParser(xmlParser);
     const delimiters =  new Delimiters();
     return new TagParser(docxParser, delimiters);
 }

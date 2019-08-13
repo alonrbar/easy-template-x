@@ -1,5 +1,5 @@
 import { DocxParser } from 'src/office';
-import { XmlTextNode } from 'src/xml';
+import { XmlParser, XmlTextNode } from 'src/xml';
 import { parseXml } from '../testUtils';
 
 describe(nameof(DocxParser), () => {
@@ -22,7 +22,7 @@ describe(nameof(DocxParser), () => {
             const lastXmlTextNode = runNode.childNodes[2].childNodes[0] as XmlTextNode;
             expect(lastXmlTextNode.textContent).toEqual('3');
 
-            const parser = new DocxParser();
+            const parser = createDocxParser();
             parser.joinTextNodesRange(firstXmlTextNode, lastXmlTextNode);
 
             expect(runNode.childNodes.length).toEqual(1);
@@ -55,7 +55,7 @@ describe(nameof(DocxParser), () => {
             const lastXmlTextNode = thirdRunNode.childNodes[1].childNodes[0] as XmlTextNode;
             expect(lastXmlTextNode.textContent).toEqual('6');
 
-            const parser = new DocxParser();
+            const parser = createDocxParser();
             parser.joinTextNodesRange(firstXmlTextNode, lastXmlTextNode);
 
             expect(paragraphNode.childNodes.length).toEqual(1);
@@ -85,7 +85,7 @@ describe(nameof(DocxParser), () => {
                     </w:r>
                 </w:p>
             `);
-            
+
             const fromRunNode = paragraphNode.childNodes[1];
             const fromXmlTextNode = fromRunNode.childNodes[1].childNodes[0] as XmlTextNode;
             expect(fromXmlTextNode.textContent).toEqual('2');
@@ -96,7 +96,7 @@ describe(nameof(DocxParser), () => {
 
             // parse
 
-            const parser = new DocxParser();
+            const parser = createDocxParser();
             parser.joinTextNodesRange(fromXmlTextNode, toXmlTextNode);
 
             // assert
@@ -111,3 +111,8 @@ describe(nameof(DocxParser), () => {
     });
 
 });
+
+function createDocxParser(): DocxParser {
+    const xmlParser = new XmlParser();
+    return new DocxParser(xmlParser);
+}

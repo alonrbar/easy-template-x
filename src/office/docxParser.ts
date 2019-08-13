@@ -1,5 +1,6 @@
 import * as JSZip from 'jszip';
-import { XmlNode, XmlTextNode } from '../xml';
+import { XmlNode, XmlParser, XmlTextNode } from '../xml';
+import { Docx } from './docx';
 
 export class DocxParser {
 
@@ -33,45 +34,21 @@ export class DocxParser {
     public static readonly NUMBER_PROPERTIES_NODE = 'w:numPr';
 
     //
-    // docx structure
+    // constructor
     //
 
-    public isDocx(zip: JSZip): boolean {
-        return !!(zip.files["word/document.xml"] || zip.files["word/document2.xml"]);
+    constructor(
+        private readonly xmlParser: XmlParser
+    ) {
     }
 
-    public isPptx(zip: JSZip): boolean {
-        return !!zip.files["ppt/presentation.xml"];
-    }
+    //
+    // parse document
+    //
 
-    public contentFilePaths(zip: JSZip) {
-        const coreFiles = [
-            // "docProps/core.xml",
-            // "docProps/app.xml",
-            "word/document.xml",
-            "word/document2.xml"
-        ];
-
-        // const headersAndFooters = zip
-        //     .file(/word\/(header|footer)\d+\.xml/)
-        //     .map(file => file.name);
-
-        return coreFiles;
-    }
-
-    public mainFilePath(zip: JSZip): string {
-
-        if (zip.files["word/document.xml"]) {
-            return "word/document.xml";
-        }
-
-        // https://github.com/open-xml-templating/docxtemplater/issues/366
-        if (zip.files["word/document2.xml"]) {
-            return "word/document2.xml";
-        }
-
-        return undefined;
-    }
+    public load(zip: JSZip): Docx {
+        return new Docx(zip, this.xmlParser);
+    }    
 
     //
     // content manipulation

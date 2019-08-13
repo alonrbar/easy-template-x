@@ -31,7 +31,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"./{src,test}/**/!(*.d).ts\"",
     "test": "jest --verbose",
-    "release": "yarn typecheck && yarn lint && yarn test && webpack --config webpack.dev.js && webpack --config webpack.release.js"
+    "quality": "yarn typecheck && yarn lint && yarn test",
+    "release": "yarn quality && webpack --config webpack.dev.js && webpack --config webpack.release.js"
   },
   "dependencies": {
     "jszip": "3.2.2",
