@@ -75,6 +75,7 @@ export class Docx {
 
         const mediaFileRelPath = this.addMediaFileToZip(content, type);
         const relId = this.addRelsEntry(this.documentPath, mediaFileRelPath, type);
+        // TODO: ensure content type
         return relId;
     }
 
@@ -94,12 +95,14 @@ export class Docx {
      */
     private addMediaFileToZip(mediaFile: Binary, mime: MimeType): string {
 
+        // TODO: hash image and only add unique images
+
         const mediaDirPath = `word/media`;
         const extension = MimeTypeHelper.getDefaultExtension(mime);
 
         // generate unique media file name
         const filenames = this.zip.folder(mediaDirPath).files;
-        let num = 0;
+        let num = 0; // TODO: store last media count
         let filename = '';
         do {
             num++;
@@ -107,7 +110,7 @@ export class Docx {
         } while (filenames[filename]);
 
         // add media
-        this.zip.folder(mediaDirPath).file(filename, mediaFile);
+        this.zip.folder(mediaDirPath).file(filename, mediaFile);        
 
         return `media/${filename}`;
     }
