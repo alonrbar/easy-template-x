@@ -8,11 +8,13 @@ export interface ContentTypeDeclaration {
 export class ContentTypeDeclaration {
 
     public static fromXml(xml: any): ContentTypeDeclaration {
-        return {
-            id: null,
-            type: null,
-            target: null
-        };
+        // return {
+        //     id: null,
+        //     type: null,
+        //     target: null
+        // };
+
+        return null;
     }
 
     public static toXml(rel: ContentTypeDeclaration): XmlNode {

@@ -59,6 +59,8 @@
         "linebreak-style": "off",
         "no-multiple-empty-lines": ["error", { "max": 1 }],
         "no-unreachable": "warn",
+        "no-var": "error",
+        "prefer-const": "error",
         "semi": ["error", "always"]
     }
 }
