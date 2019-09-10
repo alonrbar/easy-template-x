@@ -1,6 +1,6 @@
 import * as JSZip from 'jszip';
 import { MissingArgumentError } from '../errors';
-import { Constructor, inheritsFrom } from './types';
+import { inheritsFrom } from './types';
 
 export type Binary = Blob | Buffer | ArrayBuffer;
 

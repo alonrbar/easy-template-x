@@ -1,7 +1,7 @@
 import * as JSZip from 'jszip';
 import { MalformedFileError } from '../errors';
 import { MimeType, MimeTypeHelper } from '../mimeType';
-import { Binary, Constructor, Path } from '../utils';
+import { Binary, Path } from '../utils';
 import { XmlNode, XmlParser } from '../xml';
 // import { Relationship } from './relationship';
 

@@ -3,7 +3,7 @@ import { DelimiterSearcher, ScopeData, Tag, TagParser, TemplateCompiler, Templat
 import { MalformedFileError } from './errors';
 import { Docx, DocxParser } from './office';
 import { TemplateHandlerOptions } from './templateHandlerOptions';
-import { Binary, Constructor } from './utils';
+import { Binary } from './utils';
 import { XmlNode, XmlParser } from './xml';
 
 export class TemplateHandler {

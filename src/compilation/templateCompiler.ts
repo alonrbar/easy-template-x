@@ -1,7 +1,6 @@
 import { UnclosedTagError, UnknownContentTypeError } from '../errors';
 import { TemplatePlugin } from '../plugins';
 import { toDictionary } from '../utils/array';
-import { IMap } from '../utils/types';
 import { XmlNode } from '../xml';
 import { DelimiterSearcher } from './delimiterSearcher';
 import { ScopeData } from './scopeData';
