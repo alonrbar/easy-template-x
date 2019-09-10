@@ -6,7 +6,7 @@ import { TemplatePlugin } from './templatePlugin';
 
 let imageId = 1;
 
-export type ImageFormat = 'png' | 'jpeg';
+export type ImageFormat = MimeType.Jpeg | MimeType.Png;
 
 export interface ImageContent {
     _type: 'image';
@@ -29,23 +29,11 @@ export class ImagePlugin extends TemplatePlugin {
         }
 
         const currentImageId = imageId++; // TODO: is this good enough?
-        const mimeType = this.getMimeType(content.format);
-        const relId = await context.docx.addMedia(content.source, mimeType);
+        const relId = await context.docx.addMedia(content.source, content.format);
         const imageXml = this.createMarkup(currentImageId, relId, content.width, content.height);
 
         XmlNode.insertAfter(imageXml, tag.xmlTextNode);
         XmlNode.remove(tag.xmlTextNode);
-    }
-
-    private getMimeType(format: ImageFormat): MimeType {
-        switch (format) {
-            case 'jpeg':
-                return MimeType.Jpeg;
-            case 'png':
-                return MimeType.Png;
-            default:
-                throw new Error(`Image format '${format}' is not supported.`); // TODO: better error
-        }
     }
 
     private createMarkup(imageId: number, relId: string, width: number, height: number): XmlNode {
