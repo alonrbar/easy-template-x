@@ -35,8 +35,8 @@ The only exceptions are the "loop" content type which still uses the "#" opening
 
 ### Changed
 
-- **BREAKING**: RawXmlPlugin requires data of the form { _type: 'rawXml', xml: string }.
-- **BREAKING** TemplateCompiler.compile returns a promise.
+- **BREAKING**: `RawXmlPlugin` requires data of the form `{ _type: 'rawXml', xml: string }`.
+- **BREAKING** `TemplateCompiler.compile` returns a promise.
 
 ### Removed
 
