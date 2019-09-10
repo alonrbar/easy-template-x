@@ -67,6 +67,8 @@ export class ImagePlugin extends TemplatePlugin {
                 </wp:inline>
             </w:drawing>
         `;
+
+        // TODO: is this fast enough? should we create the markup from plain objects or otherwise cache the result?
         const imageXml = this.utilities.xmlParser.parse(imageMarkup);
         return imageXml;
     }

@@ -3,7 +3,7 @@ import { MalformedFileError } from '../errors';
 import { MimeType, MimeTypeHelper } from '../mimeType';
 import { Binary, Path } from '../utils';
 import { XmlNode, XmlParser } from '../xml';
-// import { Relationship } from './relationship';
+import { MediaFiles } from './mediaFiles';
 
 export class Docx {
 
@@ -24,13 +24,10 @@ export class Docx {
         return this._documentPath;
     }
 
-    // private contentTypes: any;
-
-    // private documentRels: Relationship[];
-
     private _documentPath: string;
-
     private _document: XmlNode;
+
+    private readonly mediaFiles: MediaFiles;
 
     constructor(
         private readonly zip: JSZip,
@@ -38,6 +35,8 @@ export class Docx {
     ) {
         if (!this.documentPath)
             throw new MalformedFileError('docx');
+
+        this.mediaFiles = new MediaFiles(zip);
     }
 
     //
@@ -71,10 +70,10 @@ export class Docx {
     /**
      * Add a media resource to the document archive and return the created rel ID.
      */
-    public addMedia(content: Binary, type: MimeType): string {
+    public async addMedia(content: Binary, type: MimeType): Promise<string> {
 
-        const mediaFileRelPath = this.addMediaFileToZip(content, type);
-        const relId = this.addRelsEntry(this.documentPath, mediaFileRelPath, type);
+        const mediaFilePath = await this.mediaFiles.add(content, type);
+        const relId = this.addRelsEntry(this.documentPath, mediaFilePath, type);
         // TODO: ensure content type
         return relId;
     }
@@ -90,31 +89,6 @@ export class Docx {
     // private methods
     //    
 
-    /**
-     * Returns the media file path relative to the document file.
-     */
-    private addMediaFileToZip(mediaFile: Binary, mime: MimeType): string {
-
-        // TODO: hash image and only add unique images
-
-        const mediaDirPath = `word/media`;
-        const extension = MimeTypeHelper.getDefaultExtension(mime);
-
-        // generate unique media file name
-        const filenames = this.zip.folder(mediaDirPath).files;
-        let num = 0; // TODO: store last media count
-        let filename = '';
-        do {
-            num++;
-            filename = `media${num}.${extension}`;
-        } while (filenames[filename]);
-
-        // add media
-        this.zip.folder(mediaDirPath).file(filename, mediaFile);        
-
-        return `media/${filename}`;
-    }
-
     private addRelsEntry(documentPath: string, relTarget: string, mime: MimeType): string {
 
         const documentDir = Path.getDirectory(documentPath);
@@ -122,7 +96,7 @@ export class Docx {
         const relsFilePath = `${documentDir}/_rels/${documentFilename}.rels`;
 
         let relsRoot: XmlNode;
-        let relsFile = this.zip.file(relsFilePath);
+        const relsFile = this.zip.file(relsFilePath);
         if (relsFile) {
             const relsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                   <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
@@ -137,7 +111,7 @@ export class Docx {
         entry.attributes = [
             { name: "Id", value: relId },
             { name: "Type", value: relType },
-            { name: "Target", value: relTarget }
+            { name: "Target", value: relTarget } // TODO: relative to documentDir
         ];
 
         relsRoot.childNodes.push(entry);
