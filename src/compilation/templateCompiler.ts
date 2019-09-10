@@ -1,6 +1,6 @@
 import { UnclosedTagError, UnknownContentTypeError } from '../errors';
 import { TemplatePlugin } from '../plugins';
-import { toDictionary } from '../utils/array';
+import { isPromiseLike, toDictionary } from '../utils';
 import { XmlNode } from '../xml';
 import { DelimiterSearcher } from './delimiterSearcher';
 import { ScopeData } from './scopeData';
@@ -36,9 +36,9 @@ export class TemplateCompiler {
      * Compiles the template and performs the required replacements using the
      * specified data.
      */
-    public compile(node: XmlNode, data: ScopeData, context: TemplateContext): void {
+    public async compile(node: XmlNode, data: ScopeData, context: TemplateContext): Promise<void> {
         const tags = this.parseTags(node);
-        this.doTagReplacements(tags, data, context);
+        await this.doTagReplacements(tags, data, context);
     }
 
     public parseTags(node: XmlNode): Tag[] {
@@ -51,7 +51,7 @@ export class TemplateCompiler {
     // private methods
     //
 
-    private doTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): void {
+    private async doTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): Promise<void> {
 
         for (let tagIndex = 0; tagIndex < tags.length; tagIndex++) {
 
@@ -70,7 +70,10 @@ export class TemplateCompiler {
             if (tag.disposition === TagDisposition.SelfClosed) {
 
                 // replace simple tag                
-                plugin.simpleTagReplacements(tag, data, context);
+                const job = plugin.simpleTagReplacements(tag, data, context);
+                if (isPromiseLike(job)) {
+                    await job;
+                }
 
             } else if (tag.disposition === TagDisposition.Open) {
 
@@ -80,7 +83,10 @@ export class TemplateCompiler {
                 tagIndex = closingTagIndex;
 
                 // replace container tag
-                plugin.containerTagReplacements(scopeTags, data, context);
+                const job = plugin.containerTagReplacements(scopeTags, data, context);
+                if (isPromiseLike(job)) {
+                    await job;
+                }
             }
 
             data.path.pop();

@@ -29,9 +29,14 @@ data: {
 
 The only exceptions are the "loop" content type which still uses the "#" opening prefix and "/" closing prefix, and the "text" content type which is the default and does not requires explicitly stating it.
 
+### Added
+
+- Template plugins can be async.
+
 ### Changed
 
 - **BREAKING**: RawXmlPlugin requires data of the form { _type: 'rawXml', xml: string }.
+- **BREAKING** TemplateCompiler.compile returns a promise.
 
 ### Removed
 

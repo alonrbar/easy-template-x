@@ -21,7 +21,7 @@ export class LoopPlugin extends TemplatePlugin {
         this.loopStrategies.forEach(strategy => strategy.setUtilities(utilities));
     }    
 
-    public containerTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): void {
+    public async containerTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): Promise<void> {
 
         let value: any[] = data.getScopeData();
 
@@ -47,7 +47,7 @@ export class LoopPlugin extends TemplatePlugin {
         // (this step can be optimized in the future if we'll keep track of the
         // path to each token and use that to create new tokens instead of
         // search through the text again)
-        const compiledNodes = this.compile(repeatedNodes, data, context);
+        const compiledNodes = await this.compile(repeatedNodes, data, context);
 
         // merge back to the document
         loopStrategy.mergeBack(compiledNodes, firstNode, lastNode);
@@ -67,7 +67,7 @@ export class LoopPlugin extends TemplatePlugin {
         return allResults;
     }
 
-    private compile(nodeGroups: XmlNode[][], data: ScopeData, context: TemplateContext): XmlNode[][] {
+    private async compile(nodeGroups: XmlNode[][], data: ScopeData, context: TemplateContext): Promise<XmlNode[][]> {
         const compiledNodeGroups: XmlNode[][] = [];
 
         // compile each node group with it's relevant data
@@ -80,7 +80,7 @@ export class LoopPlugin extends TemplatePlugin {
 
             // compile the new root
             data.path.push(i);
-            this.utilities.compiler.compile(dummyRootNode, data, context);
+            await this.utilities.compiler.compile(dummyRootNode, data, context);
             data.path.pop();
 
             // disconnect from dummy root

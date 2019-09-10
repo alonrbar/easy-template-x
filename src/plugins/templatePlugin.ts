@@ -30,7 +30,7 @@ export abstract class TemplatePlugin {
      * This method is called for each self-closing tag.
      * It should implement the specific document manipulation required by the tag.
      */
-    public simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): void {
+    public simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): void | Promise<void> {
         // noop
     }
 
@@ -42,7 +42,7 @@ export abstract class TemplatePlugin {
      * i.e. tags[0] is the opening tag and the last item in the tags array is
      * the closing tag).
      */
-    public containerTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): void {
+    public containerTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): void | Promise<void> {
         // noop
     }
 }

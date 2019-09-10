@@ -20,7 +20,7 @@ export class ImagePlugin extends TemplatePlugin {
 
     public readonly contentType = 'image';
 
-    public simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): void {
+    public async simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): Promise<void> {
 
         const content: ImageContent = data.getScopeData();
         if (!content || !content.source) {
@@ -30,7 +30,7 @@ export class ImagePlugin extends TemplatePlugin {
 
         const currentImageId = imageId++; // TODO: is this good enough?
         const mimeType = this.getMimeType(content.format);
-        const relId = context.docx.addMedia(content.source, mimeType);
+        const relId = await context.docx.addMedia(content.source, mimeType);
         const imageXml = this.createMarkup(currentImageId, relId, content.width, content.height);
 
         XmlNode.insertAfter(imageXml, tag.xmlTextNode);

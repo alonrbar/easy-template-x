@@ -58,7 +58,7 @@ export class TemplateHandler {
         const context: TemplateContext = {
             docx
         };
-        this.compiler.compile(document, scopeData, context);
+        await this.compiler.compile(document, scopeData, context);
 
         // export the result
         return docx.export(templateFile.constructor as Constructor<T>);

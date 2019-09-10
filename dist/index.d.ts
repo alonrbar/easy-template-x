@@ -222,7 +222,7 @@ export declare class TemplateCompiler {
      * Compiles the template and performs the required replacements using the
      * specified data.
      */
-    compile(node: XmlNode, data: ScopeData, context: TemplateContext): void;
+    compile(node: XmlNode, data: ScopeData, context: TemplateContext): Promise<void>;
 
     parseTags(node: XmlNode): Tag[];
 }
@@ -390,7 +390,7 @@ export declare abstract class TemplatePlugin {
      * This method is called for each self-closing tag.
      * It should implement the specific document manipulation required by the tag.
      */
-    simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): void;
+    simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): void | Promise<void>;
     /**
      * This method is called for each container tag. It should implement the
      * specific document manipulation required by the tag.
@@ -399,7 +399,7 @@ export declare abstract class TemplatePlugin {
      * i.e. tags[0] is the opening tag and the last item in the tags array is
      * the closing tag).
      */
-    containerTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): void;
+    containerTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): void | Promise<void>;
 }
 
 export declare class TextPlugin extends TemplatePlugin {
