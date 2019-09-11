@@ -2,7 +2,7 @@ import * as JSZip from 'jszip';
 import { XmlNode, XmlParser, XmlTextNode } from '../xml';
 import { Docx } from './docx';
 
-export class DocxParser { // TODO: rename to DocxMarkupParser ?
+export class DocxParser {
 
     /*
      * Word markup intro:
