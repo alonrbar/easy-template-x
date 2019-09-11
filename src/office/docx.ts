@@ -90,7 +90,13 @@ export class Docx {
     public async export<T extends Binary>(outputType: Constructor<T>): Promise<T> {
         await this.saveChanges();
         const zipOutputType: JSZip.OutputType = Binary.toJsZipOutputType(outputType);
-        const output = await this.zip.generateAsync({ type: zipOutputType });
+        const output = await this.zip.generateAsync({
+            type: zipOutputType,
+            compression: "DEFLATE",
+            compressionOptions: {
+                level: 6 // between 1 (best speed) and 9 (best compression)
+            }
+        });
         return output as T;
     }
 
