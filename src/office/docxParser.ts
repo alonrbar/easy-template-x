@@ -2,10 +2,10 @@ import * as JSZip from 'jszip';
 import { XmlNode, XmlParser, XmlTextNode } from '../xml';
 import { Docx } from './docx';
 
-export class DocxParser {
+export class DocxParser { // TODO: rename to DocxMarkupParser ?
 
     /*
-     * Docx intro:
+     * Word markup intro:
      * 
      * In Word text nodes are contained in "run" nodes (which specifies text
      * properties such as font and color). The "run" nodes in turn are

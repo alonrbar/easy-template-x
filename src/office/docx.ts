@@ -5,6 +5,9 @@ import { Binary, Path } from '../utils';
 import { XmlNode, XmlParser } from '../xml';
 import { MediaFiles } from './mediaFiles';
 
+/**
+ * Represents a single docx file.
+ */
 export class Docx {
 
     public get documentPath(): string {

@@ -47,7 +47,7 @@ export class TemplateHandler {
         });
     }
 
-    public async process<T extends Binary>(templateFile: T, data: any): Promise<T> {
+    public async process<T extends Binary>(templateFile: T, data: any): Promise<T> {  // TODO: strong type 'data' parameter
 
         // load the docx file
         const docx = await this.loadDocx(templateFile);
