@@ -6,7 +6,6 @@ Generate docx documents from templates, in Node or in the browser.
 [![npm version](https://img.shields.io/npm/v/easy-template-x.svg)](https://www.npmjs.com/package/easy-template-x)
 [![npm license](https://img.shields.io/npm/l/easy-template-x.svg)](https://www.npmjs.com/package/easy-template-x)
 [![dependencies](https://david-dm.org/alonrbar/easy-template-x.svg)](https://github.com/alonrbar/easy-template-x)
-[![dependencies](https://david-dm.org/alonrbar/easy-template-x/dev-status.svg)](https://github.com/alonrbar/easy-template-x)
 
 - [Prior art and motivation](#prior-art-and-motivation)
 - [Node Example](#node-example)
