@@ -23,8 +23,9 @@ export class MediaFiles {
         // hash existing media files
         await this.hashMediaFiles();
 
-        // TODO: hash the new file
-        const hash = '123';
+        // hash the new file
+        const base64 = await Binary.toBase64(mediaFile);
+        const hash = sha1(base64);
 
         // check if file already exists
         // note: this can be optimized by keeping both mapping by filename as well as by hash
