@@ -1916,7 +1916,7 @@ g = (function() {
 
 try {
 	// This works if eval is allowed (see CSP)
-	g = g || Function("return this")() || (1, eval)("this");
+	g = g || new Function("return this")();
 } catch (e) {
 	// This works if the window reference is available
 	if (typeof window === "object") g = window;
@@ -2637,6 +2637,7 @@ class DocxParser {
   //
   contentFilePaths(zip) {
     const coreFiles = [// "docProps/core.xml",
+    // "docProps/app.xml",
     "word/document.xml", "word/document2.xml"]; // const headersAndFooters = zip
     //     .file(/word\/(header|footer)\d+\.xml/)
     //     .map(file => file.name);
@@ -4616,7 +4617,20 @@ const Binary = {
     if (!binary) throw new _errors.MissingArgumentError("binary");
     if (typeof Blob !== 'undefined' && binary instanceof Blob) return 'blob';
     if (typeof ArrayBuffer !== 'undefined' && binary instanceof ArrayBuffer) return 'arraybuffer';
-    if (typeof Buffer !== 'undefined' && binary instanceof Buffer) return 'nodebuffer';
+    if (typeof Buffer !== 'undefined' && binary instanceof Buffer) return 'nodebuffer'; //
+    // HACK: Fixes https://github.com/alonrbar/easy-template-x/issues/5  
+    //
+    // The issue happens due to some library on the way (maybe babel?)
+    // replacing Node's Buffer with this implementation:
+    // https://www.npmjs.com/package/buffer  
+    // The custom implementation actually uses an Uint8Array and therefor
+    // fails all the above `if` clauses.
+    //
+    // I'm assuming we'll be able to remove this if we create an esnext, non-compiled
+    // version with rollup or something of that sort.
+    //
+
+    if (typeof Uint8Array !== 'undefined' && binary instanceof Uint8Array) return 'nodebuffer';
     throw new Error(`Binary type '${binary.constructor.name}' is not supported.`);
   }
 

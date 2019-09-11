@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.5.2 - 2019-09-11](https://github.com/alonrbar/easy-template-x/tree/v0.5.2)
+
+### Fixed
+
+- "Binary type 'Buffer' is not supported." on Node 12.
+
 ## [0.5.1 - 2019-06-05](https://github.com/alonrbar/easy-template-x/tree/v0.5.1)
 
 ### Fixed
