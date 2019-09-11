@@ -1,6 +1,6 @@
 import { TagDisposition } from 'src/compilation/tag';
 import { TemplateHandler } from 'src/templateHandler';
-import { readFixture } from '../fixtures/utils';
+import { readFixture } from '../fixtures/fixtureUtils';
 
 describe(nameof(TemplateHandler), () => {
 

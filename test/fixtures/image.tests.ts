@@ -1,7 +1,8 @@
-import { TemplateHandler } from 'src/templateHandler';
-import { readFixture, writeTempFile } from './utils';
-import { ImageContent } from 'src/plugins/imagePlugin';
 import { MimeType } from 'src/mimeType';
+import { ImageContent } from 'src/plugins/imagePlugin';
+import { TemplateHandler } from 'src/templateHandler';
+import { readResource, writeTempFile } from '../testUtils';
+import { readFixture } from './fixtureUtils';
 
 describe('image fixtures', () => {
 
@@ -10,7 +11,7 @@ describe('image fixtures', () => {
         const handler = new TemplateHandler();
 
         const template = readFixture("simple.docx");
-        const imageFile = readFixture("panda.jpeg");
+        const imageFile = readResource("panda.jpg");
 
         const imageData: ImageContent = {
             _type: 'image',

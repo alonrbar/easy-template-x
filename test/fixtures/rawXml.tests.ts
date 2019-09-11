@@ -1,5 +1,5 @@
 import { TemplateHandler } from 'src/templateHandler';
-import { readFixture } from './utils';
+import { readFixture } from './fixtureUtils';
 
 describe('raw xml fixture', () => {
 

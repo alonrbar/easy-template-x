@@ -1,6 +1,6 @@
 import { TemplateHandler } from 'src/templateHandler';
 import { randomParagraphs, randomWords } from '../testUtils';
-import { readFixture } from './utils';
+import { readFixture } from './fixtureUtils';
 
 describe('real life fixtures', () => {
 
