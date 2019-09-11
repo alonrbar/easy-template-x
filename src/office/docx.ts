@@ -1,9 +1,11 @@
 import * as JSZip from 'jszip';
 import { MalformedFileError } from '../errors';
-import { MimeType, MimeTypeHelper } from '../mimeType';
-import { Binary, Path } from '../utils';
+import { MimeType } from '../mimeType';
+import { Binary } from '../utils';
 import { XmlNode, XmlParser } from '../xml';
+import { ContentTypesFile } from './contentTypesFile';
 import { MediaFiles } from './mediaFiles';
+import { Rels } from './rels';
 
 /**
  * Represents a single docx file.
@@ -30,7 +32,9 @@ export class Docx {
     private _documentPath: string;
     private _document: XmlNode;
 
+    private readonly rels: Rels;
     private readonly mediaFiles: MediaFiles;
+    private readonly contentTypes: ContentTypesFile;
 
     constructor(
         private readonly zip: JSZip,
@@ -39,7 +43,9 @@ export class Docx {
         if (!this.documentPath)
             throw new MalformedFileError('docx');
 
+        this.rels = new Rels(this.documentPath, zip, xmlParser);
         this.mediaFiles = new MediaFiles(zip);
+        this.contentTypes = new ContentTypesFile(zip, xmlParser);
     }
 
     //
@@ -69,15 +75,15 @@ export class Docx {
 
         return domDocument.documentElement.textContent;
     }
-    
+
     /**
      * Add a media resource to the document archive and return the created rel ID.
      */
     public async addMedia(content: Binary, type: MimeType): Promise<string> {
 
         const mediaFilePath = await this.mediaFiles.add(content, type);
-        const relId = this.addRelsEntry(this.documentPath, mediaFilePath, type);
-        // TODO: ensure content type
+        const relId = await this.rels.add(mediaFilePath, type);
+        await this.contentTypes.ensureContentType(type);
         return relId;
     }
 
@@ -86,45 +92,21 @@ export class Docx {
         const zipOutputType: JSZip.OutputType = Binary.toJsZipOutputType(outputType);
         const output = await this.zip.generateAsync({ type: zipOutputType });
         return output as T;
-    }    
+    }
 
     //
     // private methods
-    //    
-
-    private addRelsEntry(documentPath: string, relTarget: string, mime: MimeType): string {
-
-        const documentDir = Path.getDirectory(documentPath);
-        const documentFilename = Path.getFilename(documentPath);
-        const relsFilePath = `${documentDir}/_rels/${documentFilename}.rels`;
-
-        let relsRoot: XmlNode;
-        const relsFile = this.zip.file(relsFilePath);
-        if (relsFile) {
-            const relsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-                  <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-                  </Relationships>`;
-            relsRoot = this.xmlParser.parse(relsXml);
-        }
-
-        const relId = 'rId4';
-
-        const relType = MimeTypeHelper.getOfficeRelType(mime);
-        const entry = XmlNode.createGeneralNode('Relationship');
-        entry.attributes = [
-            { name: "Id", value: relId },
-            { name: "Type", value: relType },
-            { name: "Target", value: relTarget } // TODO: relative to documentDir
-        ];
-
-        relsRoot.childNodes.push(entry);
-
-        return relId;
-    }
+    //        
 
     private async saveChanges() {
+
+        // save main document
         const document = await this.getDocument();
         const xmlContent = this.xmlParser.serialize(document);
         this.zip.file(this.documentPath, xmlContent);
+
+        // save other parts
+        await this.rels.save();
+        await this.contentTypes.save();
     }
 }

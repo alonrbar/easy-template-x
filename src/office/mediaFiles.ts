@@ -1,8 +1,10 @@
 import * as JSZip from 'jszip';
 import { MimeType, MimeTypeHelper } from '../mimeType';
-import { Binary, Path } from '../utils';
-import { sha1 } from 'src/utils/sha1';
+import { Binary, Path, sha1 } from '../utils';
 
+/**
+ * Handles media files of the main document.
+ */
 export class MediaFiles {
 
     private static readonly mediaDir = 'word/media';
@@ -18,15 +20,20 @@ export class MediaFiles {
      */
     public async add(mediaFile: Binary, mime: MimeType): Promise<string> {
 
+        // hash existing media files
         await this.hashMediaFiles();
 
-        const hash = '123'; // TODO: hash the file
+        // TODO: hash the new file
+        const hash = '123';
+
+        // check if file already exists
+        // note: this can be optimized by keeping both mapping by filename as well as by hash
         let filename = Object.keys(this.fileHashes).find(filename => this.fileHashes[filename] === hash);
         let fullPath = `${MediaFiles.mediaDir}/${filename}`;
 
         // add new file to the zip
         if (!filename) {
-            
+
             // generate unique media file name
             const extension = MimeTypeHelper.getDefaultExtension(mime);
             do {
@@ -42,13 +49,14 @@ export class MediaFiles {
             this.fileHashes[filename] = hash;
         }
 
+        // return
         return fullPath;
     }
 
     public async count(): Promise<number> {
         await this.hashMediaFiles();
         return Object.keys(this.fileHashes).length;
-    }
+    }    
 
     private async hashMediaFiles(): Promise<void> {
         if (this.fileHashes)
