@@ -1,6 +1,7 @@
 import { TemplateHandler } from 'src/templateHandler';
 import { readFixture, writeTempFile } from './utils';
 import { ImageContent } from 'src/plugins/imagePlugin';
+import { MimeType } from 'src/mimeType';
 
 describe('image fixtures', () => {
 
@@ -13,7 +14,7 @@ describe('image fixtures', () => {
 
         const imageData: ImageContent = {
             _type: 'image',
-            format: 'jpeg',
+            format: MimeType.Jpeg,
             source: imageFile
         };
         const data: any = {
