@@ -32,8 +32,9 @@ export class ImagePlugin extends TemplatePlugin {
         const relId = await context.docx.addMedia(content.source, content.format);
         const imageXml = this.createMarkup(currentImageId, relId, content.width, content.height);
 
-        XmlNode.insertAfter(imageXml, tag.xmlTextNode);
+        const wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
         XmlNode.remove(tag.xmlTextNode);
+        XmlNode.insertAfter(imageXml, wordTextNode);
     }
 
     private createMarkup(imageId: number, relId: string, width: number, height: number): XmlNode {

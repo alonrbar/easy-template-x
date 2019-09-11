@@ -34,7 +34,7 @@ export class Rels {
 
         // relTarget should be relative to the part dir
         if (relTarget.startsWith(this.partDir)) {
-            relTarget.substr(this.partDir.length + 1);
+            relTarget = relTarget.substr(this.partDir.length + 1);
         }
 
         // parse rels file
