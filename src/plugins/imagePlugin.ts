@@ -28,7 +28,7 @@ export class ImagePlugin extends TemplatePlugin {
             return;
         }
 
-        const currentImageId = imageId++; // TODO: is this good enough?
+        const currentImageId = imageId++;
         const relId = await context.docx.addMedia(content.source, content.format);
         const imageXml = this.createMarkup(currentImageId, relId, content.width, content.height);
 
@@ -38,6 +38,9 @@ export class ImagePlugin extends TemplatePlugin {
     }
 
     private createMarkup(imageId: number, relId: string, width: number, height: number): XmlNode {
+
+        // http://officeopenxml.com/drwPicInline.php
+
         const name = `Picture ${imageId}`;
         const imageMarkup = `
             <w:drawing>
@@ -63,6 +66,9 @@ export class ImagePlugin extends TemplatePlugin {
     }
 
     private pictureMarkup(name: string, relId: string, width: number, height: number) {
+
+        // http://officeopenxml.com/drwPic.php
+
         return `
             <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
                 <pic:nvPicPr>
