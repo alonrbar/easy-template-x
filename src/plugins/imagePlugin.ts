@@ -1,7 +1,7 @@
 import { ScopeData, Tag, TemplateContext } from '../compilation';
 import { MimeType } from '../mimeType';
 import { Binary } from '../utils';
-import { XmlNode } from '../xml';
+import { XmlGeneralNode, XmlNode } from '../xml';
 import { TemplatePlugin } from './templatePlugin';
 
 /**
@@ -14,7 +14,7 @@ import { TemplatePlugin } from './templatePlugin';
  *
  * Tested in Word v1908
  */
-let imageId = 1;
+let nextImageId = 1;
 
 export type ImageFormat = MimeType.Jpeg | MimeType.Png;
 
@@ -40,9 +40,9 @@ export class ImagePlugin extends TemplatePlugin {
             return;
         }
 
-        const currentImageId = imageId++;
+        const imageId = nextImageId++;
         const relId = await context.docx.addMedia(content.source, content.format);
-        const imageXml = this.createMarkup(currentImageId, relId, content.width, content.height);
+        const imageXml = this.createMarkup(imageId, relId, content.width, content.height);
 
         XmlNode.insertAfter(imageXml, wordTextNode);
         XmlNode.remove(wordTextNode);
@@ -52,8 +52,18 @@ export class ImagePlugin extends TemplatePlugin {
 
         // http://officeopenxml.com/drwPicInline.php
 
+        //
+        // Performance note:  
+        //
+        // I've tried to improve the markup generation performance by parsing
+        // the string once and caching the result (and of course customizing it
+        // per image) but it made no change whatsoever (in both cases 1000 items
+        // loop takes around 8 seconds on my machine) so I'm sticking with this
+        // approach which I find to be more readable.
+        //
+
         const name = `Picture ${imageId}`;
-        const imageMarkup = `
+        const markupText = `
             <w:drawing>
                 <wp:inline distT="0" distB="0" distL="0" distR="0">
                     <wp:extent cx="${this.pixelsToEmu(width)}" cy="${this.pixelsToEmu(height)}"/>
@@ -71,9 +81,10 @@ export class ImagePlugin extends TemplatePlugin {
             </w:drawing>
         `;
 
-        // TODO: is this fast enough? should we create the markup from plain objects or otherwise cache the result?
-        const imageXml = this.utilities.xmlParser.parse(imageMarkup);
-        return imageXml;
+        const markupXml = this.utilities.xmlParser.parse(markupText) as XmlGeneralNode;
+        XmlNode.stripTextNodes(markupXml); // remove whitespace
+
+        return markupXml;
     }
 
     private pictureMarkup(name: string, relId: string, width: number, height: number) {

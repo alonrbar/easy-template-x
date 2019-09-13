@@ -463,7 +463,14 @@ export const XmlNode = {
 
         range.push(lastNode);
         return range;
-    }
+    },
+
+    /**
+     * Recursively removes text nodes leaving only "general nodes".
+     */
+    stripTextNodes(node: XmlGeneralNode): void {
+        recursiveStripTextNodes(node);
+    },
 };
 
 //
@@ -573,4 +580,21 @@ function getDescendantPath(root: XmlNode, descendant: XmlNode): number[] {
     }
 
     return path.reverse();
+}
+
+function recursiveStripTextNodes(node: XmlGeneralNode): XmlGeneralNode {
+
+    if (!node.childNodes)
+        return node;
+
+    const oldChildren = node.childNodes;
+    node.childNodes = [];
+    for (const child of oldChildren) {
+        if (XmlNode.isTextNode(child))
+            continue;
+        const strippedChild = recursiveStripTextNodes(child);
+        node.childNodes.push(strippedChild);
+    }
+
+    return node;
 }

@@ -18,6 +18,13 @@ export function randomParagraphs(count = 1): string {
     return lorem({ count, units: 'paragraphs' });
 }
 
+/**
+ * range(1, 3) ==> [ 1, 2, 3 ]
+ */
+export function range(start: number, end: number): number[] {
+    return new Array(end + 1 - start).fill(0).map((d, i) => i + start);
+}
+
 export function readResource(filename: string): Buffer {
     return fs.readFileSync("./test/res/" + filename);
 }
