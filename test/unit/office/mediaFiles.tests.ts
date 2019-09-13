@@ -16,7 +16,7 @@ describe(nameof(MediaFiles), () => {
             let filesCount = await mediaFiles.count();
             expect(filesCount).toEqual(2);
 
-            const image = readResource("panda.jpg");
+            const image = readResource("panda1.jpg");
             const addedFilePath = await mediaFiles.add(image, MimeType.Jpeg);
             expect(addedFilePath).toEqual('word/media/media1.jpg');
 
@@ -33,7 +33,7 @@ describe(nameof(MediaFiles), () => {
             let filesCount = await mediaFiles.count();
             expect(filesCount).toEqual(2);
 
-            const mediaToAdd = "panda.jpg";
+            const mediaToAdd = "panda1.jpg";
 
             // add #1
             const image1 = readResource(mediaToAdd);
