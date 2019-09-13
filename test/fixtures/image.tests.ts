@@ -112,6 +112,43 @@ describe('image fixtures', () => {
         // writeTempFile(doc, 'image - loop same - output.docx');
     });
 
+    it("using the same template handler to add the same image to two different files works", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template1 = readFixture("simple.docx");
+        const template2 = readFixture("simple.docx");
+        const imageFile = readResource("panda1.jpg");
+
+        const imageData: ImageContent = {
+            _type: 'image',
+            format: MimeType.Jpeg,
+            source: imageFile,
+            height: 325,
+            width: 600
+        };
+        const data: any = {
+            simple_prop: imageData
+        };
+
+        const doc1 = await handler.process(template1, data);
+        const doc2 = await handler.process(template2, data);
+
+        // assert
+        const zip1 = await JSZip.loadAsync(doc1);
+        const allFiles1 = Object.keys(zip1.files);
+        const jpegFiles1 = allFiles1.filter(f => f.endsWith('.jpg'));
+        expect(jpegFiles1).toHaveLength(1);
+
+        const zip2 = await JSZip.loadAsync(doc2);
+        const allFiles2 = Object.keys(zip2.files);
+        const jpegFiles2 = allFiles2.filter(f => f.endsWith('.jpg'));
+        expect(jpegFiles2).toHaveLength(1);
+
+        // writeTempFile(doc1, 'image - two files 1 - output.docx');
+        // writeTempFile(doc2, 'image - two files 2 - output.docx');
+    });
+
     it("image markup generation is fast enough", async () => {
 
         const handler = new TemplateHandler();
