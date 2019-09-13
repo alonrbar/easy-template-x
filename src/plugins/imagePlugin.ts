@@ -32,9 +32,11 @@ export class ImagePlugin extends TemplatePlugin {
 
     public async simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): Promise<void> {
 
+        const wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
+
         const content: ImageContent = data.getScopeData();
         if (!content || !content.source) {
-            XmlNode.remove(tag.xmlTextNode);
+            XmlNode.remove(wordTextNode);
             return;
         }
 
@@ -42,9 +44,8 @@ export class ImagePlugin extends TemplatePlugin {
         const relId = await context.docx.addMedia(content.source, content.format);
         const imageXml = this.createMarkup(currentImageId, relId, content.width, content.height);
 
-        const wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
-        XmlNode.remove(tag.xmlTextNode);
         XmlNode.insertAfter(imageXml, wordTextNode);
+        XmlNode.remove(wordTextNode);
     }
 
     private createMarkup(imageId: number, relId: string, width: number, height: number): XmlNode {
