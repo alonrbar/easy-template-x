@@ -23,7 +23,10 @@ export class MediaFiles {
         // hash existing media files
         await this.hashMediaFiles();
 
-        // hash the new file
+        // hash the new file  
+        // Note: Even though hashing the base64 string may seem inefficient
+        // (requires extra step in some cases) in practice it is significantly
+        // faster than hashing a 'binarystring'.
         const base64 = await Binary.toBase64(mediaFile);
         const hash = sha1(base64);
 
