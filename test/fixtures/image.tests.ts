@@ -1,7 +1,7 @@
-import * as JSZip from 'jszip';
 import { MimeType } from 'src/mimeType';
 import { ImageContent } from 'src/plugins/imageContent';
 import { TemplateHandler } from 'src/templateHandler';
+import { Zip } from 'src/zip';
 import { range, readResource } from '../testUtils';
 import { readFixture } from './fixtureUtils';
 
@@ -104,9 +104,8 @@ describe('image fixtures', () => {
         const doc = await handler.process(template, data);
 
         // assert
-        const zip = await JSZip.loadAsync(doc);
-        const allFiles = Object.keys(zip.files);
-        const jpegFiles = allFiles.filter(f => f.endsWith('.jpg'));
+        const zip = await Zip.load(doc);
+        const jpegFiles = zip.listFiles().filter(f => f.endsWith('.jpg'));
         expect(jpegFiles).toHaveLength(1);
 
         // writeTempFile(doc, 'image - loop same - output.docx');
@@ -135,14 +134,12 @@ describe('image fixtures', () => {
         const doc2 = await handler.process(template2, data);
 
         // assert
-        const zip1 = await JSZip.loadAsync(doc1);
-        const allFiles1 = Object.keys(zip1.files);
-        const jpegFiles1 = allFiles1.filter(f => f.endsWith('.jpg'));
+        const zip1 = await Zip.load(doc1);
+        const jpegFiles1 = zip1.listFiles().filter(f => f.endsWith('.jpg'));
         expect(jpegFiles1).toHaveLength(1);
 
-        const zip2 = await JSZip.loadAsync(doc2);
-        const allFiles2 = Object.keys(zip2.files);
-        const jpegFiles2 = allFiles2.filter(f => f.endsWith('.jpg'));
+        const zip2 = await Zip.load(doc2);
+        const jpegFiles2 = zip2.listFiles().filter(f => f.endsWith('.jpg'));
         expect(jpegFiles2).toHaveLength(1);
 
         // writeTempFile(doc1, 'image - two files 1 - output.docx');

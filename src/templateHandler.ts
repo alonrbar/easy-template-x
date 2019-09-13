@@ -1,4 +1,3 @@
-import * as JSZip from 'jszip';
 import { DelimiterSearcher, ScopeData, Tag, TagParser, TemplateCompiler, TemplateContext } from './compilation';
 import { MalformedFileError } from './errors';
 import { Docx, DocxParser } from './office';
@@ -6,6 +5,7 @@ import { TemplateData } from './templateData';
 import { TemplateHandlerOptions } from './templateHandlerOptions';
 import { Binary } from './utils';
 import { XmlNode, XmlParser } from './xml';
+import { Zip } from './zip';
 
 export class TemplateHandler {
 
@@ -96,9 +96,9 @@ export class TemplateHandler {
     private async loadDocx(file: Binary): Promise<Docx> {
 
         // load the zip file
-        let zip: JSZip;
+        let zip: Zip;
         try {
-            zip = await JSZip.loadAsync(file);
+            zip = await Zip.load(file);
         } catch {
             throw new MalformedFileError('docx');
         }
@@ -106,5 +106,5 @@ export class TemplateHandler {
         // load the docx file
         const docx = this.docxParser.load(zip);
         return docx;
-    }    
+    }
 }

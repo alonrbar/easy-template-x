@@ -1,6 +1,6 @@
-import * as JSZip from 'jszip';
 import { MimeType, MimeTypeHelper } from '../mimeType';
 import { XmlGeneralNode, XmlNode, XmlParser } from '../xml';
+import { Zip } from '../zip';
 
 /**
  * http://officeopenxml.com/anatomyofOOXML.php
@@ -16,7 +16,7 @@ export class ContentTypesFile {
     private contentTypes: IMap<boolean>;
 
     constructor(
-        private readonly zip: JSZip,
+        private readonly zip: Zip,
         private readonly xmlParser: XmlParser
     ) {
     }
@@ -56,7 +56,7 @@ export class ContentTypesFile {
             return;
 
         const xmlContent = this.xmlParser.serialize(this.root);
-        this.zip.file(ContentTypesFile.contentTypesFilePath, xmlContent);
+        this.zip.setFile(ContentTypesFile.contentTypesFilePath, xmlContent);
     }
 
     private async parseContentTypesFile(): Promise<void> {
@@ -64,7 +64,7 @@ export class ContentTypesFile {
             return;
 
         // parse the xml file
-        const contentTypesXml = await this.zip.file(ContentTypesFile.contentTypesFilePath).async('text');
+        const contentTypesXml = await this.zip.getFile(ContentTypesFile.contentTypesFilePath).getContentText();
         this.root = this.xmlParser.parse(contentTypesXml);
 
         // build the content types lookup

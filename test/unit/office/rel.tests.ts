@@ -9,7 +9,7 @@ describe(nameof(Rels), () => {
         it('returns the same rel for the same target', async () => {
 
             const fakeZip: any = {
-                file: (): any => null
+                getFile: (): any => null
             };
 
             const rels = new Rels('word/document.xml', fakeZip, new XmlParser());

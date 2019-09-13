@@ -1,5 +1,5 @@
-import * as JSZip from 'jszip';
 import { XmlNode, XmlParser, XmlTextNode } from '../xml';
+import { Zip } from '../zip';
 import { Docx } from './docx';
 
 export class DocxParser {
@@ -46,7 +46,7 @@ export class DocxParser {
     // parse document
     //
 
-    public load(zip: JSZip): Docx {
+    public load(zip: Zip): Docx {
         return new Docx(zip, this.xmlParser);
     }    
 

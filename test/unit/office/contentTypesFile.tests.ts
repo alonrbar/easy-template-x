@@ -9,8 +9,8 @@ describe(nameof(ContentTypesFile), () => {
         it('does not add the same type more than once', async () => {
 
             const fakeZip: any = {
-                file: () => ({
-                    'async': () => Promise.resolve(getContentTypesText())
+                getFile: () => ({
+                    getContentText: () => Promise.resolve(getContentTypesText())
                 })
             };
 

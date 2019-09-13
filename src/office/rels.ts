@@ -1,7 +1,7 @@
-import * as JSZip from 'jszip';
 import { MimeType, MimeTypeHelper } from '../mimeType';
 import { Path } from '../utils';
 import { XmlGeneralNode, XmlNode, XmlParser } from '../xml';
+import { Zip } from '../zip';
 
 /**
  * Handles the relationship logic of a single docx "part".  
@@ -19,7 +19,7 @@ export class Rels {
 
     constructor(
         partPath: string,
-        private readonly zip: JSZip,
+        private readonly zip: Zip,
         private readonly xmlParser: XmlParser
     ) {
 
@@ -76,7 +76,7 @@ export class Rels {
             return;
 
         const xmlContent = this.xmlParser.serialize(this.root);
-        this.zip.file(this.relsFilePath, xmlContent);
+        this.zip.setFile(this.relsFilePath, xmlContent);
     }
 
     //
@@ -100,9 +100,9 @@ export class Rels {
 
         // parse the xml file
         let relsXml: string;
-        const relsFile = this.zip.file(this.relsFilePath);
+        const relsFile = this.zip.getFile(this.relsFilePath);
         if (relsFile) {
-            relsXml = await relsFile.async('text');
+            relsXml = await relsFile.getContentText();
         } else {
             relsXml = `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
                       </Relationships>`;

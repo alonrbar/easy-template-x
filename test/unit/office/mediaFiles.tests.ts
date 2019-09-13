@@ -1,6 +1,6 @@
-import * as JSZip from 'jszip';
 import { MimeType } from 'src/mimeType';
 import { MediaFiles } from 'src/office/mediaFiles';
+import { Zip } from 'src/zip';
 import { readResource } from '../../testUtils';
 
 describe(nameof(MediaFiles), () => {
@@ -10,7 +10,7 @@ describe(nameof(MediaFiles), () => {
         it('adds a file', async () => {
 
             const docFile = readResource("two images.docx");
-            const zip = await JSZip.loadAsync(docFile);
+            const zip = await Zip.load(docFile);
             const mediaFiles = new MediaFiles(zip);
 
             let filesCount = await mediaFiles.count();
@@ -27,7 +27,7 @@ describe(nameof(MediaFiles), () => {
         it('adds the same file only once', async () => {
 
             const docFile = readResource("two images.docx");
-            const zip = await JSZip.loadAsync(docFile);
+            const zip = await Zip.load(docFile);
             const mediaFiles = new MediaFiles(zip);
 
             let filesCount = await mediaFiles.count();

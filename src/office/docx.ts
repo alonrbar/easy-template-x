@@ -1,8 +1,8 @@
-import * as JSZip from 'jszip';
 import { MalformedFileError } from '../errors';
 import { MimeType } from '../mimeType';
 import { Binary } from '../utils';
 import { XmlNode, XmlParser } from '../xml';
+import { Zip } from '../zip';
 import { ContentTypesFile } from './contentTypesFile';
 import { MediaFiles } from './mediaFiles';
 import { Rels } from './rels';
@@ -16,12 +16,12 @@ export class Docx {
 
         if (!this._documentPath) {
 
-            if (this.zip.files["word/document.xml"]) {
+            if (this.zip.isFileExist("word/document.xml")) {
                 this._documentPath = "word/document.xml";
             }
 
             // https://github.com/open-xml-templating/docxtemplater/issues/366
-            else if (this.zip.files["word/document2.xml"]) {
+            else if (this.zip.isFileExist("word/document2.xml")) {
                 this._documentPath = "word/document2.xml";
             }
         }
@@ -37,7 +37,7 @@ export class Docx {
     private readonly contentTypes: ContentTypesFile;
 
     constructor(
-        private readonly zip: JSZip,
+        private readonly zip: Zip,
         private readonly xmlParser: XmlParser
     ) {
         if (!this.documentPath)
@@ -57,7 +57,7 @@ export class Docx {
      */
     public async getDocument(): Promise<XmlNode> {
         if (!this._document) {
-            const xml = await this.zip.files[this.documentPath].async('text');
+            const xml = await this.zip.getFile(this.documentPath).getContentText();
             this._document = this.xmlParser.parse(xml);
         }
         return this._document;
@@ -89,15 +89,7 @@ export class Docx {
 
     public async export<T extends Binary>(outputType: Constructor<T>): Promise<T> {
         await this.saveChanges();
-        const zipOutputType: JSZip.OutputType = Binary.toJsZipOutputType(outputType);
-        const output = await this.zip.generateAsync({
-            type: zipOutputType,
-            compression: "DEFLATE",
-            compressionOptions: {
-                level: 6 // between 1 (best speed) and 9 (best compression)
-            }
-        });
-        return output as T;
+        return await this.zip.export(outputType);
     }
 
     //
@@ -109,7 +101,7 @@ export class Docx {
         // save main document
         const document = await this.getDocument();
         const xmlContent = this.xmlParser.serialize(document);
-        this.zip.file(this.documentPath, xmlContent);
+        this.zip.setFile(this.documentPath, xmlContent);
 
         // save other parts
         await this.rels.save();

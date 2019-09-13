@@ -1,6 +1,6 @@
-import * as JSZip from 'jszip';
 import { MimeType, MimeTypeHelper } from '../mimeType';
 import { Binary, Path, sha1 } from '../utils';
+import { Zip } from '../zip';
 
 /**
  * Handles media files of the main document.
@@ -13,7 +13,7 @@ export class MediaFiles {
     private readonly files = new Map<Binary, string>();
     private nextFileId = 0;
 
-    constructor(private readonly zip: JSZip) {
+    constructor(private readonly zip: Zip) {
     }
 
     /**
@@ -49,7 +49,7 @@ export class MediaFiles {
         } while (this.hashes[path]);
 
         // add media to zip
-        await this.zip.file(path, mediaFile);
+        await this.zip.setFile(path, mediaFile);
 
         // add media to our lookups
         this.hashes[path] = hash;
@@ -69,7 +69,7 @@ export class MediaFiles {
             return;
 
         this.hashes = {};
-        for (const path of Object.keys(this.zip.files)) {
+        for (const path of this.zip.listFiles()) {
 
             if (!path.startsWith(MediaFiles.mediaDir))
                 continue;
@@ -78,7 +78,7 @@ export class MediaFiles {
             if (!filename)
                 continue;
 
-            const fileData = await this.zip.file(path).async('base64');
+            const fileData = await this.zip.getFile(path).getContentBase64();
             const fileHash = sha1(fileData);
             this.hashes[filename] = fileHash;
         }
