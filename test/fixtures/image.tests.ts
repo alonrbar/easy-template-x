@@ -127,7 +127,7 @@ describe('image fixtures', () => {
             width: 100
         };
         const data: any = {
-            loop_prop: range(1, 100).map(() => ({ simple_prop: imageData }))
+            loop_prop: range(1, 1000).map(() => ({ simple_prop: imageData }))
         };
 
         await handler.process(template, data);

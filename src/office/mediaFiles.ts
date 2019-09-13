@@ -9,7 +9,8 @@ export class MediaFiles {
 
     private static readonly mediaDir = 'word/media';
 
-    private fileHashes: IMap<string>;
+    private hashes: IMap<string>;
+    private readonly files = new Map<Binary, string>();
     private nextFileId = 0;
 
     constructor(private readonly zip: JSZip) {
@@ -19,6 +20,10 @@ export class MediaFiles {
      * Returns the media file path.
      */
     public async add(mediaFile: Binary, mime: MimeType): Promise<string> {
+
+        // check if already added
+        if (this.files.has(mediaFile))
+            return this.files.get(mediaFile);
 
         // hash existing media files
         await this.hashMediaFiles();
@@ -32,41 +37,38 @@ export class MediaFiles {
 
         // check if file already exists
         // note: this can be optimized by keeping both mapping by filename as well as by hash
-        let filename = Object.keys(this.fileHashes).find(filename => this.fileHashes[filename] === hash);
-        let fullPath = `${MediaFiles.mediaDir}/${filename}`;
+        let path = Object.keys(this.hashes).find(p => this.hashes[p] === hash);
+        if (path)
+            return path;
 
-        // add new file to the zip
-        if (!filename) {
+        // generate unique media file name
+        const extension = MimeTypeHelper.getDefaultExtension(mime);
+        do {
+            this.nextFileId++;
+            path = `${MediaFiles.mediaDir}/media${this.nextFileId}.${extension}`;
+        } while (this.hashes[path]);
 
-            // generate unique media file name
-            const extension = MimeTypeHelper.getDefaultExtension(mime);
-            do {
-                this.nextFileId++;
-                filename = `media${this.nextFileId}.${extension}`;
-            } while (this.fileHashes[filename]);
-            fullPath = `${MediaFiles.mediaDir}/${filename}`;
+        // add media to zip
+        await this.zip.file(path, mediaFile);
 
-            // add media to zip
-            await this.zip.file(fullPath, mediaFile);
-
-            // add media to our hash lookup
-            this.fileHashes[filename] = hash;
-        }
+        // add media to our lookups
+        this.hashes[path] = hash;
+        this.files.set(mediaFile, path);
 
         // return
-        return fullPath;
+        return path;
     }
 
     public async count(): Promise<number> {
         await this.hashMediaFiles();
-        return Object.keys(this.fileHashes).length;
-    }    
+        return Object.keys(this.hashes).length;
+    }
 
     private async hashMediaFiles(): Promise<void> {
-        if (this.fileHashes)
+        if (this.hashes)
             return;
 
-        this.fileHashes = {};
+        this.hashes = {};
         for (const path of Object.keys(this.zip.files)) {
 
             if (!path.startsWith(MediaFiles.mediaDir))
@@ -78,7 +80,7 @@ export class MediaFiles {
 
             const fileData = await this.zip.file(path).async('base64');
             const fileHash = sha1(fileData);
-            this.fileHashes[filename] = fileHash;
+            this.hashes[filename] = fileHash;
         }
     }
 }
