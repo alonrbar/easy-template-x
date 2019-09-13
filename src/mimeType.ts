@@ -1,9 +1,11 @@
 import { UnsupportedFileTypeError } from './errors';
 
 export enum MimeType {
-    // TODO: support more image types
-    Png = "image/png",
-    Jpeg = "image/jpeg"
+    Png = 'image/png',
+    Jpeg = 'image/jpeg',
+    Gif = 'image/gif',
+    Bmp = 'image/bmp',
+    Svg = 'image/svg+xml'
 }
 
 export class MimeTypeHelper {
@@ -14,6 +16,12 @@ export class MimeTypeHelper {
                 return 'png';
             case MimeType.Jpeg:
                 return 'jpg';
+            case MimeType.Gif:
+                return 'gif';
+            case MimeType.Bmp:
+                return 'bmp';
+            case MimeType.Svg:
+                return 'svg';
             default:
                 throw new UnsupportedFileTypeError(mime);
         }
@@ -23,6 +31,9 @@ export class MimeTypeHelper {
         switch (mime) {
             case MimeType.Png:
             case MimeType.Jpeg:
+            case MimeType.Gif:
+            case MimeType.Bmp:
+            case MimeType.Svg:
                 return "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image";
             default:
                 throw new UnsupportedFileTypeError(mime);
