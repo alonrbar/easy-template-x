@@ -1,7 +1,7 @@
 import { MimeType } from 'src/mimeType';
 import { ImageContent } from 'src/plugins/imagePlugin';
 import { TemplateHandler } from 'src/templateHandler';
-import { readResource, writeTempFile } from '../testUtils';
+import { readResource } from '../testUtils';
 import { readFixture } from './fixtureUtils';
 
 describe('image fixtures', () => {
@@ -26,9 +26,9 @@ describe('image fixtures', () => {
 
         const doc = await handler.process(template, data);
 
-        // const docXml = await handler.getXml(doc);
-        // expect(docXml).toMatchSnapshot();
+        const docXml = await handler.getXml(doc);
+        expect(docXml).toMatchSnapshot();
 
-        writeTempFile(doc, 'image - output.docx');
+        // writeTempFile(doc, 'image - output.docx');
     });
 });
