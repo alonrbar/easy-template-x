@@ -2,7 +2,7 @@ import { MimeType } from '../mimeType';
 import { Binary } from '../utils';
 import { PluginContent } from './pluginContent';
 
-export type ImageFormat = MimeType.Jpeg | MimeType.Png;
+export type ImageFormat = MimeType.Jpeg | MimeType.Png | MimeType.Gif | MimeType.Bmp | MimeType.Svg;
 
 export interface ImageContent extends PluginContent {
     _type: 'image';
