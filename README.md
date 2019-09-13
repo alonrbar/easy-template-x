@@ -1,9 +1,5 @@
 # easy-template-x
 
-## NOTICE: Working on breaking changes - develop branch is unstable
-
-## TODO: Update readme and types
-
 Generate docx documents from templates, in Node or in the browser.
 
 [![CircleCI](https://circleci.com/gh/alonrbar/easy-template-x.svg?style=shield)](https://circleci.com/gh/alonrbar/easy-template-x)
@@ -11,39 +7,23 @@ Generate docx documents from templates, in Node or in the browser.
 [![npm license](https://img.shields.io/npm/l/easy-template-x.svg)](https://www.npmjs.com/package/easy-template-x)
 [![dependencies](https://david-dm.org/alonrbar/easy-template-x.svg)](https://github.com/alonrbar/easy-template-x)
 
-- [Prior art and motivation](#prior-art-and-motivation)
 - [Node Example](#node-example)
 - [Browser Example](#browser-example)
+- [Standard plugins](#standard-plugins)
+  - [Text plugin](#text-plugin)
+  - [Loop plugin](#loop-plugin)
+  - [Image plugin](#image-plugin)
+  - [Raw xml plugin](#raw-xml-plugin)
 - [Writing your own plugins](#writing-your-own-plugins)
-- [API](#api)
-- [Binary Formats](#binary-formats)
-- [Limitations](#limitations)
+- [Advanced API](#api)
+- [Supported Binary Formats](#supported-binary-formats)
+- [Philosophy](#philosophy)
+- [Prior art and motivation](#prior-art-and-motivation)
 - [Changelog](#changelog)
-
-## Prior art and motivation
-
-There are already some very good templating libraries out there, most notably these two:
-
-- [docxtemplater](https://github.com/open-xml-templating/docxtemplater)
-- [docx-templates](https://github.com/guigrpa/docx-templates)
-
-`easy-template-x` takes great inspiration from both. It aspires to take the best
-out of both and to support some usecases that are not supported by either.
-Specifically, it keeps the ease of use that `docxtemplater` provides to the end
-user and adds _line break auto insertion_ which is currently missing there.
-
-Internally it works more like `docx-templates` than `docxtemplater` in that
-sense that it traverses xml documents node by node in a strongly typed manner rather than
-using a text matching approach.
-
-It was also inspired by `docxtemplater` modules system and introduces a similar
-**plugins system**. The main difference in that area is that the library is fully written
-in **TypeScript** and the code base provides a lot of comments and explanation
-inside, thus making it as easy as possible to write your own custom plugins.
 
 ## Node Example
 
-```javascript
+```typescript
 import * as fs from 'fs';
 import { TemplateHandler } from 'easy-template-x';
 
@@ -78,7 +58,7 @@ Output:
 The following example produces the same output while running in the browser.
 Notice that the actual template processing (step 2) is exactly the same as in the previous Node example.
 
-```javascript
+```typescript
 import { TemplateHandler } from 'easy-template-x';
 
 // 1. read template file
@@ -128,6 +108,137 @@ function saveFile(filename, blob) {
 }
 ```
 
+## Standard plugins
+
+`easy-template-x` comes bundled with several plugins:
+
+- [Simple text replacement plugin.](#text-plugin)
+- [Loop plugin for iterating text, table rows and list rows.](#loop-plugin)
+- [Image plugin for embedding images.](#image-plugin)
+- [Raw xml plugin for custom xml insertion.](#raw-xml-plugin)
+
+### Text plugin
+
+The most basic plugin. Replaces a single tag with custom text. Preserves the original text style.
+
+Input template:
+
+![input template](./docs/assets/text-plugin-in.png?raw=true)
+
+Input data:
+
+```json
+{
+    "First Tag": "Quis et ducimus voluptatum\nipsam id.",
+    "Second Tag": "Dolorem sit voluptas magni dolorem molestias."
+}
+```
+
+Output document:
+
+![output document](./docs/assets/text-plugin-out.png?raw=true)
+
+### Loop plugin
+
+Iterates text, table rows and lists.  
+Requires an opening tag that starts with `#` and a closing tag that has the same
+name and starts with `/`.
+
+Input template:
+
+![input template](./docs/assets/loop-plugin-in.png?raw=true)
+
+Input data:
+
+```json
+{
+    "Beers": [
+        { "Brand": "Carlsberg", "Price": 1 },
+        { "Brand": "Leaf Blonde", "Price": 2 },
+        { "Brand": "Weihenstephan", "Price": 1.5 }
+    ]
+}
+```
+
+Output document:
+
+![output document](./docs/assets/loop-plugin-out.png?raw=true)
+
+### Image plugin
+
+Embed images into the document.
+
+Input template:
+
+![input template](./docs/assets/image-plugin-in.png?raw=true)
+
+Input data:
+
+```javascript
+{
+    "My IMage": {
+        _type: "image",
+        source: fs.readFileSync("myimage.png"),
+        format: MimeType.Png,
+        width: 300,
+        height: 200
+    }
+}
+```
+
+Output document:
+
+![output document](./docs/assets/image-plugin-out.png?raw=true)
+
+### Raw xml plugin
+
+Add custom xml into the document to be interpreted by Word.
+
+Input template:
+
+![input template](./docs/assets/rawxml-plugin-in.png?raw=true)
+
+Input data:
+
+```javascript
+{
+    "Don't worry be happy": {
+        _type: 'rawXml',
+        xml: '<w:sym w:font="Wingdings" w:char="F04A"/>'
+    }
+}
+```
+
+Output document:
+
+![output document](./docs/assets/rawxml-plugin-out.png?raw=true)
+
+## Scope resolution
+
+`easy-template-x` supports tag data scoping. That is, you can reference data
+from within deeper in the hierarchy similar to how you can reference an outer
+variable from within a function in JavaScript.
+
+Input template:
+
+![input template](./docs/assets/scope-in.png?raw=true)
+
+Input data:
+
+```javascript
+{
+    "Company Name": "",
+    "Employees": [
+        {},
+        {}
+    ]
+}
+```
+
+Output document:
+
+![output document](./docs/assets/scope-out.png?raw=true)
+
 ## Writing your own plugins
 
 To write a plugin inherit from the [TemplatePlugin](./src/plugins/templatePlugin.ts) class.  
@@ -138,20 +249,14 @@ _To better understand the internal structure of Word documents check out [this e
 
 Example plugin implementation ([source](./src/plugins/rawXmlPlugin.ts)):
 
-```javascript
+```typescript
 /**
  * A plugin that inserts raw xml to the document.
  */
 export class RawXmlPlugin extends TemplatePlugin {
 
-    // Declare your prefix:
-    // This plugin replaces tags that starts with a @ sign.
-    // For instance {@my-tag}
-    public readonly prefixes: TagPrefix[] = [{
-        prefix: '@',
-        tagType: 'rawXml',
-        tagDisposition: TagDisposition.SelfClosed
-    }];
+    // Declare a unique content-type name
+    public readonly contentType = 'rawXml';
 
     // Plugin logic goes here:
     public simpleTagReplacements(tag: Tag, data: ScopeData): void {
@@ -161,11 +266,11 @@ export class RawXmlPlugin extends TemplatePlugin {
         const wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
 
         // Get the value to use from the input data.
-        const value = data.getScopeData();
+        const value = data.getScopeData() as RawXmlContent;
         if (typeof value === 'string') {
 
             // If it's a string parse it as xml and insert.
-            const newNode = this.utilities.xmlParser.parse(value);
+            const newNode = this.utilities.xmlParser.parse(value.xml);
             XmlNode.insertBefore(newNode, wordTextNode);
         }
 
@@ -177,17 +282,49 @@ export class RawXmlPlugin extends TemplatePlugin {
 }
 ```
 
-## API
+The content type that this plugin expects to see is:
 
-TODO - Meanwhile, you can checkout the [typings](./dist/index.d.ts) file.
+```typescript
+export interface RawXmlContent extends PluginContent {
+    _type: 'rawXml';
+    xml: string;
+}
+```
 
-## Binary Formats
+## Advanced API
+
+You'll usually just use the `TemplateHandler` as seen in the examples but if you want to implement a custom plugin or otherwise do some advanced work yourself checkout the [typings](./dist/index.d.ts) file.
+
+## Supported Binary Formats
 
 The library supports the following binary formats:
 
 - [Blob](https://developer.mozilla.org/en-US/docs/Web/API/Blob) (browser)
 - [Buffer](https://nodejs.org/api/buffer.html) (node)
 - [ArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer) (browser and node)
+
+## Philosophy
+
+The main principal the package aspire to adhere to is **being simple and easy**.  
+It tries to keep it simple and has the following priorities in mind:
+
+1. Easy for the **end user** who writes the templates.
+2. Easy for the **developer** who process them using the exposed APIs.
+3. Easy for the **maintainer/contributor** who maintain the `easy-template-x` package itself.
+
+## Prior art and motivation
+
+There are already some very good templating libraries out there, most notably these two:
+
+- [docxtemplater](https://github.com/open-xml-templating/docxtemplater)
+- [docx-templates](https://github.com/guigrpa/docx-templates)
+
+`easy-template-x` takes great inspiration from both. It aspires to take the best
+out of both and to add some good of it's own.
+
+It was originally written when I was using `docxtemplater` but needed _line break auto insertion_ (it was added to docxtemplater few months later). I tried to create a fork and add the functionality I needed myself but pretty quickly came to the conclusion it would be easier to just write something new from scratch (still, with lots of inspiration from both mentioned packages).
+
+It gradually evolved and took a shape of it's own. Today, some differences from these packages are an even simpler template syntax (no different prefix for each plugin is required), a _free_ image insertion plugin and a TypeScript code base.
 
 ## Changelog
 
