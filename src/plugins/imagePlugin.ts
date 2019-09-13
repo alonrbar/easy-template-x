@@ -4,6 +4,16 @@ import { Binary } from '../utils';
 import { XmlNode } from '../xml';
 import { TemplatePlugin } from './templatePlugin';
 
+/**
+ * Apparently it is not that important for the ID to be unique...  
+ * Word displays two images correctly even if they both have the same ID.
+ * Further more, Word will assign each a unique ID upon saving (it assigns
+ * consecutive integers starting with 1).  
+ * 
+ * Note: The same principal applies to image names.
+ *
+ * Tested in Word v1908
+ */
 let imageId = 1;
 
 export type ImageFormat = MimeType.Jpeg | MimeType.Png;
@@ -12,8 +22,8 @@ export interface ImageContent {
     _type: 'image';
     source: Binary;
     format: ImageFormat;
-    width?: number;
-    height?: number;
+    width: number;
+    height: number;
 }
 
 export class ImagePlugin extends TemplatePlugin {
@@ -45,8 +55,8 @@ export class ImagePlugin extends TemplatePlugin {
         const imageMarkup = `
             <w:drawing>
                 <wp:inline distT="0" distB="0" distL="0" distR="0">
-                    <wp:extent cx="2679700" cy="4711700"/>
-                    <wp:effectExtent l="0" t="0" r="6350" b="0"/>
+                    <wp:extent cx="${this.pixelsToEmu(width)}" cy="${this.pixelsToEmu(height)}"/>
+                    <wp:effectExtent l="0" t="0" r="0" b="0"/>
                     <wp:docPr id="${imageId}" name="${name}"/>
                     <wp:cNvGraphicFramePr>
                         <a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/>
@@ -68,6 +78,11 @@ export class ImagePlugin extends TemplatePlugin {
     private pictureMarkup(name: string, relId: string, width: number, height: number) {
 
         // http://officeopenxml.com/drwPic.php
+
+        // legend:
+        // nvPicPr - non-visual picture properties - id, name, etc.
+        // blipFill - binary large image (or) picture fill - image size, image fill, etc.
+        // spPr - shape properties - frame size, frame fill, etc.
 
         return `
             <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
@@ -93,7 +108,7 @@ export class ImagePlugin extends TemplatePlugin {
                 <pic:spPr bwMode="auto">
                     <a:xfrm>
                         <a:off x="0" y="0"/>
-                        ${this.sizeMarkup(width, height)}
+                        <a:ext cx="${this.pixelsToEmu(width)}" cy="${this.pixelsToEmu(height)}"/>
                     </a:xfrm>
                     <a:prstGeom prst="rect">
                         <a:avLst/>
@@ -107,24 +122,13 @@ export class ImagePlugin extends TemplatePlugin {
         `;
     }
 
-    private sizeMarkup(width: number, height: number): string {
+    private pixelsToEmu(pixels: number): number {
 
-        const hasWidth = Number.isFinite(width);
-        const hasHeight = Number.isFinite(height);
+        // https://stackoverflow.com/questions/20194403/openxml-distance-size-units
+        // https://docs.microsoft.com/en-us/windows/win32/vml/msdn-online-vml-units#other-units-of-measurement
+        // https://en.wikipedia.org/wiki/Office_Open_XML_file_formats#DrawingML
+        // http://www.java2s.com/Code/CSharp/2D-Graphics/ConvertpixelstoEMUEMUtopixels.htm
 
-        if (!hasWidth && !hasHeight)
-            return '';
-
-        let sizeString = '';
-        if (hasWidth) {
-            const cx = (width * 360e3).toFixed(0);
-            sizeString += ` cx="${cx}"`;
-        }
-        if (hasHeight) {
-            const cy = (height * 360e3).toFixed(0);
-            sizeString += ` cy="${cy}"`;
-        }
-
-        return `<a:ext${sizeString}/>`;
+        return Math.round(pixels * 9525);
     }
 }
