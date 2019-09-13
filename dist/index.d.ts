@@ -3,14 +3,14 @@
 // core
 //
 
-export declare class TemplateHandler {
-    
+export class TemplateHandler {
+
     constructor(options?: TemplateHandlerOptions);
-    
-    process<T extends Binary>(templateFile: T, data: any): Promise<T>;
+
+    process<T extends Binary>(templateFile: T, data: TemplateData): Promise<T>;
 
     parseTags(templateFile: Binary): Promise<Tag[]>;
-    
+
     /**
      * Get the text content of the main document file.
      */
@@ -22,18 +22,28 @@ export declare class TemplateHandler {
     getXml(docxFile: Binary): Promise<XmlNode>;
 }
 
-export declare class TemplateHandlerOptions {
+export type TemplateContent = string | number | boolean | ImageContent | RawXmlContent;
+
+export interface TemplateData {
+    [tagName: string]: TemplateContent | TemplateData | TemplateData[];
+}
+
+export class TemplateHandlerOptions {
 
     plugins?: TemplatePlugin[];
 
+    defaultContentType = TEXT_CONTENT_TYPE;
+
+    containerContentType = LOOP_CONTENT_TYPE;
+
     delimiters?: Delimiters;
 
-    maxXmlDepth?: number;
+    maxXmlDepth?= 20;
 
     constructor(initial?: Partial<TemplateHandlerOptions>);
 }
 
-export declare class Delimiters {
+export class Delimiters {
 
     start: string;
 
@@ -42,13 +52,13 @@ export declare class Delimiters {
     constructor(initial?: Delimiters);
 }
 
-export declare type Binary = Blob | Buffer | ArrayBuffer;
+export type Binary = Blob | Buffer | ArrayBuffer;
 
 //
 // xml
 //
 
-export declare class XmlParser {
+export class XmlParser {
 
     parse(str: string): XmlNode;
 
@@ -69,11 +79,11 @@ export interface XmlNodeBase {
     nodeType: XmlNodeType;
 
     nodeName: string;
-    
+
     parentNode?: XmlNode;
-    
+
     childNodes?: XmlNode[];
-    
+
     nextSibling?: XmlNode;
 }
 
@@ -82,16 +92,16 @@ export const TEXT_NODE_NAME_VALUE = '#text'; // see: https://developer.mozilla.o
 export interface XmlTextNode extends XmlNodeBase {
 
     nodeType: XmlNodeType.Text;
-    
+
     nodeName: typeof TEXT_NODE_NAME_VALUE;
-    
+
     textContent: string;
 }
 
 export interface XmlGeneralNode extends XmlNodeBase {
-    
+
     nodeType: XmlNodeType.General;
-    
+
     attributes?: XmlAttribute[];
 }
 
@@ -178,7 +188,7 @@ export namespace XmlNode {
     /**
      * Remove a child node from it's parent. Returns the removed child.
      */
-    export function removeChild(parent: XmlNode, childIndex: number): XmlNode;    
+    export function removeChild(parent: XmlNode, childIndex: number): XmlNode;
 
     //
     // utility functions
@@ -207,16 +217,35 @@ export namespace XmlNode {
      * @param root The node to split
      * @param markerNode The node that marks the split position.      
      */
-    export function splitByChild(root: XmlNode, markerNode: XmlNode, removeMarkerNode: boolean): [ XmlNode, XmlNode ];
+    export function splitByChild(root: XmlNode, markerNode: XmlNode, removeMarkerNode: boolean): [XmlNode, XmlNode];
+
+    export function findParent(node: XmlNode, predicate: (node: XmlNode) => boolean): XmlNode;
+
+    export function findParentByName(node: XmlNode, nodeName: string): XmlNode;
+
+    export function findChildByName(node: XmlNode, childName: string): XmlNode;
+
+    export function siblingsInRange(firstNode: XmlNode, lastNode: XmlNode): XmlNode[];
+
+    /**
+     * Recursively removes text nodes leaving only "general nodes".
+     */
+    export function stripTextNodes(node: XmlGeneralNode): void;
 }
 
 //
 // compilation
 //
 
-export declare class TemplateCompiler {
+export class TemplateCompiler {
 
-    constructor(delimiterSearcher: DelimiterSearcher, tagParser: TagParser, plugins: TemplatePlugin[]);
+    constructor(
+        delimiterSearcher: DelimiterSearcher,
+        tagParser: TagParser,
+        plugins: TemplatePlugin[],
+        defaultContentType: string,
+        containerContentType: string
+    );
 
     /**
      * Compiles the template and performs the required replacements using the
@@ -227,15 +256,15 @@ export declare class TemplateCompiler {
     parseTags(node: XmlNode): Tag[];
 }
 
-export declare class DelimiterMark {
-    
+export class DelimiterMark {
+
     xmlTextNode: XmlTextNode;
-    
+
     /**
      * Index inside the text node
      */
     index: number;
-    
+
     /**
      * Is this an open delimiter or a close delimiter
      */
@@ -244,123 +273,162 @@ export declare class DelimiterMark {
     constructor(initial?: Partial<DelimiterMark>);
 }
 
-export declare class DelimiterSearcher {
-    
-    maxXmlDepth: number;
-    
-    startDelimiter: string;
-    
-    endDelimiter: string;
-    
+export class DelimiterSearcher {
+
+    maxXmlDepth = 20;
+    startDelimiter = "{";
+    endDelimiter = "}";
+
     findDelimiters(node: XmlNode): DelimiterMark[];
 }
 
-export declare class TagParser {
-    
-    startDelimiter: string;
-    
-    endDelimiter: string;
-    
-    constructor(tagPrefixes: TagPrefix[], docParser: DocxParser);
-    
+export class TagParser {
+
+    constructor(docParser: DocxParser, delimiters: Delimiters);
+
     parse(delimiters: DelimiterMark[]): Tag[];
 }
 
-export declare class ScopeData {
-    
-    path: (string | number)[];
-    
-    readonly allData: any;
-    
-    constructor(data: any);
-    
-    getScopeData(): any;
+export class ScopeData {
+
+    readonly path: (string | number)[] = [];
+    readonly allData: TemplateData;
+
+    constructor(data: TemplateData);
+
+    getScopeData(): TemplateContent | TemplateData[];
 }
 
 export interface TemplateContext {
-    
-    zipFile: JSZip;
-    
-    currentFilePath: string;
+
+    docx: Docx;
 }
 
-export declare class DocxParser {
+//
+// office
+//
 
-    static readonly PARAGRAPH_NODE: string;
-    
-    static readonly RUN_NODE: string;
-    
-    static readonly TEXT_NODE: string;
-    
+export class DocxParser {
+
+    static readonly PARAGRAPH_NODE = 'w:p';
+    static readonly PARAGRAPH_PROPERTIES_NODE = 'w:pPr';
+    static readonly RUN_NODE = 'w:r';
+    static readonly TEXT_NODE = 'w:t';
+    static readonly TABLE_ROW_NODE = 'w:tr';
+    static readonly TABLE_CELL_NODE = 'w:tc';
+    static readonly NUMBER_PROPERTIES_NODE = 'w:numPr';
+
+    constructor(xmlParser: XmlParser);
+
+    //
+    // parse document
+    //
+
+    load(zip: Zip): Docx;
+
+    //
+    // content manipulation
+    //
+
     /**
      * Split the text node into two text nodes, each with it's own wrapping <w:t> node.
      * Returns the newly created text node.
-     *
+     * 
      * @param addBefore Should the new node be added before or after the original node.
      */
     splitTextNode(textNode: XmlTextNode, splitIndex: number, addBefore: boolean): XmlTextNode;
-    
+
     /**
      * Move all text between the 'from' and 'to' nodes to the 'from' node.
      */
     joinTextNodesRange(from: XmlTextNode, to: XmlTextNode): void;
-    
+
     /**
      * Take all runs from 'second' and move them to 'first'.
      */
     joinParagraphs(first: XmlNode, second: XmlNode): void;
-    
+
+    //
+    // node queries
+    //
+
+    isTableCellNode(node: XmlNode): boolean;
+
+    isParagraphNode(node: XmlNode): boolean;
+
+    isListParagraph(paragraphNode: XmlNode): boolean;
+
+    paragraphPropertiesNode(paragraphNode: XmlNode): XmlNode;
+
     /**
-     * Search for the first child **Word** text node (i.e. a <w:t> node).
+     * Search for the first direct child **Word** text node (i.e. a <w:t> node).
      */
     firstTextNodeChild(node: XmlNode): XmlNode;
-    
+
     /**
      * Search **upwards** for the first **Word** text node (i.e. a <w:t> node).
      */
     containingTextNode(node: XmlTextNode): XmlNode;
-    
+
     /**
      * Search **upwards** for the first run node.
      */
     containingRunNode(node: XmlNode): XmlNode;
-    
+
     /**
      * Search **upwards** for the first paragraph node.
      */
     containingParagraphNode(node: XmlNode): XmlNode;
+
+    /**
+     * Search **upwards** for the first "table row" node.
+     */
+    containingTableRowNode(node: XmlNode): XmlNode;
+}
+
+/**
+ * Represents a single docx file.
+ */
+export class Docx {
+
+    readonly documentPath: string;
+
+    /**
+     * The xml root of the main document file.
+     */
+    getDocument(): Promise<XmlNode>;
+
+    /**
+     * Get the text content of the main document file.
+     */
+    getDocumentText(): Promise<string>;
+
+    /**
+     * Add a media resource to the document archive and return the created rel ID.
+     */
+    addMedia(content: Binary, type: MimeType): Promise<string>;
+
+    export<T extends Binary>(outputType: Constructor<T>): Promise<T>;
 }
 
 //
 // tags
 //
 
-export declare enum TagDisposition {
+export enum TagDisposition {
     Open = "Open",
     Close = "Close",
     SelfClosed = "SelfClosed",
 }
 
-export declare class Tag {
-    
+export interface Tag {    
     name: string;
-    
+    /**
+     * The full tag text, for instance: "{#my-tag}".
+     */
     rawText: string;
-    
     disposition: TagDisposition;
-    
     xmlTextNode: XmlTextNode;
-
-    constructor(initial?: Partial<Tag>);
-}
-
-export interface TagPrefix {
-
-    prefix: string;
-    
-    tagType: string;
-    
-    tagDisposition: TagDisposition;
 }
 
 //
@@ -376,11 +444,14 @@ export interface PluginUtilities {
     xmlParser: XmlParser;
 }
 
-export declare abstract class TemplatePlugin {
+/* eslint-disable @typescript-eslint/member-ordering */
 
-    readonly abstract prefixes: TagPrefix[];
+export abstract class TemplatePlugin {
 
-    protected utilities: PluginUtilities;
+    /**
+     * The content type this plugin handles.
+     */
+    abstract get contentType(): string;
 
     /**
      * Called by the TemplateHandler at runtime.
@@ -402,45 +473,72 @@ export declare abstract class TemplatePlugin {
     containerTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): void | Promise<void>;
 }
 
-export declare class TextPlugin extends TemplatePlugin {
+/* eslint-enable */
+
+export interface PluginContent {
+    _type: string;
 }
 
-export declare class LoopPlugin extends TemplatePlugin {
+export const TEXT_CONTENT_TYPE = 'text';
+
+export class TextPlugin extends TemplatePlugin {
+    readonly contentType = TEXT_CONTENT_TYPE;
 }
 
-export interface RawXmlContent {
+export const LOOP_CONTENT_TYPE = 'loop';
+
+export class LoopPlugin extends TemplatePlugin {
+    readonly contentType = LOOP_CONTENT_TYPE;
+}
+
+export interface RawXmlContent extends PluginContent {
     _type: 'rawXml';
     xml: string;
 }
 
-export declare class RawXmlPlugin extends TemplatePlugin {
+export class RawXmlPlugin extends TemplatePlugin {
+    readonly contentType = 'rawXml';
+}
+
+export type ImageFormat = MimeType.Jpeg | MimeType.Png | MimeType.Gif | MimeType.Bmp | MimeType.Svg;
+
+export interface ImageContent extends PluginContent {
+    _type: 'image';
+    source: Binary;
+    format: ImageFormat;
+    width: number;
+    height: number;
+}
+
+export class ImagePlugin extends TemplatePlugin {
+    readonly contentType = 'image';
 }
 
 //
 // errors
 //
 
-export declare class MalformedFileError extends Error {
+export class MalformedFileError extends Error {
     readonly expectedFileType: string;
     constructor(expectedFileType: string);
 }
 
-export declare class MaxXmlDepthError extends Error {
+export class MaxXmlDepthError extends Error {
     readonly maxDepth: number;
     constructor(maxDepth: number);
 }
 
-export declare class MissingArgumentError extends Error {
+export class MissingArgumentError extends Error {
     argName: string;
     constructor(argName: string);
 }
 
-export declare class MissingStartDelimiterError extends Error {
+export class MissingStartDelimiterError extends Error {
     readonly closeDelimiterText: string;
     constructor(closeDelimiterText: string);
 }
 
-export declare class MissingCloseDelimiterError extends Error {
+export class MissingCloseDelimiterError extends Error {
     readonly openDelimiterText: string;
     constructor(openDelimiterText: string);
 }
@@ -452,20 +550,32 @@ export class UnknownContentTypeError extends Error {
     constructor(contentType: string, tagRawText: string, path: string);
 }
 
-export declare class UnopenedTagError extends Error {
+export class UnopenedTagError extends Error {
     readonly tagName: string;
     constructor(tagName: string);
 }
 
-export declare class UnclosedTagError extends Error {
+export class UnclosedTagError extends Error {
     readonly tagName: string;
     constructor(tagName: string);
 }
 
-export declare class UnidentifiedFileTypeError extends Error {
+export class UnidentifiedFileTypeError extends Error {
     constructor();
 }
 
-export declare class UnsupportedFileTypeError extends Error {
+export class UnsupportedFileTypeError extends Error {
     constructor(fileType: string);
+}
+
+//
+// misc
+//
+
+export enum MimeType {
+    Png = 'image/png',
+    Jpeg = 'image/jpeg',
+    Gif = 'image/gif',
+    Bmp = 'image/bmp',
+    Svg = 'image/svg+xml'
 }

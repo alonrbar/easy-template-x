@@ -5,7 +5,7 @@ const getProp = require('lodash.get');
 
 export class ScopeData {
     
-    public path: (string | number)[] = [];
+    public readonly path: (string | number)[] = [];
     public readonly allData: TemplateData;
 
     constructor(data: TemplateData) {
