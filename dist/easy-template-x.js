@@ -1993,7 +1993,7 @@ var _errors = __webpack_require__(/*! ../errors */ "./src/errors/index.ts");
 
 var _utils = __webpack_require__(/*! ../utils */ "./src/utils/index.ts");
 
-var _xmlNode = __webpack_require__(/*! ../xmlNode */ "./src/xmlNode.ts");
+var _xml = __webpack_require__(/*! ../xml */ "./src/xml/index.ts");
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
@@ -2016,7 +2016,7 @@ class DelimiterSearcher {
     if (depth > this.maxXmlDepth) throw new _errors.MaxXmlDepthError(this.maxXmlDepth);
     if (!node) return; // process self
 
-    if (_xmlNode.XmlNode.isTextNode(node)) {
+    if (_xml.XmlNode.isTextNode(node)) {
       const curTokens = this.findInNode(node);
 
       if (curTokens.length) {
@@ -2234,10 +2234,7 @@ exports.ScopeData = ScopeData;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.Tag = exports.TagDisposition = void 0;
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
+exports.TagDisposition = void 0;
 let TagDisposition;
 exports.TagDisposition = TagDisposition;
 
@@ -2246,25 +2243,6 @@ exports.TagDisposition = TagDisposition;
   TagDisposition["Close"] = "Close";
   TagDisposition["SelfClosed"] = "SelfClosed";
 })(TagDisposition || (exports.TagDisposition = TagDisposition = {}));
-
-class Tag {
-  constructor(initial) {
-    _defineProperty(this, "name", void 0);
-
-    _defineProperty(this, "type", void 0);
-
-    _defineProperty(this, "rawText", void 0);
-
-    _defineProperty(this, "disposition", void 0);
-
-    _defineProperty(this, "xmlTextNode", void 0);
-
-    Object.assign(this, initial);
-  }
-
-}
-
-exports.Tag = Tag;
 
 /***/ }),
 
@@ -2291,16 +2269,15 @@ var _tag = __webpack_require__(/*! ./tag */ "./src/compilation/tag.ts");
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 class TagParser {
-  constructor(tagPrefixes, docParser) {
-    this.tagPrefixes = tagPrefixes;
+  constructor(docParser, delimiters) {
     this.docParser = docParser;
+    this.delimiters = delimiters;
 
-    _defineProperty(this, "startDelimiter", "{");
+    _defineProperty(this, "tagRegex", void 0);
 
-    _defineProperty(this, "endDelimiter", "}");
-
-    if (!tagPrefixes || !tagPrefixes.length) throw new _errors.MissingArgumentError("tagPrefixes");
     if (!docParser) throw new _errors.MissingArgumentError("docParser");
+    if (!delimiters) throw new _errors.MissingArgumentError("delimiters");
+    this.tagRegex = new RegExp(`^[${delimiters.tagStart}](.*?)[${delimiters.tagEnd}]`, 'mi');
   }
 
   parse(delimiters) {
@@ -2325,7 +2302,7 @@ class TagParser {
 
 
       if (!openedTag && delimiter.isOpen) {
-        openedTag = new _tag.Tag();
+        openedTag = {};
         openedDelimiter = delimiter;
       } // valid close
 
@@ -2401,22 +2378,24 @@ class TagParser {
 
   processTag(tag) {
     tag.rawText = tag.xmlTextNode.textContent;
+    const tagParts = this.tagRegex.exec(tag.rawText);
+    const tagContent = (tagParts[1] || '').trim();
 
-    for (const prefix of this.tagPrefixes) {
-      // TODO: compile regex once
-      const pattern = `^[${this.startDelimiter}](\\s*?)${prefix.prefix}(.*?)[${this.endDelimiter}]`;
-      const regex = new RegExp(pattern, 'gmi');
-      const match = regex.exec(tag.rawText);
-
-      if (match && match.length) {
-        tag.name = match[2];
-        tag.type = prefix.tagType;
-        tag.disposition = prefix.tagDisposition;
-        break;
-      }
+    if (!tagContent || !tagContent.length) {
+      tag.disposition = _tag.TagDisposition.SelfClosed;
+      return;
     }
 
-    if (!tag.name) throw new _errors.UnknownPrefixError(tag.rawText);
+    if (tagContent[0] === this.delimiters.containerTagOpen) {
+      tag.disposition = _tag.TagDisposition.Open;
+      tag.name = tagContent.slice(1);
+    } else if (tagContent[0] === this.delimiters.containerTagClose) {
+      tag.disposition = _tag.TagDisposition.Close;
+      tag.name = tagContent.slice(1);
+    } else {
+      tag.disposition = _tag.TagDisposition.SelfClosed;
+      tag.name = tagContent;
+    }
   }
 
 }
@@ -2443,7 +2422,13 @@ exports.TemplateCompiler = void 0;
 
 var _errors = __webpack_require__(/*! ../errors */ "./src/errors/index.ts");
 
+var _plugins = __webpack_require__(/*! ../plugins */ "./src/plugins/index.ts");
+
+var _utils = __webpack_require__(/*! ../utils */ "./src/utils/index.ts");
+
 var _tag = __webpack_require__(/*! ./tag */ "./src/compilation/tag.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 /**
  * The TemplateCompiler works roughly the same way as a source code compiler.
@@ -2456,10 +2441,15 @@ var _tag = __webpack_require__(/*! ./tag */ "./src/compilation/tag.ts");
  * see: https://en.wikipedia.org/wiki/Compiler
  */
 class TemplateCompiler {
-  constructor(delimiterSearcher, tagParser, plugins) {
+  constructor(delimiterSearcher, tagParser, plugins, defaultContentType, containerContentType) {
     this.delimiterSearcher = delimiterSearcher;
     this.tagParser = tagParser;
-    this.plugins = plugins;
+    this.defaultContentType = defaultContentType;
+    this.containerContentType = containerContentType;
+
+    _defineProperty(this, "pluginsLookup", void 0);
+
+    this.pluginsLookup = (0, _utils.toDictionary)(plugins, p => p.contentType);
   }
   /**
    * Compiles the template and performs the required replacements using the
@@ -2467,9 +2457,9 @@ class TemplateCompiler {
    */
 
 
-  compile(node, data, context) {
+  async compile(node, data, context) {
     const tags = this.parseTags(node);
-    this.doTagReplacements(tags, data, context);
+    await this.doTagReplacements(tags, data, context);
   }
 
   parseTags(node) {
@@ -2481,35 +2471,46 @@ class TemplateCompiler {
   //
 
 
-  doTagReplacements(tags, data, context) {
-    for (let i = 0; i < tags.length; i++) {
-      const tag = tags[i];
+  async doTagReplacements(tags, data, context) {
+    for (let tagIndex = 0; tagIndex < tags.length; tagIndex++) {
+      const tag = tags[tagIndex];
       data.path.push(tag.name);
+      const contentType = this.detectContentType(tag, data);
+      const plugin = this.pluginsLookup[contentType];
+
+      if (!plugin) {
+        throw new _errors.UnknownContentTypeError(contentType, tag.rawText, data.path.join('.'));
+      }
 
       if (tag.disposition === _tag.TagDisposition.SelfClosed) {
-        // replace simple tag
-        for (const plugin of this.plugins) {
-          if (plugin.prefixes.some(prefix => prefix.tagType === tag.type)) {
-            plugin.simpleTagReplacements(tag, data, context);
-            break;
-          }
+        // replace simple tag                
+        const job = plugin.simpleTagReplacements(tag, data, context);
+
+        if ((0, _utils.isPromiseLike)(job)) {
+          await job;
         }
       } else if (tag.disposition === _tag.TagDisposition.Open) {
         // get all tags between the open and close tags
-        const j = this.findCloseTagIndex(i, tag, tags);
-        const scopeTags = tags.slice(i, j + 1);
-        i = j; // replace container tag
+        const closingTagIndex = this.findCloseTagIndex(tagIndex, tag, tags);
+        const scopeTags = tags.slice(tagIndex, closingTagIndex + 1);
+        tagIndex = closingTagIndex; // replace container tag
 
-        for (const plugin of this.plugins) {
-          if (plugin.prefixes.some(prefix => prefix.tagType === tag.type)) {
-            plugin.containerTagReplacements(scopeTags, data, context);
-            break;
-          }
+        const job = plugin.containerTagReplacements(scopeTags, data, context);
+
+        if ((0, _utils.isPromiseLike)(job)) {
+          await job;
         }
       }
 
       data.path.pop();
     }
+  }
+
+  detectContentType(tag, data) {
+    if (tag.disposition === _tag.TagDisposition.Open || tag.disposition === _tag.TagDisposition.Close) return this.containerContentType;
+    const scopeData = data.getScopeData();
+    if (_plugins.PluginContent.isPluginContent(scopeData)) return scopeData._type;
+    return this.defaultContentType;
   }
 
   findCloseTagIndex(fromIndex, openTag, tags) {
@@ -2518,7 +2519,7 @@ class TemplateCompiler {
     for (; i < tags.length; i++) {
       const closeTag = tags[i];
 
-      if (closeTag.name === openTag.name && closeTag.type === openTag.type && closeTag.disposition === _tag.TagDisposition.Close) {
+      if (closeTag.name === openTag.name && closeTag.disposition === _tag.TagDisposition.Close) {
         break;
       }
     }
@@ -2565,323 +2566,40 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.Delimiters = void 0;
 
-var _xmlNode = __webpack_require__(/*! ./xmlNode */ "./src/xmlNode.ts");
+var _xml = __webpack_require__(/*! ./xml */ "./src/xml/index.ts");
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 class Delimiters {
   constructor(initial) {
-    _defineProperty(this, "start", "{");
+    _defineProperty(this, "tagStart", "{");
 
-    _defineProperty(this, "end", "}");
+    _defineProperty(this, "tagEnd", "}");
 
-    if (initial) {
-      if (initial.start) this.start = _xmlNode.XmlNode.encodeValue(initial.start);
-      if (initial.end) this.end = _xmlNode.XmlNode.encodeValue(initial.end);
+    _defineProperty(this, "containerTagOpen", "#");
+
+    _defineProperty(this, "containerTagClose", "/");
+
+    Object.assign(this, initial);
+    this.encodeAndValidate();
+    if (this.tagStart === this.tagEnd) throw new Error(`${"tagStart"} can not be equal to ${"tagEnd"}`);
+    if (this.containerTagOpen === this.containerTagClose) throw new Error(`${"containerTagOpen"} can not be equal to ${"containerTagClose"}`);
+  }
+
+  encodeAndValidate() {
+    const keys = ['tagStart', 'tagEnd', 'containerTagOpen', 'containerTagClose'];
+
+    for (const key of keys) {
+      const value = this[key];
+      if (!value) throw new Error(`${key} must be specified.`);
+      if (value.length > 1) throw new Error(`Only single character delimiters supported (${key}: '${value}').`);
+      this[key] = _xml.XmlNode.encodeValue(value);
     }
-
-    if (!this.start || !this.end) throw new Error('Both delimiters must be specified.');
-    if (this.start === this.end) throw new Error('Start and end delimiters can not be the same.');
-    if (this.start.length > 1 || this.end.length > 1) throw new Error(`Only single character delimiters supported (start: '${this.start}', end: '${this.end}').`);
   }
 
 }
 
 exports.Delimiters = Delimiters;
-
-/***/ }),
-
-/***/ "./src/docxParser.ts":
-/*!***************************!*\
-  !*** ./src/docxParser.ts ***!
-  \***************************/
-/*! no static exports found */
-/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.DocxParser = void 0;
-
-var _xmlNode = __webpack_require__(/*! ./xmlNode */ "./src/xmlNode.ts");
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-class DocxParser {
-  /*
-   * Docx intro:
-   * 
-   * In Word text nodes are contained in "run" nodes (which specifies text
-   * properties such as font and color). The "run" nodes in turn are
-   * contained in paragraph nodes which is the core unit of content.
-   * 
-   * Example:
-   *
-   * <w:p>    <-- paragraph
-   *   <w:r>      <-- run
-   *     <w:rPr>      <-- run properties
-   *       <w:b/>     <-- bold
-   *     </w:rPr>
-   *     <w:t>This is text.</w:t>     <-- actual text
-   *   </w:r>
-   * </w:p> 
-   *
-   * see: http://officeopenxml.com/WPcontentOverview.php
-   */
-  //
-  // docx structure
-  //
-  contentFilePaths(zip) {
-    const coreFiles = [// "docProps/core.xml",
-    // "docProps/app.xml",
-    "word/document.xml", "word/document2.xml"]; // const headersAndFooters = zip
-    //     .file(/word\/(header|footer)\d+\.xml/)
-    //     .map(file => file.name);
-
-    return coreFiles;
-  }
-
-  mainFilePath(zip) {
-    if (zip.files["word/document.xml"]) {
-      return "word/document.xml";
-    }
-
-    if (zip.files["word/document2.xml"]) {
-      return "word/document2.xml";
-    }
-
-    return undefined;
-  } //
-  // content manipulation
-  //
-
-  /**
-   * Split the text node into two text nodes, each with it's own wrapping <w:t> node.
-   * Returns the newly created text node.
-   * 
-   * @param textNode 
-   * @param splitIndex 
-   * @param addBefore Should the new node be added before or after the original node.
-   */
-
-
-  splitTextNode(textNode, splitIndex, addBefore) {
-    let firstXmlTextNode;
-    let secondXmlTextNode; // split nodes
-
-    const wordTextNode = this.containingTextNode(textNode);
-
-    const newWordTextNode = _xmlNode.XmlNode.cloneNode(wordTextNode, true);
-
-    if (addBefore) {
-      // insert new node before existing one
-      _xmlNode.XmlNode.insertBefore(newWordTextNode, wordTextNode);
-
-      firstXmlTextNode = _xmlNode.XmlNode.lastTextChild(newWordTextNode);
-      secondXmlTextNode = textNode;
-    } else {
-      // insert new node after existing one
-      const curIndex = wordTextNode.parentNode.childNodes.indexOf(wordTextNode);
-
-      _xmlNode.XmlNode.insertChild(wordTextNode.parentNode, newWordTextNode, curIndex + 1);
-
-      firstXmlTextNode = textNode;
-      secondXmlTextNode = _xmlNode.XmlNode.lastTextChild(newWordTextNode);
-    } // edit text
-
-
-    const firstText = firstXmlTextNode.textContent;
-    const secondText = secondXmlTextNode.textContent;
-    firstXmlTextNode.textContent = firstText.substring(0, splitIndex);
-    secondXmlTextNode.textContent = secondText.substring(splitIndex);
-    return addBefore ? firstXmlTextNode : secondXmlTextNode;
-  }
-  /**
-   * Move all text between the 'from' and 'to' nodes to the 'from' node.
-   */
-
-
-  joinTextNodesRange(from, to) {
-    // find run nodes
-    const firstRunNode = this.containingRunNode(from);
-    const secondRunNode = this.containingRunNode(to);
-    const paragraphNode = firstRunNode.parentNode;
-    if (secondRunNode.parentNode !== paragraphNode) throw new Error('Can not join text nodes from separate paragraphs.'); // find "word text nodes"
-
-    const firstWordTextNode = this.containingTextNode(from);
-    const secondWordTextNode = this.containingTextNode(to);
-    const totalText = []; // iterate runs
-
-    let curRunNode = firstRunNode;
-
-    while (curRunNode) {
-      // iterate text nodes
-      let curWordTextNode;
-
-      if (curRunNode === firstRunNode) {
-        curWordTextNode = firstWordTextNode;
-      } else {
-        curWordTextNode = this.firstTextNodeChild(curRunNode);
-      }
-
-      while (curWordTextNode) {
-        if (curWordTextNode.nodeName !== DocxParser.TEXT_NODE) continue; // move text to first node
-
-        const curXmlTextNode = _xmlNode.XmlNode.lastTextChild(curWordTextNode);
-
-        totalText.push(curXmlTextNode.textContent); // next text node
-
-        const textToRemove = curWordTextNode;
-
-        if (curWordTextNode === secondWordTextNode) {
-          curWordTextNode = null;
-        } else {
-          curWordTextNode = curWordTextNode.nextSibling;
-        } // remove current text node
-
-
-        if (textToRemove !== firstWordTextNode) {
-          _xmlNode.XmlNode.remove(textToRemove);
-        }
-      } // next run
-
-
-      const runToRemove = curRunNode;
-
-      if (curRunNode === secondRunNode) {
-        curRunNode = null;
-      } else {
-        curRunNode = curRunNode.nextSibling;
-      } // remove current run
-
-
-      if (!runToRemove.childNodes || !runToRemove.childNodes.length) {
-        _xmlNode.XmlNode.remove(runToRemove);
-      }
-    } // set the text content
-
-
-    const firstXmlTextNode = _xmlNode.XmlNode.lastTextChild(firstWordTextNode);
-
-    firstXmlTextNode.textContent = totalText.join('');
-  }
-  /**
-   * Take all runs from 'second' and move them to 'first'.
-   */
-
-
-  joinParagraphs(first, second) {
-    if (first === second) return;
-    let childIndex = 0;
-
-    while (second.childNodes && childIndex < second.childNodes.length) {
-      const curChild = second.childNodes[childIndex];
-
-      if (curChild.nodeName === DocxParser.RUN_NODE) {
-        _xmlNode.XmlNode.removeChild(second, childIndex);
-
-        _xmlNode.XmlNode.appendChild(first, curChild);
-      } else {
-        childIndex++;
-      }
-    }
-  } //
-  // node queries
-  //
-
-
-  isTableCellNode(node) {
-    return node.nodeName === DocxParser.TABLE_CELL_NODE;
-  }
-
-  isParagraphNode(node) {
-    return node.nodeName === DocxParser.PARAGRAPH_NODE;
-  }
-
-  isListParagraph(paragraphNode) {
-    const paragraphProperties = this.paragraphPropertiesNode(paragraphNode);
-
-    const listNumberProperties = _xmlNode.XmlNode.findChildByName(paragraphProperties, DocxParser.NUMBER_PROPERTIES_NODE);
-
-    return !!listNumberProperties;
-  }
-
-  paragraphPropertiesNode(paragraphNode) {
-    if (!this.isParagraphNode(paragraphNode)) throw new Error(`Expected paragraph node but received a '${paragraphNode.nodeName}' node.`);
-    return _xmlNode.XmlNode.findChildByName(paragraphNode, DocxParser.PARAGRAPH_PROPERTIES_NODE);
-  }
-  /**
-   * Search for the first direct child **Word** text node (i.e. a <w:t> node).
-   */
-
-
-  firstTextNodeChild(node) {
-    if (!node) return null;
-    if (node.nodeName !== DocxParser.RUN_NODE) return null;
-    if (!node.childNodes) return null;
-
-    for (const child of node.childNodes) {
-      if (child.nodeName === DocxParser.TEXT_NODE) return child;
-    }
-
-    return null;
-  }
-  /**
-   * Search **upwards** for the first **Word** text node (i.e. a <w:t> node).
-   */
-
-
-  containingTextNode(node) {
-    if (!node) return null;
-    if (!_xmlNode.XmlNode.isTextNode(node)) throw new Error(`'Invalid argument ${"node"}. Expected a XmlTextNode.`);
-    return _xmlNode.XmlNode.findParentByName(node, DocxParser.TEXT_NODE);
-  }
-  /**
-   * Search **upwards** for the first run node.
-   */
-
-
-  containingRunNode(node) {
-    return _xmlNode.XmlNode.findParentByName(node, DocxParser.RUN_NODE);
-  }
-  /**
-   * Search **upwards** for the first paragraph node.
-   */
-
-
-  containingParagraphNode(node) {
-    return _xmlNode.XmlNode.findParentByName(node, DocxParser.PARAGRAPH_NODE);
-  }
-  /**
-   * Search **upwards** for the first "table row" node.
-   */
-
-
-  containingTableRowNode(node) {
-    return _xmlNode.XmlNode.findParentByName(node, DocxParser.TABLE_ROW_NODE);
-  }
-
-}
-
-exports.DocxParser = DocxParser;
-
-_defineProperty(DocxParser, "PARAGRAPH_NODE", 'w:p');
-
-_defineProperty(DocxParser, "PARAGRAPH_PROPERTIES_NODE", 'w:pPr');
-
-_defineProperty(DocxParser, "RUN_NODE", 'w:r');
-
-_defineProperty(DocxParser, "TEXT_NODE", 'w:t');
-
-_defineProperty(DocxParser, "TABLE_ROW_NODE", 'w:tr');
-
-_defineProperty(DocxParser, "TABLE_CELL_NODE", 'w:tc');
-
-_defineProperty(DocxParser, "NUMBER_PROPERTIES_NODE", 'w:numPr');
 
 /***/ }),
 
@@ -2984,14 +2702,14 @@ Object.keys(_unidentifiedFileTypeError).forEach(function (key) {
   });
 });
 
-var _unknownPrefixError = __webpack_require__(/*! ./unknownPrefixError */ "./src/errors/unknownPrefixError.ts");
+var _unknownContentTypeError = __webpack_require__(/*! ./unknownContentTypeError */ "./src/errors/unknownContentTypeError.ts");
 
-Object.keys(_unknownPrefixError).forEach(function (key) {
+Object.keys(_unknownContentTypeError).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   Object.defineProperty(exports, key, {
     enumerable: true,
     get: function () {
-      return _unknownPrefixError[key];
+      return _unknownContentTypeError[key];
     }
   });
 });
@@ -3108,9 +2826,15 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.MissingArgumentError = void 0;
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 class MissingArgumentError extends Error {
   constructor(argName) {
-    super(`Argument '${argName}' is missing.`); // typescript hack: https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+    super(`Argument '${argName}' is missing.`);
+
+    _defineProperty(this, "argName", void 0);
+
+    this.argName = argName; // typescript hack: https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
 
     Object.setPrototypeOf(this, MissingArgumentError.prototype);
   }
@@ -3255,10 +2979,10 @@ exports.UnidentifiedFileTypeError = UnidentifiedFileTypeError;
 
 /***/ }),
 
-/***/ "./src/errors/unknownPrefixError.ts":
-/*!******************************************!*\
-  !*** ./src/errors/unknownPrefixError.ts ***!
-  \******************************************/
+/***/ "./src/errors/unknownContentTypeError.ts":
+/*!***********************************************!*\
+  !*** ./src/errors/unknownContentTypeError.ts ***!
+  \***********************************************/
 /*! no static exports found */
 /*! ModuleConcatenation bailout: Module is not an ECMAScript module */
 /***/ (function(module, exports, __webpack_require__) {
@@ -3269,24 +2993,30 @@ exports.UnidentifiedFileTypeError = UnidentifiedFileTypeError;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.UnknownPrefixError = void 0;
+exports.UnknownContentTypeError = void 0;
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-class UnknownPrefixError extends Error {
-  constructor(tagRawText) {
-    super(`Tag '${tagRawText}' does not match any of the known prefixes.`);
+class UnknownContentTypeError extends Error {
+  constructor(contentType, tagRawText, path) {
+    super(`Content type '${contentType}' does not have a registered plugin to handle it.`);
 
     _defineProperty(this, "tagRawText", void 0);
 
-    this.tagRawText = tagRawText; // typescript hack: https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+    _defineProperty(this, "contentType", void 0);
 
-    Object.setPrototypeOf(this, UnknownPrefixError.prototype);
+    _defineProperty(this, "path", void 0);
+
+    this.contentType = contentType;
+    this.tagRawText = tagRawText;
+    this.path = path; // typescript hack: https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+
+    Object.setPrototypeOf(this, UnknownContentTypeError.prototype);
   }
 
 }
 
-exports.UnknownPrefixError = UnknownPrefixError;
+exports.UnknownContentTypeError = UnknownContentTypeError;
 
 /***/ }),
 
@@ -3341,9 +3071,15 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.UnsupportedFileTypeError = void 0;
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 class UnsupportedFileTypeError extends Error {
   constructor(fileType) {
-    super(`Filetype "${fileType}" is not supported.`); // typescript hack: https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+    super(`Filetype "${fileType}" is not supported.`);
+
+    _defineProperty(this, "fileType", void 0);
+
+    this.fileType = fileType; // typescript hack: https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
 
     Object.setPrototypeOf(this, UnsupportedFileTypeError.prototype);
   }
@@ -3351,59 +3087,6 @@ class UnsupportedFileTypeError extends Error {
 }
 
 exports.UnsupportedFileTypeError = UnsupportedFileTypeError;
-
-/***/ }),
-
-/***/ "./src/fileType.ts":
-/*!*************************!*\
-  !*** ./src/fileType.ts ***!
-  \*************************/
-/*! no static exports found */
-/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.FileTypeHelper = exports.FileType = void 0;
-
-var _errors = __webpack_require__(/*! ./errors */ "./src/errors/index.ts");
-
-let FileType;
-exports.FileType = FileType;
-
-(function (FileType) {
-  FileType["Docx"] = "docx";
-  FileType["Pptx"] = "pptx";
-  FileType["Odt"] = "odt";
-})(FileType || (exports.FileType = FileType = {}));
-
-class FileTypeHelper {
-  static getFileType(zipFile) {
-    if (FileTypeHelper.isDocx(zipFile)) return FileType.Docx;
-    if (FileTypeHelper.isPptx(zipFile)) return FileType.Pptx;
-    if (FileTypeHelper.isOdt(zipFile)) return FileType.Odt;
-    throw new _errors.UnidentifiedFileTypeError();
-  }
-
-  static isDocx(zipFile) {
-    return !!(zipFile.files["word/document.xml"] || zipFile.files["word/document2.xml"]);
-  }
-
-  static isPptx(zipFile) {
-    return !!zipFile.files["ppt/presentation.xml"];
-  }
-
-  static isOdt(zipFile) {
-    return !!zipFile.files['mimetype'];
-  }
-
-}
-
-exports.FileTypeHelper = FileTypeHelper;
 
 /***/ }),
 
@@ -3446,6 +3129,18 @@ Object.keys(_errors).forEach(function (key) {
   });
 });
 
+var _office = __webpack_require__(/*! ./office */ "./src/office/index.ts");
+
+Object.keys(_office).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _office[key];
+    }
+  });
+});
+
 var _plugins = __webpack_require__(/*! ./plugins */ "./src/plugins/index.ts");
 
 Object.keys(_plugins).forEach(function (key) {
@@ -3454,6 +3149,30 @@ Object.keys(_plugins).forEach(function (key) {
     enumerable: true,
     get: function () {
       return _plugins[key];
+    }
+  });
+});
+
+var _utils = __webpack_require__(/*! ./utils */ "./src/utils/index.ts");
+
+Object.keys(_utils).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _utils[key];
+    }
+  });
+});
+
+var _xml = __webpack_require__(/*! ./xml */ "./src/xml/index.ts");
+
+Object.keys(_xml).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _xml[key];
     }
   });
 });
@@ -3470,14 +3189,26 @@ Object.keys(_delimiters).forEach(function (key) {
   });
 });
 
-var _docxParser = __webpack_require__(/*! ./docxParser */ "./src/docxParser.ts");
+var _mimeType = __webpack_require__(/*! ./mimeType */ "./src/mimeType.ts");
 
-Object.keys(_docxParser).forEach(function (key) {
+Object.keys(_mimeType).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   Object.defineProperty(exports, key, {
     enumerable: true,
     get: function () {
-      return _docxParser[key];
+      return _mimeType[key];
+    }
+  });
+});
+
+var _templateData = __webpack_require__(/*! ./templateData */ "./src/templateData.ts");
+
+Object.keys(_templateData).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _templateData[key];
     }
   });
 });
@@ -3506,41 +3237,892 @@ Object.keys(_templateHandlerOptions).forEach(function (key) {
   });
 });
 
-var _binary = __webpack_require__(/*! ./utils/binary */ "./src/utils/binary.ts");
+/***/ }),
 
-Object.keys(_binary).forEach(function (key) {
+/***/ "./src/mimeType.ts":
+/*!*************************!*\
+  !*** ./src/mimeType.ts ***!
+  \*************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.MimeTypeHelper = exports.MimeType = void 0;
+
+var _errors = __webpack_require__(/*! ./errors */ "./src/errors/index.ts");
+
+let MimeType;
+exports.MimeType = MimeType;
+
+(function (MimeType) {
+  MimeType["Png"] = "image/png";
+  MimeType["Jpeg"] = "image/jpeg";
+  MimeType["Gif"] = "image/gif";
+  MimeType["Bmp"] = "image/bmp";
+  MimeType["Svg"] = "image/svg+xml";
+})(MimeType || (exports.MimeType = MimeType = {}));
+
+class MimeTypeHelper {
+  static getDefaultExtension(mime) {
+    switch (mime) {
+      case MimeType.Png:
+        return 'png';
+
+      case MimeType.Jpeg:
+        return 'jpg';
+
+      case MimeType.Gif:
+        return 'gif';
+
+      case MimeType.Bmp:
+        return 'bmp';
+
+      case MimeType.Svg:
+        return 'svg';
+
+      default:
+        throw new _errors.UnsupportedFileTypeError(mime);
+    }
+  }
+
+  static getOfficeRelType(mime) {
+    switch (mime) {
+      case MimeType.Png:
+      case MimeType.Jpeg:
+      case MimeType.Gif:
+      case MimeType.Bmp:
+      case MimeType.Svg:
+        return "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image";
+
+      default:
+        throw new _errors.UnsupportedFileTypeError(mime);
+    }
+  }
+
+}
+
+exports.MimeTypeHelper = MimeTypeHelper;
+
+/***/ }),
+
+/***/ "./src/office/contentTypesFile.ts":
+/*!****************************************!*\
+  !*** ./src/office/contentTypesFile.ts ***!
+  \****************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.ContentTypesFile = void 0;
+
+var _mimeType = __webpack_require__(/*! ../mimeType */ "./src/mimeType.ts");
+
+var _xml = __webpack_require__(/*! ../xml */ "./src/xml/index.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+/**
+ * http://officeopenxml.com/anatomyofOOXML.php
+ */
+class ContentTypesFile {
+  constructor(zip, xmlParser) {
+    this.zip = zip;
+    this.xmlParser = xmlParser;
+
+    _defineProperty(this, "addedNew", false);
+
+    _defineProperty(this, "root", void 0);
+
+    _defineProperty(this, "contentTypes", void 0);
+  }
+
+  async ensureContentType(mime) {
+    // parse the content types file
+    await this.parseContentTypesFile(); // already exists
+
+    if (this.contentTypes[mime]) return; // add new
+
+    const extension = _mimeType.MimeTypeHelper.getDefaultExtension(mime);
+
+    const typeNode = _xml.XmlNode.createGeneralNode('Default');
+
+    typeNode.attributes = [{
+      name: "Extension",
+      value: extension
+    }, {
+      name: "ContentType",
+      value: mime
+    }];
+    this.root.childNodes.push(typeNode); // update state
+
+    this.addedNew = true;
+    this.contentTypes[mime] = true;
+  }
+
+  async count() {
+    await this.parseContentTypesFile();
+    return this.root.childNodes.filter(node => !_xml.XmlNode.isTextNode(node)).length;
+  }
+
+  async save() {
+    // not change - no need to save
+    if (!this.addedNew) return;
+    const xmlContent = this.xmlParser.serialize(this.root);
+    this.zip.setFile(ContentTypesFile.contentTypesFilePath, xmlContent);
+  }
+
+  async parseContentTypesFile() {
+    if (this.root) return; // parse the xml file
+
+    const contentTypesXml = await this.zip.getFile(ContentTypesFile.contentTypesFilePath).getContentText();
+    this.root = this.xmlParser.parse(contentTypesXml); // build the content types lookup
+
+    this.contentTypes = {};
+
+    for (const node of this.root.childNodes) {
+      if (node.nodeName !== 'Default') continue;
+      const genNode = node;
+      const contentTypeAttribute = genNode.attributes.find(attr => attr.name === 'ContentType');
+      if (!contentTypeAttribute) continue;
+      this.contentTypes[contentTypeAttribute.value];
+    }
+  }
+
+}
+
+exports.ContentTypesFile = ContentTypesFile;
+
+_defineProperty(ContentTypesFile, "contentTypesFilePath", '[Content_Types].xml');
+
+/***/ }),
+
+/***/ "./src/office/docx.ts":
+/*!****************************!*\
+  !*** ./src/office/docx.ts ***!
+  \****************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Docx = void 0;
+
+var _errors = __webpack_require__(/*! ../errors */ "./src/errors/index.ts");
+
+var _contentTypesFile = __webpack_require__(/*! ./contentTypesFile */ "./src/office/contentTypesFile.ts");
+
+var _mediaFiles = __webpack_require__(/*! ./mediaFiles */ "./src/office/mediaFiles.ts");
+
+var _rels = __webpack_require__(/*! ./rels */ "./src/office/rels.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+/**
+ * Represents a single docx file.
+ */
+class Docx {
+  get documentPath() {
+    if (!this._documentPath) {
+      if (this.zip.isFileExist("word/document.xml")) {
+        this._documentPath = "word/document.xml";
+      } // https://github.com/open-xml-templating/docxtemplater/issues/366
+      else if (this.zip.isFileExist("word/document2.xml")) {
+          this._documentPath = "word/document2.xml";
+        }
+    }
+
+    return this._documentPath;
+  }
+
+  constructor(zip, xmlParser) {
+    this.zip = zip;
+    this.xmlParser = xmlParser;
+
+    _defineProperty(this, "_documentPath", void 0);
+
+    _defineProperty(this, "_document", void 0);
+
+    _defineProperty(this, "rels", void 0);
+
+    _defineProperty(this, "mediaFiles", void 0);
+
+    _defineProperty(this, "contentTypes", void 0);
+
+    if (!this.documentPath) throw new _errors.MalformedFileError('docx');
+    this.rels = new _rels.Rels(this.documentPath, zip, xmlParser);
+    this.mediaFiles = new _mediaFiles.MediaFiles(zip);
+    this.contentTypes = new _contentTypesFile.ContentTypesFile(zip, xmlParser);
+  } //
+  // public methods
+  //
+
+  /**
+   * The xml root of the main document file.
+   */
+
+
+  async getDocument() {
+    if (!this._document) {
+      const xml = await this.zip.getFile(this.documentPath).getContentText();
+      this._document = this.xmlParser.parse(xml);
+    }
+
+    return this._document;
+  }
+  /**
+   * Get the text content of the main document file.
+   */
+
+
+  async getDocumentText() {
+    const xmlDocument = await this.getDocument(); // ugly but good enough...
+
+    const xml = this.xmlParser.serialize(xmlDocument);
+    const domDocument = this.xmlParser.domParse(xml);
+    return domDocument.documentElement.textContent;
+  }
+  /**
+   * Add a media resource to the document archive and return the created rel ID.
+   */
+
+
+  async addMedia(content, type) {
+    const mediaFilePath = await this.mediaFiles.add(content, type);
+    const relId = await this.rels.add(mediaFilePath, type);
+    await this.contentTypes.ensureContentType(type);
+    return relId;
+  }
+
+  async export(outputType) {
+    await this.saveChanges();
+    return await this.zip.export(outputType);
+  } //
+  // private methods
+  //        
+
+
+  async saveChanges() {
+    // save main document
+    const document = await this.getDocument();
+    const xmlContent = this.xmlParser.serialize(document);
+    this.zip.setFile(this.documentPath, xmlContent); // save other parts
+
+    await this.rels.save();
+    await this.contentTypes.save();
+  }
+
+}
+
+exports.Docx = Docx;
+
+/***/ }),
+
+/***/ "./src/office/docxParser.ts":
+/*!**********************************!*\
+  !*** ./src/office/docxParser.ts ***!
+  \**********************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.DocxParser = void 0;
+
+var _xml = __webpack_require__(/*! ../xml */ "./src/xml/index.ts");
+
+var _docx = __webpack_require__(/*! ./docx */ "./src/office/docx.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class DocxParser {
+  /*
+   * Word markup intro:
+   * 
+   * In Word text nodes are contained in "run" nodes (which specifies text
+   * properties such as font and color). The "run" nodes in turn are
+   * contained in paragraph nodes which is the core unit of content.
+   * 
+   * Example:
+   *
+   * <w:p>    <-- paragraph
+   *   <w:r>      <-- run
+   *     <w:rPr>      <-- run properties
+   *       <w:b/>     <-- bold
+   *     </w:rPr>
+   *     <w:t>This is text.</w:t>     <-- actual text
+   *   </w:r>
+   * </w:p> 
+   *
+   * see: http://officeopenxml.com/WPcontentOverview.php
+   */
+  //
+  // constructor
+  //
+  constructor(xmlParser) {
+    this.xmlParser = xmlParser;
+  } //
+  // parse document
+  //
+
+
+  load(zip) {
+    return new _docx.Docx(zip, this.xmlParser);
+  } //
+  // content manipulation
+  //
+
+  /**
+   * Split the text node into two text nodes, each with it's own wrapping <w:t> node.
+   * Returns the newly created text node.
+   * 
+   * @param textNode 
+   * @param splitIndex 
+   * @param addBefore Should the new node be added before or after the original node.
+   */
+
+
+  splitTextNode(textNode, splitIndex, addBefore) {
+    let firstXmlTextNode;
+    let secondXmlTextNode; // split nodes
+
+    const wordTextNode = this.containingTextNode(textNode);
+
+    const newWordTextNode = _xml.XmlNode.cloneNode(wordTextNode, true);
+
+    if (addBefore) {
+      // insert new node before existing one
+      _xml.XmlNode.insertBefore(newWordTextNode, wordTextNode);
+
+      firstXmlTextNode = _xml.XmlNode.lastTextChild(newWordTextNode);
+      secondXmlTextNode = textNode;
+    } else {
+      // insert new node after existing one
+      const curIndex = wordTextNode.parentNode.childNodes.indexOf(wordTextNode);
+
+      _xml.XmlNode.insertChild(wordTextNode.parentNode, newWordTextNode, curIndex + 1);
+
+      firstXmlTextNode = textNode;
+      secondXmlTextNode = _xml.XmlNode.lastTextChild(newWordTextNode);
+    } // edit text
+
+
+    const firstText = firstXmlTextNode.textContent;
+    const secondText = secondXmlTextNode.textContent;
+    firstXmlTextNode.textContent = firstText.substring(0, splitIndex);
+    secondXmlTextNode.textContent = secondText.substring(splitIndex);
+    return addBefore ? firstXmlTextNode : secondXmlTextNode;
+  }
+  /**
+   * Move all text between the 'from' and 'to' nodes to the 'from' node.
+   */
+
+
+  joinTextNodesRange(from, to) {
+    // find run nodes
+    const firstRunNode = this.containingRunNode(from);
+    const secondRunNode = this.containingRunNode(to);
+    const paragraphNode = firstRunNode.parentNode;
+    if (secondRunNode.parentNode !== paragraphNode) throw new Error('Can not join text nodes from separate paragraphs.'); // find "word text nodes"
+
+    const firstWordTextNode = this.containingTextNode(from);
+    const secondWordTextNode = this.containingTextNode(to);
+    const totalText = []; // iterate runs
+
+    let curRunNode = firstRunNode;
+
+    while (curRunNode) {
+      // iterate text nodes
+      let curWordTextNode;
+
+      if (curRunNode === firstRunNode) {
+        curWordTextNode = firstWordTextNode;
+      } else {
+        curWordTextNode = this.firstTextNodeChild(curRunNode);
+      }
+
+      while (curWordTextNode) {
+        if (curWordTextNode.nodeName !== DocxParser.TEXT_NODE) continue; // move text to first node
+
+        const curXmlTextNode = _xml.XmlNode.lastTextChild(curWordTextNode);
+
+        totalText.push(curXmlTextNode.textContent); // next text node
+
+        const textToRemove = curWordTextNode;
+
+        if (curWordTextNode === secondWordTextNode) {
+          curWordTextNode = null;
+        } else {
+          curWordTextNode = curWordTextNode.nextSibling;
+        } // remove current text node
+
+
+        if (textToRemove !== firstWordTextNode) {
+          _xml.XmlNode.remove(textToRemove);
+        }
+      } // next run
+
+
+      const runToRemove = curRunNode;
+
+      if (curRunNode === secondRunNode) {
+        curRunNode = null;
+      } else {
+        curRunNode = curRunNode.nextSibling;
+      } // remove current run
+
+
+      if (!runToRemove.childNodes || !runToRemove.childNodes.length) {
+        _xml.XmlNode.remove(runToRemove);
+      }
+    } // set the text content
+
+
+    const firstXmlTextNode = _xml.XmlNode.lastTextChild(firstWordTextNode);
+
+    firstXmlTextNode.textContent = totalText.join('');
+  }
+  /**
+   * Take all runs from 'second' and move them to 'first'.
+   */
+
+
+  joinParagraphs(first, second) {
+    if (first === second) return;
+    let childIndex = 0;
+
+    while (second.childNodes && childIndex < second.childNodes.length) {
+      const curChild = second.childNodes[childIndex];
+
+      if (curChild.nodeName === DocxParser.RUN_NODE) {
+        _xml.XmlNode.removeChild(second, childIndex);
+
+        _xml.XmlNode.appendChild(first, curChild);
+      } else {
+        childIndex++;
+      }
+    }
+  } //
+  // node queries
+  //
+
+
+  isTableCellNode(node) {
+    return node.nodeName === DocxParser.TABLE_CELL_NODE;
+  }
+
+  isParagraphNode(node) {
+    return node.nodeName === DocxParser.PARAGRAPH_NODE;
+  }
+
+  isListParagraph(paragraphNode) {
+    const paragraphProperties = this.paragraphPropertiesNode(paragraphNode);
+
+    const listNumberProperties = _xml.XmlNode.findChildByName(paragraphProperties, DocxParser.NUMBER_PROPERTIES_NODE);
+
+    return !!listNumberProperties;
+  }
+
+  paragraphPropertiesNode(paragraphNode) {
+    if (!this.isParagraphNode(paragraphNode)) throw new Error(`Expected paragraph node but received a '${paragraphNode.nodeName}' node.`);
+    return _xml.XmlNode.findChildByName(paragraphNode, DocxParser.PARAGRAPH_PROPERTIES_NODE);
+  }
+  /**
+   * Search for the first direct child **Word** text node (i.e. a <w:t> node).
+   */
+
+
+  firstTextNodeChild(node) {
+    if (!node) return null;
+    if (node.nodeName !== DocxParser.RUN_NODE) return null;
+    if (!node.childNodes) return null;
+
+    for (const child of node.childNodes) {
+      if (child.nodeName === DocxParser.TEXT_NODE) return child;
+    }
+
+    return null;
+  }
+  /**
+   * Search **upwards** for the first **Word** text node (i.e. a <w:t> node).
+   */
+
+
+  containingTextNode(node) {
+    if (!node) return null;
+    if (!_xml.XmlNode.isTextNode(node)) throw new Error(`'Invalid argument ${"node"}. Expected a XmlTextNode.`);
+    return _xml.XmlNode.findParentByName(node, DocxParser.TEXT_NODE);
+  }
+  /**
+   * Search **upwards** for the first run node.
+   */
+
+
+  containingRunNode(node) {
+    return _xml.XmlNode.findParentByName(node, DocxParser.RUN_NODE);
+  }
+  /**
+   * Search **upwards** for the first paragraph node.
+   */
+
+
+  containingParagraphNode(node) {
+    return _xml.XmlNode.findParentByName(node, DocxParser.PARAGRAPH_NODE);
+  }
+  /**
+   * Search **upwards** for the first "table row" node.
+   */
+
+
+  containingTableRowNode(node) {
+    return _xml.XmlNode.findParentByName(node, DocxParser.TABLE_ROW_NODE);
+  }
+
+}
+
+exports.DocxParser = DocxParser;
+
+_defineProperty(DocxParser, "PARAGRAPH_NODE", 'w:p');
+
+_defineProperty(DocxParser, "PARAGRAPH_PROPERTIES_NODE", 'w:pPr');
+
+_defineProperty(DocxParser, "RUN_NODE", 'w:r');
+
+_defineProperty(DocxParser, "TEXT_NODE", 'w:t');
+
+_defineProperty(DocxParser, "TABLE_ROW_NODE", 'w:tr');
+
+_defineProperty(DocxParser, "TABLE_CELL_NODE", 'w:tc');
+
+_defineProperty(DocxParser, "NUMBER_PROPERTIES_NODE", 'w:numPr');
+
+/***/ }),
+
+/***/ "./src/office/index.ts":
+/*!*****************************!*\
+  !*** ./src/office/index.ts ***!
+  \*****************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _docx = __webpack_require__(/*! ./docx */ "./src/office/docx.ts");
+
+Object.keys(_docx).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   Object.defineProperty(exports, key, {
     enumerable: true,
     get: function () {
-      return _binary[key];
+      return _docx[key];
     }
   });
 });
 
-var _xmlNode = __webpack_require__(/*! ./xmlNode */ "./src/xmlNode.ts");
+var _docxParser = __webpack_require__(/*! ./docxParser */ "./src/office/docxParser.ts");
 
-Object.keys(_xmlNode).forEach(function (key) {
+Object.keys(_docxParser).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   Object.defineProperty(exports, key, {
     enumerable: true,
     get: function () {
-      return _xmlNode[key];
+      return _docxParser[key];
     }
   });
 });
 
-var _xmlParser = __webpack_require__(/*! ./xmlParser */ "./src/xmlParser.ts");
+/***/ }),
 
-Object.keys(_xmlParser).forEach(function (key) {
-  if (key === "default" || key === "__esModule") return;
-  Object.defineProperty(exports, key, {
-    enumerable: true,
-    get: function () {
-      return _xmlParser[key];
-    }
-  });
+/***/ "./src/office/mediaFiles.ts":
+/*!**********************************!*\
+  !*** ./src/office/mediaFiles.ts ***!
+  \**********************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
 });
+exports.MediaFiles = void 0;
+
+var _mimeType = __webpack_require__(/*! ../mimeType */ "./src/mimeType.ts");
+
+var _utils = __webpack_require__(/*! ../utils */ "./src/utils/index.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+/**
+ * Handles media files of the main document.
+ */
+class MediaFiles {
+  constructor(zip) {
+    this.zip = zip;
+
+    _defineProperty(this, "hashes", void 0);
+
+    _defineProperty(this, "files", new Map());
+
+    _defineProperty(this, "nextFileId", 0);
+  }
+  /**
+   * Returns the media file path.
+   */
+
+
+  async add(mediaFile, mime) {
+    // check if already added
+    if (this.files.has(mediaFile)) return this.files.get(mediaFile); // hash existing media files
+
+    await this.hashMediaFiles(); // hash the new file  
+    // Note: Even though hashing the base64 string may seem inefficient
+    // (requires extra step in some cases) in practice it is significantly
+    // faster than hashing a 'binarystring'.
+
+    const base64 = await _utils.Binary.toBase64(mediaFile);
+    const hash = (0, _utils.sha1)(base64); // check if file already exists
+    // note: this can be optimized by keeping both mapping by filename as well as by hash
+
+    let path = Object.keys(this.hashes).find(p => this.hashes[p] === hash);
+    if (path) return path; // generate unique media file name
+
+    const extension = _mimeType.MimeTypeHelper.getDefaultExtension(mime);
+
+    do {
+      this.nextFileId++;
+      path = `${MediaFiles.mediaDir}/media${this.nextFileId}.${extension}`;
+    } while (this.hashes[path]); // add media to zip
+
+
+    await this.zip.setFile(path, mediaFile); // add media to our lookups
+
+    this.hashes[path] = hash;
+    this.files.set(mediaFile, path); // return
+
+    return path;
+  }
+
+  async count() {
+    await this.hashMediaFiles();
+    return Object.keys(this.hashes).length;
+  }
+
+  async hashMediaFiles() {
+    if (this.hashes) return;
+    this.hashes = {};
+
+    for (const path of this.zip.listFiles()) {
+      if (!path.startsWith(MediaFiles.mediaDir)) continue;
+
+      const filename = _utils.Path.getFilename(path);
+
+      if (!filename) continue;
+      const fileData = await this.zip.getFile(path).getContentBase64();
+      const fileHash = (0, _utils.sha1)(fileData);
+      this.hashes[filename] = fileHash;
+    }
+  }
+
+}
+
+exports.MediaFiles = MediaFiles;
+
+_defineProperty(MediaFiles, "mediaDir", 'word/media');
+
+/***/ }),
+
+/***/ "./src/office/rels.ts":
+/*!****************************!*\
+  !*** ./src/office/rels.ts ***!
+  \****************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Rels = void 0;
+
+var _mimeType = __webpack_require__(/*! ../mimeType */ "./src/mimeType.ts");
+
+var _utils = __webpack_require__(/*! ../utils */ "./src/utils/index.ts");
+
+var _xml = __webpack_require__(/*! ../xml */ "./src/xml/index.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+/**
+ * Handles the relationship logic of a single docx "part".  
+ * http://officeopenxml.com/anatomyofOOXML.php
+ */
+class Rels {
+  constructor(partPath, zip, xmlParser) {
+    this.zip = zip;
+    this.xmlParser = xmlParser;
+
+    _defineProperty(this, "root", void 0);
+
+    _defineProperty(this, "relIds", void 0);
+
+    _defineProperty(this, "relTargets", void 0);
+
+    _defineProperty(this, "nextRelId", 0);
+
+    _defineProperty(this, "partDir", void 0);
+
+    _defineProperty(this, "relsFilePath", void 0);
+
+    this.partDir = _utils.Path.getDirectory(partPath);
+
+    const partFilename = _utils.Path.getFilename(partPath);
+
+    this.relsFilePath = `${this.partDir}/_rels/${partFilename}.rels`;
+  }
+  /**
+   * Returns the rel ID.
+   */
+
+
+  async add(relTarget, mime) {
+    // relTarget should be relative to the part dir
+    if (relTarget.startsWith(this.partDir)) {
+      relTarget = relTarget.substr(this.partDir.length + 1);
+    } // parse rels file
+
+
+    await this.parseRelsFile(); // already exists?
+
+    const relTargetKey = this.getRelTargetKey(mime, relTarget);
+    let relId = this.relTargets[relTargetKey];
+    if (relId) return relId; // add rel node
+
+    relId = this.getNextRelId();
+
+    const relType = _mimeType.MimeTypeHelper.getOfficeRelType(mime);
+
+    const relNode = _xml.XmlNode.createGeneralNode('Relationship');
+
+    relNode.attributes = [{
+      name: "Id",
+      value: relId
+    }, {
+      name: "Type",
+      value: relType
+    }, {
+      name: "Target",
+      value: relTarget
+    }];
+    this.root.childNodes.push(relNode); // update lookups
+
+    this.relIds[relId] = true;
+    this.relTargets[relTargetKey] = relId; // return
+
+    return relId;
+  }
+  /**
+   * Save the rels file back to the zip.
+   */
+
+
+  async save() {
+    // not change - no need to save
+    if (!this.root) return;
+    const xmlContent = this.xmlParser.serialize(this.root);
+    this.zip.setFile(this.relsFilePath, xmlContent);
+  } //
+  // private methods
+  //
+
+
+  getNextRelId() {
+    let relId;
+    ;
+
+    do {
+      this.nextRelId++;
+      relId = 'rId' + this.nextRelId;
+    } while (this.relIds[relId]);
+
+    return relId;
+  }
+
+  async parseRelsFile() {
+    if (this.root) return; // parse the xml file
+
+    let relsXml;
+    const relsFile = this.zip.getFile(this.relsFilePath);
+
+    if (relsFile) {
+      relsXml = await relsFile.getContentText();
+    } else {
+      relsXml = `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+                      </Relationships>`;
+    }
+
+    this.root = this.xmlParser.parse(relsXml); // build lookups
+
+    this.relIds = {};
+    this.relTargets = {};
+
+    for (const rel of this.root.childNodes) {
+      const attributes = rel.attributes;
+      if (!attributes) continue; // relIds lookup
+
+      const idAttr = attributes.find(attr => attr.name.toLowerCase() === 'id');
+      if (!idAttr || !idAttr.value) continue;
+      this.relIds[idAttr.value] = true; // rel target lookup
+
+      const typeAttr = attributes.find(attr => attr.name.toLowerCase() === 'Type');
+      const targetAttr = attributes.find(attr => attr.name.toLowerCase() === 'Target');
+
+      if (typeAttr && typeAttr.value && targetAttr && targetAttr.value) {
+        const relTargetKey = this.getRelTargetKey(typeAttr.value, targetAttr.value);
+        this.relTargets[relTargetKey] = idAttr.value;
+      }
+    }
+  }
+
+  getRelTargetKey(type, target) {
+    return `${type} - ${target}`;
+  }
+
+}
+
+exports.Rels = Rels;
 
 /***/ }),
 
@@ -3560,6 +4142,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.createDefaultPlugins = createDefaultPlugins;
 
+var _imagePlugin = __webpack_require__(/*! ./imagePlugin */ "./src/plugins/imagePlugin.ts");
+
 var _loopPlugin = __webpack_require__(/*! ./loopPlugin */ "./src/plugins/loopPlugin.ts");
 
 var _rawXmlPlugin = __webpack_require__(/*! ./rawXmlPlugin */ "./src/plugins/rawXmlPlugin.ts");
@@ -3567,8 +4151,176 @@ var _rawXmlPlugin = __webpack_require__(/*! ./rawXmlPlugin */ "./src/plugins/raw
 var _textPlugin = __webpack_require__(/*! ./textPlugin */ "./src/plugins/textPlugin.ts");
 
 function createDefaultPlugins() {
-  return [new _loopPlugin.LoopPlugin(), new _rawXmlPlugin.RawXmlPlugin(), new _textPlugin.TextPlugin()];
+  return [new _loopPlugin.LoopPlugin(), new _rawXmlPlugin.RawXmlPlugin(), new _imagePlugin.ImagePlugin(), new _textPlugin.TextPlugin()];
 }
+
+/***/ }),
+
+/***/ "./src/plugins/imageContent.ts":
+/*!*************************************!*\
+  !*** ./src/plugins/imageContent.ts ***!
+  \*************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/***/ }),
+
+/***/ "./src/plugins/imagePlugin.ts":
+/*!************************************!*\
+  !*** ./src/plugins/imagePlugin.ts ***!
+  \************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.ImagePlugin = void 0;
+
+var _xml = __webpack_require__(/*! ../xml */ "./src/xml/index.ts");
+
+var _templatePlugin = __webpack_require__(/*! ./templatePlugin */ "./src/plugins/templatePlugin.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+/**
+ * Apparently it is not that important for the ID to be unique...  
+ * Word displays two images correctly even if they both have the same ID.
+ * Further more, Word will assign each a unique ID upon saving (it assigns
+ * consecutive integers starting with 1).  
+ * 
+ * Note: The same principal applies to image names.
+ *
+ * Tested in Word v1908
+ */
+let nextImageId = 1;
+
+class ImagePlugin extends _templatePlugin.TemplatePlugin {
+  constructor(...args) {
+    super(...args);
+
+    _defineProperty(this, "contentType", 'image');
+  }
+
+  async simpleTagReplacements(tag, data, context) {
+    const wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
+    const content = data.getScopeData();
+
+    if (!content || !content.source) {
+      _xml.XmlNode.remove(wordTextNode);
+
+      return;
+    }
+
+    const imageId = nextImageId++;
+    const relId = await context.docx.addMedia(content.source, content.format);
+    const imageXml = this.createMarkup(imageId, relId, content.width, content.height);
+
+    _xml.XmlNode.insertAfter(imageXml, wordTextNode);
+
+    _xml.XmlNode.remove(wordTextNode);
+  }
+
+  createMarkup(imageId, relId, width, height) {
+    // http://officeopenxml.com/drwPicInline.php
+    //
+    // Performance note:  
+    //
+    // I've tried to improve the markup generation performance by parsing
+    // the string once and caching the result (and of course customizing it
+    // per image) but it made no change whatsoever (in both cases 1000 items
+    // loop takes around 8 seconds on my machine) so I'm sticking with this
+    // approach which I find to be more readable.
+    //
+    const name = `Picture ${imageId}`;
+    const markupText = `
+            <w:drawing>
+                <wp:inline distT="0" distB="0" distL="0" distR="0">
+                    <wp:extent cx="${this.pixelsToEmu(width)}" cy="${this.pixelsToEmu(height)}"/>
+                    <wp:effectExtent l="0" t="0" r="0" b="0"/>
+                    <wp:docPr id="${imageId}" name="${name}"/>
+                    <wp:cNvGraphicFramePr>
+                        <a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/>
+                    </wp:cNvGraphicFramePr>
+                    <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                        <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                            ${this.pictureMarkup(name, relId, width, height)}
+                        </a:graphicData>
+                    </a:graphic>
+                </wp:inline>
+            </w:drawing>
+        `;
+    const markupXml = this.utilities.xmlParser.parse(markupText);
+
+    _xml.XmlNode.stripTextNodes(markupXml); // remove whitespace
+
+
+    return markupXml;
+  }
+
+  pictureMarkup(name, relId, width, height) {
+    // http://officeopenxml.com/drwPic.php
+    // legend:
+    // nvPicPr - non-visual picture properties - id, name, etc.
+    // blipFill - binary large image (or) picture fill - image size, image fill, etc.
+    // spPr - shape properties - frame size, frame fill, etc.
+    return `
+            <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                <pic:nvPicPr>
+                    <pic:cNvPr id="0" name="${name}"/>
+                    <pic:cNvPicPr>
+                        <a:picLocks noChangeAspect="1" noChangeArrowheads="1"/>
+                    </pic:cNvPicPr>
+                </pic:nvPicPr>
+                <pic:blipFill>
+                    <a:blip r:embed="${relId}">
+                        <a:extLst>
+                            <a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}">
+                                <a14:useLocalDpi xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" val="0"/>
+                            </a:ext>
+                        </a:extLst>
+                    </a:blip>
+                    <a:srcRect/>
+                    <a:stretch>
+                        <a:fillRect/>
+                    </a:stretch>
+                </pic:blipFill>
+                <pic:spPr bwMode="auto">
+                    <a:xfrm>
+                        <a:off x="0" y="0"/>
+                        <a:ext cx="${this.pixelsToEmu(width)}" cy="${this.pixelsToEmu(height)}"/>
+                    </a:xfrm>
+                    <a:prstGeom prst="rect">
+                        <a:avLst/>
+                    </a:prstGeom>
+                    <a:noFill/>
+                    <a:ln>
+                        <a:noFill/>
+                    </a:ln>
+                </pic:spPr>
+            </pic:pic>
+        `;
+  }
+
+  pixelsToEmu(pixels) {
+    // https://stackoverflow.com/questions/20194403/openxml-distance-size-units
+    // https://docs.microsoft.com/en-us/windows/win32/vml/msdn-online-vml-units#other-units-of-measurement
+    // https://en.wikipedia.org/wiki/Office_Open_XML_file_formats#DrawingML
+    // http://www.java2s.com/Code/CSharp/2D-Graphics/ConvertpixelstoEMUEMUtopixels.htm
+    return Math.round(pixels * 9525);
+  }
+
+}
+
+exports.ImagePlugin = ImagePlugin;
 
 /***/ }),
 
@@ -3599,6 +4351,30 @@ Object.keys(_defaultPlugins).forEach(function (key) {
   });
 });
 
+var _imageContent = __webpack_require__(/*! ./imageContent */ "./src/plugins/imageContent.ts");
+
+Object.keys(_imageContent).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _imageContent[key];
+    }
+  });
+});
+
+var _imagePlugin = __webpack_require__(/*! ./imagePlugin */ "./src/plugins/imagePlugin.ts");
+
+Object.keys(_imagePlugin).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _imagePlugin[key];
+    }
+  });
+});
+
 var _loopPlugin = __webpack_require__(/*! ./loopPlugin */ "./src/plugins/loopPlugin.ts");
 
 Object.keys(_loopPlugin).forEach(function (key) {
@@ -3607,6 +4383,30 @@ Object.keys(_loopPlugin).forEach(function (key) {
     enumerable: true,
     get: function () {
       return _loopPlugin[key];
+    }
+  });
+});
+
+var _pluginContent = __webpack_require__(/*! ./pluginContent */ "./src/plugins/pluginContent.ts");
+
+Object.keys(_pluginContent).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _pluginContent[key];
+    }
+  });
+});
+
+var _rawXmlContent = __webpack_require__(/*! ./rawXmlContent */ "./src/plugins/rawXmlContent.ts");
+
+Object.keys(_rawXmlContent).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _rawXmlContent[key];
     }
   });
 });
@@ -3743,7 +4543,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.LoopListStrategy = void 0;
 
-var _xmlNode = __webpack_require__(/*! ../../xmlNode */ "./src/xmlNode.ts");
+var _xml = __webpack_require__(/*! ../../xml */ "./src/xml/index.ts");
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
@@ -3765,12 +4565,12 @@ class LoopListStrategy {
     const firstParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
     const lastParagraph = this.utilities.docxParser.containingParagraphNode(closeTag.xmlTextNode);
 
-    const paragraphsToRepeat = _xmlNode.XmlNode.siblingsInRange(firstParagraph, lastParagraph); // remove the loop tags
+    const paragraphsToRepeat = _xml.XmlNode.siblingsInRange(firstParagraph, lastParagraph); // remove the loop tags
 
 
-    _xmlNode.XmlNode.remove(openTag.xmlTextNode);
+    _xml.XmlNode.remove(openTag.xmlTextNode);
 
-    _xmlNode.XmlNode.remove(closeTag.xmlTextNode);
+    _xml.XmlNode.remove(closeTag.xmlTextNode);
 
     return {
       firstNode: firstParagraph,
@@ -3782,15 +4582,15 @@ class LoopListStrategy {
   mergeBack(paragraphGroups, firstParagraph, lastParagraphs) {
     for (const curParagraphsGroup of paragraphGroups) {
       for (const paragraph of curParagraphsGroup) {
-        _xmlNode.XmlNode.insertBefore(paragraph, lastParagraphs);
+        _xml.XmlNode.insertBefore(paragraph, lastParagraphs);
       }
     } // remove the old paragraphs
 
 
-    _xmlNode.XmlNode.remove(firstParagraph);
+    _xml.XmlNode.remove(firstParagraph);
 
     if (firstParagraph !== lastParagraphs) {
-      _xmlNode.XmlNode.remove(lastParagraphs);
+      _xml.XmlNode.remove(lastParagraphs);
     }
   }
 
@@ -3816,7 +4616,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.LoopParagraphStrategy = void 0;
 
-var _xmlNode = __webpack_require__(/*! ../../xmlNode */ "./src/xmlNode.ts");
+var _xml = __webpack_require__(/*! ../../xml */ "./src/xml/index.ts");
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
@@ -3842,19 +4642,19 @@ class LoopParagraphStrategy {
     const firstParagraphIndex = parent.childNodes.indexOf(firstParagraph);
     const lastParagraphIndex = areSame ? firstParagraphIndex : parent.childNodes.indexOf(lastParagraph); // split first paragraphs
 
-    let splitResult = _xmlNode.XmlNode.splitByChild(firstParagraph, openTag.xmlTextNode, true);
+    let splitResult = _xml.XmlNode.splitByChild(firstParagraph, openTag.xmlTextNode, true);
 
     firstParagraph = splitResult[0];
     const firstParagraphSplit = splitResult[1];
     if (areSame) lastParagraph = firstParagraphSplit; // split last paragraph
 
-    splitResult = _xmlNode.XmlNode.splitByChild(lastParagraph, closeTag.xmlTextNode, true);
+    splitResult = _xml.XmlNode.splitByChild(lastParagraph, closeTag.xmlTextNode, true);
     const lastParagraphSplit = splitResult[0];
     lastParagraph = splitResult[1]; // fix references
 
-    _xmlNode.XmlNode.removeChild(parent, firstParagraphIndex + 1);
+    _xml.XmlNode.removeChild(parent, firstParagraphIndex + 1);
 
-    if (!areSame) _xmlNode.XmlNode.removeChild(parent, lastParagraphIndex);
+    if (!areSame) _xml.XmlNode.removeChild(parent, lastParagraphIndex);
     firstParagraphSplit.parentNode = null;
     lastParagraphSplit.parentNode = null; // extract all paragraphs in between
 
@@ -3864,7 +4664,7 @@ class LoopParagraphStrategy {
       this.utilities.docxParser.joinParagraphs(firstParagraphSplit, lastParagraphSplit);
       middleParagraphs = [firstParagraphSplit];
     } else {
-      const inBetween = _xmlNode.XmlNode.removeSiblings(firstParagraph, lastParagraph);
+      const inBetween = _xml.XmlNode.removeSiblings(firstParagraph, lastParagraph);
 
       middleParagraphs = [firstParagraphSplit].concat(inBetween).concat(lastParagraphSplit);
     }
@@ -3884,7 +4684,7 @@ class LoopParagraphStrategy {
       this.utilities.docxParser.joinParagraphs(mergeTo, curParagraphsGroup[0]); // add middle and last paragraphs to the original document
 
       for (let i = 1; i < curParagraphsGroup.length; i++) {
-        _xmlNode.XmlNode.insertBefore(curParagraphsGroup[i], lastParagraph);
+        _xml.XmlNode.insertBefore(curParagraphsGroup[i], lastParagraph);
 
         mergeTo = curParagraphsGroup[i];
       }
@@ -3893,7 +4693,7 @@ class LoopParagraphStrategy {
 
     this.utilities.docxParser.joinParagraphs(mergeTo, lastParagraph); // remove the old last paragraph (was merged into the new one)
 
-    _xmlNode.XmlNode.remove(lastParagraph);
+    _xml.XmlNode.remove(lastParagraph);
   }
 
 }
@@ -3918,7 +4718,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.LoopTableStrategy = void 0;
 
-var _xmlNode = __webpack_require__(/*! ../../xmlNode */ "./src/xmlNode.ts");
+var _xml = __webpack_require__(/*! ../../xml */ "./src/xml/index.ts");
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
@@ -3941,12 +4741,12 @@ class LoopTableStrategy {
     const firstRow = this.utilities.docxParser.containingTableRowNode(openTag.xmlTextNode);
     const lastRow = this.utilities.docxParser.containingTableRowNode(closeTag.xmlTextNode);
 
-    const rowsToRepeat = _xmlNode.XmlNode.siblingsInRange(firstRow, lastRow); // remove the loop tags
+    const rowsToRepeat = _xml.XmlNode.siblingsInRange(firstRow, lastRow); // remove the loop tags
 
 
-    _xmlNode.XmlNode.remove(openTag.xmlTextNode);
+    _xml.XmlNode.remove(openTag.xmlTextNode);
 
-    _xmlNode.XmlNode.remove(closeTag.xmlTextNode);
+    _xml.XmlNode.remove(closeTag.xmlTextNode);
 
     return {
       firstNode: firstRow,
@@ -3958,15 +4758,15 @@ class LoopTableStrategy {
   mergeBack(rowGroups, firstRow, lastRow) {
     for (const curRowsGroup of rowGroups) {
       for (const row of curRowsGroup) {
-        _xmlNode.XmlNode.insertBefore(row, lastRow);
+        _xml.XmlNode.insertBefore(row, lastRow);
       }
     } // remove the old rows
 
 
-    _xmlNode.XmlNode.remove(firstRow);
+    _xml.XmlNode.remove(firstRow);
 
     if (firstRow !== lastRow) {
-      _xmlNode.XmlNode.remove(lastRow);
+      _xml.XmlNode.remove(lastRow);
     }
   }
 
@@ -3990,13 +4790,11 @@ exports.LoopTableStrategy = LoopTableStrategy;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.LoopPlugin = void 0;
-
-var _compilation = __webpack_require__(/*! ../compilation */ "./src/compilation/index.ts");
+exports.LoopPlugin = exports.LOOP_CONTENT_TYPE = void 0;
 
 var _utils = __webpack_require__(/*! ../utils */ "./src/utils/index.ts");
 
-var _xmlNode = __webpack_require__(/*! ../xmlNode */ "./src/xmlNode.ts");
+var _xml = __webpack_require__(/*! ../xml */ "./src/xml/index.ts");
 
 var _loop = __webpack_require__(/*! ./loop */ "./src/plugins/loop/index.ts");
 
@@ -4004,19 +4802,14 @@ var _templatePlugin = __webpack_require__(/*! ./templatePlugin */ "./src/plugins
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
+const LOOP_CONTENT_TYPE = 'loop';
+exports.LOOP_CONTENT_TYPE = LOOP_CONTENT_TYPE;
+
 class LoopPlugin extends _templatePlugin.TemplatePlugin {
   constructor(...args) {
     super(...args);
 
-    _defineProperty(this, "prefixes", [{
-      prefix: '#',
-      tagType: 'loop',
-      tagDisposition: _compilation.TagDisposition.Open
-    }, {
-      prefix: '/',
-      tagType: 'loop',
-      tagDisposition: _compilation.TagDisposition.Close
-    }]);
+    _defineProperty(this, "contentType", LOOP_CONTENT_TYPE);
 
     _defineProperty(this, "loopStrategies", [new _loop.LoopTableStrategy(), new _loop.LoopListStrategy(), new _loop.LoopParagraphStrategy() // the default strategy
     ]);
@@ -4027,7 +4820,7 @@ class LoopPlugin extends _templatePlugin.TemplatePlugin {
     this.loopStrategies.forEach(strategy => strategy.setUtilities(utilities));
   }
 
-  containerTagReplacements(tags, data, context) {
+  async containerTagReplacements(tags, data, context) {
     let value = data.getScopeData();
     if (!value || !Array.isArray(value) || !value.length) value = []; // vars
 
@@ -4048,7 +4841,7 @@ class LoopPlugin extends _templatePlugin.TemplatePlugin {
     // path to each token and use that to create new tokens instead of
     // search through the text again)
 
-    const compiledNodes = this.compile(repeatedNodes, data, context); // merge back to the document
+    const compiledNodes = await this.compile(repeatedNodes, data, context); // merge back to the document
 
     loopStrategy.mergeBack(compiledNodes, firstNode, lastNode);
   }
@@ -4058,32 +4851,32 @@ class LoopPlugin extends _templatePlugin.TemplatePlugin {
     const allResults = [];
 
     for (let i = 0; i < times; i++) {
-      const curResult = nodes.map(node => _xmlNode.XmlNode.cloneNode(node, true));
+      const curResult = nodes.map(node => _xml.XmlNode.cloneNode(node, true));
       allResults.push(curResult);
     }
 
     return allResults;
   }
 
-  compile(nodeGroups, data, context) {
+  async compile(nodeGroups, data, context) {
     const compiledNodeGroups = []; // compile each node group with it's relevant data
 
     for (let i = 0; i < nodeGroups.length; i++) {
       // create dummy root node
       const curNodes = nodeGroups[i];
 
-      const dummyRootNode = _xmlNode.XmlNode.createGeneralNode('dummyRootNode');
+      const dummyRootNode = _xml.XmlNode.createGeneralNode('dummyRootNode');
 
-      curNodes.forEach(node => _xmlNode.XmlNode.appendChild(dummyRootNode, node)); // compile the new root
+      curNodes.forEach(node => _xml.XmlNode.appendChild(dummyRootNode, node)); // compile the new root
 
       data.path.push(i);
-      this.utilities.compiler.compile(dummyRootNode, data, context);
+      await this.utilities.compiler.compile(dummyRootNode, data, context);
       data.path.pop(); // disconnect from dummy root
 
       const curResult = [];
 
       while (dummyRootNode.childNodes && dummyRootNode.childNodes.length) {
-        const child = _xmlNode.XmlNode.removeChild(dummyRootNode, 0);
+        const child = _xml.XmlNode.removeChild(dummyRootNode, 0);
 
         curResult.push(child);
       }
@@ -4097,6 +4890,44 @@ class LoopPlugin extends _templatePlugin.TemplatePlugin {
 }
 
 exports.LoopPlugin = LoopPlugin;
+
+/***/ }),
+
+/***/ "./src/plugins/pluginContent.ts":
+/*!**************************************!*\
+  !*** ./src/plugins/pluginContent.ts ***!
+  \**************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.PluginContent = void 0;
+const PluginContent = {
+  isPluginContent(content) {
+    return !!content && typeof content._type === 'string';
+  }
+
+};
+exports.PluginContent = PluginContent;
+
+/***/ }),
+
+/***/ "./src/plugins/rawXmlContent.ts":
+/*!**************************************!*\
+  !*** ./src/plugins/rawXmlContent.ts ***!
+  \**************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
 
 /***/ }),
 
@@ -4116,9 +4947,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.RawXmlPlugin = void 0;
 
-var _compilation = __webpack_require__(/*! ../compilation */ "./src/compilation/index.ts");
-
-var _xmlNode = __webpack_require__(/*! ../xmlNode */ "./src/xmlNode.ts");
+var _xml = __webpack_require__(/*! ../xml */ "./src/xml/index.ts");
 
 var _templatePlugin = __webpack_require__(/*! ./templatePlugin */ "./src/plugins/templatePlugin.ts");
 
@@ -4128,11 +4957,7 @@ class RawXmlPlugin extends _templatePlugin.TemplatePlugin {
   constructor(...args) {
     super(...args);
 
-    _defineProperty(this, "prefixes", [{
-      prefix: '@',
-      tagType: 'rawXml',
-      tagDisposition: _compilation.TagDisposition.SelfClosed
-    }]);
+    _defineProperty(this, "contentType", 'rawXml');
   }
 
   /**
@@ -4142,13 +4967,13 @@ class RawXmlPlugin extends _templatePlugin.TemplatePlugin {
     const wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
     const value = data.getScopeData();
 
-    if (typeof value === 'string') {
-      const newNode = this.utilities.xmlParser.parse(value);
+    if (value && typeof value.xml === 'string') {
+      const newNode = this.utilities.xmlParser.parse(value.xml);
 
-      _xmlNode.XmlNode.insertBefore(newNode, wordTextNode);
+      _xml.XmlNode.insertBefore(newNode, wordTextNode);
     }
 
-    _xmlNode.XmlNode.remove(wordTextNode);
+    _xml.XmlNode.remove(wordTextNode);
   }
 
 }
@@ -4228,27 +5053,24 @@ exports.TemplatePlugin = TemplatePlugin;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.TextPlugin = void 0;
+exports.TextPlugin = exports.TEXT_CONTENT_TYPE = void 0;
 
-var _compilation = __webpack_require__(/*! ../compilation */ "./src/compilation/index.ts");
+var _office = __webpack_require__(/*! ../office */ "./src/office/index.ts");
 
-var _docxParser = __webpack_require__(/*! ../docxParser */ "./src/docxParser.ts");
-
-var _xmlNode = __webpack_require__(/*! ../xmlNode */ "./src/xmlNode.ts");
+var _xml = __webpack_require__(/*! ../xml */ "./src/xml/index.ts");
 
 var _templatePlugin = __webpack_require__(/*! ./templatePlugin */ "./src/plugins/templatePlugin.ts");
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
+const TEXT_CONTENT_TYPE = 'text';
+exports.TEXT_CONTENT_TYPE = TEXT_CONTENT_TYPE;
+
 class TextPlugin extends _templatePlugin.TemplatePlugin {
   constructor(...args) {
     super(...args);
 
-    _defineProperty(this, "prefixes", [{
-      prefix: '',
-      tagType: 'text',
-      tagDisposition: _compilation.TagDisposition.SelfClosed
-    }]);
+    _defineProperty(this, "contentType", TEXT_CONTENT_TYPE);
   }
 
   /**
@@ -4290,12 +5112,12 @@ class TextPlugin extends _templatePlugin.TemplatePlugin {
       // add line break
       const lineBreak = this.getLineBreak();
 
-      _xmlNode.XmlNode.appendChild(runNode, lineBreak); // add text
+      _xml.XmlNode.appendChild(runNode, lineBreak); // add text
 
 
       const lineNode = this.createWordTextNode(lines[i]);
 
-      _xmlNode.XmlNode.appendChild(runNode, lineNode);
+      _xml.XmlNode.appendChild(runNode, lineNode);
     }
   }
 
@@ -4307,23 +5129,33 @@ class TextPlugin extends _templatePlugin.TemplatePlugin {
   }
 
   getLineBreak() {
-    return {
-      nodeType: _xmlNode.XmlNodeType.General,
-      nodeName: 'w:br'
-    };
+    return _xml.XmlNode.createGeneralNode('w:br');
   }
 
   createWordTextNode(text) {
-    const wordTextNode = _xmlNode.XmlNode.createGeneralNode(_docxParser.DocxParser.TEXT_NODE);
+    const wordTextNode = _xml.XmlNode.createGeneralNode(_office.DocxParser.TEXT_NODE);
 
     wordTextNode.attributes = [this.getSpacePreserveAttribute()];
-    wordTextNode.childNodes = [_xmlNode.XmlNode.createTextNode(text)];
+    wordTextNode.childNodes = [_xml.XmlNode.createTextNode(text)];
     return wordTextNode;
   }
 
 }
 
 exports.TextPlugin = TextPlugin;
+
+/***/ }),
+
+/***/ "./src/templateData.ts":
+/*!*****************************!*\
+  !*** ./src/templateData.ts ***!
+  \*****************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
 
 /***/ }),
 
@@ -4343,31 +5175,25 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.TemplateHandler = void 0;
 
-var JSZip = __webpack_require__(/*! jszip */ "jszip");
-
 var _compilation = __webpack_require__(/*! ./compilation */ "./src/compilation/index.ts");
-
-var _docxParser = __webpack_require__(/*! ./docxParser */ "./src/docxParser.ts");
 
 var _errors = __webpack_require__(/*! ./errors */ "./src/errors/index.ts");
 
-var _fileType = __webpack_require__(/*! ./fileType */ "./src/fileType.ts");
+var _office = __webpack_require__(/*! ./office */ "./src/office/index.ts");
 
 var _templateHandlerOptions = __webpack_require__(/*! ./templateHandlerOptions */ "./src/templateHandlerOptions.ts");
 
-var _utils = __webpack_require__(/*! ./utils */ "./src/utils/index.ts");
+var _xml = __webpack_require__(/*! ./xml */ "./src/xml/index.ts");
 
-var _xmlNode = __webpack_require__(/*! ./xmlNode */ "./src/xmlNode.ts");
-
-var _xmlParser = __webpack_require__(/*! ./xmlParser */ "./src/xmlParser.ts");
+var _zip = __webpack_require__(/*! ./zip */ "./src/zip/index.ts");
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 class TemplateHandler {
   constructor(options) {
-    _defineProperty(this, "docxParser", new _docxParser.DocxParser());
+    _defineProperty(this, "xmlParser", new _xml.XmlParser());
 
-    _defineProperty(this, "xmlParser", new _xmlParser.XmlParser());
+    _defineProperty(this, "docxParser", void 0);
 
     _defineProperty(this, "compiler", void 0);
 
@@ -4377,15 +5203,13 @@ class TemplateHandler {
     // this is the library's composition root
     //
 
+    this.docxParser = new _office.DocxParser(this.xmlParser);
     const delimiterSearcher = new _compilation.DelimiterSearcher();
-    delimiterSearcher.startDelimiter = this.options.delimiters.start;
-    delimiterSearcher.endDelimiter = this.options.delimiters.end;
+    delimiterSearcher.startDelimiter = this.options.delimiters.tagStart;
+    delimiterSearcher.endDelimiter = this.options.delimiters.tagEnd;
     delimiterSearcher.maxXmlDepth = this.options.maxXmlDepth;
-    const prefixes = this.options.plugins.map(plugin => plugin.prefixes).reduce((total, current) => total.concat(current), []);
-    const tagParser = new _compilation.TagParser(prefixes, this.docxParser);
-    tagParser.startDelimiter = this.options.delimiters.start;
-    tagParser.endDelimiter = this.options.delimiters.end;
-    this.compiler = new _compilation.TemplateCompiler(delimiterSearcher, tagParser, this.options.plugins);
+    const tagParser = new _compilation.TagParser(this.docxParser, this.options.delimiters);
+    this.compiler = new _compilation.TemplateCompiler(delimiterSearcher, tagParser, this.options.plugins, this.options.defaultContentType, this.options.containerContentType);
     this.options.plugins.forEach(plugin => {
       plugin.setUtilities({
         xmlParser: this.xmlParser,
@@ -4396,53 +5220,23 @@ class TemplateHandler {
   }
 
   async process(templateFile, data) {
-    // load the docx (zip) file
-    const docFile = await this.loadDocx(templateFile); // extract content as xml documents
-
-    const contentDocuments = await this.parseContentDocuments(docFile); // process content (do replacements)        
+    // load the docx file
+    const docx = await this.loadDocx(templateFile);
+    const document = await docx.getDocument(); // process content (do replacements)        
 
     const scopeData = new _compilation.ScopeData(data);
     const context = {
-      zipFile: docFile,
-      currentFilePath: null
+      docx
     };
+    await this.compiler.compile(document, scopeData, context); // export the result
 
-    for (const file of Object.keys(contentDocuments)) {
-      context.currentFilePath = file;
-      this.compiler.compile(contentDocuments[file], scopeData, context);
-    } // update the docx file
-
-
-    for (const file of Object.keys(contentDocuments)) {
-      const processedFile = contentDocuments[file];
-      const xmlContent = this.xmlParser.serialize(processedFile);
-      docFile.file(file, xmlContent, {
-        createFolders: true
-      });
-    } // export
-
-
-    const outputType = _utils.Binary.toJsZipOutputType(templateFile);
-
-    return docFile.generateAsync({
-      type: outputType
-    });
+    return docx.export(templateFile.constructor);
   }
 
   async parseTags(templateFile) {
-    // load the docx (zip) file
-    const docFile = await this.loadDocx(templateFile); // extract content as xml documents
-
-    const contentDocuments = await this.parseContentDocuments(docFile); // parse tags
-
-    const tags = [];
-
-    for (const file of Object.keys(contentDocuments)) {
-      const docTags = this.compiler.parseTags(contentDocuments[file]);
-      (0, _utils.pushMany)(tags, docTags);
-    }
-
-    return tags;
+    const docx = await this.loadDocx(templateFile);
+    const document = await docx.getDocument();
+    return this.compiler.parseTags(document);
   }
   /**
    * Get the text content of the main document file.
@@ -4450,8 +5244,9 @@ class TemplateHandler {
 
 
   async getText(docxFile) {
-    const root = await this.getDomRoot(docxFile);
-    return root.textContent;
+    const docx = await this.loadDocx(docxFile);
+    const text = await docx.getDocumentText();
+    return text;
   }
   /**
    * Get the xml tree of the main document file.
@@ -4459,8 +5254,9 @@ class TemplateHandler {
 
 
   async getXml(docxFile) {
-    const root = await this.getDomRoot(docxFile);
-    return _xmlNode.XmlNode.fromDomNode(root);
+    const docx = await this.loadDocx(docxFile);
+    const document = await docx.getDocument();
+    return document;
   } //
   // private methods
   //
@@ -4468,47 +5264,17 @@ class TemplateHandler {
 
   async loadDocx(file) {
     // load the zip file
-    let docFile;
+    let zip;
 
     try {
-      docFile = await JSZip.loadAsync(file);
+      zip = await _zip.Zip.load(file);
     } catch (_unused) {
       throw new _errors.MalformedFileError('docx');
-    } // verify it's a docx file
+    } // load the docx file
 
 
-    const fileType = _fileType.FileTypeHelper.getFileType(docFile);
-
-    if (fileType !== _fileType.FileType.Docx) throw new _errors.UnsupportedFileTypeError(fileType);
-    return docFile;
-  }
-  /**
-   * Returns a map where the key is the **file path** and the value is a **parsed document**.
-   */
-
-
-  async parseContentDocuments(docFile) {
-    const contentFiles = this.docxParser.contentFilePaths(docFile); // some content files may not always exist (footer.xml for example)
-
-    const existingContentFiles = contentFiles.filter(file => docFile.files[file]);
-    const contentDocuments = {};
-
-    for (const file of existingContentFiles) {
-      // extract the content from the content file
-      const textContent = await docFile.files[file].async('text'); // parse the content as xml
-
-      contentDocuments[file] = this.xmlParser.parse(textContent);
-    }
-
-    return contentDocuments;
-  }
-
-  async getDomRoot(docxFile) {
-    const zipFile = await this.loadDocx(docxFile);
-    const mainXmlFile = this.docxParser.mainFilePath(zipFile);
-    const xmlContent = await zipFile.files[mainXmlFile].async('text');
-    const document = this.xmlParser.domParse(xmlContent);
-    return document.documentElement;
+    const docx = this.docxParser.load(zip);
+    return docx;
   }
 
 }
@@ -4539,10 +5305,13 @@ var _plugins = __webpack_require__(/*! ./plugins */ "./src/plugins/index.ts");
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-// tslint:disable:whitespace
 class TemplateHandlerOptions {
   constructor(initial) {
     _defineProperty(this, "plugins", (0, _plugins.createDefaultPlugins)());
+
+    _defineProperty(this, "defaultContentType", _plugins.TEXT_CONTENT_TYPE);
+
+    _defineProperty(this, "containerContentType", _plugins.LOOP_CONTENT_TYPE);
 
     _defineProperty(this, "delimiters", new _delimiters.Delimiters());
 
@@ -4559,8 +5328,7 @@ class TemplateHandlerOptions {
     }
   }
 
-} // tslint:enable
-
+}
 
 exports.TemplateHandlerOptions = TemplateHandlerOptions;
 
@@ -4582,6 +5350,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.pushMany = pushMany;
 exports.last = last;
+exports.toDictionary = toDictionary;
 
 function pushMany(destArray, items) {
   Array.prototype.push.apply(destArray, items);
@@ -4591,6 +5360,52 @@ function last(array) {
   if (!array.length) return undefined;
   return array[array.length - 1];
 }
+
+function toDictionary(array, keySelector, valueSelector) {
+  if (!array.length) return {};
+  const res = {};
+  array.forEach((item, index) => {
+    const key = keySelector(item, index);
+    const value = valueSelector ? valueSelector(item, index) : item;
+    if (res[key]) throw new Error(`Key '${key}' already exists in the dictionary.`);
+    res[key] = value;
+  });
+  return res;
+}
+
+;
+
+/***/ }),
+
+/***/ "./src/utils/base64.ts":
+/*!*****************************!*\
+  !*** ./src/utils/base64.ts ***!
+  \*****************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(Buffer) {
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Base64 = void 0;
+
+class Base64 {
+  static encode(str) {
+    // browser
+    if (typeof btoa !== 'undefined') return btoa(str); // node
+    // https://stackoverflow.com/questions/23097928/node-js-btoa-is-not-defined-error#38446960
+
+    return new Buffer(str, 'binary').toString('base64');
+  }
+
+}
+
+exports.Base64 = Base64;
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../node_modules/buffer/index.js */ "./node_modules/buffer/index.js").Buffer))
 
 /***/ }),
 
@@ -4610,27 +5425,69 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.Binary = void 0;
 
-var _errors = __webpack_require__(/*! ../errors */ "./src/errors/index.ts");
+var _base = __webpack_require__(/*! ./base64 */ "./src/utils/base64.ts");
+
+var _types = __webpack_require__(/*! ./types */ "./src/utils/types.ts");
 
 const Binary = {
-  toJsZipOutputType(binary) {
-    if (!binary) throw new _errors.MissingArgumentError("binary");
-    if (typeof Blob !== 'undefined' && binary instanceof Blob) return 'blob';
-    if (typeof ArrayBuffer !== 'undefined' && binary instanceof ArrayBuffer) return 'arraybuffer';
-    if (typeof Buffer !== 'undefined' && binary instanceof Buffer) return 'nodebuffer'; //
-    // HACK: Fixes https://github.com/alonrbar/easy-template-x/issues/5  
-    //
-    // The issue happens due to some library on the way (maybe babel?)
-    // replacing Node's Buffer with this implementation:
-    // https://www.npmjs.com/package/buffer  
-    // The custom implementation actually uses an Uint8Array and therefor
-    // fails all the above `if` clauses.
-    //
-    // I'm assuming we'll be able to remove this if we create an esnext, non-compiled
-    // version with rollup or something of that sort.
-    //
+  //
+  // type detection
+  //
+  isBlob(binary) {
+    return this.isBlobConstructor(binary.constructor);
+  },
 
-    if (typeof Uint8Array !== 'undefined' && binary instanceof Uint8Array) return 'nodebuffer';
+  isArrayBuffer(binary) {
+    return this.isArrayBufferConstructor(binary.constructor);
+  },
+
+  isBuffer(binary) {
+    return this.isBufferConstructor(binary.constructor);
+  },
+
+  isBlobConstructor(binaryType) {
+    return typeof Blob !== 'undefined' && (0, _types.inheritsFrom)(binaryType, Blob);
+  },
+
+  isArrayBufferConstructor(binaryType) {
+    return typeof ArrayBuffer !== 'undefined' && (0, _types.inheritsFrom)(binaryType, ArrayBuffer);
+  },
+
+  isBufferConstructor(binaryType) {
+    return typeof Buffer !== 'undefined' && (0, _types.inheritsFrom)(binaryType, Buffer);
+  },
+
+  //
+  // utilities
+  //
+  toBase64(binary) {
+    if (this.isBlob(binary)) {
+      return new Promise(resolve => {
+        const fileReader = new FileReader();
+
+        fileReader.onload = function () {
+          const base64 = _base.Base64.encode(this.result);
+
+          resolve(base64);
+        };
+
+        fileReader.readAsBinaryString(binary);
+      });
+    }
+
+    if (this.isBuffer(binary)) {
+      return Promise.resolve(binary.toString('base64'));
+    }
+
+    if (this.isArrayBuffer(binary)) {
+      // https://stackoverflow.com/questions/9267899/arraybuffer-to-base64-encoded-string#42334410
+      const binaryStr = new Uint8Array(binary).reduce((str, byte) => str + String.fromCharCode(byte), '');
+
+      const base64 = _base.Base64.encode(binaryStr);
+
+      return Promise.resolve(base64);
+    }
+
     throw new Error(`Binary type '${binary.constructor.name}' is not supported.`);
   }
 
@@ -4667,6 +5524,18 @@ Object.keys(_array).forEach(function (key) {
   });
 });
 
+var _base = __webpack_require__(/*! ./base64 */ "./src/utils/base64.ts");
+
+Object.keys(_base).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _base[key];
+    }
+  });
+});
+
 var _binary = __webpack_require__(/*! ./binary */ "./src/utils/binary.ts");
 
 Object.keys(_binary).forEach(function (key) {
@@ -4675,6 +5544,30 @@ Object.keys(_binary).forEach(function (key) {
     enumerable: true,
     get: function () {
       return _binary[key];
+    }
+  });
+});
+
+var _path = __webpack_require__(/*! ./path */ "./src/utils/path.ts");
+
+Object.keys(_path).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _path[key];
+    }
+  });
+});
+
+var _sha = __webpack_require__(/*! ./sha1 */ "./src/utils/sha1.ts");
+
+Object.keys(_sha).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _sha[key];
     }
   });
 });
@@ -4693,6 +5586,210 @@ Object.keys(_types).forEach(function (key) {
 
 /***/ }),
 
+/***/ "./src/utils/path.ts":
+/*!***************************!*\
+  !*** ./src/utils/path.ts ***!
+  \***************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Path = void 0;
+
+class Path {
+  static getFilename(path) {
+    const lastSlashIndex = path.lastIndexOf('/');
+    return path.substr(lastSlashIndex + 1);
+  }
+
+  static getDirectory(path) {
+    const lastSlashIndex = path.lastIndexOf('/');
+    return path.substring(0, lastSlashIndex);
+  }
+
+}
+
+exports.Path = Path;
+
+/***/ }),
+
+/***/ "./src/utils/sha1.ts":
+/*!***************************!*\
+  !*** ./src/utils/sha1.ts ***!
+  \***************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.sha1 = sha1;
+
+/**
+ * Secure Hash Algorithm (SHA1)
+ * 
+ * Taken from here: http://www.webtoolkit.info/javascript-sha1.html
+ * 
+ * Recommended here: https://stackoverflow.com/questions/6122571/simple-non-secure-hash-function-for-javascript#6122732
+ */
+function sha1(msg) {
+  msg = utf8Encode(msg);
+  const msgLength = msg.length;
+  let i, j;
+  const wordArray = [];
+
+  for (i = 0; i < msgLength - 3; i += 4) {
+    j = msg.charCodeAt(i) << 24 | msg.charCodeAt(i + 1) << 16 | msg.charCodeAt(i + 2) << 8 | msg.charCodeAt(i + 3);
+    wordArray.push(j);
+  }
+
+  switch (msgLength % 4) {
+    case 0:
+      i = 0x080000000;
+      break;
+
+    case 1:
+      i = msg.charCodeAt(msgLength - 1) << 24 | 0x0800000;
+      break;
+
+    case 2:
+      i = msg.charCodeAt(msgLength - 2) << 24 | msg.charCodeAt(msgLength - 1) << 16 | 0x08000;
+      break;
+
+    case 3:
+      i = msg.charCodeAt(msgLength - 3) << 24 | msg.charCodeAt(msgLength - 2) << 16 | msg.charCodeAt(msgLength - 1) << 8 | 0x80;
+      break;
+  }
+
+  wordArray.push(i);
+
+  while (wordArray.length % 16 != 14) {
+    wordArray.push(0);
+  }
+
+  wordArray.push(msgLength >>> 29);
+  wordArray.push(msgLength << 3 & 0x0ffffffff);
+  const w = new Array(80);
+  let H0 = 0x67452301;
+  let H1 = 0xEFCDAB89;
+  let H2 = 0x98BADCFE;
+  let H3 = 0x10325476;
+  let H4 = 0xC3D2E1F0;
+  let A, B, C, D, E;
+  let temp;
+
+  for (let blockStart = 0; blockStart < wordArray.length; blockStart += 16) {
+    for (i = 0; i < 16; i++) {
+      w[i] = wordArray[blockStart + i];
+    }
+
+    for (i = 16; i <= 79; i++) {
+      w[i] = rotateLeft(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
+    }
+
+    A = H0;
+    B = H1;
+    C = H2;
+    D = H3;
+    E = H4;
+
+    for (i = 0; i <= 19; i++) {
+      temp = rotateLeft(A, 5) + (B & C | ~B & D) + E + w[i] + 0x5A827999 & 0x0ffffffff;
+      E = D;
+      D = C;
+      C = rotateLeft(B, 30);
+      B = A;
+      A = temp;
+    }
+
+    for (i = 20; i <= 39; i++) {
+      temp = rotateLeft(A, 5) + (B ^ C ^ D) + E + w[i] + 0x6ED9EBA1 & 0x0ffffffff;
+      E = D;
+      D = C;
+      C = rotateLeft(B, 30);
+      B = A;
+      A = temp;
+    }
+
+    for (i = 40; i <= 59; i++) {
+      temp = rotateLeft(A, 5) + (B & C | B & D | C & D) + E + w[i] + 0x8F1BBCDC & 0x0ffffffff;
+      E = D;
+      D = C;
+      C = rotateLeft(B, 30);
+      B = A;
+      A = temp;
+    }
+
+    for (i = 60; i <= 79; i++) {
+      temp = rotateLeft(A, 5) + (B ^ C ^ D) + E + w[i] + 0xCA62C1D6 & 0x0ffffffff;
+      E = D;
+      D = C;
+      C = rotateLeft(B, 30);
+      B = A;
+      A = temp;
+    }
+
+    H0 = H0 + A & 0x0ffffffff;
+    H1 = H1 + B & 0x0ffffffff;
+    H2 = H2 + C & 0x0ffffffff;
+    H3 = H3 + D & 0x0ffffffff;
+    H4 = H4 + E & 0x0ffffffff;
+  }
+
+  temp = cvtHex(H0) + cvtHex(H1) + cvtHex(H2) + cvtHex(H3) + cvtHex(H4);
+  return temp.toLowerCase();
+}
+
+function rotateLeft(n, s) {
+  const t4 = n << s | n >>> 32 - s;
+  return t4;
+}
+
+function cvtHex(val) {
+  let str = "";
+
+  for (let i = 7; i >= 0; i--) {
+    const v = val >>> i * 4 & 0x0f;
+    str += v.toString(16);
+  }
+
+  return str;
+}
+
+function utf8Encode(str) {
+  str = str.replace(/\r\n/g, "\n");
+  let utfStr = "";
+
+  for (let n = 0; n < str.length; n++) {
+    const c = str.charCodeAt(n);
+
+    if (c < 128) {
+      utfStr += String.fromCharCode(c);
+    } else if (c > 127 && c < 2048) {
+      utfStr += String.fromCharCode(c >> 6 | 192);
+      utfStr += String.fromCharCode(c & 63 | 128);
+    } else {
+      utfStr += String.fromCharCode(c >> 12 | 224);
+      utfStr += String.fromCharCode(c >> 6 & 63 | 128);
+      utfStr += String.fromCharCode(c & 63 | 128);
+    }
+  }
+
+  return utfStr;
+}
+
+/***/ }),
+
 /***/ "./src/utils/types.ts":
 /*!****************************!*\
   !*** ./src/utils/types.ts ***!
@@ -4704,12 +5801,68 @@ Object.keys(_types).forEach(function (key) {
 "use strict";
 
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.inheritsFrom = inheritsFrom;
+exports.isPromiseLike = isPromiseLike;
+
+function inheritsFrom(derived, base) {
+  // https://stackoverflow.com/questions/14486110/how-to-check-if-a-javascript-class-inherits-another-without-creating-an-obj
+  return derived === base || derived.prototype instanceof base;
+}
+
+function isPromiseLike(candidate) {
+  return !!candidate && typeof candidate === 'object' && typeof candidate.then === 'function';
+}
+
 /***/ }),
 
-/***/ "./src/xmlNode.ts":
-/*!************************!*\
-  !*** ./src/xmlNode.ts ***!
-  \************************/
+/***/ "./src/xml/index.ts":
+/*!**************************!*\
+  !*** ./src/xml/index.ts ***!
+  \**************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _xmlNode = __webpack_require__(/*! ./xmlNode */ "./src/xml/xmlNode.ts");
+
+Object.keys(_xmlNode).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _xmlNode[key];
+    }
+  });
+});
+
+var _xmlParser = __webpack_require__(/*! ./xmlParser */ "./src/xml/xmlParser.ts");
+
+Object.keys(_xmlParser).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _xmlParser[key];
+    }
+  });
+});
+
+/***/ }),
+
+/***/ "./src/xml/xmlNode.ts":
+/*!****************************!*\
+  !*** ./src/xml/xmlNode.ts ***!
+  \****************************/
 /*! no static exports found */
 /*! ModuleConcatenation bailout: Module is not an ECMAScript module */
 /***/ (function(module, exports, __webpack_require__) {
@@ -4722,9 +5875,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.XmlNode = exports.TEXT_NODE_NAME = exports.XmlNodeType = void 0;
 
-var _errors = __webpack_require__(/*! ./errors */ "./src/errors/index.ts");
+var _errors = __webpack_require__(/*! ../errors */ "./src/errors/index.ts");
 
-var _utils = __webpack_require__(/*! ./utils */ "./src/utils/index.ts");
+var _utils = __webpack_require__(/*! ../utils */ "./src/utils/index.ts");
 
 let XmlNodeType;
 exports.XmlNodeType = XmlNodeType;
@@ -5116,6 +6269,13 @@ const XmlNode = {
     if (!curNode) throw new Error('Nodes are not siblings.');
     range.push(lastNode);
     return range;
+  },
+
+  /**
+   * Recursively removes text nodes leaving only "general nodes".
+   */
+  stripTextNodes(node) {
+    recursiveStripTextNodes(node);
   }
 
 }; //
@@ -5219,12 +6379,26 @@ function getDescendantPath(root, descendant) {
   return path.reverse();
 }
 
+function recursiveStripTextNodes(node) {
+  if (!node.childNodes) return node;
+  const oldChildren = node.childNodes;
+  node.childNodes = [];
+
+  for (const child of oldChildren) {
+    if (XmlNode.isTextNode(child)) continue;
+    const strippedChild = recursiveStripTextNodes(child);
+    node.childNodes.push(strippedChild);
+  }
+
+  return node;
+}
+
 /***/ }),
 
-/***/ "./src/xmlParser.ts":
-/*!**************************!*\
-  !*** ./src/xmlParser.ts ***!
-  \**************************/
+/***/ "./src/xml/xmlParser.ts":
+/*!******************************!*\
+  !*** ./src/xml/xmlParser.ts ***!
+  \******************************/
 /*! no static exports found */
 /*! ModuleConcatenation bailout: Module is not an ECMAScript module */
 /***/ (function(module, exports, __webpack_require__) {
@@ -5239,9 +6413,9 @@ exports.XmlParser = void 0;
 
 var xmldom = __webpack_require__(/*! xmldom */ "xmldom");
 
-var _errors = __webpack_require__(/*! ./errors */ "./src/errors/index.ts");
+var _errors = __webpack_require__(/*! ../errors */ "./src/errors/index.ts");
 
-var _xmlNode = __webpack_require__(/*! ./xmlNode */ "./src/xmlNode.ts");
+var _xmlNode = __webpack_require__(/*! ./xmlNode */ "./src/xml/xmlNode.ts");
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
@@ -5272,6 +6446,213 @@ exports.XmlParser = XmlParser;
 _defineProperty(XmlParser, "xmlHeader", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>');
 
 _defineProperty(XmlParser, "parser", new xmldom.DOMParser());
+
+/***/ }),
+
+/***/ "./src/zip/index.ts":
+/*!**************************!*\
+  !*** ./src/zip/index.ts ***!
+  \**************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _zip = __webpack_require__(/*! ./zip */ "./src/zip/zip.ts");
+
+Object.keys(_zip).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _zip[key];
+    }
+  });
+});
+
+var _zipObject = __webpack_require__(/*! ./zipObject */ "./src/zip/zipObject.ts");
+
+Object.keys(_zipObject).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _zipObject[key];
+    }
+  });
+});
+
+/***/ }),
+
+/***/ "./src/zip/jsZipHelper.ts":
+/*!********************************!*\
+  !*** ./src/zip/jsZipHelper.ts ***!
+  \********************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.JsZipHelper = void 0;
+
+var _errors = __webpack_require__(/*! ../errors */ "./src/errors/index.ts");
+
+var _utils = __webpack_require__(/*! ../utils */ "./src/utils/index.ts");
+
+class JsZipHelper {
+  static toJsZipOutputType(binaryOrType) {
+    if (!binaryOrType) throw new _errors.MissingArgumentError("binaryOrType");
+    let binaryType;
+
+    if (typeof binaryOrType === 'function') {
+      binaryType = binaryOrType;
+    } else {
+      binaryType = binaryOrType.constructor;
+    }
+
+    if (_utils.Binary.isBlobConstructor(binaryType)) return 'blob';
+    if (_utils.Binary.isArrayBufferConstructor(binaryType)) return 'arraybuffer';
+    if (_utils.Binary.isBufferConstructor(binaryType)) return 'nodebuffer';
+    throw new Error(`Binary type '${binaryType.name}' is not supported.`);
+  }
+
+}
+
+exports.JsZipHelper = JsZipHelper;
+
+/***/ }),
+
+/***/ "./src/zip/zip.ts":
+/*!************************!*\
+  !*** ./src/zip/zip.ts ***!
+  \************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Zip = void 0;
+
+var JSZip = __webpack_require__(/*! jszip */ "jszip");
+
+var _jsZipHelper = __webpack_require__(/*! ./jsZipHelper */ "./src/zip/jsZipHelper.ts");
+
+var _zipObject = __webpack_require__(/*! ./zipObject */ "./src/zip/zipObject.ts");
+
+class Zip {
+  static async load(file) {
+    const zip = await JSZip.loadAsync(file);
+    return new Zip(zip);
+  }
+
+  constructor(zip) {
+    this.zip = zip;
+  }
+
+  getFile(path) {
+    return new _zipObject.ZipObject(this.zip.files[path]);
+  }
+
+  setFile(path, content) {
+    this.zip.file(path, content);
+  }
+
+  isFileExist(path) {
+    return !!this.zip.files[path];
+  }
+
+  listFiles() {
+    return Object.keys(this.zip.files);
+  }
+
+  async export(outputType) {
+    const zipOutputType = _jsZipHelper.JsZipHelper.toJsZipOutputType(outputType);
+
+    const output = await this.zip.generateAsync({
+      type: zipOutputType,
+      compression: "DEFLATE",
+      compressionOptions: {
+        level: 6 // between 1 (best speed) and 9 (best compression)
+
+      }
+    });
+    return output;
+  }
+
+}
+
+exports.Zip = Zip;
+
+/***/ }),
+
+/***/ "./src/zip/zipObject.ts":
+/*!******************************!*\
+  !*** ./src/zip/zipObject.ts ***!
+  \******************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.ZipObject = void 0;
+
+var _jsZipHelper = __webpack_require__(/*! ./jsZipHelper */ "./src/zip/jsZipHelper.ts");
+
+class ZipObject {
+  get name() {
+    return this.zipObject.name;
+  }
+
+  set name(value) {
+    this.zipObject.name = value;
+  }
+
+  get isDirectory() {
+    return this.zipObject.dir;
+  }
+
+  constructor(zipObject) {
+    this.zipObject = zipObject;
+  }
+
+  getContentText() {
+    return this.zipObject.async('text');
+  }
+
+  getContentBase64() {
+    return this.zipObject.async('binarystring');
+  }
+
+  getContentBinary(outputType) {
+    const zipOutputType = _jsZipHelper.JsZipHelper.toJsZipOutputType(outputType);
+
+    return this.zipObject.async(zipOutputType);
+  }
+
+}
+
+exports.ZipObject = ZipObject;
 
 /***/ }),
 
