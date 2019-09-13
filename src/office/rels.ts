@@ -11,8 +11,9 @@ export class Rels {
 
     private root: XmlNode;
     private relIds: IMap<boolean>;
+    private relTargets: IMap<string>;
     private nextRelId = 0;
-    
+
     private readonly partDir: string;
     private readonly relsFilePath: string;
 
@@ -40,8 +41,14 @@ export class Rels {
         // parse rels file
         await this.parseRelsFile();
 
+        // already exists?
+        const relTargetKey = this.getRelTargetKey(mime, relTarget);
+        let relId = this.relTargets[relTargetKey];
+        if (relId)
+            return relId;
+
         // add rel node
-        const relId = this.getNextRelId();
+        relId = this.getNextRelId();
         const relType = MimeTypeHelper.getOfficeRelType(mime);
         const relNode = XmlNode.createGeneralNode('Relationship');
         relNode.attributes = [
@@ -50,6 +57,10 @@ export class Rels {
             { name: "Target", value: relTarget }
         ];
         this.root.childNodes.push(relNode);
+
+        // update lookups
+        this.relIds[relId] = true;
+        this.relTargets[relTargetKey] = relId;
 
         // return
         return relId;
@@ -73,7 +84,7 @@ export class Rels {
     //
 
     private getNextRelId(): string {
-        
+
         let relId: string;;
         do {
             this.nextRelId++;
@@ -98,13 +109,32 @@ export class Rels {
         }
         this.root = this.xmlParser.parse(relsXml);
 
-        // build relIds lookup
+        // build lookups
         this.relIds = {};
+        this.relTargets = {};
         for (const rel of this.root.childNodes) {
-            const relId = (rel as XmlGeneralNode).attributes
-                .find(attr => attr.name.toLowerCase() === 'id')
-                .value;
-            this.relIds[relId] = true;
+
+            const attributes = (rel as XmlGeneralNode).attributes;
+            if (!attributes)
+                continue;
+
+            // relIds lookup
+            const idAttr = attributes.find(attr => attr.name.toLowerCase() === 'id');
+            if (!idAttr || !idAttr.value)
+                continue;
+            this.relIds[idAttr.value] = true;
+
+            // rel target lookup
+            const typeAttr = attributes.find(attr => attr.name.toLowerCase() === 'Type');
+            const targetAttr = attributes.find(attr => attr.name.toLowerCase() === 'Target');
+            if (typeAttr && typeAttr.value && targetAttr && targetAttr.value) {
+                const relTargetKey = this.getRelTargetKey(typeAttr.value as MimeType, targetAttr.value);
+                this.relTargets[relTargetKey] = idAttr.value;
+            }
         }
+    }
+
+    private getRelTargetKey(type: MimeType, target: string): string {
+        return `${type} - ${target}`;
     }
 }
