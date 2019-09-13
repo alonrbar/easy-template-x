@@ -1,5 +1,5 @@
 import { UnclosedTagError, UnknownContentTypeError } from '../errors';
-import { TemplatePlugin } from '../plugins';
+import { PluginContent, TemplatePlugin } from '../plugins';
 import { isPromiseLike, toDictionary } from '../utils';
 import { XmlNode } from '../xml';
 import { DelimiterSearcher } from './delimiterSearcher';
@@ -99,7 +99,7 @@ export class TemplateCompiler {
             return this.containerContentType;
 
         const scopeData = data.getScopeData();
-        if (scopeData && typeof scopeData._type === 'string')
+        if (PluginContent.isPluginContent(scopeData))
             return scopeData._type;
 
         return this.defaultContentType;

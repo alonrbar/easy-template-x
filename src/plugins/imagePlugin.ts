@@ -1,7 +1,6 @@
 import { ScopeData, Tag, TemplateContext } from '../compilation';
-import { MimeType } from '../mimeType';
-import { Binary } from '../utils';
 import { XmlGeneralNode, XmlNode } from '../xml';
+import { ImageContent } from './imageContent';
 import { TemplatePlugin } from './templatePlugin';
 
 /**
@@ -16,16 +15,6 @@ import { TemplatePlugin } from './templatePlugin';
  */
 let nextImageId = 1;
 
-export type ImageFormat = MimeType.Jpeg | MimeType.Png;
-
-export interface ImageContent {
-    _type: 'image';
-    source: Binary;
-    format: ImageFormat;
-    width: number;
-    height: number;
-}
-
 export class ImagePlugin extends TemplatePlugin {
 
     public readonly contentType = 'image';
@@ -34,7 +23,7 @@ export class ImagePlugin extends TemplatePlugin {
 
         const wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
 
-        const content: ImageContent = data.getScopeData();
+        const content = data.getScopeData() as ImageContent;
         if (!content || !content.source) {
             XmlNode.remove(wordTextNode);
             return;

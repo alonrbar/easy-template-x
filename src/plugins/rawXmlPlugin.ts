@@ -1,11 +1,7 @@
 import { ScopeData, Tag } from '../compilation';
 import { XmlNode } from '../xml';
+import { RawXmlContent } from './rawXmlContent';
 import { TemplatePlugin } from './templatePlugin';
-
-export interface RawXmlContent {
-    _type: 'rawXml';
-    xml: string;
-}
 
 export class RawXmlPlugin extends TemplatePlugin {
 
@@ -18,7 +14,7 @@ export class RawXmlPlugin extends TemplatePlugin {
 
         const wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
 
-        const value: RawXmlContent = data.getScopeData();
+        const value = data.getScopeData() as RawXmlContent;
         if (value && typeof value.xml === 'string') {
             const newNode = this.utilities.xmlParser.parse(value.xml);
             XmlNode.insertBefore(newNode, wordTextNode);

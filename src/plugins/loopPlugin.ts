@@ -1,4 +1,5 @@
 import { ScopeData, Tag, TemplateContext } from '../compilation';
+import { TemplateData } from '../templateData';
 import { last } from '../utils';
 import { XmlNode } from '../xml';
 import { ILoopStrategy, LoopListStrategy, LoopParagraphStrategy, LoopTableStrategy } from './loop';
@@ -23,7 +24,7 @@ export class LoopPlugin extends TemplatePlugin {
 
     public async containerTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): Promise<void> {
 
-        let value: any[] = data.getScopeData();
+        let value = data.getScopeData() as TemplateData[];
 
         if (!value || !Array.isArray(value) || !value.length)
             value = [];

@@ -1,6 +1,6 @@
 import * as JSZip from 'jszip';
 import { MimeType } from 'src/mimeType';
-import { ImageContent } from 'src/plugins/imagePlugin';
+import { ImageContent } from 'src/plugins/imageContent';
 import { TemplateHandler } from 'src/templateHandler';
 import { range, readResource } from '../testUtils';
 import { readFixture } from './fixtureUtils';
