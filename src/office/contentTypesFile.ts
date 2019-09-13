@@ -38,7 +38,15 @@ export class ContentTypesFile {
             { name: "ContentType", value: mime }
         ];
         this.root.childNodes.push(typeNode);
+
+        // update state
         this.addedNew = true;
+        this.contentTypes[mime] = true;
+    }
+
+    public async count(): Promise<number> {
+        await this.parseContentTypesFile();
+        return this.root.childNodes.filter(node => !XmlNode.isTextNode(node)).length;
     }
 
     public async save(): Promise<void> {
