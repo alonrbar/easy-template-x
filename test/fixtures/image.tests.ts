@@ -1,3 +1,4 @@
+import * as JSZip from 'jszip';
 import { MimeType } from 'src/mimeType';
 import { ImageContent } from 'src/plugins/imagePlugin';
 import { TemplateHandler } from 'src/templateHandler';
@@ -65,6 +66,39 @@ describe('image fixtures', () => {
 
         const docXml = await handler.getXml(doc);
         expect(docXml).toMatchSnapshot();
+
+        // writeTempFile(doc, 'image - output.docx');
+    });
+
+    it("inserts the same image to the archive only once", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template = readFixture("loop - simple.docx");
+        const imageFile = readResource("panda1.jpg");
+
+        const imageData: ImageContent = {
+            _type: 'image',
+            format: MimeType.Jpeg,
+            source: imageFile,
+            height: 325,
+            width: 600
+        };
+        const data: any = {
+            loop_prop: [
+                { simple_prop: imageData },
+                { simple_prop: Object.assign({}, imageData, { height: 150, width: 300 }) },
+                { simple_prop: Object.assign({}, imageData, { height: 200, width: 400 }) }
+            ]
+        };
+
+        const doc = await handler.process(template, data);
+
+        // assert
+        const zip = await JSZip.loadAsync(doc);
+        const allFiles = Object.keys(zip.files);
+        const jpegFiles = allFiles.filter(f => f.endsWith('.jpg'));
+        expect(jpegFiles).toHaveLength(1);
 
         // writeTempFile(doc, 'image - output.docx');
     });
