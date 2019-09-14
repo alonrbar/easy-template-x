@@ -14,6 +14,7 @@ Generate docx documents from templates, in Node or in the browser.
   - [Loop plugin](#loop-plugin)
   - [Image plugin](#image-plugin)
   - [Raw xml plugin](#raw-xml-plugin)
+- [Scope resolution](#scope-resolution)
 - [Writing your own plugins](#writing-your-own-plugins)
 - [Advanced API](#api)
 - [Supported Binary Formats](#supported-binary-formats)
@@ -176,11 +177,11 @@ Input data:
 
 ```javascript
 {
-    "My IMage": {
+    "Kung Fu Hero": {
         _type: "image",
-        source: fs.readFileSync("myimage.png"),
+        source: fs.readFileSync("hero.png"),
         format: MimeType.Png,
-        width: 300,
+        width: 200,
         height: 200
     }
 }
@@ -194,6 +195,10 @@ Output document:
 
 Add custom xml into the document to be interpreted by Word.
 
+**Tip**:  
+You can add page breaks using this plugin and the following xml markup:  
+`<w:br w:type="page"/>`
+
 Input template:
 
 ![input template](./docs/assets/rawxml-plugin-in.png?raw=true)
@@ -202,7 +207,7 @@ Input data:
 
 ```javascript
 {
-    "Don't worry be happy": {
+    "Dont worry be happy": {
         _type: 'rawXml',
         xml: '<w:sym w:font="Wingdings" w:char="F04A"/>'
     }
@@ -227,10 +232,10 @@ Input data:
 
 ```javascript
 {
-    "Company Name": "",
+    "Company": "Contoso Ltd.",
     "Employees": [
-        {},
-        {}
+        { "Surname": "Gates", "Given name": "William" },
+        { "Surname": "Nadella", "Given name": "Satya" },
     ]
 }
 ```
