@@ -151,6 +151,78 @@ describe(nameof(TagParser), () => {
         expect(tags[0].rawText).toEqual('{#loop}');
     });
 
+    it('parses correctly a splitted closing tag', () => {
+
+        const paragraphNode = parseXml(`
+            <w:p>                
+                <w:r>
+                    <w:t>{#loop}{text}{/</w:t>
+                </w:r>
+                <w:r>
+                    <w:t>loop</w:t>
+                </w:r>
+                <w:r>
+                    <w:t>}</w:t>
+                </w:r>
+            </w:p>
+        `);
+
+        const firstTextNode = paragraphNode.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
+        expect(firstTextNode.textContent).toEqual('{#loop}{text}{/');
+
+        const thirdTextNode = paragraphNode.childNodes[2].childNodes[0].childNodes[0] as XmlTextNode;
+        expect(thirdTextNode.textContent).toEqual('}');
+
+        const delimiters: DelimiterMark[] = [
+            {
+                isOpen: true,
+                index: 0,
+                xmlTextNode: firstTextNode
+            },
+            {
+                isOpen: false,
+                index: 6,
+                xmlTextNode: firstTextNode
+            },
+            {
+                isOpen: true,
+                index: 7,
+                xmlTextNode: firstTextNode
+            },
+            {
+                isOpen: false,
+                index: 12,
+                xmlTextNode: firstTextNode
+            },
+            {
+                isOpen: true,
+                index: 13,
+                xmlTextNode: firstTextNode
+            },
+            {
+                isOpen: false,
+                index: 0,
+                xmlTextNode: thirdTextNode
+            }
+        ];
+
+        const parser = createTagParser();
+        const tags = parser.parse(delimiters);
+
+        expect(tags).toHaveLength(3);
+        
+        expect(tags[0].disposition).toEqual(TagDisposition.Open);
+        expect(tags[0].name).toEqual('loop');
+        expect(tags[0].rawText).toEqual('{#loop}');
+
+        expect(tags[1].disposition).toEqual(TagDisposition.SelfClosed);
+        expect(tags[1].name).toEqual('text');
+        expect(tags[1].rawText).toEqual('{text}');
+        
+        expect(tags[2].disposition).toEqual(TagDisposition.Close);
+        expect(tags[2].name).toEqual('loop');
+        expect(tags[2].rawText).toEqual('{/loop}');
+    });
 });
 
 function createTagParser(): TagParser {
