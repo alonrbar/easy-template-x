@@ -110,7 +110,6 @@ export interface XmlAttribute {
     value: string;
 }
 
-// tslint:disable-next-line:no-namespace
 export namespace XmlNode {
 
     //
