@@ -36,7 +36,6 @@ The only exceptions are the "loop" content type which still uses the "#" opening
 
 ### Changed
 
-- Strongly typed `TemplateData`.
 - **BREAKING**: `RawXmlPlugin` requires data of the form `{ _type: 'rawXml', xml: string }`.
 - **BREAKING** `TemplateCompiler.compile` (advanced api) returns a promise.
 

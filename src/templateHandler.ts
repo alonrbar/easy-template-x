@@ -1,7 +1,6 @@
 import { DelimiterSearcher, ScopeData, Tag, TagParser, TemplateCompiler, TemplateContext } from './compilation';
 import { MalformedFileError } from './errors';
 import { Docx, DocxParser } from './office';
-import { TemplateData } from './templateData';
 import { TemplateHandlerOptions } from './templateHandlerOptions';
 import { Binary } from './utils';
 import { XmlNode, XmlParser } from './xml';
@@ -48,7 +47,7 @@ export class TemplateHandler {
         });
     }
 
-    public async process<T extends Binary>(templateFile: T, data: TemplateData): Promise<T> {
+    public async process<T extends Binary>(templateFile: T, data: any): Promise<T> {
 
         // load the docx file
         const docx = await this.loadDocx(templateFile);

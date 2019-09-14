@@ -7,7 +7,7 @@ export class TemplateHandler {
 
     constructor(options?: TemplateHandlerOptions);
 
-    process<T extends Binary>(templateFile: T, data: TemplateData): Promise<T>;
+    process<T extends Binary>(templateFile: T, data: any): Promise<T>;
 
     parseTags(templateFile: Binary): Promise<Tag[]>;
 

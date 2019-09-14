@@ -14,14 +14,14 @@ describe('image fixtures', () => {
         const template = readFixture("simple.docx");
         const imageFile = readResource("panda1.jpg");
 
-        const imageData: ImageContent = {
+        const imageData = {
             _type: 'image',
             format: MimeType.Jpeg,
             source: imageFile,
             height: 325,
             width: 600
         };
-        const data: any = {
+        const data = {
             simple_prop: imageData
         };
 
