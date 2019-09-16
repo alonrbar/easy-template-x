@@ -67,7 +67,8 @@ export class Rels {
     }
 
     /**
-     * Save the rels file back to the zip.
+     * Save the rels file back to the zip.  
+     * Called automatically by the holding `Docx` before exporting.
      */
     public async save(): Promise<void> {
 

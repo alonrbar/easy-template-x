@@ -29,8 +29,13 @@ export class ImagePlugin extends TemplatePlugin {
             return;
         }
 
+        // add the image file into the archive
+        const mediaFilePath = await context.docx.mediaFiles.add(content.source, content.format);
+        const relId = await context.docx.rels.add(mediaFilePath, content.format);
+        await context.docx.contentTypes.ensureContentType(content.format);
+
+        // create the xml markup
         const imageId = nextImageId++;
-        const relId = await context.docx.addMedia(content.source, content.format);
         const imageXml = this.createMarkup(imageId, relId, content.width, content.height);
 
         XmlNode.insertAfter(imageXml, wordTextNode);

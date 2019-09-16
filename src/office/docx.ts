@@ -29,12 +29,12 @@ export class Docx {
         return this._documentPath;
     }
 
-    private _documentPath: string;
-    private _document: XmlNode;
+    public readonly rels: Rels;
+    public readonly mediaFiles: MediaFiles;
+    public readonly contentTypes: ContentTypesFile;
 
-    private readonly rels: Rels;
-    private readonly mediaFiles: MediaFiles;
-    private readonly contentTypes: ContentTypesFile;
+    private _documentPath: string;
+    private _document: XmlNode;    
 
     constructor(
         private readonly zip: Zip,
@@ -74,18 +74,7 @@ export class Docx {
         const domDocument = this.xmlParser.domParse(xml);
 
         return domDocument.documentElement.textContent;
-    }
-
-    /**
-     * Add a media resource to the document archive and return the created rel ID.
-     */
-    public async addMedia(content: Binary, type: MimeType): Promise<string> {
-
-        const mediaFilePath = await this.mediaFiles.add(content, type);
-        const relId = await this.rels.add(mediaFilePath, type);
-        await this.contentTypes.ensureContentType(type);
-        return relId;
-    }
+    }    
 
     public async export<T extends Binary>(outputType: Constructor<T>): Promise<T> {
         await this.saveChanges();

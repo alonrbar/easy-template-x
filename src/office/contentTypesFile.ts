@@ -49,6 +49,10 @@ export class ContentTypesFile {
         return this.root.childNodes.filter(node => !XmlNode.isTextNode(node)).length;
     }
 
+    /**
+     * Save the Content Types file back to the zip.  
+     * Called automatically by the holding `Docx` before exporting.
+     */
     public async save(): Promise<void> {
 
         // not change - no need to save
