@@ -220,15 +220,20 @@ Output document:
 
 ## Scope resolution
 
-`easy-template-x` supports tag data scoping. That is, you can reference data
-from within deeper in the hierarchy similar to how you can reference an outer
-variable from within a function in JavaScript.
+`easy-template-x` supports tag data scoping. That is, you can reference
+"shallow" data from within deeper in the hierarchy similarly to how you can
+reference an outer scope variables from within a function in JavaScript.
 
 Input template:
+
+(notice we are using the "Company" tag inside the "Employees" loop)
 
 ![input template](./docs/assets/scope-in.png?raw=true)
 
 Input data:
+
+(notice the "Company" data is declared outside the "Employees" loop, in it's so
+called "outer scope")
 
 ```javascript
 {
@@ -327,9 +332,13 @@ There are already some very good templating libraries out there, most notably th
 `easy-template-x` takes great inspiration from both. It aspires to take the best
 out of both and to add some good of it's own.
 
-It was originally written when I was using `docxtemplater` but needed _line break auto insertion_ (it was added to docxtemplater few months later). I tried to create a fork and add the functionality I needed myself but pretty quickly came to the conclusion it would be easier to just write something new from scratch (still, with lots of inspiration from both mentioned packages).
-
-It gradually evolved and took a shape of it's own. Today, some differences from these packages are an even simpler template syntax (no different prefix for each plugin is required), a _free_ image insertion plugin and a TypeScript code base.
+While these packages has some great features such as GraphQL and inline
+JavaScript support in `docx-templates` and a breadth of additional (payed)
+modules in `docxtemplater`. This package, in accordance with it's declared above
+philosophy, offers some unique benefits including a most simple, non-programmer
+oriented, template syntax, an even better (at least in my opinion 😄) API, a
+_free_ image insertion plugin and a TypeScript code base. Hopefully it will
+serve you well :)
 
 ## Changelog
 
