@@ -265,7 +265,7 @@ Example plugin implementation ([source](./src/plugins/rawXmlPlugin.ts)):
  */
 export class RawXmlPlugin extends TemplatePlugin {
 
-    // Declare a unique content-type name
+    // Declare the unique "content type" this plugin handles
     public readonly contentType = 'rawXml';
 
     // Plugin logic goes here:
