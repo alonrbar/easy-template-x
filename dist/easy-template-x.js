@@ -1942,35 +1942,6 @@ module.exports = g;
 "use strict";
 
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.DelimiterMark = void 0;
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-class DelimiterMark {
-  /**
-   * Index inside the text node
-   */
-
-  /**
-   * Is this an open delimiter or a close delimiter
-   */
-  constructor(initial) {
-    _defineProperty(this, "xmlTextNode", void 0);
-
-    _defineProperty(this, "index", void 0);
-
-    _defineProperty(this, "isOpen", void 0);
-
-    Object.assign(this, initial);
-  }
-
-}
-
-exports.DelimiterMark = DelimiterMark;
-
 /***/ }),
 
 /***/ "./src/compilation/delimiterSearcher.ts":
@@ -1997,69 +1968,173 @@ var _xml = __webpack_require__(/*! ../xml */ "./src/xml/index.ts");
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-class DelimiterSearcher {
+class MatchState {
   constructor() {
+    _defineProperty(this, "delimiterIndex", 0);
+
+    _defineProperty(this, "openNodes", []);
+
+    _defineProperty(this, "firstMatchIndex", -1);
+  }
+
+  reset() {
+    this.delimiterIndex = 0;
+    this.openNodes = [];
+    this.firstMatchIndex = -1;
+  }
+
+}
+
+class DelimiterSearcher {
+  constructor(docxParser) {
+    this.docxParser = docxParser;
+
     _defineProperty(this, "maxXmlDepth", 20);
 
     _defineProperty(this, "startDelimiter", "{");
 
     _defineProperty(this, "endDelimiter", "}");
+
+    if (!docxParser) throw new _errors.MissingArgumentError("docxParser");
   }
 
   findDelimiters(node) {
+    //
+    // Performance note: 
+    //
+    // The search efficiency is o(m*n) where n is the text size and m is the
+    // delimiter length. We could use a variation of the KMP algorithm here
+    // to reduce it to o(m+n) but since our m is expected to be small
+    // (delimiters defaults to 2 characters and even on custom inputs are
+    // not expected to be much longer) it does not worth the extra
+    // complexity and effort.
+    //
     const delimiters = [];
-    this.findRecurse(node, delimiters, 0);
+    const match = new MatchState();
+    const depth = new _xml.XmlDepthTracker(this.maxXmlDepth);
+    let lookForOpenDelimiter = true;
+
+    while (node) {
+      // reset state on paragraph transition
+      if (this.docxParser.isParagraphNode(node)) {
+        match.reset();
+      } // skip irrelevant nodes
+
+
+      if (!this.shouldSearchNode(node)) {
+        node = this.findNextNode(node, depth);
+        continue;
+      } // search delimiters in text nodes
+
+
+      match.openNodes.push(node);
+      let textIndex = 0;
+
+      while (textIndex < node.textContent.length) {
+        const delimiterPattern = lookForOpenDelimiter ? this.startDelimiter : this.endDelimiter; // char match
+
+        const char = node.textContent[textIndex];
+
+        if (char === delimiterPattern[match.delimiterIndex]) {
+          // first match
+          if (match.firstMatchIndex === -1) {
+            match.firstMatchIndex = textIndex;
+          } // full delimiter match
+
+
+          if (match.delimiterIndex === delimiterPattern.length - 1) {
+            // move all delimiters characters to the same text node
+            if (match.openNodes.length > 1) {
+              const firstNode = (0, _utils.first)(match.openNodes);
+              const lastNode = (0, _utils.last)(match.openNodes);
+              this.docxParser.joinTextNodesRange(firstNode, lastNode);
+              textIndex += firstNode.textContent.length - node.textContent.length;
+              node = firstNode;
+            } // store delimiter
+
+
+            const delimiterMark = this.createDelimiterMark(match, lookForOpenDelimiter);
+            delimiters.push(delimiterMark); // update state
+
+            lookForOpenDelimiter = !lookForOpenDelimiter;
+            match.reset();
+
+            if (textIndex < node.textContent.length - 1) {
+              match.openNodes.push(node);
+            }
+          } else {
+            match.delimiterIndex++;
+          }
+        } // no match
+        else {
+            //
+            // go back to first open node
+            //
+            // Required for cases where the text has repeating
+            // characters that are the same as a delimiter prefix.  
+            // For instance:  
+            // Delimiter is '{!' and template text contains the string '{{!'
+            //
+            if (match.firstMatchIndex !== -1) {
+              node = (0, _utils.first)(match.openNodes);
+              textIndex = match.firstMatchIndex;
+            } // update state
+
+
+            match.reset();
+
+            if (textIndex < node.textContent.length - 1) {
+              match.openNodes.push(node);
+            }
+          }
+
+        textIndex++;
+      }
+
+      node = this.findNextNode(node, depth);
+    }
+
     return delimiters;
   }
 
-  findRecurse(node, delimiters, depth) {
-    if (depth > this.maxXmlDepth) throw new _errors.MaxXmlDepthError(this.maxXmlDepth);
-    if (!node) return; // process self
-
-    if (_xml.XmlNode.isTextNode(node)) {
-      const curTokens = this.findInNode(node);
-
-      if (curTokens.length) {
-        (0, _utils.pushMany)(delimiters, curTokens);
-      }
-
-      return;
-    } // process child nodes
-
-
-    const childNodesLength = node.childNodes ? node.childNodes.length : 0;
-
-    for (let i = 0; i < childNodesLength; i++) {
-      const child = node.childNodes[i];
-      this.findRecurse(child, delimiters, depth + 1);
-    }
+  shouldSearchNode(node) {
+    if (!_xml.XmlNode.isTextNode(node)) return false;
+    if (!node.textContent) return false;
+    if (!node.parentNode) return false;
+    if (!this.docxParser.isTextNode(node.parentNode)) return false;
+    return true;
   }
 
-  findInNode(node) {
-    if (!node.textContent) {
-      return [];
-    } // TODO: support delimiters longer than one character
+  findNextNode(node, depth) {
+    // children
+    if (node.childNodes && node.childNodes.length) {
+      depth.increment();
+      return node.childNodes[0];
+    } // siblings
 
 
-    const delimiterMarks = [];
+    if (node.nextSibling) return node.nextSibling; // parent sibling
 
-    for (let i = 0; i < node.textContent.length; i++) {
-      if (node.textContent[i] === this.startDelimiter) {
-        delimiterMarks.push({
-          index: i,
-          isOpen: true,
-          xmlTextNode: node
-        });
-      } else if (node.textContent[i] === this.endDelimiter) {
-        delimiterMarks.push({
-          index: i,
-          isOpen: false,
-          xmlTextNode: node
-        });
-      }
+    while (node.parentNode) {
+      if (node.parentNode.nextSibling) {
+        depth.decrement();
+        return node.parentNode.nextSibling;
+      } // go up
+
+
+      depth.decrement();
+      node = node.parentNode;
     }
 
-    return delimiterMarks;
+    return null;
+  }
+
+  createDelimiterMark(match, isOpenDelimiter) {
+    return {
+      index: match.firstMatchIndex,
+      isOpen: isOpenDelimiter,
+      xmlTextNode: match.openNodes[0]
+    };
   }
 
 }
@@ -2276,7 +2351,8 @@ class TagParser {
     _defineProperty(this, "tagRegex", void 0);
 
     if (!docParser) throw new _errors.MissingArgumentError("docParser");
-    if (!delimiters) throw new _errors.MissingArgumentError("delimiters");
+    if (!delimiters) throw new _errors.MissingArgumentError("delimiters"); // TODO: regex escape
+
     this.tagRegex = new RegExp(`^[${delimiters.tagStart}](.*?)[${delimiters.tagEnd}]`, 'mi');
   }
 
@@ -2284,11 +2360,10 @@ class TagParser {
     const tags = [];
     let openedTag;
     let openedDelimiter;
-    let lastNormalizedNode;
-    let lastInflictedOffset;
 
-    for (const delimiter of delimiters) {
-      // close before open
+    for (let i = 0; i < delimiters.length; i++) {
+      const delimiter = delimiters[i]; // close before open
+
       if (!openedTag && !delimiter.isOpen) {
         const closeTagText = delimiter.xmlTextNode.textContent;
         throw new _errors.MissingStartDelimiterError(closeTagText);
@@ -2310,16 +2385,7 @@ class TagParser {
       if (openedTag && !delimiter.isOpen) {
         // normalize the underlying xml structure
         // (make sure the tag's node only includes the tag's text)
-        if (lastNormalizedNode === openedDelimiter.xmlTextNode) {
-          openedDelimiter.index -= lastInflictedOffset;
-        }
-
-        if (lastNormalizedNode === delimiter.xmlTextNode) {
-          delimiter.index -= lastInflictedOffset;
-        }
-
-        lastNormalizedNode = delimiter.xmlTextNode;
-        lastInflictedOffset = this.normalizeTagNodes(openedDelimiter, delimiter);
+        this.normalizeTagNodes(openedDelimiter, delimiter, i, delimiters);
         openedTag.xmlTextNode = openedDelimiter.xmlTextNode; // extract tag info from tag's text
 
         this.processTag(openedTag);
@@ -2336,26 +2402,26 @@ class TagParser {
    * 
    * Example: 
    * 
-   * Input text node: "some text {some tag} some more text" 
-   * Output text nodes: [ "some text ", "{some tag}", " some more text" ]
+   * Text node before: "some text {some tag} some more text" 
+   * Text nodes after: [ "some text ", "{some tag}", " some more text" ]
    */
 
 
-  normalizeTagNodes(openDelimiter, closeDelimiter) {
-    // we change the node's text and therefor needs to update following delimiters
-    let inflictedOffset = 0;
+  normalizeTagNodes(openDelimiter, closeDelimiter, closeDelimiterIndex, allDelimiters) {
     let startTextNode = openDelimiter.xmlTextNode;
     let endTextNode = closeDelimiter.xmlTextNode;
     const sameNode = startTextNode === endTextNode; // trim start
 
     if (openDelimiter.index > 0) {
-      inflictedOffset += openDelimiter.index;
       this.docParser.splitTextNode(startTextNode, openDelimiter.index, true);
+
+      if (sameNode) {
+        closeDelimiter.index -= openDelimiter.index;
+      }
     } // trim end
 
 
     if (closeDelimiter.index < endTextNode.textContent.length - 1) {
-      inflictedOffset += closeDelimiter.index + 1;
       endTextNode = this.docParser.splitTextNode(endTextNode, closeDelimiter.index + 1, true);
 
       if (sameNode) {
@@ -2367,13 +2433,29 @@ class TagParser {
     if (!sameNode) {
       this.docParser.joinTextNodesRange(startTextNode, endTextNode);
       endTextNode = startTextNode;
+    } // update offsets of next delimiters
+
+
+    for (let i = closeDelimiterIndex + 1; i < allDelimiters.length; i++) {
+      let updated = false;
+      const curDelimiter = allDelimiters[i];
+
+      if (curDelimiter.xmlTextNode === openDelimiter.xmlTextNode) {
+        curDelimiter.index -= openDelimiter.index;
+        updated = true;
+      }
+
+      if (curDelimiter.xmlTextNode === closeDelimiter.xmlTextNode) {
+        curDelimiter.index -= closeDelimiter.index + 1;
+        updated = true;
+      }
+
+      if (!updated) break;
     } // update references
 
 
     openDelimiter.xmlTextNode = startTextNode;
-    closeDelimiter.xmlTextNode = endTextNode; // return the created offset
-
-    return inflictedOffset;
+    closeDelimiter.xmlTextNode = endTextNode;
   }
 
   processTag(tag) {
@@ -2582,7 +2664,6 @@ class Delimiters {
 
     Object.assign(this, initial);
     this.encodeAndValidate();
-    if (this.tagStart === this.tagEnd) throw new Error(`${"tagStart"} can not be equal to ${"tagEnd"}`);
     if (this.containerTagOpen === this.containerTagClose) throw new Error(`${"containerTagOpen"} can not be equal to ${"containerTagClose"}`);
   }
 
@@ -2592,7 +2673,6 @@ class Delimiters {
     for (const key of keys) {
       const value = this[key];
       if (!value) throw new Error(`${key} must be specified.`);
-      if (value.length > 1) throw new Error(`Only single character delimiters supported (${key}: '${value}').`);
       this[key] = _xml.XmlNode.encodeValue(value);
     }
   }
@@ -3358,13 +3438,10 @@ class ContentTypesFile {
 
     const typeNode = _xml.XmlNode.createGeneralNode('Default');
 
-    typeNode.attributes = [{
-      name: "Extension",
-      value: extension
-    }, {
-      name: "ContentType",
-      value: mime
-    }];
+    typeNode.attributes = {
+      "Extension": extension,
+      "ContentType": mime
+    };
     this.root.childNodes.push(typeNode); // update state
 
     this.addedNew = true;
@@ -3375,6 +3452,11 @@ class ContentTypesFile {
     await this.parseContentTypesFile();
     return this.root.childNodes.filter(node => !_xml.XmlNode.isTextNode(node)).length;
   }
+  /**
+   * Save the Content Types file back to the zip.  
+   * Called automatically by the holding `Docx` before exporting.
+   */
+
 
   async save() {
     // not change - no need to save
@@ -3394,9 +3476,9 @@ class ContentTypesFile {
     for (const node of this.root.childNodes) {
       if (node.nodeName !== 'Default') continue;
       const genNode = node;
-      const contentTypeAttribute = genNode.attributes.find(attr => attr.name === 'ContentType');
+      const contentTypeAttribute = genNode.attributes['ContentType'];
       if (!contentTypeAttribute) continue;
-      this.contentTypes[contentTypeAttribute.value];
+      this.contentTypes[contentTypeAttribute];
     }
   }
 
@@ -3455,15 +3537,15 @@ class Docx {
     this.zip = zip;
     this.xmlParser = xmlParser;
 
-    _defineProperty(this, "_documentPath", void 0);
-
-    _defineProperty(this, "_document", void 0);
-
     _defineProperty(this, "rels", void 0);
 
     _defineProperty(this, "mediaFiles", void 0);
 
     _defineProperty(this, "contentTypes", void 0);
+
+    _defineProperty(this, "_documentPath", void 0);
+
+    _defineProperty(this, "_document", void 0);
 
     if (!this.documentPath) throw new _errors.MalformedFileError('docx');
     this.rels = new _rels.Rels(this.documentPath, zip, xmlParser);
@@ -3497,17 +3579,6 @@ class Docx {
     const xml = this.xmlParser.serialize(xmlDocument);
     const domDocument = this.xmlParser.domParse(xml);
     return domDocument.documentElement.textContent;
-  }
-  /**
-   * Add a media resource to the document archive and return the created rel ID.
-   */
-
-
-  async addMedia(content, type) {
-    const mediaFilePath = await this.mediaFiles.add(content, type);
-    const relId = await this.rels.add(mediaFilePath, type);
-    await this.contentTypes.ensureContentType(type);
-    return relId;
   }
 
   async export(outputType) {
@@ -3609,7 +3680,13 @@ class DocxParser {
 
     const wordTextNode = this.containingTextNode(textNode);
 
-    const newWordTextNode = _xml.XmlNode.cloneNode(wordTextNode, true);
+    const newWordTextNode = _xml.XmlNode.cloneNode(wordTextNode, true); // set space preserve to prevent display differences after splitting
+    // (otherwise if there was a space in the middle of the text node and it
+    // is now at the beginning or end of the text node it will be ignored)
+
+
+    this.setSpacePreserveAttribute(wordTextNode);
+    this.setSpacePreserveAttribute(newWordTextNode);
 
     if (addBefore) {
       // insert new node before existing one
@@ -3723,10 +3800,24 @@ class DocxParser {
         childIndex++;
       }
     }
+  }
+
+  setSpacePreserveAttribute(node) {
+    if (!node.attributes) {
+      node.attributes = {};
+    }
+
+    if (!node.attributes['xml:space']) {
+      node.attributes['xml:space'] = 'preserve';
+    }
   } //
   // node queries
   //
 
+
+  isTextNode(node) {
+    return node.nodeName === DocxParser.TEXT_NODE;
+  }
 
   isTableCellNode(node) {
     return node.nodeName === DocxParser.TABLE_CELL_NODE;
@@ -4036,16 +4127,11 @@ class Rels {
 
     const relNode = _xml.XmlNode.createGeneralNode('Relationship');
 
-    relNode.attributes = [{
-      name: "Id",
-      value: relId
-    }, {
-      name: "Type",
-      value: relType
-    }, {
-      name: "Target",
-      value: relTarget
-    }];
+    relNode.attributes = {
+      "Id": relId,
+      "Type": relType,
+      "Target": relTarget
+    };
     this.root.childNodes.push(relNode); // update lookups
 
     this.relIds[relId] = true;
@@ -4054,7 +4140,8 @@ class Rels {
     return relId;
   }
   /**
-   * Save the rels file back to the zip.
+   * Save the rels file back to the zip.  
+   * Called automatically by the holding `Docx` before exporting.
    */
 
 
@@ -4102,16 +4189,16 @@ class Rels {
       const attributes = rel.attributes;
       if (!attributes) continue; // relIds lookup
 
-      const idAttr = attributes.find(attr => attr.name.toLowerCase() === 'id');
-      if (!idAttr || !idAttr.value) continue;
-      this.relIds[idAttr.value] = true; // rel target lookup
+      const idAttr = attributes['Id'];
+      if (!idAttr) continue;
+      this.relIds[idAttr] = true; // rel target lookup
 
-      const typeAttr = attributes.find(attr => attr.name.toLowerCase() === 'Type');
-      const targetAttr = attributes.find(attr => attr.name.toLowerCase() === 'Target');
+      const typeAttr = attributes['Type'];
+      const targetAttr = attributes['Target'];
 
-      if (typeAttr && typeAttr.value && targetAttr && targetAttr.value) {
-        const relTargetKey = this.getRelTargetKey(typeAttr.value, targetAttr.value);
-        this.relTargets[relTargetKey] = idAttr.value;
+      if (typeAttr && targetAttr) {
+        const relTargetKey = this.getRelTargetKey(typeAttr, targetAttr);
+        this.relTargets[relTargetKey] = idAttr;
       }
     }
   }
@@ -4218,10 +4305,14 @@ class ImagePlugin extends _templatePlugin.TemplatePlugin {
       _xml.XmlNode.remove(wordTextNode);
 
       return;
-    }
+    } // add the image file into the archive
+
+
+    const mediaFilePath = await context.docx.mediaFiles.add(content.source, content.format);
+    const relId = await context.docx.rels.add(mediaFilePath, content.format);
+    await context.docx.contentTypes.ensureContentType(content.format); // create the xml markup
 
     const imageId = nextImageId++;
-    const relId = await context.docx.addMedia(content.source, content.format);
     const imageXml = this.createMarkup(imageId, relId, content.width, content.height);
 
     _xml.XmlNode.insertAfter(imageXml, wordTextNode);
@@ -5093,14 +5184,7 @@ class TextPlugin extends _templatePlugin.TemplatePlugin {
     textNode.textContent = text; // make sure leading and trailing whitespace are preserved
 
     const wordTextNode = this.utilities.docxParser.containingTextNode(textNode);
-
-    if (!wordTextNode.attributes) {
-      wordTextNode.attributes = [];
-    }
-
-    if (!wordTextNode.attributes.find(attr => attr.name === 'xml:space')) {
-      wordTextNode.attributes.push(this.getSpacePreserveAttribute());
-    }
+    this.utilities.docxParser.setSpacePreserveAttribute(wordTextNode);
   }
 
   replaceMultiLine(textNode, lines) {
@@ -5121,13 +5205,6 @@ class TextPlugin extends _templatePlugin.TemplatePlugin {
     }
   }
 
-  getSpacePreserveAttribute() {
-    return {
-      name: 'xml:space',
-      value: 'preserve'
-    };
-  }
-
   getLineBreak() {
     return _xml.XmlNode.createGeneralNode('w:br');
   }
@@ -5135,7 +5212,8 @@ class TextPlugin extends _templatePlugin.TemplatePlugin {
   createWordTextNode(text) {
     const wordTextNode = _xml.XmlNode.createGeneralNode(_office.DocxParser.TEXT_NODE);
 
-    wordTextNode.attributes = [this.getSpacePreserveAttribute()];
+    wordTextNode.attributes = {};
+    this.utilities.docxParser.setSpacePreserveAttribute(wordTextNode);
     wordTextNode.childNodes = [_xml.XmlNode.createTextNode(text)];
     return wordTextNode;
   }
@@ -5204,7 +5282,7 @@ class TemplateHandler {
     //
 
     this.docxParser = new _office.DocxParser(this.xmlParser);
-    const delimiterSearcher = new _compilation.DelimiterSearcher();
+    const delimiterSearcher = new _compilation.DelimiterSearcher(this.docxParser);
     delimiterSearcher.startDelimiter = this.options.delimiters.tagStart;
     delimiterSearcher.endDelimiter = this.options.delimiters.tagEnd;
     delimiterSearcher.maxXmlDepth = this.options.maxXmlDepth;
@@ -5349,11 +5427,17 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.pushMany = pushMany;
+exports.first = first;
 exports.last = last;
 exports.toDictionary = toDictionary;
 
 function pushMany(destArray, items) {
   Array.prototype.push.apply(destArray, items);
+}
+
+function first(array) {
+  if (!array.length) return undefined;
+  return array[0];
 }
 
 function last(array) {
@@ -5833,6 +5917,18 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _xmlDepthTracker = __webpack_require__(/*! ./xmlDepthTracker */ "./src/xml/xmlDepthTracker.ts");
+
+Object.keys(_xmlDepthTracker).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _xmlDepthTracker[key];
+    }
+  });
+});
+
 var _xmlNode = __webpack_require__(/*! ./xmlNode */ "./src/xml/xmlNode.ts");
 
 Object.keys(_xmlNode).forEach(function (key) {
@@ -5856,6 +5952,51 @@ Object.keys(_xmlParser).forEach(function (key) {
     }
   });
 });
+
+/***/ }),
+
+/***/ "./src/xml/xmlDepthTracker.ts":
+/*!************************************!*\
+  !*** ./src/xml/xmlDepthTracker.ts ***!
+  \************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.XmlDepthTracker = void 0;
+
+var _errors = __webpack_require__(/*! ../errors */ "./src/errors/index.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class XmlDepthTracker {
+  constructor(maxDepth) {
+    this.maxDepth = maxDepth;
+
+    _defineProperty(this, "depth", 0);
+  }
+
+  increment() {
+    this.depth++;
+
+    if (this.depth > this.maxDepth) {
+      throw new _errors.MaxXmlDepthError(this.maxDepth);
+    }
+  }
+
+  decrement() {
+    this.depth--;
+  }
+
+}
+
+exports.XmlDepthTracker = XmlDepthTracker;
 
 /***/ }),
 
@@ -5948,8 +6089,12 @@ const XmlNode = {
 
     let attributes = '';
 
-    if (node.attributes && node.attributes.length) {
-      attributes = ' ' + node.attributes.map(attr => `${attr.name}="${attr.value}"`).join(' ');
+    if (node.attributes) {
+      const attributeNames = Object.keys(node.attributes);
+
+      if (attributeNames.length) {
+        attributes = ' ' + attributeNames.map(name => `${name}="${node.attributes[name]}"`).join(' ');
+      }
     } // open tag
 
 
@@ -5986,14 +6131,11 @@ const XmlNode = {
         const attributes = domNode.attributes;
 
         if (attributes) {
-          xmlNode.attributes = [];
+          xmlNode.attributes = {};
 
           for (let i = 0; i < attributes.length; i++) {
             const curAttribute = attributes.item(i);
-            xmlNode.attributes.push({
-              name: curAttribute.name,
-              value: curAttribute.value
-            });
+            xmlNode.attributes[curAttribute.name] = curAttribute.value;
           }
         }
       }
@@ -6334,10 +6476,7 @@ function cloneNodeDeep(original) {
     const attributes = original.attributes;
 
     if (attributes) {
-      clone.attributes = attributes.map(attr => ({
-        name: attr.name,
-        value: attr.value
-      }));
+      clone.attributes = Object.assign({}, attributes);
     }
   } // children
 

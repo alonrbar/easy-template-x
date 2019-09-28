@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased](https://github.com/alonrbar/react-tablize/tree/develop)
+## [0.6.0 - 2019-09-29](https://github.com/alonrbar/easy-template-x/tree/v0.6.0)
 
 This version removes the notion of a "tag type" and uses instead the notion of "content type". Instead of inferring the type from the tag _prefix_ the type is now explicitly declared in the supplied JSON _data_.
 
@@ -43,6 +43,10 @@ The only exceptions are the "loop" content type which still uses the "#" opening
 ### Removed
 
 - **BREAKING**: Remove the `Tag.type` property.
+
+### Fixed
+
+- Parsing error in some cases where multiple tags are declared in the same run.
 
 ## [0.5.2 - 2019-09-11](https://github.com/alonrbar/easy-template-x/tree/v0.5.2)
 
