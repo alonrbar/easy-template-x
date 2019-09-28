@@ -51,11 +51,11 @@ export class Rels {
         relId = this.getNextRelId();
         const relType = MimeTypeHelper.getOfficeRelType(mime);
         const relNode = XmlNode.createGeneralNode('Relationship');
-        relNode.attributes = [
-            { name: "Id", value: relId },
-            { name: "Type", value: relType },
-            { name: "Target", value: relTarget }
-        ];
+        relNode.attributes = {
+            "Id": relId,
+            "Type": relType,
+            "Target": relTarget
+        };
         this.root.childNodes.push(relNode);
 
         // update lookups
@@ -120,17 +120,17 @@ export class Rels {
                 continue;
 
             // relIds lookup
-            const idAttr = attributes.find(attr => attr.name.toLowerCase() === 'id');
-            if (!idAttr || !idAttr.value)
+            const idAttr = attributes['Id'];
+            if (!idAttr)
                 continue;
-            this.relIds[idAttr.value] = true;
+            this.relIds[idAttr] = true;
 
             // rel target lookup
-            const typeAttr = attributes.find(attr => attr.name.toLowerCase() === 'Type');
-            const targetAttr = attributes.find(attr => attr.name.toLowerCase() === 'Target');
-            if (typeAttr && typeAttr.value && targetAttr && targetAttr.value) {
-                const relTargetKey = this.getRelTargetKey(typeAttr.value as MimeType, targetAttr.value);
-                this.relTargets[relTargetKey] = idAttr.value;
+            const typeAttr = attributes['Type'];
+            const targetAttr = attributes['Target'];
+            if (typeAttr && targetAttr) {
+                const relTargetKey = this.getRelTargetKey(typeAttr as MimeType, targetAttr);
+                this.relTargets[relTargetKey] = idAttr;
             }
         }
     }

@@ -1,6 +1,6 @@
 import { ScopeData, Tag } from '../compilation';
 import { DocxParser } from '../office';
-import { XmlAttribute, XmlGeneralNode, XmlNode, XmlTextNode } from '../xml';
+import { XmlGeneralNode, XmlNode, XmlTextNode } from '../xml';
 import { TemplatePlugin } from './templatePlugin';
 
 export const TEXT_CONTENT_TYPE = 'text';
@@ -33,11 +33,9 @@ export class TextPlugin extends TemplatePlugin {
         // make sure leading and trailing whitespace are preserved
         const wordTextNode = this.utilities.docxParser.containingTextNode(textNode) as XmlGeneralNode;
         if (!wordTextNode.attributes) {
-            wordTextNode.attributes = [];
+            wordTextNode.attributes = {};
         }
-        if (!wordTextNode.attributes.find(attr => attr.name === 'xml:space')) {
-            wordTextNode.attributes.push(this.getSpacePreserveAttribute());
-        }
+        this.setSpacePreserveAttribute(wordTextNode.attributes);
     }
 
     private replaceMultiLine(textNode: XmlTextNode, lines: string[]) {
@@ -60,11 +58,10 @@ export class TextPlugin extends TemplatePlugin {
         }
     }
 
-    private getSpacePreserveAttribute(): XmlAttribute {
-        return {
-            name: 'xml:space',
-            value: 'preserve'
-        };
+    private setSpacePreserveAttribute(attributes: IMap<string>): void {
+        if (!attributes['xml:space']) {
+            attributes['xml:space'] = 'preserve';
+        }
     }
 
     private getLineBreak(): XmlNode {
@@ -73,10 +70,14 @@ export class TextPlugin extends TemplatePlugin {
 
     private createWordTextNode(text: string): XmlNode {
         const wordTextNode = XmlNode.createGeneralNode(DocxParser.TEXT_NODE);
-        wordTextNode.attributes = [this.getSpacePreserveAttribute()];
+
+        wordTextNode.attributes = {};
+        this.setSpacePreserveAttribute(wordTextNode.attributes);
+
         wordTextNode.childNodes = [
             XmlNode.createTextNode(text)
         ];
+
         return wordTextNode;
-    }    
+    }
 }

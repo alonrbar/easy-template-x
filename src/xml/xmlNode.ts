@@ -26,12 +26,7 @@ export interface XmlTextNode extends XmlNodeBase {
 
 export interface XmlGeneralNode extends XmlNodeBase {
     nodeType: XmlNodeType.General;
-    attributes?: XmlAttribute[];
-}
-
-export interface XmlAttribute {
-    name: string;
-    value: string;
+    attributes?: IMap<string>;
 }
 
 export const XmlNode = {
@@ -88,10 +83,13 @@ export const XmlNode = {
 
         // attributes
         let attributes = '';
-        if (node.attributes && node.attributes.length) {
-            attributes = ' ' + node.attributes
-                .map(attr => `${attr.name}="${attr.value}"`)
-                .join(' ');
+        if (node.attributes) {
+            const attributeNames = Object.keys(node.attributes);
+            if (attributeNames.length) {
+                attributes = ' ' + attributeNames
+                    .map(name => `${name}="${node.attributes[name]}"`)
+                    .join(' ');
+            }
         }
 
         // open tag
@@ -138,13 +136,10 @@ export const XmlNode = {
             if (domNode.nodeType === domNode.ELEMENT_NODE) {
                 const attributes = (domNode as Element).attributes;
                 if (attributes) {
-                    (xmlNode as XmlGeneralNode).attributes = [];
+                    (xmlNode as XmlGeneralNode).attributes = {};
                     for (let i = 0; i < attributes.length; i++) {
                         const curAttribute = attributes.item(i);
-                        (xmlNode as XmlGeneralNode).attributes.push({
-                            name: curAttribute.name,
-                            value: curAttribute.value
-                        });
+                        (xmlNode as XmlGeneralNode).attributes[curAttribute.name] = curAttribute.value;
                     }
                 }
             }
@@ -538,7 +533,7 @@ function cloneNodeDeep(original: XmlNode): XmlNode {
     } else {
         const attributes = original.attributes;
         if (attributes) {
-            (clone as XmlGeneralNode).attributes = attributes.map(attr => ({ name: attr.name, value: attr.value }));
+            (clone as XmlGeneralNode).attributes = Object.assign({}, attributes);
         }
     }
 

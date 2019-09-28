@@ -33,10 +33,10 @@ export class ContentTypesFile {
         // add new
         const extension = MimeTypeHelper.getDefaultExtension(mime);
         const typeNode = XmlNode.createGeneralNode('Default');
-        typeNode.attributes = [
-            { name: "Extension", value: extension },
-            { name: "ContentType", value: mime }
-        ];
+        typeNode.attributes = {
+            "Extension": extension,
+            "ContentType": mime
+        };
         this.root.childNodes.push(typeNode);
 
         // update state
@@ -79,11 +79,11 @@ export class ContentTypesFile {
                 continue;
 
             const genNode = (node as XmlGeneralNode);
-            const contentTypeAttribute = genNode.attributes.find(attr => attr.name === 'ContentType');
+            const contentTypeAttribute = genNode.attributes['ContentType'];
             if (!contentTypeAttribute)
                 continue;
 
-            this.contentTypes[contentTypeAttribute.value];
+            this.contentTypes[contentTypeAttribute];
         }
     }
 }
