@@ -58,6 +58,56 @@ describe(nameof(TagParser), () => {
         expect(tags[1].rawText).toEqual('{/loop}');
     });
 
+    it('parses correctly multiple tags on the same text node, with leading text', () => {
+
+        const paragraph = parseXml(`
+            <w:p>
+                <w:r>
+                    <w:t>text1{#loop}text2{/loop}</w:t>
+                </w:r>
+            </w:p>
+        `);
+
+        const textNode = paragraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
+        const delimiters: DelimiterMark[] = [
+            {
+                isOpen: true,
+                index: 5,
+                xmlTextNode: textNode
+            },
+            {
+                isOpen: false,
+                index: 11,
+                xmlTextNode: textNode
+            },
+            {
+                isOpen: true,
+                index: 17,
+                xmlTextNode: textNode
+            },
+            {
+                isOpen: false,
+                index: 23,
+                xmlTextNode: textNode
+            }
+        ];
+
+        const parser = createTagParser();
+        const tags = parser.parse(delimiters);
+
+        expect(tags.length).toEqual(2);
+
+        // open tag
+        expect(tags[0].disposition).toEqual(TagDisposition.Open);
+        expect(tags[0].name).toEqual('loop');
+        expect(tags[0].rawText).toEqual('{#loop}');
+
+        // close tag
+        expect(tags[1].disposition).toEqual(TagDisposition.Close);
+        expect(tags[1].name).toEqual('loop');
+        expect(tags[1].rawText).toEqual('{/loop}');
+    });
+
     it('parses correctly a butterfly }{', () => {
 
         const paragraphNode = parseXml(`

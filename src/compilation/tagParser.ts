@@ -1,7 +1,6 @@
 import { Delimiters } from '../delimiters';
 import { MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError } from '../errors';
 import { DocxParser } from '../office';
-import { XmlTextNode } from '../xml';
 import { DelimiterMark } from './delimiterMark';
 import { Tag, TagDisposition } from './tag';
 
@@ -27,9 +26,8 @@ export class TagParser {
 
         let openedTag: Partial<Tag>;
         let openedDelimiter: DelimiterMark;
-        let lastNormalizedNode: XmlTextNode;
-        let lastInflictedOffset: number;
-        for (const delimiter of delimiters) {
+        for (let i = 0; i < delimiters.length; i++) {
+            const delimiter = delimiters[i];
 
             // close before open
             if (!openedTag && !delimiter.isOpen) {
@@ -54,14 +52,7 @@ export class TagParser {
 
                 // normalize the underlying xml structure
                 // (make sure the tag's node only includes the tag's text)
-                if (lastNormalizedNode === openedDelimiter.xmlTextNode) {
-                    openedDelimiter.index -= lastInflictedOffset;
-                }
-                if (lastNormalizedNode === delimiter.xmlTextNode) {
-                    delimiter.index -= lastInflictedOffset;
-                }
-                lastNormalizedNode = delimiter.xmlTextNode;
-                lastInflictedOffset = this.normalizeTagNodes(openedDelimiter, delimiter);
+                this.normalizeTagNodes(openedDelimiter, delimiter, i, delimiters);
                 openedTag.xmlTextNode = openedDelimiter.xmlTextNode;
 
                 // extract tag info from tag's text
@@ -80,13 +71,15 @@ export class TagParser {
      * 
      * Example: 
      * 
-     * Input text node: "some text {some tag} some more text" 
-     * Output text nodes: [ "some text ", "{some tag}", " some more text" ]
+     * Text node before: "some text {some tag} some more text" 
+     * Text nodes after: [ "some text ", "{some tag}", " some more text" ]
      */
-    private normalizeTagNodes(openDelimiter: DelimiterMark, closeDelimiter: DelimiterMark): number {
-
-        // we change the node's text and therefor needs to update following delimiters
-        let inflictedOffset = 0;
+    private normalizeTagNodes(
+        openDelimiter: DelimiterMark,
+        closeDelimiter: DelimiterMark,
+        closeDelimiterIndex: number,
+        allDelimiters: DelimiterMark[]
+    ): void {
 
         let startTextNode = openDelimiter.xmlTextNode;
         let endTextNode = closeDelimiter.xmlTextNode;
@@ -94,13 +87,14 @@ export class TagParser {
 
         // trim start
         if (openDelimiter.index > 0) {
-            inflictedOffset += openDelimiter.index;
             this.docParser.splitTextNode(startTextNode, openDelimiter.index, true);
+            if (sameNode) {
+                closeDelimiter.index -= openDelimiter.index;
+            }
         }
 
         // trim end
         if (closeDelimiter.index < endTextNode.textContent.length - 1) {
-            inflictedOffset += closeDelimiter.index + 1;
             endTextNode = this.docParser.splitTextNode(endTextNode, closeDelimiter.index + 1, true);
             if (sameNode) {
                 startTextNode = endTextNode;
@@ -113,12 +107,29 @@ export class TagParser {
             endTextNode = startTextNode;
         }
 
+        // update offsets of next delimiters
+        for (let i = closeDelimiterIndex + 1; i < allDelimiters.length; i++) {
+
+            let updated = false;
+            const curDelimiter = allDelimiters[i];
+
+            if (curDelimiter.xmlTextNode === openDelimiter.xmlTextNode) {
+                curDelimiter.index -= openDelimiter.index;
+                updated = true;
+            }
+
+            if (curDelimiter.xmlTextNode === closeDelimiter.xmlTextNode) {
+                curDelimiter.index -= closeDelimiter.index + 1;
+                updated = true;
+            }
+
+            if (!updated)
+                break;
+        }
+
         // update references
         openDelimiter.xmlTextNode = startTextNode;
         closeDelimiter.xmlTextNode = endTextNode;
-
-        // return the created offset
-        return inflictedOffset;
     }
 
     private processTag(tag: Tag): void {
