@@ -32,6 +32,7 @@ The only exceptions are the "loop" content type which still uses the "#" opening
 ### Added
 
 - Image plugin.
+- Support multi-character delimiters.
 - Template plugins can be async.
 
 ### Changed

@@ -18,6 +18,7 @@ export class TagParser {
         if (!delimiters)
             throw new MissingArgumentError(nameof(delimiters));
 
+        // TODO: regex escape
         this.tagRegex = new RegExp(`^[${delimiters.tagStart}](.*?)[${delimiters.tagEnd}]`, 'mi');
     }
 

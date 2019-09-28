@@ -1,18 +1,14 @@
 import { XmlTextNode } from "../xml";
 
-export class DelimiterMark {
+export interface DelimiterMark {
 
-    public xmlTextNode: XmlTextNode;
+    xmlTextNode: XmlTextNode;
     /**
      * Index inside the text node
      */
-    public index: number;
+    index: number;
     /**
      * Is this an open delimiter or a close delimiter
      */
-    public isOpen: boolean;
-
-    constructor(initial?: Partial<DelimiterMark>) {
-        Object.assign(this, initial);
-    }
+    isOpen: boolean;
 }

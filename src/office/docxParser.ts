@@ -191,6 +191,10 @@ export class DocxParser {
     // node queries
     //
 
+    public isTextNode(node: XmlNode): boolean {
+        return node.nodeName === DocxParser.TEXT_NODE;
+    }
+
     public isTableCellNode(node: XmlNode): boolean {
         return node.nodeName === DocxParser.TABLE_CELL_NODE;
     }

@@ -23,7 +23,7 @@ export class TemplateHandler {
 
         this.docxParser = new DocxParser(this.xmlParser);
 
-        const delimiterSearcher = new DelimiterSearcher();
+        const delimiterSearcher = new DelimiterSearcher(this.docxParser);
         delimiterSearcher.startDelimiter = this.options.delimiters.tagStart;
         delimiterSearcher.endDelimiter = this.options.delimiters.tagEnd;
         delimiterSearcher.maxXmlDepth = this.options.maxXmlDepth;
