@@ -16,7 +16,7 @@ Generate docx documents from templates, in Node or in the browser.
   - [Raw xml plugin](#raw-xml-plugin)
 - [Scope resolution](#scope-resolution)
 - [Writing your own plugins](#writing-your-own-plugins)
-- [Advanced API](#api)
+- [Advanced API](#advanced-api)
 - [Supported Binary Formats](#supported-binary-formats)
 - [Philosophy](#philosophy)
 - [Prior art and motivation](#prior-art-and-motivation)
@@ -303,7 +303,12 @@ export interface RawXmlContent extends PluginContent {
 
 ## Advanced API
 
-You'll usually just use the `TemplateHandler` as seen in the examples but if you want to implement a custom plugin or otherwise do some advanced work yourself checkout the [typings](./dist/index.d.ts) file.
+You'll usually just use the `TemplateHandler` as seen in the examples but if you
+want to implement a custom plugin or otherwise do some advanced work yourself
+checkout the [typings](./dist/index.d.ts) file. Do note however that while the
+advanced API is mostly documented in the typings file it's still considered an
+internal implementation detail and may break between minor versions, use at your
+own risk.
 
 ## Supported Binary Formats
 
@@ -336,7 +341,7 @@ While these packages has some great features such as GraphQL and inline
 JavaScript support in `docx-templates` and a breadth of additional (payed)
 modules in `docxtemplater`. This package, in accordance with it's declared above
 philosophy, offers some unique benefits including a most simple, non-programmer
-oriented, template syntax, an even better (at least in my opinion 😄) API, a
+oriented template syntax, an even better (at least in my opinion 😄) API, a
 _free_ image insertion plugin and a TypeScript code base. Hopefully it will
 serve you well :)
 
