@@ -222,17 +222,20 @@ Output document:
 
 `easy-template-x` supports tag data scoping. That is, you can reference
 "shallow" data from within deeper in the hierarchy similarly to how you can
-reference an outer scope variables from within a function in JavaScript.
+reference an outer scope variables from within a function in JavaScript. You can
+leverage this property to declare "top level" data (your logo and company name
+or some useful xml snippets like page breaks, etc.) to be used anywhere in the
+document.
 
 Input template:
 
-(notice we are using the "Company" tag inside the "Employees" loop)
+(notice that we are using the "Company" tag inside the "Employees" loop)
 
 ![input template](./docs/assets/scope-in.png?raw=true)
 
 Input data:
 
-(notice the "Company" data is declared outside the "Employees" loop, in it's so
+(notice that the "Company" data is declared outside the "Employees" loop, in it's so
 called "outer scope")
 
 ```javascript
