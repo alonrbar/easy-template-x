@@ -1,4 +1,4 @@
-import { XmlNode, XmlParser, XmlTextNode } from '../xml';
+import { XmlGeneralNode, XmlNode, XmlParser, XmlTextNode } from '../xml';
 import { Zip } from '../zip';
 import { Docx } from './docx';
 
@@ -48,7 +48,7 @@ export class DocxParser {
 
     public load(zip: Zip): Docx {
         return new Docx(zip, this.xmlParser);
-    }    
+    }
 
     //
     // content manipulation
@@ -70,6 +70,13 @@ export class DocxParser {
         // split nodes
         const wordTextNode = this.containingTextNode(textNode);
         const newWordTextNode = XmlNode.cloneNode(wordTextNode, true);
+
+        // set space preserve to prevent display differences after splitting
+        // (otherwise if there was a space in the middle of the text node and it
+        // is now at the beginning or end of the text node it will be ignored)
+        this.setSpacePreserveAttribute(wordTextNode);
+        this.setSpacePreserveAttribute(newWordTextNode);
+
         if (addBefore) {
 
             // insert new node before existing one
@@ -187,6 +194,15 @@ export class DocxParser {
         }
     }
 
+    public setSpacePreserveAttribute(node: XmlGeneralNode): void {
+        if (!node.attributes) {
+            node.attributes = {};
+        }
+        if (!node.attributes['xml:space']) {
+            node.attributes['xml:space'] = 'preserve';
+        }
+    }
+
     //
     // node queries
     //
@@ -241,7 +257,7 @@ export class DocxParser {
     /**
      * Search **upwards** for the first **Word** text node (i.e. a <w:t> node).
      */
-    public containingTextNode(node: XmlTextNode): XmlNode {
+    public containingTextNode(node: XmlTextNode): XmlGeneralNode {
 
         if (!node)
             return null;
@@ -249,7 +265,7 @@ export class DocxParser {
         if (!XmlNode.isTextNode(node))
             throw new Error(`'Invalid argument ${nameof(node)}. Expected a XmlTextNode.`);
 
-        return XmlNode.findParentByName(node, DocxParser.TEXT_NODE);
+        return XmlNode.findParentByName(node, DocxParser.TEXT_NODE) as XmlGeneralNode;
     }
 
     /**

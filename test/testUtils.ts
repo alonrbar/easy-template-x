@@ -29,7 +29,7 @@ export function readResource(filename: string): Buffer {
     return fs.readFileSync("./test/res/" + filename);
 }
 
-export function writeTempFile(file: Buffer, filename: string): string {
+export function writeTempFile(filename: string, file: Buffer): string {
     const path = '/temp/' + filename;
     fs.writeFileSync(path, file);
     return path;

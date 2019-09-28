@@ -182,7 +182,7 @@ export const XmlNode = {
         return false;
     },
 
-    cloneNode(node: XmlNode, deep: boolean): XmlNode {
+    cloneNode<T extends XmlNode>(node: T, deep: boolean): T {
         if (!node)
             throw new MissingArgumentError(nameof(node));
 
@@ -521,7 +521,7 @@ function removeChild(parent: XmlNode, childOrIndex: XmlNode | number): XmlNode {
 // private functions
 //
 
-function cloneNodeDeep(original: XmlNode): XmlNode {
+function cloneNodeDeep<T extends XmlNode>(original: T): T {
 
     const clone: XmlNode = ({} as any);
 
@@ -531,7 +531,7 @@ function cloneNodeDeep(original: XmlNode): XmlNode {
     if (XmlNode.isTextNode(original)) {
         (clone as XmlTextNode).textContent = original.textContent;
     } else {
-        const attributes = original.attributes;
+        const attributes = (original as XmlGeneralNode).attributes;
         if (attributes) {
             (clone as XmlGeneralNode).attributes = Object.assign({}, attributes);
         }
@@ -556,7 +556,7 @@ function cloneNodeDeep(original: XmlNode): XmlNode {
         }
     }
 
-    return clone;
+    return clone as T;
 }
 
 function getDescendantPath(root: XmlNode, descendant: XmlNode): number[] {
