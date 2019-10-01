@@ -280,9 +280,9 @@ export class RawXmlPlugin extends TemplatePlugin {
 
         // Get the value to use from the input data.
         const value = data.getScopeData() as RawXmlContent;
-        if (typeof value === 'string') {
+        if (value && typeof value.xml === 'string') {
 
-            // If it's a string parse it as xml and insert.
+            // If it contains a "xml" string property parse it and insert.
             const newNode = this.utilities.xmlParser.parse(value.xml);
             XmlNode.insertBefore(newNode, wordTextNode);
         }
