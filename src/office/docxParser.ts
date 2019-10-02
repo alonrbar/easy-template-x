@@ -28,6 +28,7 @@ export class DocxParser {
     public static readonly PARAGRAPH_NODE = 'w:p';
     public static readonly PARAGRAPH_PROPERTIES_NODE = 'w:pPr';
     public static readonly RUN_NODE = 'w:r';
+    public static readonly RUN_PROPERTIES_NODE = 'w:rPr';
     public static readonly TEXT_NODE = 'w:t';
     public static readonly TABLE_ROW_NODE = 'w:tr';
     public static readonly TABLE_CELL_NODE = 'w:tc';

@@ -463,8 +463,8 @@ export const XmlNode = {
     /**
      * Recursively removes text nodes leaving only "general nodes".
      */
-    stripTextNodes(node: XmlGeneralNode): void {
-        recursiveStripTextNodes(node);
+    removeEmptyTextNodes(node: XmlNode): void {
+        recursiveRemoveEmptyTextNodes(node);
     },
 };
 
@@ -577,7 +577,7 @@ function getDescendantPath(root: XmlNode, descendant: XmlNode): number[] {
     return path.reverse();
 }
 
-function recursiveStripTextNodes(node: XmlGeneralNode): XmlGeneralNode {
+function recursiveRemoveEmptyTextNodes(node: XmlNode): XmlNode {
 
     if (!node.childNodes)
         return node;
@@ -585,9 +585,16 @@ function recursiveStripTextNodes(node: XmlGeneralNode): XmlGeneralNode {
     const oldChildren = node.childNodes;
     node.childNodes = [];
     for (const child of oldChildren) {
-        if (XmlNode.isTextNode(child))
+        if (XmlNode.isTextNode(child)) {
+
+            // https://stackoverflow.com/questions/1921688/filtering-whitespace-only-strings-in-javascript#1921694
+            if (child.textContent && child.textContent.match(/\S/)) {
+                node.childNodes.push(child);
+            }
+            
             continue;
-        const strippedChild = recursiveStripTextNodes(child);
+        }
+        const strippedChild = recursiveRemoveEmptyTextNodes(child);
         node.childNodes.push(strippedChild);
     }
 

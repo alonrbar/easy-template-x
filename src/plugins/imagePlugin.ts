@@ -1,4 +1,5 @@
 import { ScopeData, Tag, TemplateContext } from '../compilation';
+import { MimeTypeHelper } from '../mimeType';
 import { XmlGeneralNode, XmlNode } from '../xml';
 import { ImageContent } from './imageContent';
 import { TemplatePlugin } from './templatePlugin';
@@ -31,7 +32,8 @@ export class ImagePlugin extends TemplatePlugin {
 
         // add the image file into the archive
         const mediaFilePath = await context.docx.mediaFiles.add(content.source, content.format);
-        const relId = await context.docx.rels.add(mediaFilePath, content.format);
+        const relType = MimeTypeHelper.getOfficeRelType(content.format);
+        const relId = await context.docx.rels.add(mediaFilePath, relType);
         await context.docx.contentTypes.ensureContentType(content.format);
 
         // create the xml markup
@@ -76,7 +78,7 @@ export class ImagePlugin extends TemplatePlugin {
         `;
 
         const markupXml = this.utilities.xmlParser.parse(markupText) as XmlGeneralNode;
-        XmlNode.stripTextNodes(markupXml); // remove whitespace
+        XmlNode.removeEmptyTextNodes(markupXml); // remove whitespace
 
         return markupXml;
     }

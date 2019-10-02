@@ -1,6 +1,10 @@
-import { ImageContent, RawXmlContent } from './plugins';
+import { ImageContent, LinkContent, RawXmlContent } from './plugins';
 
-export type TemplateContent = string | number | boolean | ImageContent | RawXmlContent;
+export type PrimitiveTemplateContent = string | number | boolean;
+
+export type PluginTemplateContent = ImageContent | RawXmlContent | LinkContent;
+
+export type TemplateContent = PrimitiveTemplateContent | PluginTemplateContent;
 
 //
 // Sadly `TemplateData` cannot be properly used since the following code does not compile:

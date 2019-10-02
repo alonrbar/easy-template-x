@@ -1,4 +1,3 @@
-import { MimeType, MimeTypeHelper } from '../mimeType';
 import { Path } from '../utils';
 import { XmlGeneralNode, XmlNode, XmlParser } from '../xml';
 import { Zip } from '../zip';
@@ -31,9 +30,9 @@ export class Rels {
     /**
      * Returns the rel ID.
      */
-    public async add(relTarget: string, mime: MimeType): Promise<string> {
+    public async add(relTarget: string, relType: string, additionalAttributes?: IMap<string>): Promise<string> {
 
-        // relTarget should be relative to the part dir
+        // if relTarget is an internal file it should be relative to the part dir
         if (relTarget.startsWith(this.partDir)) {
             relTarget = relTarget.substr(this.partDir.length + 1);
         }
@@ -42,20 +41,19 @@ export class Rels {
         await this.parseRelsFile();
 
         // already exists?
-        const relTargetKey = this.getRelTargetKey(mime, relTarget);
+        const relTargetKey = this.getRelTargetKey(relType, relTarget);
         let relId = this.relTargets[relTargetKey];
         if (relId)
             return relId;
 
         // add rel node
         relId = this.getNextRelId();
-        const relType = MimeTypeHelper.getOfficeRelType(mime);
         const relNode = XmlNode.createGeneralNode('Relationship');
-        relNode.attributes = {
+        relNode.attributes = Object.assign({
             "Id": relId,
             "Type": relType,
             "Target": relTarget
-        };
+        }, additionalAttributes);
         this.root.childNodes.push(relNode);
 
         // update lookups
@@ -129,13 +127,13 @@ export class Rels {
             const typeAttr = attributes['Type'];
             const targetAttr = attributes['Target'];
             if (typeAttr && targetAttr) {
-                const relTargetKey = this.getRelTargetKey(typeAttr as MimeType, targetAttr);
+                const relTargetKey = this.getRelTargetKey(typeAttr, targetAttr);
                 this.relTargets[relTargetKey] = idAttr;
             }
         }
     }
 
-    private getRelTargetKey(type: MimeType, target: string): string {
+    private getRelTargetKey(type: string, target: string): string {
         return `${type} - ${target}`;
     }
 }

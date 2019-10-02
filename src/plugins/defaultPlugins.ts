@@ -1,4 +1,5 @@
 import { ImagePlugin } from './imagePlugin';
+import { LinkPlugin } from './linkPlugin';
 import { LoopPlugin } from './loopPlugin';
 import { RawXmlPlugin } from './rawXmlPlugin';
 import { TemplatePlugin } from './templatePlugin';
@@ -9,6 +10,7 @@ export function createDefaultPlugins(): TemplatePlugin[] {
         new LoopPlugin(), 
         new RawXmlPlugin(),
         new ImagePlugin(),
+        new LinkPlugin(),
         new TextPlugin()
     ];
 }
