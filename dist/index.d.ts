@@ -6,6 +6,11 @@ import { ImageContent, RawXmlContent, TemplatePlugin , LinkContent} from './plug
 
 export class TemplateHandler {
 
+    /**
+     * Version number of the `easy-template-x` library.
+     */
+    readonly version: string;
+
     constructor(options?: TemplateHandlerOptions);
 
     process<T extends Binary>(templateFile: T, data: any): Promise<T>;

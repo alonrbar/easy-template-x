@@ -8,6 +8,11 @@ import { Zip } from './zip';
 
 export class TemplateHandler {
 
+    /**
+     * Version number of the `easy-template-x` library.
+     */
+    public readonly version = (typeof EASY_VERSION !== 'undefined' ? EASY_VERSION : 'null');
+
     private readonly xmlParser = new XmlParser();
     private readonly docxParser: DocxParser;
     private readonly compiler: TemplateCompiler;

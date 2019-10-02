@@ -58,6 +58,7 @@
     "eslint": "5.16.0",
     "jest": "24.9.0",
     "jest-junit": "6.4.0",
+    "jsonminify": "0.4.1",
     "lorem-ipsum": "1.0.4",
     "source-map-support": "0.5.13",
     "typescript": "3.5.3",
