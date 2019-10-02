@@ -3900,6 +3900,8 @@ _defineProperty(DocxParser, "PARAGRAPH_PROPERTIES_NODE", 'w:pPr');
 
 _defineProperty(DocxParser, "RUN_NODE", 'w:r');
 
+_defineProperty(DocxParser, "RUN_PROPERTIES_NODE", 'w:rPr');
+
 _defineProperty(DocxParser, "TEXT_NODE", 'w:t');
 
 _defineProperty(DocxParser, "TABLE_ROW_NODE", 'w:tr');
@@ -4068,8 +4070,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.Rels = void 0;
 
-var _mimeType = __webpack_require__(/*! ../mimeType */ "./src/mimeType.ts");
-
 var _utils = __webpack_require__(/*! ../utils */ "./src/utils/index.ts");
 
 var _xml = __webpack_require__(/*! ../xml */ "./src/xml/index.ts");
@@ -4108,8 +4108,8 @@ class Rels {
    */
 
 
-  async add(relTarget, mime) {
-    // relTarget should be relative to the part dir
+  async add(relTarget, relType, additionalAttributes) {
+    // if relTarget is an internal file it should be relative to the part dir
     if (relTarget.startsWith(this.partDir)) {
       relTarget = relTarget.substr(this.partDir.length + 1);
     } // parse rels file
@@ -4117,21 +4117,19 @@ class Rels {
 
     await this.parseRelsFile(); // already exists?
 
-    const relTargetKey = this.getRelTargetKey(mime, relTarget);
+    const relTargetKey = this.getRelTargetKey(relType, relTarget);
     let relId = this.relTargets[relTargetKey];
     if (relId) return relId; // add rel node
 
     relId = this.getNextRelId();
 
-    const relType = _mimeType.MimeTypeHelper.getOfficeRelType(mime);
-
     const relNode = _xml.XmlNode.createGeneralNode('Relationship');
 
-    relNode.attributes = {
+    relNode.attributes = Object.assign({
       "Id": relId,
       "Type": relType,
       "Target": relTarget
-    };
+    }, additionalAttributes);
     this.root.childNodes.push(relNode); // update lookups
 
     this.relIds[relId] = true;
@@ -4231,6 +4229,8 @@ exports.createDefaultPlugins = createDefaultPlugins;
 
 var _imagePlugin = __webpack_require__(/*! ./imagePlugin */ "./src/plugins/imagePlugin.ts");
 
+var _linkPlugin = __webpack_require__(/*! ./linkPlugin */ "./src/plugins/linkPlugin.ts");
+
 var _loopPlugin = __webpack_require__(/*! ./loopPlugin */ "./src/plugins/loopPlugin.ts");
 
 var _rawXmlPlugin = __webpack_require__(/*! ./rawXmlPlugin */ "./src/plugins/rawXmlPlugin.ts");
@@ -4238,7 +4238,7 @@ var _rawXmlPlugin = __webpack_require__(/*! ./rawXmlPlugin */ "./src/plugins/raw
 var _textPlugin = __webpack_require__(/*! ./textPlugin */ "./src/plugins/textPlugin.ts");
 
 function createDefaultPlugins() {
-  return [new _loopPlugin.LoopPlugin(), new _rawXmlPlugin.RawXmlPlugin(), new _imagePlugin.ImagePlugin(), new _textPlugin.TextPlugin()];
+  return [new _loopPlugin.LoopPlugin(), new _rawXmlPlugin.RawXmlPlugin(), new _imagePlugin.ImagePlugin(), new _linkPlugin.LinkPlugin(), new _textPlugin.TextPlugin()];
 }
 
 /***/ }),
@@ -4271,6 +4271,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.ImagePlugin = void 0;
+
+var _mimeType = __webpack_require__(/*! ../mimeType */ "./src/mimeType.ts");
 
 var _xml = __webpack_require__(/*! ../xml */ "./src/xml/index.ts");
 
@@ -4309,7 +4311,10 @@ class ImagePlugin extends _templatePlugin.TemplatePlugin {
 
 
     const mediaFilePath = await context.docx.mediaFiles.add(content.source, content.format);
-    const relId = await context.docx.rels.add(mediaFilePath, content.format);
+
+    const relType = _mimeType.MimeTypeHelper.getOfficeRelType(content.format);
+
+    const relId = await context.docx.rels.add(mediaFilePath, relType);
     await context.docx.contentTypes.ensureContentType(content.format); // create the xml markup
 
     const imageId = nextImageId++;
@@ -4351,7 +4356,7 @@ class ImagePlugin extends _templatePlugin.TemplatePlugin {
         `;
     const markupXml = this.utilities.xmlParser.parse(markupText);
 
-    _xml.XmlNode.stripTextNodes(markupXml); // remove whitespace
+    _xml.XmlNode.removeEmptyTextNodes(markupXml); // remove whitespace
 
 
     return markupXml;
@@ -4466,6 +4471,30 @@ Object.keys(_imagePlugin).forEach(function (key) {
   });
 });
 
+var _linkContent = __webpack_require__(/*! ./linkContent */ "./src/plugins/linkContent.ts");
+
+Object.keys(_linkContent).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _linkContent[key];
+    }
+  });
+});
+
+var _linkPlugin = __webpack_require__(/*! ./linkPlugin */ "./src/plugins/linkPlugin.ts");
+
+Object.keys(_linkPlugin).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _linkPlugin[key];
+    }
+  });
+});
+
 var _loopPlugin = __webpack_require__(/*! ./loopPlugin */ "./src/plugins/loopPlugin.ts");
 
 Object.keys(_loopPlugin).forEach(function (key) {
@@ -4537,6 +4566,119 @@ Object.keys(_textPlugin).forEach(function (key) {
     }
   });
 });
+
+/***/ }),
+
+/***/ "./src/plugins/linkContent.ts":
+/*!************************************!*\
+  !*** ./src/plugins/linkContent.ts ***!
+  \************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/***/ }),
+
+/***/ "./src/plugins/linkPlugin.ts":
+/*!***********************************!*\
+  !*** ./src/plugins/linkPlugin.ts ***!
+  \***********************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.LinkPlugin = void 0;
+
+var _office = __webpack_require__(/*! ../office */ "./src/office/index.ts");
+
+var _xml = __webpack_require__(/*! ../xml */ "./src/xml/index.ts");
+
+var _templatePlugin = __webpack_require__(/*! ./templatePlugin */ "./src/plugins/templatePlugin.ts");
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class LinkPlugin extends _templatePlugin.TemplatePlugin {
+  constructor(...args) {
+    super(...args);
+
+    _defineProperty(this, "contentType", 'link');
+  }
+
+  async simpleTagReplacements(tag, data, context) {
+    const wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
+    const content = data.getScopeData();
+
+    if (!content || !content.target) {
+      _xml.XmlNode.remove(wordTextNode);
+
+      return;
+    } // add rel
+
+
+    const linkAttributes = {
+      TargetMode: 'External'
+    };
+    const relId = await context.docx.rels.add(content.target, LinkPlugin.linkRelType, linkAttributes); // generate markup
+
+    const wordRunNode = this.utilities.docxParser.containingRunNode(wordTextNode);
+    const linkMarkup = this.generateMarkup(content, relId, wordRunNode); // add to document
+
+    this.insertHyperlinkNode(linkMarkup, wordRunNode);
+
+    _xml.XmlNode.remove(wordTextNode);
+  }
+
+  generateMarkup(content, relId, wordRunNode) {
+    // http://officeopenxml.com/WPhyperlink.php
+    const markupText = `
+            <w:hyperlink r:id="${relId}" w:history="1">
+                <w:r>
+                    <w:t>${content.text || content.target}</w:t>
+                </w:r>
+            </w:hyperlink>
+        `;
+    const markupXml = this.utilities.xmlParser.parse(markupText);
+
+    _xml.XmlNode.removeEmptyTextNodes(markupXml); // remove whitespace
+    // copy props from original run node (preserve style)        
+
+
+    const runProps = wordRunNode.childNodes.find(node => node.nodeName === _office.DocxParser.RUN_PROPERTIES_NODE);
+
+    if (runProps) {
+      const linkRunProps = _xml.XmlNode.cloneNode(runProps, true);
+
+      markupXml.childNodes[0].childNodes.unshift(linkRunProps);
+    }
+
+    return markupXml;
+  }
+
+  insertHyperlinkNode(linkMarkup, wordRunNode) {
+    const textNodesInRun = wordRunNode.childNodes.filter(node => node.nodeName === _office.DocxParser.TEXT_NODE);
+
+    if (textNodesInRun.length > 1) {
+      // will this ever happen?
+      throw new Error('Attempt to insert link to run node with multiple text nodes - not implemented... ' + 'If you encounter this error please open an issue at https://github.com/alonrbar/easy-template-x/issues');
+    }
+
+    _xml.XmlNode.insertAfter(linkMarkup, wordRunNode);
+  }
+
+}
+
+exports.LinkPlugin = LinkPlugin;
+
+_defineProperty(LinkPlugin, "linkRelType", 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink');
 
 /***/ }),
 
@@ -5268,7 +5410,12 @@ var _zip = __webpack_require__(/*! ./zip */ "./src/zip/index.ts");
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 class TemplateHandler {
+  /**
+   * Version number of the `easy-template-x` library.
+   */
   constructor(options) {
+    _defineProperty(this, "version",  true ? "0.7.0" : undefined);
+
     _defineProperty(this, "xmlParser", new _xml.XmlParser());
 
     _defineProperty(this, "docxParser", void 0);
@@ -6416,8 +6563,8 @@ const XmlNode = {
   /**
    * Recursively removes text nodes leaving only "general nodes".
    */
-  stripTextNodes(node) {
-    recursiveStripTextNodes(node);
+  removeEmptyTextNodes(node) {
+    recursiveRemoveEmptyTextNodes(node);
   }
 
 }; //
@@ -6518,14 +6665,22 @@ function getDescendantPath(root, descendant) {
   return path.reverse();
 }
 
-function recursiveStripTextNodes(node) {
+function recursiveRemoveEmptyTextNodes(node) {
   if (!node.childNodes) return node;
   const oldChildren = node.childNodes;
   node.childNodes = [];
 
   for (const child of oldChildren) {
-    if (XmlNode.isTextNode(child)) continue;
-    const strippedChild = recursiveStripTextNodes(child);
+    if (XmlNode.isTextNode(child)) {
+      // https://stackoverflow.com/questions/1921688/filtering-whitespace-only-strings-in-javascript#1921694
+      if (child.textContent && child.textContent.match(/\S/)) {
+        node.childNodes.push(child);
+      }
+
+      continue;
+    }
+
+    const strippedChild = recursiveRemoveEmptyTextNodes(child);
     node.childNodes.push(strippedChild);
   }
 

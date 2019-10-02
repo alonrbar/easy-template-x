@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.7.0 - 2019-10-02](https://github.com/alonrbar/easy-template-x/tree/v0.7.0)
+
+### Added
+
+- Link plugin.
+- `TemplateHandler.version` property.
+
 ## [0.6.0 - 2019-09-29](https://github.com/alonrbar/easy-template-x/tree/v0.6.0)
 
 This version removes the notion of a "tag type" and uses instead the notion of "content type". Instead of inferring the type from the tag _prefix_ the type is now explicitly declared in the supplied JSON _data_.
