@@ -82,3 +82,16 @@ export interface ImageContent extends PluginContent {
 export class ImagePlugin extends TemplatePlugin {
     readonly contentType = 'image';
 }
+
+export interface LinkContent extends PluginContent {
+    _type: 'link';
+    /**
+     * If not specified the `target` property will be used.
+     */
+    text?: string;
+    target: string;
+}
+
+export class LinkPlugin extends TemplatePlugin {
+    readonly contentType = 'link';
+}

@@ -1,8 +1,8 @@
 import { Delimiters } from './compliation';
 import { Binary } from './misc';
-import { ImageContent, RawXmlContent, TemplatePlugin } from './plugins';
 import { Tag } from './tag';
 import { XmlNode } from './xml';
+import { ImageContent, RawXmlContent, TemplatePlugin , LinkContent} from './plugins';
 
 export class TemplateHandler {
 
@@ -23,7 +23,11 @@ export class TemplateHandler {
     getXml(docxFile: Binary): Promise<XmlNode>;
 }
 
-export type TemplateContent = string | number | boolean | ImageContent | RawXmlContent;
+export type PrimitiveTemplateContent = string | number | boolean;
+
+export type PluginTemplateContent = ImageContent | RawXmlContent | LinkContent;
+
+export type TemplateContent = PrimitiveTemplateContent | PluginTemplateContent;
 
 export interface TemplateData {
     [tagName: string]: TemplateContent | TemplateData | TemplateData[];

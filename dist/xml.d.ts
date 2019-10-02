@@ -169,5 +169,5 @@ export namespace XmlNode {
     /**
      * Recursively removes text nodes leaving only "general nodes".
      */
-    export function stripTextNodes(node: XmlGeneralNode): void;
+    export function removeEmptyTextNodes(node: XmlNode): void;
 }

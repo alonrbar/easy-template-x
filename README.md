@@ -13,6 +13,7 @@ Generate docx documents from templates, in Node or in the browser.
   - [Text plugin](#text-plugin)
   - [Loop plugin](#loop-plugin)
   - [Image plugin](#image-plugin)
+  - [Link plugin](#link-plugin)
   - [Raw xml plugin](#raw-xml-plugin)
 - [Scope resolution](#scope-resolution)
 - [Writing your own plugins](#writing-your-own-plugins)
@@ -116,6 +117,7 @@ function saveFile(filename, blob) {
 - [Simple text replacement plugin.](#text-plugin)
 - [Loop plugin for iterating text, table rows and list rows.](#loop-plugin)
 - [Image plugin for embedding images.](#image-plugin)
+- [Link plugin for hyperlinks creation.](#link-plugin)
 - [Raw xml plugin for custom xml insertion.](#raw-xml-plugin)
 
 ### Text plugin
@@ -190,6 +192,31 @@ Input data:
 Output document:
 
 ![output document](./docs/assets/image-plugin-out.png?raw=true)
+
+### Link plugin
+
+Inserts hyperlinks into the document.  
+Like text tags link tags also preserve their original style.
+
+Input template:
+
+![input template](./docs/assets/link-plugin-in.png?raw=true)
+
+Input data:
+
+```javascript
+{
+    "easy": {
+        _type: 'link',
+        text: 'super easy',  // optional - if not specified the `target` property will be used
+        target: 'https://github.com/alonrbar/easy-template-x'
+    }
+}
+```
+
+Output document:
+
+![output document](./docs/assets/link-plugin-out.png?raw=true)
 
 ### Raw xml plugin
 
