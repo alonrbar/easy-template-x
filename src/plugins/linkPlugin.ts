@@ -29,8 +29,7 @@ export class LinkPlugin extends TemplatePlugin {
         const linkMarkup = this.generateMarkup(content, relId, wordRunNode);
 
         // add to document
-        this.insertHyperlinkNode(linkMarkup, wordRunNode);
-        XmlNode.remove(wordTextNode);
+        this.insertHyperlinkNode(linkMarkup, wordRunNode, wordTextNode);
     }
 
     private generateMarkup(content: LinkContent, relId: string, wordRunNode: XmlNode) {
@@ -57,17 +56,28 @@ export class LinkPlugin extends TemplatePlugin {
         return markupXml;
     }
 
-    private insertHyperlinkNode(linkMarkup: XmlNode, wordRunNode: XmlNode) {
-        
-        const textNodesInRun = wordRunNode.childNodes.filter(node => node.nodeName === DocxParser.TEXT_NODE);
+    private insertHyperlinkNode(linkMarkup: XmlNode, tagRunNode: XmlNode, tagTextNode: XmlNode) {
+
+        // Links are inserted at the 'run' level.  
+        // Therefor we isolate the link tag to it's own run (it is already
+        // isolated to it's own text node), insert the link markup and remove
+        // the run.
+        let textNodesInRun = tagRunNode.childNodes.filter(node => node.nodeName === DocxParser.TEXT_NODE);
         if (textNodesInRun.length > 1) {
-            // will this ever happen?
-            throw new Error(
-                'Attempt to insert link to run node with multiple text nodes - not implemented... ' + 
-                'If you encounter this error please open an issue at https://github.com/alonrbar/easy-template-x/issues'
-            );
+            
+            const [runBeforeTag] = XmlNode.splitByChild(tagRunNode, tagTextNode, true);
+            textNodesInRun = runBeforeTag.childNodes.filter(node => node.nodeName === DocxParser.TEXT_NODE);
+
+            XmlNode.insertAfter(linkMarkup, runBeforeTag);
+            if (textNodesInRun.length === 0) {
+                XmlNode.remove(runBeforeTag);
+            }
         }
 
-        XmlNode.insertAfter(linkMarkup, wordRunNode);
+        // already isolated
+        else {
+            XmlNode.insertAfter(linkMarkup, tagRunNode);
+            XmlNode.remove(tagRunNode);
+        }
     }
 }
