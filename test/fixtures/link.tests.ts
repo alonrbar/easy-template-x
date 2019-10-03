@@ -8,7 +8,7 @@ describe('link fixture', () => {
         const template = readFixture("link.docx");
         
         const data = {
-            link_prop: {
+            link: {
                 _type: 'link',
                 text: "It's easy...",
                 target: 'https://github.com/alonrbar/easy-template-x'
