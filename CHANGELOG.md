@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.7.1 - 2019-10-03](https://github.com/alonrbar/easy-template-x/tree/v0.7.1)
+
+### Fixed
+
+- Link plugin in cases where the link tag is not the only node in it's run.
+
 ## [0.7.0 - 2019-10-02](https://github.com/alonrbar/easy-template-x/tree/v0.7.0)
 
 ### Added

@@ -4632,9 +4632,7 @@ class LinkPlugin extends _templatePlugin.TemplatePlugin {
     const wordRunNode = this.utilities.docxParser.containingRunNode(wordTextNode);
     const linkMarkup = this.generateMarkup(content, relId, wordRunNode); // add to document
 
-    this.insertHyperlinkNode(linkMarkup, wordRunNode);
-
-    _xml.XmlNode.remove(wordTextNode);
+    this.insertHyperlinkNode(linkMarkup, wordRunNode, wordTextNode);
   }
 
   generateMarkup(content, relId, wordRunNode) {
@@ -4663,15 +4661,29 @@ class LinkPlugin extends _templatePlugin.TemplatePlugin {
     return markupXml;
   }
 
-  insertHyperlinkNode(linkMarkup, wordRunNode) {
-    const textNodesInRun = wordRunNode.childNodes.filter(node => node.nodeName === _office.DocxParser.TEXT_NODE);
+  insertHyperlinkNode(linkMarkup, tagRunNode, tagTextNode) {
+    // Links are inserted at the 'run' level.  
+    // Therefor we isolate the link tag to it's own run (it is already
+    // isolated to it's own text node), insert the link markup and remove
+    // the run.
+    let textNodesInRun = tagRunNode.childNodes.filter(node => node.nodeName === _office.DocxParser.TEXT_NODE);
 
     if (textNodesInRun.length > 1) {
-      // will this ever happen?
-      throw new Error('Attempt to insert link to run node with multiple text nodes - not implemented... ' + 'If you encounter this error please open an issue at https://github.com/alonrbar/easy-template-x/issues');
-    }
+      const [runBeforeTag] = _xml.XmlNode.splitByChild(tagRunNode, tagTextNode, true);
 
-    _xml.XmlNode.insertAfter(linkMarkup, wordRunNode);
+      textNodesInRun = runBeforeTag.childNodes.filter(node => node.nodeName === _office.DocxParser.TEXT_NODE);
+
+      _xml.XmlNode.insertAfter(linkMarkup, runBeforeTag);
+
+      if (textNodesInRun.length === 0) {
+        _xml.XmlNode.remove(runBeforeTag);
+      }
+    } // already isolated
+    else {
+        _xml.XmlNode.insertAfter(linkMarkup, tagRunNode);
+
+        _xml.XmlNode.remove(tagRunNode);
+      }
   }
 
 }
@@ -5414,7 +5426,7 @@ class TemplateHandler {
    * Version number of the `easy-template-x` library.
    */
   constructor(options) {
-    _defineProperty(this, "version",  true ? "0.7.0" : undefined);
+    _defineProperty(this, "version",  true ? "0.7.1" : undefined);
 
     _defineProperty(this, "xmlParser", new _xml.XmlParser());
 
