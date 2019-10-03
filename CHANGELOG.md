@@ -47,11 +47,11 @@ The only exceptions are the "loop" content type which still uses the "#" opening
 - Image plugin.
 - Support multi-character delimiters.
 - Template plugins can be async.
+- Improved the docs (readme).
 
 ### Changed
 
 - **BREAKING**: `RawXmlPlugin` requires data of the form `{ _type: 'rawXml', xml: string }`.
-- **BREAKING** `TemplateCompiler.compile` (advanced api) returns a promise.
 
 ### Removed
 
