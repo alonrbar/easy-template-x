@@ -3591,7 +3591,7 @@ class TemplateHandler {
    * Version number of the `easy-template-x` library.
    */
   constructor(options) {
-    _defineProperty(this, "version",  true ? "0.7.2" : undefined);
+    _defineProperty(this, "version",  true ? "0.7.3" : undefined);
 
     _defineProperty(this, "xmlParser", new _xml.XmlParser());
 

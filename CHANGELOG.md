@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.7.3 - 2019-10-11](https://github.com/alonrbar/easy-template-x/tree/v0.7.3)
+
+### Added
+
+- Link to live demo on CodeSandbox.
+
 ## [0.7.2 - 2019-10-10](https://github.com/alonrbar/easy-template-x/tree/v0.7.2)
 
 ### Fixed
