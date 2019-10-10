@@ -16,6 +16,9 @@ module.exports = {
         globalObject: 'this'
     },
     externals: [nodeExternals()],
+    node: {
+        Buffer: false
+    },
     module: {
         rules: [{
             test: /.ts$/,
