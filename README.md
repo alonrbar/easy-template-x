@@ -9,6 +9,7 @@ Generate docx documents from templates, in Node or in the browser.
 
 - [Node Example](#node-example)
 - [Browser Example](#browser-example)
+- [Live Demo](#live-demo)
 - [Standard plugins](#standard-plugins)
   - [Text plugin](#text-plugin)
   - [Loop plugin](#loop-plugin)
@@ -109,6 +110,10 @@ function saveFile(filename, blob) {
     }, 0);
 }
 ```
+
+## Live Demo
+
+Checkout this [live demo](https://codesandbox.io/s/easy-template-x-demo-x4ppu?fontsize=14&module=%2Findex.ts) on CodeSandbox 😎
 
 ## Standard plugins
 
