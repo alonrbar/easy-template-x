@@ -113,7 +113,7 @@ function saveFile(filename, blob) {
 
 ## Live Demo
 
-Checkout this [live demo](https://codesandbox.io/s/easy-template-x-demo-x4ppu?fontsize=14&module=%2Findex.ts) on CodeSandbox 😎
+Checkout this <a href="https://codesandbox.io/s/easy-template-x-demo-x4ppu?fontsize=14&module=%2Findex.ts" target="_blank">live demo</a> on CodeSandbox 😎
 
 ## Standard plugins
 
