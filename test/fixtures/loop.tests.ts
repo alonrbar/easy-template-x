@@ -91,6 +91,37 @@ describe('loop fixtures', () => {
         // writeTempFile('loop - list - output.docx', doc);
     });
 
+    it("supports custom loop delimiters", async () => {
+
+        const handler = new TemplateHandler({
+            delimiters: {
+                containerTagOpen: '>>>',
+                containerTagClose: '<<<'
+            }
+        });
+
+        const template = readFixture('loop - custom delimiters.docx');
+        const templateText = await handler.getText(template);
+        expect(templateText.trim()).toEqual("{>>> loop_prop}{simple_prop}!{<<< loop_prop}");
+
+        const data = {
+            loop_prop: [
+                { simple_prop: 'first' },
+                { simple_prop: 'second' }
+            ]
+        };
+
+        const doc = await handler.process(template, data);
+
+        const docText = await handler.getText(doc);
+        expect(docText).toEqual("first!second!");
+
+        const docXml = await handler.getXml(doc);
+        expect(docXml).toMatchSnapshot();
+
+        // writeTempFile('loop - custom delimiters - output.docx', doc);
+    });
+
     it("replaces a loop with open and close tag in the same paragraph correctly", async () => {
 
         const handler = new TemplateHandler();

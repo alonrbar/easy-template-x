@@ -1,4 +1,3 @@
-import { XmlNode } from "./xml";
 
 export class Delimiters {
 
@@ -19,12 +18,13 @@ export class Delimiters {
     private encodeAndValidate() {
         const keys: (keyof Delimiters)[] = ['tagStart', 'tagEnd', 'containerTagOpen', 'containerTagClose'];
         for (const key of keys) {
+
             const value = this[key];
-
             if (!value)
-                throw new Error(`${key} must be specified.`);
+                throw new Error(`${key} can not be empty.`);
 
-            this[key] = XmlNode.encodeValue(value);
+            if (value !== value.trim())
+                throw new Error(`${key} can not contain leading or trailing whitespace.`);
         }
     }
 }

@@ -1,4 +1,5 @@
 import { DelimiterSearcher, ScopeData, Tag, TagParser, TemplateCompiler, TemplateContext } from './compilation';
+import { Delimiters } from './delimiters';
 import { MalformedFileError } from './errors';
 import { Docx, DocxParser } from './office';
 import { TemplateHandlerOptions } from './templateHandlerOptions';
@@ -33,7 +34,7 @@ export class TemplateHandler {
         delimiterSearcher.endDelimiter = this.options.delimiters.tagEnd;
         delimiterSearcher.maxXmlDepth = this.options.maxXmlDepth;
 
-        const tagParser = new TagParser(this.docxParser, this.options.delimiters);
+        const tagParser = new TagParser(this.docxParser, this.options.delimiters as Delimiters);
 
         this.compiler = new TemplateCompiler(
             delimiterSearcher,

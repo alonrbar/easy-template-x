@@ -142,13 +142,13 @@ export class TagParser {
             return;
         }
 
-        if (tagContent[0] === this.delimiters.containerTagOpen) {
+        if (tagContent.startsWith(this.delimiters.containerTagOpen)) {
             tag.disposition = TagDisposition.Open;
-            tag.name = tagContent.slice(1).trim();
+            tag.name = tagContent.slice(this.delimiters.containerTagOpen.length).trim();
 
-        } else if (tagContent[0] === this.delimiters.containerTagClose) {
+        } else if (tagContent.startsWith(this.delimiters.containerTagClose)) {
             tag.disposition = TagDisposition.Close;
-            tag.name = tagContent.slice(1).trim();
+            tag.name = tagContent.slice(this.delimiters.containerTagClose.length).trim();
 
         } else {
             tag.disposition = TagDisposition.SelfClosed;

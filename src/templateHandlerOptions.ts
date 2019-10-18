@@ -5,13 +5,13 @@ export class TemplateHandlerOptions {
 
     public plugins?: TemplatePlugin[] = createDefaultPlugins();
 
-    public defaultContentType = TEXT_CONTENT_TYPE;
+    public defaultContentType?= TEXT_CONTENT_TYPE;
 
-    public containerContentType = LOOP_CONTENT_TYPE;
+    public containerContentType?= LOOP_CONTENT_TYPE;
 
-    public delimiters?= new Delimiters();
+    public delimiters?: Partial<Delimiters> = new Delimiters();
 
-    public maxXmlDepth? = 20;
+    public maxXmlDepth?= 20;
 
     constructor(initial?: Partial<TemplateHandlerOptions>) {
         Object.assign(this, initial);

@@ -2,9 +2,15 @@
 
 ## [Unreleased](https://github.com/alonrbar/easy-template-x/tree/develop)
 
+### Changed
+
+- **BREAKING**: Delimiters can not contain leading or trailing whitespace.
+- Loosen up `TemplateHandlerOptions` typings.
+
 ### Fixed
 
 - Loop tag names trimming.
+- Custom loop delimiters support.
 
 ## [0.7.3 - 2019-10-11](https://github.com/alonrbar/easy-template-x/tree/v0.7.3)
 
