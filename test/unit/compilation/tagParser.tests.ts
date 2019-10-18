@@ -8,6 +8,69 @@ import { parseXml } from '../../testUtils';
 
 describe(nameof(TagParser), () => {
 
+    it('trims tag names', () => {
+        
+        const paragraph = parseXml(`
+            <w:p><w:r><w:t>{# my loop  }{ my tag  }{/  my loop }</w:t></w:r></w:p>
+        `, false);
+
+        const textNode = paragraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
+        expect(textNode.textContent).toEqual('{# my loop  }{ my tag  }{/  my loop }');
+        
+        const delimiters: DelimiterMark[] = [
+            {
+                isOpen: true,
+                index: 0,
+                xmlTextNode: textNode
+            },
+            {
+                isOpen: false,
+                index: 12,
+                xmlTextNode: textNode
+            },
+            {
+                isOpen: true,
+                index: 13,
+                xmlTextNode: textNode
+            },
+            {
+                isOpen: false,
+                index: 23,
+                xmlTextNode: textNode
+            },
+            {
+                isOpen: true,
+                index: 24,
+                xmlTextNode: textNode
+            },
+            {
+                isOpen: false,
+                index: 36,
+                xmlTextNode: textNode
+            }
+        ];
+
+        const parser = createTagParser();
+        const tags = parser.parse(delimiters);
+
+        expect(tags.length).toEqual(3);
+
+        // open tag
+        expect(tags[0].disposition).toEqual(TagDisposition.Open);
+        expect(tags[0].name).toEqual('my loop');
+        expect(tags[0].rawText).toEqual('{# my loop  }');
+
+        // middle tag
+        expect(tags[1].disposition).toEqual(TagDisposition.SelfClosed);
+        expect(tags[1].name).toEqual('my tag');
+        expect(tags[1].rawText).toEqual('{ my tag  }');
+
+        // close tag
+        expect(tags[2].disposition).toEqual(TagDisposition.Close);
+        expect(tags[2].name).toEqual('my loop');
+        expect(tags[2].rawText).toEqual('{/  my loop }');        
+    });
+
     it('parses correctly multiple tags on the same text node', () => {
 
         const paragraph = parseXml(`
@@ -260,7 +323,7 @@ describe(nameof(TagParser), () => {
         const tags = parser.parse(delimiters);
 
         expect(tags).toHaveLength(3);
-        
+
         expect(tags[0].disposition).toEqual(TagDisposition.Open);
         expect(tags[0].name).toEqual('loop');
         expect(tags[0].rawText).toEqual('{#loop}');
@@ -268,7 +331,7 @@ describe(nameof(TagParser), () => {
         expect(tags[1].disposition).toEqual(TagDisposition.SelfClosed);
         expect(tags[1].name).toEqual('text');
         expect(tags[1].rawText).toEqual('{text}');
-        
+
         expect(tags[2].disposition).toEqual(TagDisposition.Close);
         expect(tags[2].name).toEqual('loop');
         expect(tags[2].rawText).toEqual('{/loop}');
@@ -279,6 +342,6 @@ function createTagParser(): TagParser {
 
     const xmlParser = new XmlParser();
     const docxParser = new DocxParser(xmlParser);
-    const delimiters =  new Delimiters();
+    const delimiters = new Delimiters();
     return new TagParser(docxParser, delimiters);
 }

@@ -1,5 +1,11 @@
 # Change Log
 
+## [Unreleased](https://github.com/alonrbar/easy-template-x/tree/develop)
+
+### Fixed
+
+- Loop tag names trimming.
+
 ## [0.7.3 - 2019-10-11](https://github.com/alonrbar/easy-template-x/tree/v0.7.3)
 
 ### Added

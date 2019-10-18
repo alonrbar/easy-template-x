@@ -144,11 +144,11 @@ export class TagParser {
 
         if (tagContent[0] === this.delimiters.containerTagOpen) {
             tag.disposition = TagDisposition.Open;
-            tag.name = tagContent.slice(1);
+            tag.name = tagContent.slice(1).trim();
 
         } else if (tagContent[0] === this.delimiters.containerTagClose) {
             tag.disposition = TagDisposition.Close;
-            tag.name = tagContent.slice(1);
+            tag.name = tagContent.slice(1).trim();
 
         } else {
             tag.disposition = TagDisposition.SelfClosed;
