@@ -1,5 +1,5 @@
 import { TEXT_NODE_NAME, XmlNode, XmlNodeType, XmlParser } from 'src/xml';
-import { parseXml } from '../testUtils';
+import { parseXml } from '../../testUtils';
 
 describe(nameof(XmlNode), () => {
 
