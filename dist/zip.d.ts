@@ -1,3 +1,5 @@
+import { Binary } from './misc';
+
 export class Zip {
 
     static async load(file: Binary): Promise<Zip>;

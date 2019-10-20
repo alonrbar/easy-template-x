@@ -4,6 +4,7 @@ export * from './office';
 export * from './plugins';
 export * from './utils';
 export * from './xml';
+export * from './zip';
 export * from './delimiters';
 export * from './mimeType';
 export * from './templateData';
