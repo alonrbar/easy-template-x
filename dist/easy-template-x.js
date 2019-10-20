@@ -633,12 +633,12 @@ class TagParser {
       return;
     }
 
-    if (tagContent[0] === this.delimiters.containerTagOpen) {
+    if (tagContent.startsWith(this.delimiters.containerTagOpen)) {
       tag.disposition = _tag.TagDisposition.Open;
-      tag.name = tagContent.slice(1);
-    } else if (tagContent[0] === this.delimiters.containerTagClose) {
+      tag.name = tagContent.slice(this.delimiters.containerTagOpen.length).trim();
+    } else if (tagContent.startsWith(this.delimiters.containerTagClose)) {
       tag.disposition = _tag.TagDisposition.Close;
-      tag.name = tagContent.slice(1);
+      tag.name = tagContent.slice(this.delimiters.containerTagClose.length).trim();
     } else {
       tag.disposition = _tag.TagDisposition.SelfClosed;
       tag.name = tagContent;
@@ -813,8 +813,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.Delimiters = void 0;
 
-var _xml = __webpack_require__(/*! ./xml */ "./src/xml/index.ts");
-
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 class Delimiters {
@@ -837,8 +835,8 @@ class Delimiters {
 
     for (const key of keys) {
       const value = this[key];
-      if (!value) throw new Error(`${key} must be specified.`);
-      this[key] = _xml.XmlNode.encodeValue(value);
+      if (!value) throw new Error(`${key} can not be empty.`);
+      if (value !== value.trim()) throw new Error(`${key} can not contain leading or trailing whitespace.`);
     }
   }
 
@@ -1418,6 +1416,18 @@ Object.keys(_xml).forEach(function (key) {
     enumerable: true,
     get: function () {
       return _xml[key];
+    }
+  });
+});
+
+var _zip = __webpack_require__(/*! ./zip */ "./src/zip/index.ts");
+
+Object.keys(_zip).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _zip[key];
     }
   });
 });
@@ -3591,7 +3601,7 @@ class TemplateHandler {
    * Version number of the `easy-template-x` library.
    */
   constructor(options) {
-    _defineProperty(this, "version",  true ? "0.7.3" : undefined);
+    _defineProperty(this, "version",  true ? "0.8.0" : undefined);
 
     _defineProperty(this, "xmlParser", new _xml.XmlParser());
 
