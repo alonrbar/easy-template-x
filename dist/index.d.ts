@@ -1,6 +1,5 @@
-import { Delimiters } from './compliation';
 import { Binary } from './misc';
-import { ImageContent, LinkContent, LOOP_CONTENT_TYPE, RawXmlContent, TemplatePlugin, TEXT_CONTENT_TYPE } from './plugins';
+import { ImageContent, LinkContent, RawXmlContent, TemplatePlugin } from './plugins';
 import { Tag } from './tag';
 import { XmlNode } from './xml';
 
@@ -42,13 +41,13 @@ export class TemplateHandlerOptions {
 
     plugins?: TemplatePlugin[];
 
-    defaultContentType?= TEXT_CONTENT_TYPE;
+    defaultContentType?: string;
 
-    containerContentType?= LOOP_CONTENT_TYPE;
+    containerContentType?: string;
 
     delimiters?: Partial<Delimiters>;
 
-    maxXmlDepth?= 20;
+    maxXmlDepth?: number;
 
     constructor(initial?: Partial<TemplateHandlerOptions>);
 }

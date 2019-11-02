@@ -1,6 +1,7 @@
-import { TemplateData } from './index';
+import { Delimiters, TemplateContent, TemplateData } from './index';
 import { Docx, DocxParser } from './office';
 import { TemplatePlugin } from './plugins';
+import { Tag } from './tag';
 import { XmlNode, XmlTextNode } from './xml';
 
 export class TemplateCompiler {
@@ -41,9 +42,9 @@ export class DelimiterMark {
 
 export class DelimiterSearcher {
 
-    maxXmlDepth = 20;
-    startDelimiter = "{";
-    endDelimiter = "}";
+    maxXmlDepth: number;
+    startDelimiter: string;
+    endDelimiter: string;
 
     findDelimiters(node: XmlNode): DelimiterMark[];
 }
@@ -57,7 +58,7 @@ export class TagParser {
 
 export class ScopeData {
 
-    readonly path: (string | number)[] = [];
+    readonly path: (string | number)[];
     readonly allData: TemplateData;
 
     constructor(data: TemplateData);

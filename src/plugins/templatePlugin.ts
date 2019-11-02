@@ -15,7 +15,7 @@ export abstract class TemplatePlugin {
     /**
      * The content type this plugin handles.
      */
-    public abstract get contentType(): string;
+    public abstract readonly contentType: string;
 
     protected utilities: PluginUtilities;
 

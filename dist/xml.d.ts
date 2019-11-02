@@ -56,7 +56,7 @@ export namespace XmlNode {
     // constants
     //
 
-    export const TEXT_NODE_NAME = TEXT_NODE_NAME_VALUE;
+    export const TEXT_NODE_NAME = '#text';
 
     //
     // factories

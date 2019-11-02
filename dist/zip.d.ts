@@ -1,8 +1,8 @@
-import { Binary } from './misc';
+import { Binary, Constructor } from './misc';
 
 export class Zip {
 
-    static async load(file: Binary): Promise<Zip>;
+    static load(file: Binary): Promise<Zip>;
 
     getFile(path: string): ZipObject;
 

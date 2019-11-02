@@ -1,5 +1,5 @@
-import { ScopeData, TemplateCompiler, TemplateContext } from './compliation';
-import { MimeType } from './misc';
+import { ScopeData, TemplateCompiler, TemplateContext } from './compilation';
+import { Binary, MimeType } from './misc';
 import { DocxParser } from './office';
 import { Tag } from './tag';
 import { XmlParser } from './xml';
@@ -20,7 +20,7 @@ export abstract class TemplatePlugin {
     /**
      * The content type this plugin handles.
      */
-    abstract get contentType(): string;
+    abstract readonly contentType: string;
 
     /**
      * Called by the TemplateHandler at runtime.
@@ -51,13 +51,13 @@ export interface PluginContent {
 export const TEXT_CONTENT_TYPE = 'text';
 
 export class TextPlugin extends TemplatePlugin {
-    readonly contentType = TEXT_CONTENT_TYPE;
+    readonly contentType = 'text';
 }
 
 export const LOOP_CONTENT_TYPE = 'loop';
 
 export class LoopPlugin extends TemplatePlugin {
-    readonly contentType = LOOP_CONTENT_TYPE;
+    readonly contentType = 'loop';
 }
 
 export interface RawXmlContent extends PluginContent {

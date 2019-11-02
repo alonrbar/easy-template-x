@@ -1,4 +1,4 @@
-import { Binary, Constructor, MimeType } from './misc';
+import { Binary, Constructor, IMap, MimeType } from './misc';
 import { XmlNode, XmlParser, XmlTextNode } from './xml';
 import { Zip } from './zip';
 
