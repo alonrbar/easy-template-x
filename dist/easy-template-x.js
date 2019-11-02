@@ -3423,6 +3423,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 /* eslint-disable @typescript-eslint/member-ordering */
 class TemplatePlugin {
   constructor() {
+    _defineProperty(this, "contentType", void 0);
+
     _defineProperty(this, "utilities", void 0);
   }
 
@@ -3601,7 +3603,7 @@ class TemplateHandler {
    * Version number of the `easy-template-x` library.
    */
   constructor(options) {
-    _defineProperty(this, "version",  true ? "0.8.0" : undefined);
+    _defineProperty(this, "version",  true ? "0.8.1" : undefined);
 
     _defineProperty(this, "xmlParser", new _xml.XmlParser());
 
