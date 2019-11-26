@@ -24,7 +24,7 @@ export class LoopPlugin extends TemplatePlugin {
 
     public async containerTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): Promise<void> {
 
-        let value = data.getScopeData() as TemplateData[];
+        let value = data.getScopeData<TemplateData[]>();
 
         if (!value || !Array.isArray(value) || !value.length)
             value = [];

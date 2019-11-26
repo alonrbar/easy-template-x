@@ -24,7 +24,7 @@ export class ImagePlugin extends TemplatePlugin {
 
         const wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
 
-        const content = data.getScopeData() as ImageContent;
+        const content = data.getScopeData<ImageContent>();
         if (!content || !content.source) {
             XmlNode.remove(wordTextNode);
             return;
