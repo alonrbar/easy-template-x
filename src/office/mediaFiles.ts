@@ -1,5 +1,5 @@
 import { MimeType, MimeTypeHelper } from '../mimeType';
-import { Binary, Path, sha1 } from '../utils';
+import { Binary, Path, sha1, IMap } from '../utils';
 import { Zip } from '../zip';
 
 /**

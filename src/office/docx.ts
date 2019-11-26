@@ -1,5 +1,5 @@
 import { MalformedFileError } from '../errors';
-import { Binary } from '../utils';
+import { Binary, Constructor } from '../utils';
 import { XmlNode, XmlParser } from '../xml';
 import { Zip } from '../zip';
 import { ContentTypesFile } from './contentTypesFile';

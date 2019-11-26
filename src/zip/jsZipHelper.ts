@@ -1,6 +1,6 @@
 import * as JSZip from 'jszip';
 import { MissingArgumentError } from '../errors';
-import { Binary } from '../utils';
+import { Binary, Constructor } from '../utils';
 
 export class JsZipHelper {
 

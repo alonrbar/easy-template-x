@@ -1,6 +1,6 @@
 import { UnclosedTagError, UnknownContentTypeError } from '../errors';
 import { PluginContent, TemplatePlugin } from '../plugins';
-import { isPromiseLike, toDictionary } from '../utils';
+import { isPromiseLike, toDictionary, IMap } from '../utils';
 import { XmlNode } from '../xml';
 import { DelimiterSearcher } from './delimiterSearcher';
 import { ScopeData } from './scopeData';

@@ -3,7 +3,7 @@ import { Delimiters } from './delimiters';
 import { MalformedFileError } from './errors';
 import { Docx, DocxParser } from './office';
 import { TemplateHandlerOptions } from './templateHandlerOptions';
-import { Binary } from './utils';
+import { Binary, EASY_VERSION, Constructor } from './utils';
 import { XmlNode, XmlParser } from './xml';
 import { Zip } from './zip';
 

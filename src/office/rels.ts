@@ -1,4 +1,4 @@
-import { Path } from '../utils';
+import { Path, IMap } from '../utils';
 import { XmlGeneralNode, XmlNode, XmlParser } from '../xml';
 import { Zip } from '../zip';
 

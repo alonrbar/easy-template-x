@@ -1,5 +1,6 @@
 import { Base64 } from './base64';
 import { inheritsFrom } from './types';
+import { Constructor } from "./misc";
 
 export type Binary = Blob | Buffer | ArrayBuffer;
 

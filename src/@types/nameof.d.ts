@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable no-var */
 declare module "ts-nameof" {
     interface Api {
         (): any;
         replaceInFiles(fileNames: string[], opts?: { encoding?: string }, onFinished?: (err?: any) => void): void;
         replaceInFiles(fileNames: string[], onFinished?: (err?: any) => void): void;
-        replaceInText(fileText: string): { fileText?: string; replaced: boolean; };
+        replaceInText(fileText: string): { fileText?: string; replaced: boolean };
     }
     var func: Api;
     export = func;

@@ -3592,6 +3592,8 @@ var _office = __webpack_require__(/*! ./office */ "./src/office/index.ts");
 
 var _templateHandlerOptions = __webpack_require__(/*! ./templateHandlerOptions */ "./src/templateHandlerOptions.ts");
 
+var _utils = __webpack_require__(/*! ./utils */ "./src/utils/index.ts");
+
 var _xml = __webpack_require__(/*! ./xml */ "./src/xml/index.ts");
 
 var _zip = __webpack_require__(/*! ./zip */ "./src/zip/index.ts");
@@ -3603,7 +3605,7 @@ class TemplateHandler {
    * Version number of the `easy-template-x` library.
    */
   constructor(options) {
-    _defineProperty(this, "version",  true ? "0.8.1" : undefined);
+    _defineProperty(this, "version", typeof _utils.EASY_VERSION !== 'undefined' ? _utils.EASY_VERSION : 'null');
 
     _defineProperty(this, "xmlParser", new _xml.XmlParser());
 
@@ -4001,6 +4003,43 @@ Object.keys(_types).forEach(function (key) {
     }
   });
 });
+
+var _misc = __webpack_require__(/*! ./misc */ "./src/utils/misc.ts");
+
+Object.keys(_misc).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _misc[key];
+    }
+  });
+});
+
+/***/ }),
+
+/***/ "./src/utils/misc.ts":
+/*!***************************!*\
+  !*** ./src/utils/misc.ts ***!
+  \***************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.EASY_VERSION = void 0;
+
+/**
+ * Version number of the `easy-template-x` library.
+ */
+const EASY_VERSION = null; // eslint-disable-line
+
+exports.EASY_VERSION = EASY_VERSION;
 
 /***/ }),
 
@@ -5145,7 +5184,7 @@ exports.ZipObject = ZipObject;
 /*! ModuleConcatenation bailout: Module is not an ECMAScript module */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(/*! C:\Users\Alon\Documents\devel\easy-template-x\src\index.ts */"./src/index.ts");
+module.exports = __webpack_require__(/*! /Users/ache/easy-template-x/src/index.ts */"./src/index.ts");
 
 
 /***/ }),
