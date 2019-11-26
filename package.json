@@ -41,6 +41,7 @@
   "dependencies": {
     "jszip": "3.2.2",
     "lodash.get": "4.4.2",
+    "terser-webpack-plugin": "^2.2.1",
     "xmldom": "0.1.27"
   },
   "devDependencies": {
@@ -69,7 +70,6 @@
     "rimraf": "3.0.0",
     "source-map-support": "0.5.13",
     "typescript": "3.5.3",
-    "uglifyjs-webpack-plugin": "1.2.5",
     "webpack": "4.35.3",
     "webpack-cli": "3.3.5",
     "webpack-merge": "4.2.1",

@@ -1,16 +1,16 @@
-const merge = require('webpack-merge');
-const base = require('./webpack.base.js');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const merge = require("webpack-merge");
+const base = require("./webpack.base.js");
+const TerserPlugin = require("terser-webpack-plugin");
 
 module.exports = merge(base, {
-    mode: 'production',
+    mode: "production",
     output: {
-        filename: 'easy-template-x.min.js'
+        filename: "easy-template-x.min.js"
     },
     optimization: {
         noEmitOnErrors: true,
         minimizer: [
-            new UglifyJsPlugin({
+            new TerserPlugin({
                 parallel: true,
                 sourceMap: false
             })
