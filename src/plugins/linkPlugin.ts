@@ -14,7 +14,7 @@ export class LinkPlugin extends TemplatePlugin {
 
         const wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
 
-        const content = data.getScopeData() as LinkContent;
+        const content = data.getScopeData<LinkContent>();
         if (!content || !content.target) {
             XmlNode.remove(wordTextNode);
             return;
