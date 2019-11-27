@@ -11,7 +11,7 @@ export class ScopeData {
         this.allData = data;
     }
 
-    public getScopeData<T = TemplateContent | TemplateData[]>(): T{
+    public getScopeData<T extends TemplateContent | TemplateData[]>(): T{
         const lastKey = last(this.path);
 
         let result: any;
