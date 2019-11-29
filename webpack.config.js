@@ -5,15 +5,23 @@ const path = require('path');
 const webpack = require('webpack');
 
 const appVersion = getVersion();
+const mode = process.env.NODE_ENV;
+
+console.log(`Creating bundle. Version: ${appVersion}, Mode: ${mode}.`);
 
 module.exports = {
+    mode,
     entry: [path.resolve('./src/index.ts')],
+    devtool: 'sourcemap',
     output: {
         path: path.resolve('./dist'),
+        filename: 'easy-template-x.js',
         library: 'easy-template-x',
         libraryTarget: 'umd',
         umdNamedDefine: true,
-        globalObject: 'this'
+        globalObject: 'this',
+        devtoolModuleFilenameTemplate: '[absolute-resource-path]',
+        devtoolFallbackModuleFilenameTemplate: '[absolute-resource-path]?[hash]'
     },
     externals: [nodeExternals()],
     node: {
@@ -34,7 +42,10 @@ module.exports = {
             EASY_VERSION: JSON.stringify(appVersion)
         }),
         new webpack.optimize.ModuleConcatenationPlugin()
-    ]
+    ],
+    optimization: {
+        noEmitOnErrors: true
+    }
 };
 
 function getVersion() {

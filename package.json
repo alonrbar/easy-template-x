@@ -27,12 +27,13 @@
     "src"
   ],
   "scripts": {
-    "dev": "webpack --config webpack.dev.js --watch",
+    "dev": "cross-env NODE_ENV=development webpack --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"./{src,test}/**/!(*.d).ts\"",
     "test": "jest --verbose",
     "quality": "yarn typecheck && yarn lint && yarn test",
-    "release": "yarn quality && webpack --config webpack.dev.js && webpack --config webpack.release.js"
+    "release": "yarn quality && yarn release-build",
+    "release-build": "cross-env NODE_ENV=production webpack"
   },
   "dependencies": {
     "jszip": "3.2.2",
@@ -55,13 +56,13 @@
     "babel-jest": "24.9.0",
     "babel-loader": "8.0.6",
     "babel-plugin-ts-nameof": "0.3.0",
+    "cross-env": "6.0.3",
     "eslint": "5.16.0",
     "jest": "24.9.0",
     "jest-junit": "6.4.0",
     "jsonminify": "0.4.1",
     "lorem-ipsum": "1.0.4",
     "source-map-support": "0.5.13",
-    "terser-webpack-plugin": "2.2.1",
     "typescript": "3.5.3",
     "webpack": "4.35.3",
     "webpack-cli": "3.3.5",
