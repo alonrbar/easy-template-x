@@ -474,7 +474,7 @@ const XmlNode = {
 
   /**
    * Encode string to make it safe to use inside xml tags.
-   * 
+   *
    * https://stackoverflow.com/questions/7918868/how-to-escape-xml-entities-in-javascript
    */
   encodeValue(str) {
@@ -567,7 +567,7 @@ const XmlNode = {
       for (let i = 0; i < domNode.childNodes.length; i++) {
         // clone child
         const domChild = domNode.childNodes.item(i);
-        const curChild = this.fromDomNode(domChild); // set references                
+        const curChild = this.fromDomNode(domChild); // set references
 
         xmlNode.childNodes.push(curChild);
         curChild.parentNode = xmlNode;
@@ -689,7 +689,7 @@ const XmlNode = {
 
   /**
    * Removes the node from it's parent.
-   * 
+   *
    * * **Note**: It is more efficient to call removeChild(parent, childIndex).
    */
   remove(node) {
@@ -702,7 +702,7 @@ const XmlNode = {
 
   //
   // utility functions
-  //    
+  //
 
   /**
    * Gets the last direct child text node if it exists. Otherwise creates a
@@ -765,7 +765,7 @@ const XmlNode = {
    * Returns both nodes.
    *
    * @param root The node to split
-   * @param markerNode The node that marks the split position.      
+   * @param markerNode The node that marks the split position.
    */
   splitByChild(root, markerNode, removeMarkerNode) {
     // find the split path
@@ -844,7 +844,7 @@ const XmlNode = {
 
 /**
  * Remove a child node from it's parent. Returns the removed child.
- * 
+ *
  * * **Note:** Prefer calling with explicit index.
  */
 
@@ -903,7 +903,7 @@ function cloneNodeDeep(original) {
 
     for (const child of original.childNodes) {
       // clone child
-      const childClone = cloneNodeDeep(child); // set references                
+      const childClone = cloneNodeDeep(child); // set references
 
       clone.childNodes.push(childClone);
       childClone.parentNode = clone;
@@ -1576,7 +1576,7 @@ class ContentTypesFile {
     return this.root.childNodes.filter(node => !XmlNode.isTextNode(node)).length;
   }
   /**
-   * Save the Content Types file back to the zip.  
+   * Save the Content Types file back to the zip.
    * Called automatically by the holding `Docx` before exporting.
    */
 
@@ -1631,7 +1631,7 @@ class MediaFiles {
     // check if already added
     if (this.files.has(mediaFile)) return this.files.get(mediaFile); // hash existing media files
 
-    await this.hashMediaFiles(); // hash the new file  
+    await this.hashMediaFiles(); // hash the new file
     // Note: Even though hashing the base64 string may seem inefficient
     // (requires extra step in some cases) in practice it is significantly
     // faster than hashing a 'binarystring'.
@@ -1683,7 +1683,7 @@ class MediaFiles {
 _defineProperty(MediaFiles, "mediaDir", 'word/media');
 
 /**
- * Handles the relationship logic of a single docx "part".  
+ * Handles the relationship logic of a single docx "part".
  * http://officeopenxml.com/anatomyofOOXML.php
  */
 class Rels {
@@ -1740,7 +1740,7 @@ class Rels {
     return relId;
   }
   /**
-   * Save the rels file back to the zip.  
+   * Save the rels file back to the zip.
    * Called automatically by the holding `Docx` before exporting.
    */
 
@@ -1879,7 +1879,7 @@ class Docx {
     return await this.zip.export(outputType);
   } //
   // private methods
-  //        
+  //
 
 
   async saveChanges() {
@@ -2587,11 +2587,11 @@ const PluginContent = {
 /**
  * The TemplateCompiler works roughly the same way as a source code compiler.
  * It's main steps are:
- * 
+ *
  * 1. find delimiters (lexical analysis) :: (Document) => DelimiterMark[]
  * 2. extract tags (syntax analysis) :: (DelimiterMark[]) => Tag[]
  * 3. perform document replace (code generation) :: (Tag[], data) => Document*
- * 
+ *
  * see: https://en.wikipedia.org/wiki/Compiler
  */
 class TemplateCompiler {
@@ -2637,7 +2637,7 @@ class TemplateCompiler {
       }
 
       if (tag.disposition === exports.TagDisposition.SelfClosed) {
-        // replace simple tag                
+        // replace simple tag
         const job = plugin.simpleTagReplacements(tag, data, context);
 
         if (isPromiseLike(job)) {
@@ -2836,7 +2836,7 @@ class TemplateHandler {
    * Version number of the `easy-template-x` library.
    */
   constructor(options) {
-    _defineProperty(this, "version",  "0.8.1" );
+    _defineProperty(this, "version",  "0.8.2" );
 
     _defineProperty(this, "xmlParser", new XmlParser());
 
@@ -2869,7 +2869,7 @@ class TemplateHandler {
   async process(templateFile, data) {
     // load the docx file
     const docx = await this.loadDocx(templateFile);
-    const document = await docx.getDocument(); // process content (do replacements)        
+    const document = await docx.getDocument(); // process content (do replacements)
 
     const scopeData = new ScopeData(data);
     const context = {

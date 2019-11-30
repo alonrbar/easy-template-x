@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased](https://github.com/alonrbar/easy-template-x/tree/develop)
+## [0.8.2 - 2019-11-30](https://github.com/alonrbar/easy-template-x/tree/v0.8.2)
 
 ### Changed
 
