@@ -20,20 +20,20 @@
   "bugs": {
     "url": "https://github.com/alonrbar/easy-template-x/issues"
   },
-  "main": "dist/easy-template-x.js",
+  "main": "dist/cjs/easy-template-x.js",
+  "module": "dist/es/easy-template-x.js",
   "typings": "dist/index.d.ts",
   "files": [
     "dist",
     "src"
   ],
   "scripts": {
-    "dev": "cross-env NODE_ENV=development webpack --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"./{src,test}/**/!(*.d).ts\"",
     "test": "jest --verbose",
     "quality": "yarn typecheck && yarn lint && yarn test",
-    "release": "yarn quality && yarn release-build",
-    "release-build": "cross-env NODE_ENV=production webpack"
+    "build": "rollup -c",
+    "release": "yarn quality && yarn build"
   },
   "dependencies": {
     "jszip": "3.2.2",
@@ -47,6 +47,7 @@
     "@babel/plugin-proposal-optional-catch-binding": "7.2.0",
     "@babel/plugin-transform-modules-commonjs": "7.5.0",
     "@babel/preset-typescript": "7.3.3",
+    "@rollup/plugin-replace": "2.2.1",
     "@types/jest": "24.0.15",
     "@types/jszip": "3.1.6",
     "@types/node": "10.1.4",
@@ -56,17 +57,14 @@
     "babel-jest": "24.9.0",
     "babel-loader": "8.0.6",
     "babel-plugin-ts-nameof": "0.3.0",
-    "cross-env": "6.0.3",
     "eslint": "5.16.0",
     "jest": "24.9.0",
     "jest-junit": "6.4.0",
-    "jsonminify": "0.4.1",
     "lorem-ipsum": "1.0.4",
-    "source-map-support": "0.5.13",
-    "typescript": "3.5.3",
-    "webpack": "4.35.3",
-    "webpack-cli": "3.3.5",
-    "webpack-merge": "4.2.1",
-    "webpack-node-externals": "1.7.2"
+    "rollup": "1.27.5",
+    "rollup-plugin-auto-external": "2.0.0",
+    "rollup-plugin-babel": "4.3.3",
+    "rollup-plugin-node-resolve": "5.2.0",
+    "typescript": "3.5.3"
   }
 }
