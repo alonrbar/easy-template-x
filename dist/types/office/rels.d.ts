@@ -1,3 +1,4 @@
+import { IMap } from '../types';
 import { XmlParser } from '../xml';
 import { Zip } from '../zip';
 export declare class Rels {

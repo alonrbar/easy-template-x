@@ -1,3 +1,4 @@
+import { IMap } from '../types';
 export declare enum XmlNodeType {
     Text = "Text",
     General = "General"

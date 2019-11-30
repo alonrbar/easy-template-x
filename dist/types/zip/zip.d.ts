@@ -1,3 +1,4 @@
+import { Constructor } from '../types';
 import { Binary } from '../utils';
 import { ZipObject } from './zipObject';
 export declare class Zip {

@@ -1,9 +1,10 @@
+import { IMap } from '../types';
 import { Path } from '../utils';
 import { XmlGeneralNode, XmlNode, XmlParser } from '../xml';
 import { Zip } from '../zip';
 
 /**
- * Handles the relationship logic of a single docx "part".  
+ * Handles the relationship logic of a single docx "part".
  * http://officeopenxml.com/anatomyofOOXML.php
  */
 export class Rels {
@@ -65,7 +66,7 @@ export class Rels {
     }
 
     /**
-     * Save the rels file back to the zip.  
+     * Save the rels file back to the zip.
      * Called automatically by the holding `Docx` before exporting.
      */
     public async save(): Promise<void> {

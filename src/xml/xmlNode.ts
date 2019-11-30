@@ -1,4 +1,5 @@
 import { MissingArgumentError } from '../errors';
+import { IMap } from '../types';
 import { last } from '../utils';
 
 export enum XmlNodeType {
@@ -56,7 +57,7 @@ export const XmlNode = {
 
     /**
      * Encode string to make it safe to use inside xml tags.
-     * 
+     *
      * https://stackoverflow.com/questions/7918868/how-to-escape-xml-entities-in-javascript
      */
     encodeValue(str: string): string {
@@ -155,7 +156,7 @@ export const XmlNode = {
                 const domChild = domNode.childNodes.item(i);
                 const curChild = this.fromDomNode(domChild);
 
-                // set references                
+                // set references
                 xmlNode.childNodes.push(curChild);
                 curChild.parentNode = xmlNode;
                 if (prevChild) {
@@ -299,7 +300,7 @@ export const XmlNode = {
 
     /**
      * Removes the node from it's parent.
-     * 
+     *
      * * **Note**: It is more efficient to call removeChild(parent, childIndex).
      */
     remove(node: XmlNode): void {
@@ -316,7 +317,7 @@ export const XmlNode = {
 
     //
     // utility functions
-    //    
+    //
 
     /**
      * Gets the last direct child text node if it exists. Otherwise creates a
@@ -384,7 +385,7 @@ export const XmlNode = {
      * Returns both nodes.
      *
      * @param root The node to split
-     * @param markerNode The node that marks the split position.      
+     * @param markerNode The node that marks the split position.
      */
     splitByChild(root: XmlNode, markerNode: XmlNode, removeMarkerNode: boolean): [XmlNode, XmlNode] {
 
@@ -474,7 +475,7 @@ export const XmlNode = {
 
 /**
  * Remove a child node from it's parent. Returns the removed child.
- * 
+ *
  * * **Note:** Prefer calling with explicit index.
  */
 function removeChild(parent: XmlNode, child: XmlNode): XmlNode;
@@ -546,7 +547,7 @@ function cloneNodeDeep<T extends XmlNode>(original: T): T {
             // clone child
             const childClone = cloneNodeDeep(child);
 
-            // set references                
+            // set references
             clone.childNodes.push(childClone);
             childClone.parentNode = clone;
             if (prevChildClone) {
@@ -591,7 +592,7 @@ function recursiveRemoveEmptyTextNodes(node: XmlNode): XmlNode {
             if (child.textContent && child.textContent.match(/\S/)) {
                 node.childNodes.push(child);
             }
-            
+
             continue;
         }
         const strippedChild = recursiveRemoveEmptyTextNodes(child);

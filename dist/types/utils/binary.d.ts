@@ -1,4 +1,5 @@
 /// <reference types="node" />
+import { Constructor } from '../types';
 export declare type Binary = Blob | Buffer | ArrayBuffer;
 export declare const Binary: {
     isBlob(binary: any): binary is Blob;

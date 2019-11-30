@@ -33,9 +33,10 @@
     "lint": "eslint \"./{src,test}/**/!(*.d).ts\"",
     "test": "jest --verbose",
     "quality": "yarn typecheck && yarn lint && yarn test",
-    "build": "rollup -c",
+    "build-src": "rollup -c",
     "build-types": "tsc -p tsconfig.types.json --emitDeclarationOnly",
-    "release": "yarn clean && yarn quality && yarn build-types && yarn build"
+    "build": "yarn build-types && yarn build-src",
+    "release": "yarn clean && yarn quality && yarn build"
   },
   "dependencies": {
     "jszip": "3.2.2",

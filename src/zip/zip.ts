@@ -1,4 +1,5 @@
 import * as JSZip from 'jszip';
+import { Constructor } from '../types';
 import { Binary } from '../utils';
 import { JsZipHelper } from './jsZipHelper';
 import { ZipObject } from './zipObject';

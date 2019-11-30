@@ -1,4 +1,5 @@
 import { MalformedFileError } from '../errors';
+import { Constructor } from '../types';
 import { Binary } from '../utils';
 import { XmlNode, XmlParser } from '../xml';
 import { Zip } from '../zip';
@@ -33,7 +34,7 @@ export class Docx {
     public readonly contentTypes: ContentTypesFile;
 
     private _documentPath: string;
-    private _document: XmlNode;    
+    private _document: XmlNode;
 
     constructor(
         private readonly zip: Zip,
@@ -73,7 +74,7 @@ export class Docx {
         const domDocument = this.xmlParser.domParse(xml);
 
         return domDocument.documentElement.textContent;
-    }    
+    }
 
     public async export<T extends Binary>(outputType: Constructor<T>): Promise<T> {
         await this.saveChanges();
@@ -82,7 +83,7 @@ export class Docx {
 
     //
     // private methods
-    //        
+    //
 
     private async saveChanges() {
 

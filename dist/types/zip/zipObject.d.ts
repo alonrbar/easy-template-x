@@ -1,4 +1,5 @@
 import * as JSZip from 'jszip';
+import { Constructor } from '../types';
 import { Binary } from '../utils';
 export declare class ZipObject {
     private readonly zipObject;

@@ -4,6 +4,7 @@ import { MalformedFileError } from './errors';
 import { Docx, DocxParser } from './office';
 import { TemplateData } from './templateData';
 import { TemplateHandlerOptions } from './templateHandlerOptions';
+import { Constructor } from './types';
 import { Binary } from './utils';
 import { XmlNode, XmlParser } from './xml';
 import { Zip } from './zip';
