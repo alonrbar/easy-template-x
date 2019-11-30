@@ -22,18 +22,20 @@
   },
   "main": "dist/cjs/easy-template-x.js",
   "module": "dist/es/easy-template-x.js",
-  "typings": "dist/index.d.ts",
+  "typings": "dist/types/index.d.ts",
   "files": [
     "dist",
     "src"
   ],
   "scripts": {
+    "clean": "rimraf .tmp dist test-reports",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"./{src,test}/**/!(*.d).ts\"",
     "test": "jest --verbose",
     "quality": "yarn typecheck && yarn lint && yarn test",
     "build": "rollup -c",
-    "release": "yarn quality && yarn build"
+    "build-types": "tsc -p tsconfig.types.json --emitDeclarationOnly",
+    "release": "yarn clean && yarn quality && yarn build-types && yarn build"
   },
   "dependencies": {
     "jszip": "3.2.2",
@@ -61,6 +63,7 @@
     "jest": "24.9.0",
     "jest-junit": "6.4.0",
     "lorem-ipsum": "1.0.4",
+    "rimraf": "3.0.0",
     "rollup": "1.27.5",
     "rollup-plugin-auto-external": "2.0.0",
     "rollup-plugin-babel": "4.3.3",
