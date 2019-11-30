@@ -4,6 +4,8 @@
 
 ### Changed
 
+- `ScopeData.getScopeData` is now generic (#17).
+- The `data` argument of `TemplateHandler.process` is now strongly typed.
 - Bundle with Rollup instead of Webpack.
 - Auto generate typings.
 
