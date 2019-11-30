@@ -32,7 +32,7 @@
 
 ### Added
 
-- Link to live demo on CodeSandbox.
+- Link to [live demo](https://codesandbox.io/s/easy-template-x-demo-x4ppu?fontsize=14&module=%2Findex.ts) on CodeSandbox.
 
 ## [0.7.2 - 2019-10-10](https://github.com/alonrbar/easy-template-x/tree/v0.7.2)
 
