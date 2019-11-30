@@ -1,5 +1,11 @@
 # Change Log
 
+## [Unreleased](https://github.com/alonrbar/easy-template-x/tree/develop)
+
+### Changed
+
+- Bundle with Rollup instead of Webpack.
+
 ## [0.8.1 - 2019-11-02](https://github.com/alonrbar/easy-template-x/tree/v0.8.1)
 
 ### Fixed
