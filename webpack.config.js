@@ -40,12 +40,8 @@ module.exports = {
     plugins: [
         new webpack.DefinePlugin({
             EASY_VERSION: JSON.stringify(appVersion)
-        }),
-        new webpack.optimize.ModuleConcatenationPlugin()
-    ],
-    optimization: {
-        noEmitOnErrors: true
-    }
+        })
+    ]
 };
 
 function getVersion() {
