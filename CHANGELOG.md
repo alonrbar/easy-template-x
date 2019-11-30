@@ -5,6 +5,7 @@
 ### Changed
 
 - Bundle with Rollup instead of Webpack.
+- Auto generate typings.
 
 ## [0.8.1 - 2019-11-02](https://github.com/alonrbar/easy-template-x/tree/v0.8.1)
 
