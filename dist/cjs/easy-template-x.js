@@ -2661,9 +2661,12 @@ class TemplateCompiler {
   }
 
   detectContentType(tag, data) {
-    if (tag.disposition === exports.TagDisposition.Open || tag.disposition === exports.TagDisposition.Close) return this.containerContentType;
+    // explicit content type
     const scopeData = data.getScopeData();
-    if (PluginContent.isPluginContent(scopeData)) return scopeData._type;
+    if (PluginContent.isPluginContent(scopeData)) return scopeData._type; // implicit - loop
+
+    if (tag.disposition === exports.TagDisposition.Open || tag.disposition === exports.TagDisposition.Close) return this.containerContentType; // implicit - text
+
     return this.defaultContentType;
   }
 
