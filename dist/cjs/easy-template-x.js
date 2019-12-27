@@ -2839,7 +2839,7 @@ class TemplateHandler {
    * Version number of the `easy-template-x` library.
    */
   constructor(options) {
-    _defineProperty(this, "version",  "0.8.2" );
+    _defineProperty(this, "version",  "0.8.3" );
 
     _defineProperty(this, "xmlParser", new XmlParser());
 
