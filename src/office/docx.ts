@@ -5,6 +5,7 @@ import { Zip } from '../zip';
 import { ContentTypesFile } from './contentTypesFile';
 import { MediaFiles } from './mediaFiles';
 import { Rels } from './rels';
+import { CustomXmlFiles } from './customXmlFiles';
 
 /**
  * Represents a single docx file.
@@ -30,6 +31,7 @@ export class Docx {
 
     public readonly rels: Rels;
     public readonly mediaFiles: MediaFiles;
+    public readonly customXmlFiles: CustomXmlFiles;
     public readonly contentTypes: ContentTypesFile;
 
     private _documentPath: string;
@@ -45,6 +47,7 @@ export class Docx {
         this.rels = new Rels(this.documentPath, zip, xmlParser);
         this.mediaFiles = new MediaFiles(zip);
         this.contentTypes = new ContentTypesFile(zip, xmlParser);
+        this.customXmlFiles = new CustomXmlFiles(zip, xmlParser);
     }
 
     //
@@ -80,6 +83,10 @@ export class Docx {
         return await this.zip.export(outputType);
     }
 
+    public async getCustomXmlFiles(): Promise<Map<string, XmlNode>> {
+        return await this.customXmlFiles.loadFiles();
+    }
+
     //
     // private methods
     //        
@@ -94,5 +101,6 @@ export class Docx {
         // save other parts
         await this.rels.save();
         await this.contentTypes.save();
+        await this.customXmlFiles.save();
     }
 }

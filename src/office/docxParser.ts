@@ -29,6 +29,11 @@ export class DocxParser {
     public static readonly PARAGRAPH_PROPERTIES_NODE = 'w:pPr';
     public static readonly RUN_NODE = 'w:r';
     public static readonly RUN_PROPERTIES_NODE = 'w:rPr';
+    public static readonly STRUCTURED_DOCUMENT_TAG_NODE = 'w:sdt';
+    public static readonly STRUCTURED_DOCUMENT_TAG_CONTENT_NODE = 'w:sdtContent';
+    public static readonly STRUCTURED_DOCUMENT_TAG_PROPERTIES_NODE = 'w:sdtPr';
+    public static readonly ID_NODE = 'w:id';
+    public static readonly VALUE_ATTRIBUTE = 'w:val';
     public static readonly TEXT_NODE = 'w:t';
     public static readonly TABLE_ROW_NODE = 'w:tr';
     public static readonly TABLE_CELL_NODE = 'w:tc';
@@ -210,6 +215,10 @@ export class DocxParser {
 
     public isTextNode(node: XmlNode): boolean {
         return node.nodeName === DocxParser.TEXT_NODE;
+    }
+
+    public isStructuredDocumentTagNode(node: XmlNode): boolean {
+        return node.nodeName === DocxParser.STRUCTURED_DOCUMENT_TAG_NODE;
     }
 
     public isTableCellNode(node: XmlNode): boolean {

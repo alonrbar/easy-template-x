@@ -46,7 +46,7 @@
     "@babel/plugin-proposal-optional-catch-binding": "7.2.0",
     "@babel/plugin-transform-modules-commonjs": "7.5.0",
     "@babel/preset-typescript": "7.3.3",
-    "@types/jest": "24.0.15",
+    "@types/jest": "^24.0.25",
     "@types/jszip": "3.1.6",
     "@types/node": "10.1.4",
     "@types/xmldom": "0.1.29",
