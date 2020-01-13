@@ -27,25 +27,25 @@ Generate docx documents from templates, in Node or in the browser.
 ## Node Example
 
 ```typescript
-import * as fs from 'fs';
-import { TemplateHandler } from 'easy-template-x';
+import * as fs from "fs";
+import { TemplateHandler } from "easy-template-x";
 
 // 1. read template file
-const templateFile = fs.readFileSync('myTemplate.docx');
+const templateFile = fs.readFileSync("myTemplate.docx");
 
 // 2. process the template
 const data = {
-    posts: [
-        { author: 'Alon Bar', text: 'Very important\ntext here!' },
-        { author: 'Alon Bar', text: 'Forgot to mention that...' }
-    ]
+  posts: [
+    { author: "Alon Bar", text: "Very important\ntext here!" },
+    { author: "Alon Bar", text: "Forgot to mention that..." }
+  ]
 };
 
 const handler = new TemplateHandler();
 const doc = await handler.process(templateFile, data);
 
 // 3. save output
-fs.writeFileSync('myTemplate - output.docx', doc);
+fs.writeFileSync("myTemplate - output.docx", doc);
 ```
 
 Input:
@@ -62,52 +62,51 @@ The following example produces the same output while running in the browser.
 Notice that the actual template processing (step 2) is exactly the same as in the previous Node example.
 
 ```typescript
-import { TemplateHandler } from 'easy-template-x';
+import { TemplateHandler } from "easy-template-x";
 
 // 1. read template file
 
-// (in this example we're loading the template by performing  
-//  an AJAX call using the fetch API, another common way to  
+// (in this example we're loading the template by performing
+//  an AJAX call using the fetch API, another common way to
 //  get your hand on a Blob is to use an HTML File Input)
-const response = await fetch('http://somewhere.com/myTemplate.docx');
+const response = await fetch("http://somewhere.com/myTemplate.docx");
 const templateFile = await response.blob();
 
 // 2. process the template
 const data = {
-    posts: [
-        { author: 'Alon Bar', text: 'Very important\ntext here!' },
-        { author: 'Alon Bar', text: 'Forgot to mention that...' }
-    ]
+  posts: [
+    { author: "Alon Bar", text: "Very important\ntext here!" },
+    { author: "Alon Bar", text: "Forgot to mention that..." }
+  ]
 };
 
 const handler = new TemplateHandler();
 const doc = await handler.process(templateFile, data);
 
 // 3. save output
-saveFile('myTemplate - output.docx', doc);
+saveFile("myTemplate - output.docx", doc);
 
 function saveFile(filename, blob) {
+  // see: https://stackoverflow.com/questions/19327749/javascript-blob-filename-without-link
 
-    // see: https://stackoverflow.com/questions/19327749/javascript-blob-filename-without-link
+  // get downloadable url from the blob
+  const blobUrl = URL.createObjectURL(blob);
 
-    // get downloadable url from the blob
-    const blobUrl = URL.createObjectURL(blob);
+  // create temp link element
+  let link = document.createElement("a");
+  link.download = filename;
+  link.href = blobUrl;
 
-    // create temp link element
-    let link = document.createElement("a");
-    link.download = filename;
-    link.href = blobUrl;
+  // use the link to invoke a download
+  document.body.appendChild(link);
+  link.click();
 
-    // use the link to invoke a download
-    document.body.appendChild(link);
-    link.click();
-
-    // remove the link
-    setTimeout(() => {
-        link.remove();
-        window.URL.revokeObjectURL(blobUrl);
-        link = null;
-    }, 0);
+  // remove the link
+  setTimeout(() => {
+    link.remove();
+    window.URL.revokeObjectURL(blobUrl);
+    link = null;
+  }, 0);
 }
 ```
 
@@ -137,8 +136,8 @@ Input data:
 
 ```json
 {
-    "First Tag": "Quis et ducimus voluptatum\nipsam id.",
-    "Second Tag": "Dolorem sit voluptas magni dolorem molestias."
+  "First Tag": "Quis et ducimus voluptatum\nipsam id.",
+  "Second Tag": "Dolorem sit voluptas magni dolorem molestias."
 }
 ```
 
@@ -160,11 +159,11 @@ Input data:
 
 ```json
 {
-    "Beers": [
-        { "Brand": "Carlsberg", "Price": 1 },
-        { "Brand": "Leaf Blonde", "Price": 2 },
-        { "Brand": "Weihenstephan", "Price": 1.5 }
-    ]
+  "Beers": [
+    { "Brand": "Carlsberg", "Price": 1 },
+    { "Brand": "Leaf Blonde", "Price": 2 },
+    { "Brand": "Weihenstephan", "Price": 1.5 }
+  ]
 }
 ```
 
@@ -299,31 +298,30 @@ Example plugin implementation ([source](./src/plugins/rawXmlPlugin.ts)):
  * A plugin that inserts raw xml to the document.
  */
 export class RawXmlPlugin extends TemplatePlugin {
+  // Declare the unique "content type" this plugin handles
+  public readonly contentType = "rawXml";
 
-    // Declare the unique "content type" this plugin handles
-    public readonly contentType = 'rawXml';
+  // Plugin logic goes here:
+  public simpleTagReplacements(tag: Tag, data: ScopeData): void {
+    // Tag.xmlTextNode always reference the actual xml text node.
+    // In MS Word each text node is wrapped by a <w:t> node so we retrieve that.
+    const wordTextNode = this.utilities.docxParser.containingTextNode(
+      tag.xmlTextNode
+    );
 
-    // Plugin logic goes here:
-    public simpleTagReplacements(tag: Tag, data: ScopeData): void {
-
-        // Tag.xmlTextNode always reference the actual xml text node.
-        // In MS Word each text node is wrapped by a <w:t> node so we retrieve that.
-        const wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
-
-        // Get the value to use from the input data.
-        const value = data.getScopeData() as RawXmlContent;
-        if (value && typeof value.xml === 'string') {
-
-            // If it contains a "xml" string property parse it and insert.
-            const newNode = this.utilities.xmlParser.parse(value.xml);
-            XmlNode.insertBefore(newNode, wordTextNode);
-        }
-
-        // Remove the placeholder node.
-        // We can be sure that only the placeholder is removed since easy-template-x
-        // makes sure that each tag is isolated into it's own separate <w:t> node.
-        XmlNode.remove(wordTextNode);
+    // Get the value to use from the input data.
+    const value = data.getScopeData() as RawXmlContent;
+    if (value && typeof value.xml === "string") {
+      // If it contains a "xml" string property parse it and insert.
+      const newNode = this.utilities.xmlParser.parse(value.xml);
+      XmlNode.insertBefore(newNode, wordTextNode);
     }
+
+    // Remove the placeholder node.
+    // We can be sure that only the placeholder is removed since easy-template-x
+    // makes sure that each tag is isolated into it's own separate <w:t> node.
+    XmlNode.remove(wordTextNode);
+  }
 }
 ```
 
@@ -331,8 +329,8 @@ The content type that this plugin expects to see is:
 
 ```typescript
 export interface RawXmlContent extends PluginContent {
-    _type: 'rawXml';
-    xml: string;
+  _type: "rawXml";
+  xml: string;
 }
 ```
 
@@ -344,6 +342,98 @@ checkout the [typings](./dist/index.d.ts) file. Do note however that while the
 advanced API is mostly documented in the typings file it's still considered an
 internal implementation detail and may break between minor versions, use at your
 own risk.
+
+## Extensions
+
+Although most document manipulation can be achieved by using plugins, developing your
+own if required there are some that cannot.
+
+- [Content Controls](http://www.datypic.com/sc/ooxml/e-w_sdtContent-2.html) have highly formatted XML that does not look like text
+- [Data Binding](https://blogs.msdn.microsoft.com/modonovan/2006/05/22/word-2007-content-controls-and-xml-part-1-the-basics/) stores its data in files other than the base word files.
+
+In order to extend document processing you can specify extensions that will be run after the standard template processing.
+
+By default no extensions will be loaded.
+
+To specify the desired extensions, the order they run in and the extension specific plugins they will use use TemplateHandlerOptions.
+
+```typescript
+const handler = new TemplateHandler(
+  new TemplateHandlerOptions({
+    extensions: [
+      new ContentControlExtension(createDefaultContentControlPlugins()),
+      new DataBindingExtension(createDefaultDataBindingPlugins())
+    ]
+  });
+);
+```
+
+### Content Control Extension
+
+To populate content controls which are not bound to internal custom XML then the content control extension can be invoked
+
+```typescript
+const handler = new TemplateHandler(
+  new TemplateHandlerOptions({
+    extensions: [
+      new ContentControlExtension(createDefaultContentControlPlugins())
+    ]
+  })
+);
+```
+
+Not all content controls are supported currently, those that are have a specific plugin available for them.
+
+- _Building Block Content Control_, not supported
+- **Check Box Content Control**, supported by the ContentControlCheckBoxPlugin
+- _Combo Box Content Control_, not supported
+- **Date Picker Content Control**, supported by the ContentControlDatePickerPlugin
+- _Drop Down List Content Control_, not supported
+- _Legacy Tools Content Control_, not supported
+- _Picture Content Control_, not supported
+- _Repeating Section Content Control_, not supported
+- **Plain Text Content Control**, supported by the ContentControlPlainTextPlugin
+- **Rich Text Content Control**, supported by the ContentControlRichTextPlugin
+
+Please feel free to implement plugins for the currently unsupported ones.
+
+Each content control will have a unique ID associated with it that can be determined by examinging the OOXML word/document.xml file.
+To find the ID look for <w:sdt> tags and find the <w:sdtPr>
+
+Each plugin has a corresponding Content object that should be instantiated to pass data to it.
+
+For an example of how to format the data see [test\integration\contentControl\contentControl.tests.ts].
+
+### Data Binding Extension
+
+To populate bound data, i.e. stored internally in teh Word document as an XML document in its own right then the data binding extension can be invoked
+
+```typescript
+const handler = new TemplateHandler(
+  new TemplateHandlerOptions({
+    extensions: [new DataBindingExtension(createDefaultDataBindingPlugins())]
+  })
+);
+```
+
+Unlike content controls data that is bound does not have different explicit types, it is all stored as text.
+However to assist in validating data different plugins are supported, in all cases the text plugin can be used.
+
+- **Boolean**, supported by the DataBindingBooleanPlugin
+- **Date**, supported by the DataBindingDatePlugin
+- **Text**, supported by the DataBindingTextPlugin
+
+Please feel free to implement plugins for other data types.
+
+The data is stored in the /CustomXml/itemX.xml in the OOXML document.
+
+Each piece of bound data can be uniquely identified by the XML path from its root.
+
+Use the XML path to the XML tag used to store the data as its identifier.
+
+Currently namespaces and duplicate tag names are not supported.
+
+For an example of how to format the data see [test\integration\dataBinding\dataBinding.tests.ts].
 
 ## Supported Binary Formats
 
