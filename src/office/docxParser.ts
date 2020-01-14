@@ -30,7 +30,7 @@ export class DocxParser {
     public static readonly RUN_PROPERTIES_NODE = "w:rPr";
     public static readonly STRUCTURED_DOCUMENT_TAG_NODE = "w:sdt";
     public static readonly STRUCTURED_DOCUMENT_TAG_CONTENT_NODE =
-        "w:sdtContent";
+    "w:sdtContent";
     public static readonly STRUCTURED_DOCUMENT_TAG_PROPERTIES_NODE = "w:sdtPr";
     public static readonly ID_NODE = "w:id";
     public static readonly VALUE_ATTRIBUTE = "w:val";

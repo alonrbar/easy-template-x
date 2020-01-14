@@ -1,6 +1,6 @@
 import {
-  DataBindingBooleanPlugin,
-  DataBindingBooleanContent
+    DataBindingBooleanPlugin,
+    DataBindingBooleanContent
 } from "../../../src/extensions/dataBindingExtension";
 import { XmlParser, XmlNode } from "../../../src/xml";
 
@@ -18,37 +18,37 @@ const rootNode = xmlParser.parse(`
 </Data>`);
 
 describe(nameof(DataBindingBooleanPlugin), () => {
-  describe.each(["Closed", "Open", "Full"])(
-    "setting $1 tag values",
-    nodeName => {
-      it("sets the value", () => {
-        const content: DataBindingBooleanContent = {
-          _type: "boolean",
-          value: true
-        };
+    describe.each(["Closed", "Open", "Full"])(
+        "setting $1 tag values",
+        nodeName => {
+            it("sets the value", () => {
+                const content: DataBindingBooleanContent = {
+                    _type: "boolean",
+                    value: true
+                };
 
-        const plugin: DataBindingBooleanPlugin = getPlugin(xmlParser);
+                const plugin: DataBindingBooleanPlugin = getPlugin(xmlParser);
 
-        const node: XmlNode = XmlNode.findChildByName(rootNode, nodeName);
+                const node: XmlNode = XmlNode.findChildByName(rootNode, nodeName);
 
-        plugin.setNodeContents(node, content);
+                plugin.setNodeContents(node, content);
 
-        expect(xmlParser.serialize(node)).toEqual(
-          `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><${nodeName}>true</${nodeName}>`
-        );
-      });
-    }
-  );
+                expect(xmlParser.serialize(node)).toEqual(
+                    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><${nodeName}>true</${nodeName}>`
+                );
+            });
+        }
+    );
 });
 
 function getPlugin(xmlParser: XmlParser): DataBindingBooleanPlugin {
-  const plugin = new DataBindingBooleanPlugin();
+    const plugin = new DataBindingBooleanPlugin();
 
-  plugin.setUtilities({
-    compiler: null,
-    docxParser: null,
-    xmlParser: xmlParser
-  });
+    plugin.setUtilities({
+        compiler: null,
+        docxParser: null,
+        xmlParser: xmlParser
+    });
 
-  return plugin;
+    return plugin;
 }

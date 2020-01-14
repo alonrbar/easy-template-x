@@ -50,7 +50,7 @@ export class CustomXmlFiles {
 
             const fileData: string = await this.zip.getFile(path).getContentText();
             const node: XmlNode = this.xmlParser.parse(fileData);
-            this.files.set(path, node)
+            this.files.set(path, node);
         }
 
         this.loaded = true;

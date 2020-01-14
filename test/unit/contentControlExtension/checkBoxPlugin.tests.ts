@@ -1,110 +1,110 @@
 import {
-  ContentControlCheckBoxPlugin,
-  ContentControlCheckBoxContent
+    ContentControlCheckBoxPlugin,
+    ContentControlCheckBoxContent
 } from "../../../src/extensions/contentControlExtension";
 import { XmlParser, XmlNode } from "../../../src/xml";
 import { DocxParser } from "src";
 
 describe(nameof(ContentControlCheckBoxPlugin), () => {
-  it("checks a checked check box", () => {
-    const xmlParser: XmlParser = new XmlParser();
-    const initialState: XmlNode = getState(xmlParser, 1, "☒");
-    const expectedState: XmlNode = getState(xmlParser, 1, "☒");
-    const content: ContentControlCheckBoxContent = {
-      _type: "checkBox",
-      checked: true
-    };
+    it("checks a checked check box", () => {
+        const xmlParser: XmlParser = new XmlParser();
+        const initialState: XmlNode = getState(xmlParser, 1, "☒");
+        const expectedState: XmlNode = getState(xmlParser, 1, "☒");
+        const content: ContentControlCheckBoxContent = {
+            _type: "checkBox",
+            checked: true
+        };
 
-    const plugin: ContentControlCheckBoxPlugin = getPlugin(xmlParser);
+        const plugin: ContentControlCheckBoxPlugin = getPlugin(xmlParser);
 
-    const structuredDocumentTagNode = XmlNode.findChildByName(
-      initialState,
-      DocxParser.STRUCTURED_DOCUMENT_TAG_NODE
-    );
+        const structuredDocumentTagNode = XmlNode.findChildByName(
+            initialState,
+            DocxParser.STRUCTURED_DOCUMENT_TAG_NODE
+        );
 
-    plugin.setNodeContents(structuredDocumentTagNode, content);
+        plugin.setNodeContents(structuredDocumentTagNode, content);
 
-    expect(xmlParser.serialize(initialState)).toEqual(
-      xmlParser.serialize(expectedState)
-    );
-  });
+        expect(xmlParser.serialize(initialState)).toEqual(
+            xmlParser.serialize(expectedState)
+        );
+    });
 
-  it("checks an unchecked check box", () => {
-    const xmlParser: XmlParser = new XmlParser();
-    const initialState: XmlNode = getState(xmlParser, 0, "☐");
-    const expectedState: XmlNode = getState(xmlParser, 1, "☒");
-    const content: ContentControlCheckBoxContent = {
-      _type: "checkBox",
-      checked: true
-    };
+    it("checks an unchecked check box", () => {
+        const xmlParser: XmlParser = new XmlParser();
+        const initialState: XmlNode = getState(xmlParser, 0, "☐");
+        const expectedState: XmlNode = getState(xmlParser, 1, "☒");
+        const content: ContentControlCheckBoxContent = {
+            _type: "checkBox",
+            checked: true
+        };
 
-    const plugin: ContentControlCheckBoxPlugin = getPlugin(xmlParser);
+        const plugin: ContentControlCheckBoxPlugin = getPlugin(xmlParser);
 
-    const structuredDocumentTagNode = XmlNode.findChildByName(
-      initialState,
-      DocxParser.STRUCTURED_DOCUMENT_TAG_NODE
-    );
+        const structuredDocumentTagNode = XmlNode.findChildByName(
+            initialState,
+            DocxParser.STRUCTURED_DOCUMENT_TAG_NODE
+        );
 
-    plugin.setNodeContents(structuredDocumentTagNode, content);
+        plugin.setNodeContents(structuredDocumentTagNode, content);
 
-    expect(xmlParser.serialize(initialState)).toEqual(
-      xmlParser.serialize(expectedState)
-    );
-  });
+        expect(xmlParser.serialize(initialState)).toEqual(
+            xmlParser.serialize(expectedState)
+        );
+    });
 
-  it("unchecks a checked check box", () => {
-    const xmlParser: XmlParser = new XmlParser();
-    const initialState: XmlNode = getState(xmlParser, 1, "☒");
-    const expectedState: XmlNode = getState(xmlParser, 0, "☐");
-    const content: ContentControlCheckBoxContent = {
-      _type: "checkBox",
-      checked: false
-    };
+    it("unchecks a checked check box", () => {
+        const xmlParser: XmlParser = new XmlParser();
+        const initialState: XmlNode = getState(xmlParser, 1, "☒");
+        const expectedState: XmlNode = getState(xmlParser, 0, "☐");
+        const content: ContentControlCheckBoxContent = {
+            _type: "checkBox",
+            checked: false
+        };
 
-    const plugin: ContentControlCheckBoxPlugin = getPlugin(xmlParser);
+        const plugin: ContentControlCheckBoxPlugin = getPlugin(xmlParser);
 
-    const structuredDocumentTagNode = XmlNode.findChildByName(
-      initialState,
-      DocxParser.STRUCTURED_DOCUMENT_TAG_NODE
-    );
+        const structuredDocumentTagNode = XmlNode.findChildByName(
+            initialState,
+            DocxParser.STRUCTURED_DOCUMENT_TAG_NODE
+        );
 
-    plugin.setNodeContents(structuredDocumentTagNode, content);
+        plugin.setNodeContents(structuredDocumentTagNode, content);
 
-    expect(xmlParser.serialize(initialState)).toEqual(
-      xmlParser.serialize(expectedState)
-    );
-  });
+        expect(xmlParser.serialize(initialState)).toEqual(
+            xmlParser.serialize(expectedState)
+        );
+    });
 
-  it("unchecks an unchecked check box", () => {
-    const xmlParser: XmlParser = new XmlParser();
-    const initialState: XmlNode = getState(xmlParser, 0, "☐");
-    const expectedState: XmlNode = getState(xmlParser, 0, "☐");
-    const content: ContentControlCheckBoxContent = {
-      _type: "checkBox",
-      checked: false
-    };
+    it("unchecks an unchecked check box", () => {
+        const xmlParser: XmlParser = new XmlParser();
+        const initialState: XmlNode = getState(xmlParser, 0, "☐");
+        const expectedState: XmlNode = getState(xmlParser, 0, "☐");
+        const content: ContentControlCheckBoxContent = {
+            _type: "checkBox",
+            checked: false
+        };
 
-    const plugin: ContentControlCheckBoxPlugin = getPlugin(xmlParser);
+        const plugin: ContentControlCheckBoxPlugin = getPlugin(xmlParser);
 
-    const structuredDocumentTagNode = XmlNode.findChildByName(
-      initialState,
-      DocxParser.STRUCTURED_DOCUMENT_TAG_NODE
-    );
+        const structuredDocumentTagNode = XmlNode.findChildByName(
+            initialState,
+            DocxParser.STRUCTURED_DOCUMENT_TAG_NODE
+        );
 
-    plugin.setNodeContents(structuredDocumentTagNode, content);
+        plugin.setNodeContents(structuredDocumentTagNode, content);
 
-    expect(xmlParser.serialize(initialState)).toEqual(
-      xmlParser.serialize(expectedState)
-    );
-  });
+        expect(xmlParser.serialize(initialState)).toEqual(
+            xmlParser.serialize(expectedState)
+        );
+    });
 });
 
 function getState(
-  xmlParser: XmlParser,
-  val: number,
-  character: string
+    xmlParser: XmlParser,
+    val: number,
+    character: string
 ): XmlNode {
-  return xmlParser.parse(`                    
+    return xmlParser.parse(`                    
     <w:p w14:paraId="1FB98982" w14:textId="340DB12D" w:rsidR="000F0D29" w:rsidRPr="002B620F" w:rsidRDefault="00E37889" w:rsidP="007E487F">
         <w:pPr>
             <w:rPr>
@@ -159,12 +159,12 @@ function getState(
 }
 
 function getPlugin(xmlParser: XmlParser): ContentControlCheckBoxPlugin {
-  const plugin = new ContentControlCheckBoxPlugin();
-  plugin.setUtilities({
-    compiler: null,
-    docxParser: null,
-    xmlParser: xmlParser
-  });
+    const plugin = new ContentControlCheckBoxPlugin();
+    plugin.setUtilities({
+        compiler: null,
+        docxParser: null,
+        xmlParser: xmlParser
+    });
 
-  return plugin;
+    return plugin;
 }

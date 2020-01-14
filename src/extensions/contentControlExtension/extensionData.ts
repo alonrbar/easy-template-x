@@ -25,5 +25,5 @@ export type ExtensionContent = PrimitiveTemplateContent | PluginTemplateContent;
 //
 
 export interface ExtensionData {
-  [tagName: string]: ExtensionContent;
+    [tagName: string]: ExtensionContent;
 }

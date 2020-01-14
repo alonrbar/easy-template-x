@@ -1,16 +1,16 @@
 import {
-  ContentControlCheckBoxPlugin,
-  ContentControlDatePickerPlugin,
-  ContentControlPlainTextPlugin,
-  ContentControlRichTextPlugin,
-  ContentControlTemplatePlugin
+    ContentControlCheckBoxPlugin,
+    ContentControlDatePickerPlugin,
+    ContentControlPlainTextPlugin,
+    ContentControlRichTextPlugin,
+    ContentControlTemplatePlugin
 } from ".";
 
 export function createDefaultContentControlPlugins(): ContentControlTemplatePlugin[] {
-  return [
-    new ContentControlCheckBoxPlugin(),
-    new ContentControlDatePickerPlugin(),
-    new ContentControlPlainTextPlugin(),
-    new ContentControlRichTextPlugin()
-  ];
+    return [
+        new ContentControlCheckBoxPlugin(),
+        new ContentControlDatePickerPlugin(),
+        new ContentControlPlainTextPlugin(),
+        new ContentControlRichTextPlugin()
+    ];
 }

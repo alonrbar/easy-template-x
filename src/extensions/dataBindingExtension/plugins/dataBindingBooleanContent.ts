@@ -1,6 +1,6 @@
 import { DataBindingPluginContent } from "./dataBindingPluginContent";
 
 export interface DataBindingBooleanContent extends DataBindingPluginContent {
-  _type: "boolean";
-  value: boolean;
+    _type: "boolean";
+    value: boolean;
 }

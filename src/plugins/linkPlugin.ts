@@ -6,7 +6,7 @@ import { TemplatePlugin } from "./templatePlugin";
 
 export class LinkPlugin extends TemplatePlugin {
     private static readonly linkRelType =
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink";
+    "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink";
 
     public readonly contentType = "link";
 

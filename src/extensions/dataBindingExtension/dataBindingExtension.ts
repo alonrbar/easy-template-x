@@ -9,55 +9,55 @@ import { first } from "../../utils";
 /* eslint-disable @typescript-eslint/member-ordering */
 
 export class DataBindingExtension extends TemplateExtension {
-  protected utilities: IExtensionUtilities;
+    protected utilities: IExtensionUtilities;
 
-  public async getXmlDocuments(
-    templateContext: TemplateContext
-  ): Promise<Map<string, XmlNode>> {
-    return await templateContext.docx.getCustomXmlFiles();
-  }
-
-  public updateNode(node: XmlGeneralNode, data: ScopeData): void {
-    this.utilities.docxParser;
-
-    const value: string = XmlNode.getPath(node);
-
-    const content = data.allData[value] as DataBindingPluginContent;
-    if (!content) {
-      return;
+    public async getXmlDocuments(
+        templateContext: TemplateContext
+    ): Promise<Map<string, XmlNode>> {
+        return await templateContext.docx.getCustomXmlFiles();
     }
 
-    const contentType = content._type;
+    public updateNode(node: XmlGeneralNode, data: ScopeData): void {
+        this.utilities.docxParser;
 
-    const plugin = this.pluginsLookup[contentType];
-    if (!plugin) {
-      throw new UnknownContentTypeError(
-        contentType,
-        value,
-        data.path.join(".")
-      );
+        const value: string = XmlNode.getPath(node);
+
+        const content = data.allData[value] as DataBindingPluginContent;
+        if (!content) {
+            return;
+        }
+
+        const contentType = content._type;
+
+        const plugin = this.pluginsLookup[contentType];
+        if (!plugin) {
+            throw new UnknownContentTypeError(
+                contentType,
+                value,
+                data.path.join(".")
+            );
+        }
+
+        plugin.setNodeContents(node, content);
     }
 
-    plugin.setNodeContents(node, content);
-  }
+    public isMatch(node: XmlNode): boolean {
+        if (node.nodeType === XmlNodeType.Text) {
+            return false;
+        }
 
-  public isMatch(node: XmlNode): boolean {
-    if (node.nodeType === XmlNodeType.Text) {
-      return false;
+        if (!node.childNodes) {
+            return true;
+        }
+
+        if (node.childNodes.length === 0) {
+            return true;
+        }
+
+        if (first(node.childNodes).nodeType === XmlNodeType.Text) {
+            return true;
+        }
+
+        return false;
     }
-
-    if (!node.childNodes) {
-      return true;
-    }
-
-    if (node.childNodes.length === 0) {
-      return true;
-    }
-
-    if (first(node.childNodes).nodeType === XmlNodeType.Text) {
-      return true;
-    }
-
-    return false;
-  }
 }
