@@ -1,5 +1,5 @@
 import { TemplateContext, ScopeData } from "../compilation";
-import { ITemplateExtension } from "./InterTemplateExtension";
+import { ITemplateExtension } from "./ITemplateExtension";
 import { IExtensionUtilities } from "./IExtensionUtilities";
 import { XmlDepthTracker, XmlNode } from "../xml";
 import { toDictionary } from "../utils";

@@ -1,5 +1,5 @@
 export * from "./IExtensionUtilities";
-export * from "./InterTemplateExtension";
+export * from "./ITemplateExtension";
 export * from "./ITemplatePlugin";
 export * from "./contentControlExtension";
 export * from "./defaultExtensions";
