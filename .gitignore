@@ -2,6 +2,7 @@
 /.vscode
 /node_modules
 /out
+/temp
 /test-reports
 npm-debug.log*
 yarn-debug.log*

@@ -1,8 +1,8 @@
-import { DataBindingContent } from './plugins';
+import { DataBindingPluginContent } from "./plugins/dataBindingPluginContent";
 
 export type PrimitiveTemplateContent = string | number | boolean;
 
-export type PluginTemplateContent = DataBindingContent;
+export type PluginTemplateContent = DataBindingPluginContent;
 
 export type ExtensionContent = PrimitiveTemplateContent | PluginTemplateContent;
 
