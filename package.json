@@ -46,7 +46,8 @@
     "@babel/plugin-proposal-optional-catch-binding": "7.2.0",
     "@babel/plugin-transform-modules-commonjs": "7.5.0",
     "@babel/preset-typescript": "7.3.3",
-    "@types/jest": "^24.0.25",
+    "@rollup/plugin-replace": "2.2.1",
+    "@types/jest": "24.0.15",
     "@types/jszip": "3.1.6",
     "@types/node": "10.1.4",
     "@types/xmldom": "0.1.29",
@@ -58,14 +59,12 @@
     "eslint": "5.16.0",
     "jest": "24.9.0",
     "jest-junit": "6.4.0",
-    "jsonminify": "0.4.1",
     "lorem-ipsum": "1.0.4",
-    "source-map-support": "0.5.13",
-    "typescript": "3.5.3",
-    "uglifyjs-webpack-plugin": "1.2.5",
-    "webpack": "4.35.3",
-    "webpack-cli": "3.3.5",
-    "webpack-merge": "4.2.1",
-    "webpack-node-externals": "1.7.2"
+    "rimraf": "3.0.0",
+    "rollup": "1.27.5",
+    "rollup-plugin-auto-external": "2.0.0",
+    "rollup-plugin-babel": "4.3.3",
+    "rollup-plugin-node-resolve": "5.2.0",
+    "typescript": "3.5.3"
   }
 }
