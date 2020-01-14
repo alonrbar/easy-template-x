@@ -1,17 +1,24 @@
-import { Delimiters } from './delimiters';
-import { createDefaultPlugins, LOOP_CONTENT_TYPE, TemplatePlugin, TEXT_CONTENT_TYPE } from './plugins';
+import { Delimiters } from "./delimiters";
+import {
+    createDefaultPlugins,
+    LOOP_CONTENT_TYPE,
+    TemplatePlugin,
+    TEXT_CONTENT_TYPE
+} from "./plugins";
+import { createDefaultExtensions, ITemplateExtension } from "./extensions";
 
 export class TemplateHandlerOptions {
-
     public plugins?: TemplatePlugin[] = createDefaultPlugins();
 
-    public defaultContentType?= TEXT_CONTENT_TYPE;
+    public extensions?: ITemplateExtension[] = createDefaultExtensions();
 
-    public containerContentType?= LOOP_CONTENT_TYPE;
+    public defaultContentType? = TEXT_CONTENT_TYPE;
+
+    public containerContentType? = LOOP_CONTENT_TYPE;
 
     public delimiters?: Partial<Delimiters> = new Delimiters();
 
-    public maxXmlDepth?= 20;
+    public maxXmlDepth? = 20;
 
     constructor(initial?: Partial<TemplateHandlerOptions>) {
         Object.assign(this, initial);
@@ -21,7 +28,7 @@ export class TemplateHandlerOptions {
         }
 
         if (!this.plugins.length) {
-            throw new Error('Plugins list can not be empty');
+            throw new Error("Plugins list can not be empty");
         }
     }
 }

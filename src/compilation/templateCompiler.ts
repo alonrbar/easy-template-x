@@ -1,5 +1,6 @@
 import { UnclosedTagError, UnknownContentTypeError } from '../errors';
 import { PluginContent, TemplatePlugin } from '../plugins';
+import { IMap } from '../types';
 import { isPromiseLike, toDictionary } from '../utils';
 import { XmlNode } from '../xml';
 import { DelimiterSearcher } from './delimiterSearcher';
@@ -11,11 +12,11 @@ import { TemplateContext } from './templateContext';
 /**
  * The TemplateCompiler works roughly the same way as a source code compiler.
  * It's main steps are:
- * 
+ *
  * 1. find delimiters (lexical analysis) :: (Document) => DelimiterMark[]
  * 2. extract tags (syntax analysis) :: (DelimiterMark[]) => Tag[]
  * 3. perform document replace (code generation) :: (Tag[], data) => Document*
- * 
+ *
  * see: https://en.wikipedia.org/wiki/Compiler
  */
 export class TemplateCompiler {
@@ -69,7 +70,7 @@ export class TemplateCompiler {
 
             if (tag.disposition === TagDisposition.SelfClosed) {
 
-                // replace simple tag                
+                // replace simple tag
                 const job = plugin.simpleTagReplacements(tag, data, context);
                 if (isPromiseLike(job)) {
                     await job;
@@ -95,13 +96,16 @@ export class TemplateCompiler {
 
     private detectContentType(tag: Tag, data: ScopeData): string {
 
-        if (tag.disposition === TagDisposition.Open || tag.disposition === TagDisposition.Close)
-            return this.containerContentType;
-
+        // explicit content type
         const scopeData = data.getScopeData();
         if (PluginContent.isPluginContent(scopeData))
             return scopeData._type;
 
+        // implicit - loop
+        if (tag.disposition === TagDisposition.Open || tag.disposition === TagDisposition.Close)
+            return this.containerContentType;
+
+        // implicit - text
         return this.defaultContentType;
     }
 

@@ -1,5 +1,6 @@
 import * as JSZip from 'jszip';
 import { MissingArgumentError } from '../errors';
+import { Constructor } from '../types';
 import { Binary } from '../utils';
 
 export class JsZipHelper {
@@ -25,6 +26,6 @@ export class JsZipHelper {
         if (Binary.isBufferConstructor(binaryType))
             return 'nodebuffer';
 
-        throw new Error(`Binary type '${binaryType.name}' is not supported.`);
+        throw new Error(`Binary type '${(binaryType as any).name}' is not supported.`);
     };
 }

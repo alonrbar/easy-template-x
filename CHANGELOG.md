@@ -1,6 +1,27 @@
 # Change Log
 
-## [Unreleased](https://github.com/alonrbar/easy-template-x/tree/develop)
+## [0.8.3 - 2019-12-27](https://github.com/alonrbar/easy-template-x/tree/v0.8.3)
+
+### Added
+
+- Allow overriding container tag logic using explicit content type.
+
+## [0.8.2 - 2019-11-30](https://github.com/alonrbar/easy-template-x/tree/v0.8.2)
+
+### Changed
+
+- `ScopeData.getScopeData` is now generic (#17).
+- The `data` argument of `TemplateHandler.process` is now strongly typed.
+- Bundle with Rollup instead of Webpack.
+- Auto generate typings.
+
+## [0.8.1 - 2019-11-02](https://github.com/alonrbar/easy-template-x/tree/v0.8.1)
+
+### Fixed
+
+- Fix typings.
+
+## [0.8.0 - 2019-10-20](https://github.com/alonrbar/easy-template-x/tree/v0.8.0)
 
 ### Changed
 
@@ -11,12 +32,13 @@
 
 - Loop tag names trimming.
 - Custom loop delimiters support.
+- Zip export and typings.
 
 ## [0.7.3 - 2019-10-11](https://github.com/alonrbar/easy-template-x/tree/v0.7.3)
 
 ### Added
 
-- Link to live demo on CodeSandbox.
+- Link to [live demo](https://codesandbox.io/s/easy-template-x-demo-x4ppu?fontsize=14&module=%2Findex.ts) on CodeSandbox.
 
 ## [0.7.2 - 2019-10-10](https://github.com/alonrbar/easy-template-x/tree/v0.7.2)
 

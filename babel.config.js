@@ -1,5 +1,7 @@
+const isJest = (process.env.NODE_ENV === 'test');
+
 module.exports = {
-    "presets": [        
+    "presets": [
         "@babel/typescript"
     ],
     "plugins": [
@@ -7,6 +9,6 @@ module.exports = {
         "@babel/proposal-class-properties",
         "@babel/proposal-object-rest-spread",
         "@babel/proposal-optional-catch-binding",
-        ["@babel/transform-modules-commonjs", { "noInterop": true }]
-    ]
+        isJest && '@babel/transform-modules-commonjs'
+    ].filter(Boolean)
 };

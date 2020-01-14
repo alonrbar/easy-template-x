@@ -1,3 +1,4 @@
+import { Constructor } from '../types';
 
 export function inheritsFrom(derived: Constructor<any>, base: Constructor<any>): boolean {
     // https://stackoverflow.com/questions/14486110/how-to-check-if-a-javascript-class-inherits-another-without-creating-an-obj

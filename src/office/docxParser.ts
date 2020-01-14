@@ -1,16 +1,15 @@
-import { XmlGeneralNode, XmlNode, XmlParser, XmlTextNode } from '../xml';
-import { Zip } from '../zip';
-import { Docx } from './docx';
+import { XmlGeneralNode, XmlNode, XmlParser, XmlTextNode } from "../xml";
+import { Zip } from "../zip";
+import { Docx } from "./docx";
 
 export class DocxParser {
-
     /*
      * Word markup intro:
-     * 
+     *
      * In Word text nodes are contained in "run" nodes (which specifies text
      * properties such as font and color). The "run" nodes in turn are
      * contained in paragraph nodes which is the core unit of content.
-     * 
+     *
      * Example:
      *
      * <w:p>    <-- paragraph
@@ -20,28 +19,31 @@ export class DocxParser {
      *     </w:rPr>
      *     <w:t>This is text.</w:t>     <-- actual text
      *   </w:r>
-     * </w:p> 
+     * </w:p>
      *
      * see: http://officeopenxml.com/WPcontentOverview.php
      */
 
-    public static readonly PARAGRAPH_NODE = 'w:p';
-    public static readonly PARAGRAPH_PROPERTIES_NODE = 'w:pPr';
-    public static readonly RUN_NODE = 'w:r';
-    public static readonly RUN_PROPERTIES_NODE = 'w:rPr';
-    public static readonly TEXT_NODE = 'w:t';
-    public static readonly TABLE_ROW_NODE = 'w:tr';
-    public static readonly TABLE_CELL_NODE = 'w:tc';
-    public static readonly NUMBER_PROPERTIES_NODE = 'w:numPr';
+    public static readonly PARAGRAPH_NODE = "w:p";
+    public static readonly PARAGRAPH_PROPERTIES_NODE = "w:pPr";
+    public static readonly RUN_NODE = "w:r";
+    public static readonly RUN_PROPERTIES_NODE = "w:rPr";
+    public static readonly STRUCTURED_DOCUMENT_TAG_NODE = "w:sdt";
+    public static readonly STRUCTURED_DOCUMENT_TAG_CONTENT_NODE =
+        "w:sdtContent";
+    public static readonly STRUCTURED_DOCUMENT_TAG_PROPERTIES_NODE = "w:sdtPr";
+    public static readonly ID_NODE = "w:id";
+    public static readonly VALUE_ATTRIBUTE = "w:val";
+    public static readonly TEXT_NODE = "w:t";
+    public static readonly TABLE_ROW_NODE = "w:tr";
+    public static readonly TABLE_CELL_NODE = "w:tc";
+    public static readonly NUMBER_PROPERTIES_NODE = "w:numPr";
 
     //
     // constructor
     //
 
-    constructor(
-        private readonly xmlParser: XmlParser
-    ) {
-    }
+    constructor(private readonly xmlParser: XmlParser) {}
 
     //
     // parse document
@@ -58,13 +60,16 @@ export class DocxParser {
     /**
      * Split the text node into two text nodes, each with it's own wrapping <w:t> node.
      * Returns the newly created text node.
-     * 
-     * @param textNode 
-     * @param splitIndex 
+     *
+     * @param textNode
+     * @param splitIndex
      * @param addBefore Should the new node be added before or after the original node.
      */
-    public splitTextNode(textNode: XmlTextNode, splitIndex: number, addBefore: boolean): XmlTextNode {
-
+    public splitTextNode(
+        textNode: XmlTextNode,
+        splitIndex: number,
+        addBefore: boolean
+    ): XmlTextNode {
         let firstXmlTextNode: XmlTextNode;
         let secondXmlTextNode: XmlTextNode;
 
@@ -79,18 +84,21 @@ export class DocxParser {
         this.setSpacePreserveAttribute(newWordTextNode);
 
         if (addBefore) {
-
             // insert new node before existing one
             XmlNode.insertBefore(newWordTextNode, wordTextNode);
 
             firstXmlTextNode = XmlNode.lastTextChild(newWordTextNode);
             secondXmlTextNode = textNode;
-
         } else {
-
             // insert new node after existing one
-            const curIndex = wordTextNode.parentNode.childNodes.indexOf(wordTextNode);
-            XmlNode.insertChild(wordTextNode.parentNode, newWordTextNode, curIndex + 1);
+            const curIndex = wordTextNode.parentNode.childNodes.indexOf(
+                wordTextNode
+            );
+            XmlNode.insertChild(
+                wordTextNode.parentNode,
+                newWordTextNode,
+                curIndex + 1
+            );
 
             firstXmlTextNode = textNode;
             secondXmlTextNode = XmlNode.lastTextChild(newWordTextNode);
@@ -102,21 +110,22 @@ export class DocxParser {
         firstXmlTextNode.textContent = firstText.substring(0, splitIndex);
         secondXmlTextNode.textContent = secondText.substring(splitIndex);
 
-        return (addBefore ? firstXmlTextNode : secondXmlTextNode);
+        return addBefore ? firstXmlTextNode : secondXmlTextNode;
     }
 
     /**
      * Move all text between the 'from' and 'to' nodes to the 'from' node.
      */
     public joinTextNodesRange(from: XmlTextNode, to: XmlTextNode): void {
-
         // find run nodes
         const firstRunNode = this.containingRunNode(from);
         const secondRunNode = this.containingRunNode(to);
 
         const paragraphNode = firstRunNode.parentNode;
         if (secondRunNode.parentNode !== paragraphNode)
-            throw new Error('Can not join text nodes from separate paragraphs.');
+            throw new Error(
+                "Can not join text nodes from separate paragraphs."
+            );
 
         // find "word text nodes"
         const firstWordTextNode = this.containingTextNode(from);
@@ -126,7 +135,6 @@ export class DocxParser {
         // iterate runs
         let curRunNode = firstRunNode;
         while (curRunNode) {
-
             // iterate text nodes
             let curWordTextNode: XmlNode;
             if (curRunNode === firstRunNode) {
@@ -135,9 +143,7 @@ export class DocxParser {
                 curWordTextNode = this.firstTextNodeChild(curRunNode);
             }
             while (curWordTextNode) {
-
-                if (curWordTextNode.nodeName !== DocxParser.TEXT_NODE)
-                    continue;
+                if (curWordTextNode.nodeName !== DocxParser.TEXT_NODE) continue;
 
                 // move text to first node
                 const curXmlTextNode = XmlNode.lastTextChild(curWordTextNode);
@@ -173,15 +179,14 @@ export class DocxParser {
 
         // set the text content
         const firstXmlTextNode = XmlNode.lastTextChild(firstWordTextNode);
-        firstXmlTextNode.textContent = totalText.join('');
+        firstXmlTextNode.textContent = totalText.join("");
     }
 
     /**
      * Take all runs from 'second' and move them to 'first'.
      */
     public joinParagraphs(first: XmlNode, second: XmlNode): void {
-        if (first === second)
-            return;
+        if (first === second) return;
 
         let childIndex = 0;
         while (second.childNodes && childIndex < second.childNodes.length) {
@@ -199,8 +204,8 @@ export class DocxParser {
         if (!node.attributes) {
             node.attributes = {};
         }
-        if (!node.attributes['xml:space']) {
-            node.attributes['xml:space'] = 'preserve';
+        if (!node.attributes["xml:space"]) {
+            node.attributes["xml:space"] = "preserve";
         }
     }
 
@@ -210,6 +215,10 @@ export class DocxParser {
 
     public isTextNode(node: XmlNode): boolean {
         return node.nodeName === DocxParser.TEXT_NODE;
+    }
+
+    public isStructuredDocumentTagNode(node: XmlNode): boolean {
+        return node.nodeName === DocxParser.STRUCTURED_DOCUMENT_TAG_NODE;
     }
 
     public isTableCellNode(node: XmlNode): boolean {
@@ -222,34 +231,37 @@ export class DocxParser {
 
     public isListParagraph(paragraphNode: XmlNode): boolean {
         const paragraphProperties = this.paragraphPropertiesNode(paragraphNode);
-        const listNumberProperties = XmlNode.findChildByName(paragraphProperties, DocxParser.NUMBER_PROPERTIES_NODE);
+        const listNumberProperties = XmlNode.findChildByName(
+            paragraphProperties,
+            DocxParser.NUMBER_PROPERTIES_NODE
+        );
         return !!listNumberProperties;
     }
 
     public paragraphPropertiesNode(paragraphNode: XmlNode): XmlNode {
         if (!this.isParagraphNode(paragraphNode))
-            throw new Error(`Expected paragraph node but received a '${paragraphNode.nodeName}' node.`);
+            throw new Error(
+                `Expected paragraph node but received a '${paragraphNode.nodeName}' node.`
+            );
 
-        return XmlNode.findChildByName(paragraphNode, DocxParser.PARAGRAPH_PROPERTIES_NODE);
+        return XmlNode.findChildByName(
+            paragraphNode,
+            DocxParser.PARAGRAPH_PROPERTIES_NODE
+        );
     }
 
     /**
      * Search for the first direct child **Word** text node (i.e. a <w:t> node).
      */
     public firstTextNodeChild(node: XmlNode): XmlNode {
+        if (!node) return null;
 
-        if (!node)
-            return null;
+        if (node.nodeName !== DocxParser.RUN_NODE) return null;
 
-        if (node.nodeName !== DocxParser.RUN_NODE)
-            return null;
-
-        if (!node.childNodes)
-            return null;
+        if (!node.childNodes) return null;
 
         for (const child of node.childNodes) {
-            if (child.nodeName === DocxParser.TEXT_NODE)
-                return child;
+            if (child.nodeName === DocxParser.TEXT_NODE) return child;
         }
 
         return null;
@@ -259,14 +271,17 @@ export class DocxParser {
      * Search **upwards** for the first **Word** text node (i.e. a <w:t> node).
      */
     public containingTextNode(node: XmlTextNode): XmlGeneralNode {
-
-        if (!node)
-            return null;
+        if (!node) return null;
 
         if (!XmlNode.isTextNode(node))
-            throw new Error(`'Invalid argument ${nameof(node)}. Expected a XmlTextNode.`);
+            throw new Error(
+                `'Invalid argument ${nameof(node)}. Expected a XmlTextNode.`
+            );
 
-        return XmlNode.findParentByName(node, DocxParser.TEXT_NODE) as XmlGeneralNode;
+        return XmlNode.findParentByName(
+            node,
+            DocxParser.TEXT_NODE
+        ) as XmlGeneralNode;
     }
 
     /**

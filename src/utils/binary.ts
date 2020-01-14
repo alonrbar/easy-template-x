@@ -1,3 +1,4 @@
+import { Constructor } from '../types';
 import { Base64 } from './base64';
 import { inheritsFrom } from './types';
 

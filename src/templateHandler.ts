@@ -1,18 +1,27 @@
-import { DelimiterSearcher, ScopeData, Tag, TagParser, TemplateCompiler, TemplateContext } from './compilation';
-import { Delimiters } from './delimiters';
-import { MalformedFileError } from './errors';
-import { Docx, DocxParser } from './office';
-import { TemplateHandlerOptions } from './templateHandlerOptions';
-import { Binary } from './utils';
-import { XmlNode, XmlParser } from './xml';
-import { Zip } from './zip';
+import {
+    DelimiterSearcher,
+    ScopeData,
+    Tag,
+    TagParser,
+    TemplateCompiler,
+    TemplateContext
+} from "./compilation";
+import { Delimiters } from "./delimiters";
+import { MalformedFileError } from "./errors";
+import { Docx, DocxParser } from "./office";
+import { TemplateData } from "./templateData";
+import { TemplateHandlerOptions } from "./templateHandlerOptions";
+import { Constructor } from "./types";
+import { Binary } from "./utils";
+import { XmlNode, XmlParser } from "./xml";
+import { Zip } from "./zip";
 
 export class TemplateHandler {
-
     /**
      * Version number of the `easy-template-x` library.
      */
-    public readonly version = (typeof EASY_VERSION !== 'undefined' ? EASY_VERSION : 'null');
+    public readonly version =
+        typeof EASY_VERSION !== "undefined" ? EASY_VERSION : "null";
 
     private readonly xmlParser = new XmlParser();
     private readonly docxParser: DocxParser;
@@ -34,7 +43,10 @@ export class TemplateHandler {
         delimiterSearcher.endDelimiter = this.options.delimiters.tagEnd;
         delimiterSearcher.maxXmlDepth = this.options.maxXmlDepth;
 
-        const tagParser = new TagParser(this.docxParser, this.options.delimiters as Delimiters);
+        const tagParser = new TagParser(
+            this.docxParser,
+            this.options.delimiters as Delimiters
+        );
 
         this.compiler = new TemplateCompiler(
             delimiterSearcher,
@@ -53,18 +65,33 @@ export class TemplateHandler {
         });
     }
 
-    public async process<T extends Binary>(templateFile: T, data: any): Promise<T> {
-
+    public async process<T extends Binary>(
+        templateFile: T,
+        data: TemplateData
+    ): Promise<T> {
         // load the docx file
         const docx = await this.loadDocx(templateFile);
         const document = await docx.getDocument();
 
-        // process content (do replacements)        
+        // process content (do replacements)
         const scopeData = new ScopeData(data);
         const context: TemplateContext = {
             docx
         };
         await this.compiler.compile(document, scopeData, context);
+
+        // execute each extension in the supplied order
+        for (const extension of this.options.extensions) {
+            await extension.execute(
+                {
+                    xmlParser: this.xmlParser,
+                    docxParser: this.docxParser,
+                    compiler: this.compiler
+                },
+                scopeData,
+                context
+            );
+        }
 
         // export the result
         return docx.export(templateFile.constructor as Constructor<T>);
@@ -99,13 +126,12 @@ export class TemplateHandler {
     //
 
     private async loadDocx(file: Binary): Promise<Docx> {
-
         // load the zip file
         let zip: Zip;
         try {
             zip = await Zip.load(file);
         } catch {
-            throw new MalformedFileError('docx');
+            throw new MalformedFileError("docx");
         }
 
         // load the docx file

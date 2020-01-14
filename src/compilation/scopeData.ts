@@ -1,10 +1,9 @@
-import { TemplateContent, TemplateData } from '../templateData';
-import { last } from '../utils';
+import { TemplateContent, TemplateData } from "../templateData";
+import { last } from "../utils";
 
-const getProp = require('lodash.get');
+const getProp = require("lodash.get");
 
 export class ScopeData {
-    
     public readonly path: (string | number)[] = [];
     public readonly allData: TemplateData;
 
@@ -12,8 +11,7 @@ export class ScopeData {
         this.allData = data;
     }
 
-    public getScopeData(): TemplateContent | TemplateData[] {
-
+    public getScopeData<T extends TemplateContent | TemplateData[]>(): T{
         const lastKey = last(this.path);
 
         let result: any;

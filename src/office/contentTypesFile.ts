@@ -1,4 +1,5 @@
 import { MimeType, MimeTypeHelper } from '../mimeType';
+import { IMap } from '../types';
 import { XmlGeneralNode, XmlNode, XmlParser } from '../xml';
 import { Zip } from '../zip';
 
@@ -50,7 +51,7 @@ export class ContentTypesFile {
     }
 
     /**
-     * Save the Content Types file back to the zip.  
+     * Save the Content Types file back to the zip.
      * Called automatically by the holding `Docx` before exporting.
      */
     public async save(): Promise<void> {

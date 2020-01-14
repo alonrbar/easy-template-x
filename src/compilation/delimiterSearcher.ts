@@ -1,11 +1,10 @@
-import { MissingArgumentError } from '../errors';
-import { DocxParser } from '../office';
-import { first, last } from '../utils';
-import { XmlDepthTracker, XmlNode, XmlTextNode } from '../xml';
-import { DelimiterMark } from './delimiterMark';
+import { MissingArgumentError } from "../errors";
+import { DocxParser } from "../office";
+import { first, last } from "../utils";
+import { XmlDepthTracker, XmlNode, XmlTextNode } from "../xml";
+import { DelimiterMark } from "./delimiterMark";
 
 class MatchState {
-
     public delimiterIndex = 0;
     public openNodes: XmlTextNode[] = [];
     public firstMatchIndex = -1;
@@ -18,20 +17,17 @@ class MatchState {
 }
 
 export class DelimiterSearcher {
-
     public maxXmlDepth = 20;
     public startDelimiter = "{";
     public endDelimiter = "}";
 
     constructor(private readonly docxParser: DocxParser) {
-        if (!docxParser)
-            throw new MissingArgumentError(nameof(docxParser));
+        if (!docxParser) throw new MissingArgumentError(nameof(docxParser));
     }
 
     public findDelimiters(node: XmlNode): DelimiterMark[] {
-
         //
-        // Performance note: 
+        // Performance note:
         //
         // The search efficiency is o(m*n) where n is the text size and m is the
         // delimiter length. We could use a variation of the KMP algorithm here
@@ -47,7 +43,6 @@ export class DelimiterSearcher {
         let lookForOpenDelimiter = true;
 
         while (node) {
-
             // reset state on paragraph transition
             if (this.docxParser.isParagraphNode(node)) {
                 match.reset();
@@ -63,13 +58,13 @@ export class DelimiterSearcher {
             match.openNodes.push(node);
             let textIndex = 0;
             while (textIndex < node.textContent.length) {
-
-                const delimiterPattern = lookForOpenDelimiter ? this.startDelimiter : this.endDelimiter;
+                const delimiterPattern = lookForOpenDelimiter
+                    ? this.startDelimiter
+                    : this.endDelimiter;
 
                 // char match
                 const char = node.textContent[textIndex];
                 if (char === delimiterPattern[match.delimiterIndex]) {
-
                     // first match
                     if (match.firstMatchIndex === -1) {
                         match.firstMatchIndex = textIndex;
@@ -77,20 +72,26 @@ export class DelimiterSearcher {
 
                     // full delimiter match
                     if (match.delimiterIndex === delimiterPattern.length - 1) {
-
                         // move all delimiters characters to the same text node
                         if (match.openNodes.length > 1) {
-                            
                             const firstNode = first(match.openNodes);
                             const lastNode = last(match.openNodes);
-                            this.docxParser.joinTextNodesRange(firstNode, lastNode);
-                            
-                            textIndex += (firstNode.textContent.length - node.textContent.length);
+                            this.docxParser.joinTextNodesRange(
+                                firstNode,
+                                lastNode
+                            );
+
+                            textIndex +=
+                                firstNode.textContent.length -
+                                node.textContent.length;
                             node = firstNode;
                         }
 
                         // store delimiter
-                        const delimiterMark = this.createDelimiterMark(match, lookForOpenDelimiter);
+                        const delimiterMark = this.createDelimiterMark(
+                            match,
+                            lookForOpenDelimiter
+                        );
                         delimiters.push(delimiterMark);
 
                         // update state
@@ -99,7 +100,6 @@ export class DelimiterSearcher {
                         if (textIndex < node.textContent.length - 1) {
                             match.openNodes.push(node);
                         }
-
                     } else {
                         match.delimiterIndex++;
                     }
@@ -107,13 +107,12 @@ export class DelimiterSearcher {
 
                 // no match
                 else {
-
                     //
                     // go back to first open node
                     //
                     // Required for cases where the text has repeating
-                    // characters that are the same as a delimiter prefix.  
-                    // For instance:  
+                    // characters that are the same as a delimiter prefix.
+                    // For instance:
                     // Delimiter is '{!' and template text contains the string '{{!'
                     //
                     if (match.firstMatchIndex !== -1) {
@@ -138,21 +137,15 @@ export class DelimiterSearcher {
     }
 
     private shouldSearchNode(node: XmlNode): node is XmlTextNode {
-
-        if (!XmlNode.isTextNode(node))
-            return false;
-        if (!node.textContent)
-            return false;
-        if (!node.parentNode)
-            return false;
-        if (!this.docxParser.isTextNode(node.parentNode))
-            return false;
+        if (!XmlNode.isTextNode(node)) return false;
+        if (!(node as XmlTextNode).textContent) return false;
+        if (!node.parentNode) return false;
+        if (!this.docxParser.isTextNode(node.parentNode)) return false;
 
         return true;
     }
 
     private findNextNode(node: XmlNode, depth: XmlDepthTracker): XmlNode {
-
         // children
         if (node.childNodes && node.childNodes.length) {
             depth.increment();
@@ -160,12 +153,10 @@ export class DelimiterSearcher {
         }
 
         // siblings
-        if (node.nextSibling)
-            return node.nextSibling;
+        if (node.nextSibling) return node.nextSibling;
 
         // parent sibling
         while (node.parentNode) {
-
             if (node.parentNode.nextSibling) {
                 depth.decrement();
                 return node.parentNode.nextSibling;
@@ -179,7 +170,10 @@ export class DelimiterSearcher {
         return null;
     }
 
-    private createDelimiterMark(match: MatchState, isOpenDelimiter: boolean): DelimiterMark {
+    private createDelimiterMark(
+        match: MatchState,
+        isOpenDelimiter: boolean
+    ): DelimiterMark {
         return {
             index: match.firstMatchIndex,
             isOpen: isOpenDelimiter,

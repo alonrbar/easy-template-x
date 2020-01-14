@@ -1,4 +1,5 @@
 import * as JSZip from 'jszip';
+import { Constructor } from '../types';
 import { Binary } from '../utils';
 import { JsZipHelper } from './jsZipHelper';
 
@@ -21,7 +22,7 @@ export class ZipObject {
     public getContentText(): Promise<string> {
         return this.zipObject.async('text');
     }
-    
+
     public getContentBase64(): Promise<string> {
         return this.zipObject.async('binarystring');
     }

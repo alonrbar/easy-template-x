@@ -3,8 +3,9 @@
     "compilerOptions": {
 
         // --- output --- //
-        
-        "declaration": false,
+
+        "declaration": true,
+        "declarationDir": "./dist/types",
         "outDir": "./.tmp/compiled",
         "sourceMap": true,
         "target": "es5",
@@ -12,12 +13,12 @@
         "removeComments": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        
+
         // --- module resolution --- //
 
         "typeRoots" : ["./node_modules/@types","./src/@types"],
         "moduleResolution": "node",
-        "baseUrl": ".",        
+        "baseUrl": ".",
 
         // --- validation options --- //
 

@@ -1,3 +1,4 @@
+import { IMap } from '../types';
 
 export type ItemMapper<TIn, TOut = string> = (item: TIn, index: number) => TOut;
 

@@ -14,7 +14,7 @@ export class RawXmlPlugin extends TemplatePlugin {
 
         const wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
 
-        const value = data.getScopeData() as RawXmlContent;
+        const value = data.getScopeData<RawXmlContent>();
         if (value && typeof value.xml === 'string') {
             const newNode = this.utilities.xmlParser.parse(value.xml);
             XmlNode.insertBefore(newNode, wordTextNode);
