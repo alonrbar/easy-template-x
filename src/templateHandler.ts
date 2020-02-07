@@ -96,6 +96,13 @@ export class TemplateHandler {
         return document;
     }
 
+    /** Returns a custom Xml File as a set of root XML nodes */
+    public async getCustomXml(docxFile: Binary): Promise<Map<string, XmlNode>> {
+        const docx = await this.loadDocx(docxFile);
+        const customXmlFiles = await docx.getCustomXmlFiles();
+        return customXmlFiles;
+    }
+
     //
     // private methods
     //
