@@ -68,6 +68,9 @@ export class TemplateHandler {
         };
         await this.compiler.compile(document, scopeData, context);
 
+        // execute each extension in the supplied order
+        await this.callExtensions<T>(scopeData, context);
+
         // export the result
         return docx.export(templateFile.constructor as Constructor<T>);
     }
@@ -76,6 +79,16 @@ export class TemplateHandler {
         const docx = await this.loadDocx(templateFile);
         const document = await docx.getDocument();
         return this.compiler.parseTags(document);
+    }
+
+    public async callExtensions<T extends Binary>(scopeData: ScopeData, context: TemplateContext): Promise<void> {
+        for (const extension of this.options.extensions) {
+            await extension.execute({
+                xmlParser: this.xmlParser,
+                docxParser: this.docxParser,
+                compiler: this.compiler
+            }, scopeData, context);
+        }
     }
 
     /**
