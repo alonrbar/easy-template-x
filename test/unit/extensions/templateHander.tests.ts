@@ -1,37 +1,48 @@
-import { TemplateHandler, TemplateContext, ScopeData, TemplateData, Docx } from "src";
-import TemplateExtension, { mockExecute } from '../../__mocks__/TemplateExtension';
+import { TemplateHandler, TemplateData } from "src";
+import { readResource } from "test/testUtils";
+import { TemplateExtension } from "src/extensions";
 
-beforeEach(() => {
-    TemplateExtension.mockClear();
-    mockExecute.mockClear();
-});
+const beforeCompilationExecute = jest.fn();
+const afterCompilationExecute = jest.fn();
+const setUtilities = jest.fn();
+
+class BeforeCompilationExtension extends TemplateExtension {
+    public execute = beforeCompilationExecute;
+    public setUtilities = setUtilities;
+}
+
+class AfterCompilationExtension extends TemplateExtension {
+    public execute = afterCompilationExecute;
+    public setUtilities = setUtilities;
+}
 
 describe(nameof(TemplateHandler), () => {
-    describe(nameof(TemplateHandler.prototype.callExtensions), () => {
-        it('calls each extension', () => {
-            const firstTemplateExtension = new TemplateExtension();
-            const secondTemplateExtension = new TemplateExtension();
+    describe(nameof(TemplateHandler.prototype.process), () => {
+        it('calls each extension', async () => {
+            const beforeCompilationExtension = new BeforeCompilationExtension();
+            const afterCompilationExtension = new AfterCompilationExtension();
 
             const handler = new TemplateHandler({
-                extensions: [
-                    firstTemplateExtension,
-                    secondTemplateExtension
-                ]
+                extensions: {
+                    beforeCompilation: [
+                        beforeCompilationExtension
+                    ],
+                    afterCompilation: [
+                        afterCompilationExtension
+                    ]
+                }
             });
 
             // load the docx file
-            const docx: Docx = null;
-            const context: TemplateContext = {
-                docx: docx
-            };
+            const docFile = readResource("two images.docx");
 
             const data: TemplateData = {};
-            const scopeData = new ScopeData(data);
 
-            handler.callExtensions(scopeData, context);
+            await handler.process(docFile, data);
 
-            expect(firstTemplateExtension.execute.mock.calls.length).toBe(1);
-            expect(secondTemplateExtension.execute.mock.calls.length).toBe(1);
+            expect(setUtilities).toHaveBeenCalledTimes(2);
+            expect(beforeCompilationExecute).toHaveBeenCalledTimes(1);
+            expect(afterCompilationExecute).toHaveBeenCalledTimes(1);
         });
     });
 });

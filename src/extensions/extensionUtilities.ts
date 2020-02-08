@@ -1,7 +1,9 @@
-import { IExtensionUtilities } from "./IExtensionUtilities";
+import { TemplateCompiler } from '../compilation/templateCompiler';
+import { DocxParser } from '../office';
+import { XmlParser } from '../xml';
 
-export abstract class ExtensionUtilities implements IExtensionUtilities {
-    compiler: import("..").TemplateCompiler;
-    docxParser: import("..").DocxParser;
-    xmlParser: import("..").XmlParser;
+export interface ExtensionUtilities {
+    compiler: TemplateCompiler;
+    docxParser: DocxParser;
+    xmlParser: XmlParser;
 }
