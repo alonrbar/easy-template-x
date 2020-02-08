@@ -1,10 +1,9 @@
 import { TemplateHandler } from 'src/templateHandler';
-import { randomParagraphs, randomWords } from '../testUtils';
 import { readFixture } from './fixtureUtils';
 
 describe('custom xml fixtures', () => {
 
-    it("handles a file with custom xml", async () => {
+    it("retrieves the custom xml from an office document", async () => {
 
         const handler = new TemplateHandler();
 
@@ -12,6 +11,6 @@ describe('custom xml fixtures', () => {
 
         const customXmlFiles = await handler.getCustomXml(template);
 
-        expect(customXmlFiles.size).toBe(1);
+        expect(customXmlFiles.get("customXml/item1.xml").nodeType).toBe("General");
     });
 });
