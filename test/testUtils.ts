@@ -1,6 +1,6 @@
 import * as fs from 'fs';
+import { loremIpsum } from 'lorem-ipsum';
 import { XmlNode, XmlParser } from 'src/xml';
-const lorem = require('lorem-ipsum');
 
 const xmlParser = new XmlParser();
 
@@ -11,11 +11,11 @@ export function parseXml(xml: string, removeWhiteSpace = true): XmlNode {
 }
 
 export function randomWords(count = 1): string {
-    return lorem({ count, units: 'words' });
+    return loremIpsum({ count, units: 'words' });
 }
 
 export function randomParagraphs(count = 1): string {
-    return lorem({ count, units: 'paragraphs' });
+    return loremIpsum({ count, units: 'paragraphs' });
 }
 
 /**
