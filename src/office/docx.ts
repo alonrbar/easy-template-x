@@ -33,6 +33,14 @@ export class Docx {
     public readonly mediaFiles: MediaFiles;
     public readonly contentTypes: ContentTypesFile;
 
+    /**
+     * **Notice:** You should only use this property if there is no other way to
+     * do what you need. Use with caution.
+     */
+    public get rawZipFile(): Zip {
+        return this.zip;
+    }
+
     private _documentPath: string;
     private _document: XmlNode;
 
