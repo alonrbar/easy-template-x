@@ -9,6 +9,7 @@ module.exports = {
         "@babel/proposal-class-properties",
         "@babel/proposal-object-rest-spread",
         "@babel/proposal-optional-catch-binding",
+        "@babel/proposal-optional-chaining",
         isJest && '@babel/transform-modules-commonjs'
     ].filter(Boolean)
 };

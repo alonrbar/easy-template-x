@@ -14,7 +14,7 @@ export class TemplateHandlerOptions {
 
     public maxXmlDepth?= 20;
 
-    public extensions?: ExtensionOptions = { beforeCompilation: [], afterCompilation: [] };
+    public extensions?: ExtensionOptions = {};
 
     constructor(initial?: Partial<TemplateHandlerOptions>) {
         Object.assign(this, initial);

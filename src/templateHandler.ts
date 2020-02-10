@@ -1,6 +1,7 @@
 import { DelimiterSearcher, ScopeData, Tag, TagParser, TemplateCompiler, TemplateContext } from './compilation';
 import { Delimiters } from './delimiters';
 import { MalformedFileError } from './errors';
+import { TemplateExtension } from './extensions';
 import { Docx, DocxParser } from './office';
 import { TemplateData } from './templateData';
 import { TemplateHandlerOptions } from './templateHandlerOptions';
@@ -8,7 +9,6 @@ import { Constructor } from './types';
 import { Binary } from './utils';
 import { XmlNode, XmlParser } from './xml';
 import { Zip } from './zip';
-import { TemplateExtension } from './extensions';
 
 export class TemplateHandler {
 
@@ -55,20 +55,19 @@ export class TemplateHandler {
             });
         });
 
-        this.options.extensions.beforeCompilation.forEach(extension => {
-            extension.setUtilities({
-                xmlParser: this.xmlParser,
-                docxParser: this.docxParser,
-                compiler: this.compiler
-            });
+        const extensionUtilities = {
+            xmlParser: this.xmlParser,
+            docxParser: this.docxParser,
+            tagParser,
+            compiler: this.compiler
+        };
+
+        this.options.extensions?.beforeCompilation?.forEach(extension => {
+            extension.setUtilities(extensionUtilities);
         });
 
-        this.options.extensions.afterCompilation.forEach(extension => {
-            extension.setUtilities({
-                xmlParser: this.xmlParser,
-                docxParser: this.docxParser,
-                compiler: this.compiler
-            });
+        this.options.extensions?.afterCompilation?.forEach(extension => {
+            extension.setUtilities(extensionUtilities);
         });
     }
 
@@ -78,15 +77,20 @@ export class TemplateHandler {
         const docx = await this.loadDocx(templateFile);
         const document = await docx.getDocument();
 
-        // process content (do replacements)
+        // prepare context
         const scopeData = new ScopeData(data);
         const context: TemplateContext = {
             docx
         };
 
-        await this.callExtensions<T>(this.options.extensions.beforeCompilation, scopeData, context);
+        // extensions - before compilation
+        await this.callExtensions(this.options.extensions?.beforeCompilation, scopeData, context);
+
+        // compilation (do replacements)
         await this.compiler.compile(document, scopeData, context);
-        await this.callExtensions<T>(this.options.extensions.afterCompilation, scopeData, context);
+
+        // extensions - after compilation
+        await this.callExtensions(this.options.extensions?.afterCompilation, scopeData, context);
 
         // export the result
         return docx.export(templateFile.constructor as Constructor<T>);
@@ -120,7 +124,10 @@ export class TemplateHandler {
     // private methods
     //
 
-    private async callExtensions<T extends Binary>(extensions: TemplateExtension[], scopeData: ScopeData, context: TemplateContext): Promise<void> {
+    private async callExtensions(extensions: TemplateExtension[], scopeData: ScopeData, context: TemplateContext): Promise<void> {
+        if (!extensions)
+            return;
+
         for (const extension of extensions) {
             await extension.execute(scopeData, context);
         }
