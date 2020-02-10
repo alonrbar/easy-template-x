@@ -14,5 +14,6 @@ export declare class TemplateHandler {
     parseTags(templateFile: Binary): Promise<Tag[]>;
     getText(docxFile: Binary): Promise<string>;
     getXml(docxFile: Binary): Promise<XmlNode>;
+    private callExtensions;
     private loadDocx;
 }

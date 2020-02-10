@@ -2823,6 +2823,8 @@ class TemplateHandlerOptions {
 
     _defineProperty(this, "maxXmlDepth", 20);
 
+    _defineProperty(this, "extensions", {});
+
     Object.assign(this, initial);
 
     if (initial) {
@@ -2841,7 +2843,9 @@ class TemplateHandler {
    * Version number of the `easy-template-x` library.
    */
   constructor(options) {
-    _defineProperty(this, "version",  "0.8.3" );
+    var _this$options$extensi, _this$options$extensi2, _this$options$extensi3, _this$options$extensi4;
+
+    _defineProperty(this, "version",  "0.9.0" );
 
     _defineProperty(this, "xmlParser", new XmlParser());
 
@@ -2869,18 +2873,37 @@ class TemplateHandler {
         compiler: this.compiler
       });
     });
+    const extensionUtilities = {
+      xmlParser: this.xmlParser,
+      docxParser: this.docxParser,
+      tagParser,
+      compiler: this.compiler
+    };
+    (_this$options$extensi = this.options.extensions) === null || _this$options$extensi === void 0 ? void 0 : (_this$options$extensi2 = _this$options$extensi.beforeCompilation) === null || _this$options$extensi2 === void 0 ? void 0 : _this$options$extensi2.forEach(extension => {
+      extension.setUtilities(extensionUtilities);
+    });
+    (_this$options$extensi3 = this.options.extensions) === null || _this$options$extensi3 === void 0 ? void 0 : (_this$options$extensi4 = _this$options$extensi3.afterCompilation) === null || _this$options$extensi4 === void 0 ? void 0 : _this$options$extensi4.forEach(extension => {
+      extension.setUtilities(extensionUtilities);
+    });
   }
 
   async process(templateFile, data) {
+    var _this$options$extensi5, _this$options$extensi6;
+
     // load the docx file
     const docx = await this.loadDocx(templateFile);
-    const document = await docx.getDocument(); // process content (do replacements)
+    const document = await docx.getDocument(); // prepare context
 
     const scopeData = new ScopeData(data);
     const context = {
       docx
-    };
-    await this.compiler.compile(document, scopeData, context); // export the result
+    }; // extensions - before compilation
+
+    await this.callExtensions((_this$options$extensi5 = this.options.extensions) === null || _this$options$extensi5 === void 0 ? void 0 : _this$options$extensi5.beforeCompilation, scopeData, context); // compilation (do replacements)
+
+    await this.compiler.compile(document, scopeData, context); // extensions - after compilation
+
+    await this.callExtensions((_this$options$extensi6 = this.options.extensions) === null || _this$options$extensi6 === void 0 ? void 0 : _this$options$extensi6.afterCompilation, scopeData, context); // export the result
 
     return docx.export(templateFile.constructor);
   }
@@ -2913,6 +2936,14 @@ class TemplateHandler {
   // private methods
   //
 
+
+  async callExtensions(extensions, scopeData, context) {
+    if (!extensions) return;
+
+    for (const extension of extensions) {
+      await extension.execute(scopeData, context);
+    }
+  }
 
   async loadDocx(file) {
     // load the zip file

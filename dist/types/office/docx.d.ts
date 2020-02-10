@@ -8,7 +8,7 @@ import { Rels } from './rels';
 export declare class Docx {
     private readonly zip;
     private readonly xmlParser;
-    readonly documentPath: string;
+    get documentPath(): string;
     readonly rels: Rels;
     readonly mediaFiles: MediaFiles;
     readonly contentTypes: ContentTypesFile;

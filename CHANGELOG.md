@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.9.0 - 2020-02-10](https://github.com/alonrbar/easy-template-x/tree/v0.9.0)
+
+### Added
+
+- Extensions API (#24).
+
 ## [0.8.3 - 2019-12-27](https://github.com/alonrbar/easy-template-x/tree/v0.8.3)
 
 ### Added
