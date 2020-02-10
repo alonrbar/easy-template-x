@@ -1,5 +1,6 @@
 import { Delimiters } from './delimiters';
 import { createDefaultPlugins, LOOP_CONTENT_TYPE, TemplatePlugin, TEXT_CONTENT_TYPE } from './plugins';
+import { ExtensionOptions } from './extensions';
 
 export class TemplateHandlerOptions {
 
@@ -12,6 +13,8 @@ export class TemplateHandlerOptions {
     public delimiters?: Partial<Delimiters> = new Delimiters();
 
     public maxXmlDepth?= 20;
+
+    public extensions?: ExtensionOptions = { beforeCompilation: [], afterCompilation: [] };
 
     constructor(initial?: Partial<TemplateHandlerOptions>) {
         Object.assign(this, initial);

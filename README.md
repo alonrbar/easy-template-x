@@ -362,6 +362,31 @@ It tries to keep it simple and has the following priorities in mind:
 2. Easy for the **developer** who process them using the exposed APIs.
 3. Easy for the **maintainer/contributor** who maintain the `easy-template-x` package itself.
 
+## Extensions
+
+Although most document manipulation can be achieved by using plugins, developing your
+own if required there are some that cannot.
+
+- [Content Controls](http://www.datypic.com/sc/ooxml/e-w_sdtContent-2.html) have highly formatted XML that does not look like text
+- [Data Binding](https://blogs.msdn.microsoft.com/modonovan/2006/05/22/word-2007-content-controls-and-xml-part-1-the-basics/) stores its data in files other than the base word files.
+
+In order to extend document processing you can specify extensions that will be run after the standard template processing.
+
+By default no extensions will be loaded.
+
+To specify the desired extensions, the order they run in and the extension specific plugins they will use use TemplateHandlerOptions.
+
+```typescript
+const handler = new TemplateHandler(
+  new TemplateHandlerOptions({
+    extensions: [
+      new ContentControlExtension(createDefaultContentControlPlugins()),
+      new DataBindingExtension(createDefaultDataBindingPlugins())
+    ]
+  });
+);
+```
+
 ## Prior art and motivation
 
 There are already some very good templating libraries out there, most notably these two:

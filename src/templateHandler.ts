@@ -8,6 +8,7 @@ import { Constructor } from './types';
 import { Binary } from './utils';
 import { XmlNode, XmlParser } from './xml';
 import { Zip } from './zip';
+import { TemplateExtension } from './extensions';
 
 export class TemplateHandler {
 
@@ -53,6 +54,22 @@ export class TemplateHandler {
                 compiler: this.compiler
             });
         });
+
+        this.options.extensions.beforeCompilation.forEach(extension => {
+            extension.setUtilities({
+                xmlParser: this.xmlParser,
+                docxParser: this.docxParser,
+                compiler: this.compiler
+            });
+        });
+
+        this.options.extensions.afterCompilation.forEach(extension => {
+            extension.setUtilities({
+                xmlParser: this.xmlParser,
+                docxParser: this.docxParser,
+                compiler: this.compiler
+            });
+        });
     }
 
     public async process<T extends Binary>(templateFile: T, data: TemplateData): Promise<T> {
@@ -66,7 +83,10 @@ export class TemplateHandler {
         const context: TemplateContext = {
             docx
         };
+
+        await this.callExtensions<T>(this.options.extensions.beforeCompilation, scopeData, context);
         await this.compiler.compile(document, scopeData, context);
+        await this.callExtensions<T>(this.options.extensions.afterCompilation, scopeData, context);
 
         // export the result
         return docx.export(templateFile.constructor as Constructor<T>);
@@ -99,6 +119,12 @@ export class TemplateHandler {
     //
     // private methods
     //
+
+    private async callExtensions<T extends Binary>(extensions: TemplateExtension[], scopeData: ScopeData, context: TemplateContext): Promise<void> {
+        for (const extension of extensions) {
+            await extension.execute(scopeData, context);
+        }
+    }
 
     private async loadDocx(file: Binary): Promise<Docx> {
 
