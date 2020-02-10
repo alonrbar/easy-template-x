@@ -1828,6 +1828,14 @@ class Docx {
     return this._documentPath;
   }
 
+  /**
+   * **Notice:** You should only use this property if there is no other way to
+   * do what you need. Use with caution.
+   */
+  get rawZipFile() {
+    return this.zip;
+  }
+
   constructor(zip, xmlParser) {
     this.zip = zip;
     this.xmlParser = xmlParser;
@@ -2845,7 +2853,7 @@ class TemplateHandler {
   constructor(options) {
     var _this$options$extensi, _this$options$extensi2, _this$options$extensi3, _this$options$extensi4;
 
-    _defineProperty(this, "version",  "0.9.0" );
+    _defineProperty(this, "version",  "0.10.0" );
 
     _defineProperty(this, "xmlParser", new XmlParser());
 

@@ -12,6 +12,7 @@ export declare class Docx {
     readonly rels: Rels;
     readonly mediaFiles: MediaFiles;
     readonly contentTypes: ContentTypesFile;
+    get rawZipFile(): Zip;
     private _documentPath;
     private _document;
     constructor(zip: Zip, xmlParser: XmlParser);
