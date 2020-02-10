@@ -10,15 +10,17 @@ Generate docx documents from templates, in Node or in the browser.
 - [Node Example](#node-example)
 - [Browser Example](#browser-example)
 - [Live Demo](#live-demo)
-- [Standard plugins](#standard-plugins)
-  - [Text plugin](#text-plugin)
-  - [Loop plugin](#loop-plugin)
-  - [Image plugin](#image-plugin)
-  - [Link plugin](#link-plugin)
-  - [Raw xml plugin](#raw-xml-plugin)
+- [Plugins](#plugins)
+  - [Default plugins](#standard-plugins)
+    - [Text plugin](#text-plugin)
+    - [Loop plugin](#loop-plugin)
+    - [Image plugin](#image-plugin)
+    - [Link plugin](#link-plugin)
+    - [Raw xml plugin](#raw-xml-plugin)
+  - [Writing custom plugins](#writing-your-own-plugins)
+- [Extensions](#extensions)
 - [Scope resolution](#scope-resolution)
-- [Writing your own plugins](#writing-your-own-plugins)
-- [Advanced API](#advanced-api)
+- [Advanced API](#note---advanced-api)
 - [Supported Binary Formats](#supported-binary-formats)
 - [Philosophy](#philosophy)
 - [Prior art and motivation](#prior-art-and-motivation)
@@ -115,9 +117,13 @@ function saveFile(filename, blob) {
 
 Checkout this [live demo](https://codesandbox.io/s/easy-template-x-demo-x4ppu?fontsize=14&module=%2Findex.ts) on CodeSandbox 😎
 
-## Standard plugins
+## Plugins
 
-`easy-template-x` comes bundled with several plugins:
+`easy-template-x` uses a plugin model to support it's various template manipulation capabilities. There are some built-in plugins and you can also write your own custom plugins if required.
+
+### Default plugins
+
+These are the plugins that comes bundled with `easy-template-x`:
 
 - [Simple text replacement plugin.](#text-plugin)
 - [Loop plugin for iterating text, table rows and list rows.](#loop-plugin)
@@ -125,7 +131,7 @@ Checkout this [live demo](https://codesandbox.io/s/easy-template-x-demo-x4ppu?fo
 - [Link plugin for hyperlinks creation.](#link-plugin)
 - [Raw xml plugin for custom xml insertion.](#raw-xml-plugin)
 
-### Text plugin
+#### Text plugin
 
 The most basic plugin. Replaces a single tag with custom text. Preserves the original text style.
 
@@ -146,7 +152,7 @@ Output document:
 
 ![output document](./docs/assets/text-plugin-out.png?raw=true)
 
-### Loop plugin
+#### Loop plugin
 
 Iterates text, table rows and lists.  
 Requires an opening tag that starts with `#` and a closing tag that has the same
@@ -172,7 +178,7 @@ Output document:
 
 ![output document](./docs/assets/loop-plugin-out.png?raw=true)
 
-### Image plugin
+#### Image plugin
 
 Embed images into the document.
 
@@ -198,7 +204,7 @@ Output document:
 
 ![output document](./docs/assets/image-plugin-out.png?raw=true)
 
-### Link plugin
+#### Link plugin
 
 Inserts hyperlinks into the document.  
 Like text tags link tags also preserve their original style.
@@ -223,7 +229,7 @@ Output document:
 
 ![output document](./docs/assets/link-plugin-out.png?raw=true)
 
-### Raw xml plugin
+#### Raw xml plugin
 
 Add custom xml into the document to be interpreted by Word.
 
@@ -250,41 +256,7 @@ Output document:
 
 ![output document](./docs/assets/rawxml-plugin-out.png?raw=true)
 
-## Scope resolution
-
-`easy-template-x` supports tag data scoping. That is, you can reference
-"shallow" data from within deeper in the hierarchy similarly to how you can
-reference an outer scope variables from within a function in JavaScript. You can
-leverage this property to declare "top level" data (your logo and company name
-or some useful xml snippets like page breaks, etc.) to be used anywhere in the
-document.
-
-Input template:
-
-(notice that we are using the "Company" tag inside the "Employees" loop)
-
-![input template](./docs/assets/scope-in.png?raw=true)
-
-Input data:
-
-(notice that the "Company" data is declared outside the "Employees" loop, in it's so
-called "outer scope")
-
-```javascript
-{
-    "Company": "Contoso Ltd.",
-    "Employees": [
-        { "Surname": "Gates", "Given name": "William" },
-        { "Surname": "Nadella", "Given name": "Satya" },
-    ]
-}
-```
-
-Output document:
-
-![output document](./docs/assets/scope-out.png?raw=true)
-
-## Writing your own plugins
+### Writing your own plugins
 
 To write a plugin inherit from the [TemplatePlugin](./src/plugins/templatePlugin.ts) class.  
 The base class provides two methods you can implement and a set of [utilities](./src/plugins/templatePlugin.ts) to
@@ -336,7 +308,68 @@ export interface RawXmlContent extends PluginContent {
 }
 ```
 
-## Advanced API
+## Extensions
+
+Although most document manipulation can be achieved by using plugins, there are some cases where a more powerful tool is required. In order to extend the document manipulation process you can specify extensions that will be run before and/or after the standard template processing.
+
+Some cases where an extension may be a good fit:
+
+- Manipulating the document metadata (author, keywords, description, etc.).
+- Adding and manipulating [Content Controls](http://www.datypic.com/sc/ooxml/e-w_sdtContent-2.html).
+- Leveraging [Data Binding](https://blogs.msdn.microsoft.com/modonovan/2006/05/22/word-2007-content-controls-and-xml-part-1-the-basics/) (where the data is stored in files other than the base Word files).
+
+By default no extensions will be loaded.
+
+Extensions and the order they run in are specified via the `TemplateHandlerOptions`.
+
+```typescript
+const handler = new TemplateHandler(
+    new TemplateHandlerOptions({
+        extensions: {
+            afterCompilation: [
+                new ContentControlExtension(),
+                new DataBindingExtension()
+            ]
+        }
+    });
+);
+```
+
+## Scope resolution
+
+`easy-template-x` supports tag data scoping. That is, you can reference
+"shallow" data from within deeper in the hierarchy similarly to how you can
+reference an outer scope variables from within a function in JavaScript. You can
+leverage this property to declare "top level" data (your logo and company name
+or some useful xml snippets like page breaks, etc.) to be used anywhere in the
+document.
+
+Input template:
+
+(notice that we are using the "Company" tag inside the "Employees" loop)
+
+![input template](./docs/assets/scope-in.png?raw=true)
+
+Input data:
+
+(notice that the "Company" data is declared outside the "Employees" loop, in it's so
+called "outer scope")
+
+```javascript
+{
+    "Company": "Contoso Ltd.",
+    "Employees": [
+        { "Surname": "Gates", "Given name": "William" },
+        { "Surname": "Nadella", "Given name": "Satya" },
+    ]
+}
+```
+
+Output document:
+
+![output document](./docs/assets/scope-out.png?raw=true)
+
+## Note - Advanced API
 
 You'll usually just use the `TemplateHandler` as seen in the examples but if you
 want to implement a custom plugin or otherwise do some advanced work yourself
@@ -361,31 +394,6 @@ It tries to keep it simple and has the following priorities in mind:
 1. Easy for the **end user** who writes the templates.
 2. Easy for the **developer** who process them using the exposed APIs.
 3. Easy for the **maintainer/contributor** who maintain the `easy-template-x` package itself.
-
-## Extensions
-
-Although most document manipulation can be achieved by using plugins, developing your
-own if required there are some that cannot.
-
-- [Content Controls](http://www.datypic.com/sc/ooxml/e-w_sdtContent-2.html) have highly formatted XML that does not look like text
-- [Data Binding](https://blogs.msdn.microsoft.com/modonovan/2006/05/22/word-2007-content-controls-and-xml-part-1-the-basics/) stores its data in files other than the base word files.
-
-In order to extend document processing you can specify extensions that will be run after the standard template processing.
-
-By default no extensions will be loaded.
-
-To specify the desired extensions, the order they run in and the extension specific plugins they will use use TemplateHandlerOptions.
-
-```typescript
-const handler = new TemplateHandler(
-  new TemplateHandlerOptions({
-    extensions: [
-      new ContentControlExtension(createDefaultContentControlPlugins()),
-      new DataBindingExtension(createDefaultDataBindingPlugins())
-    ]
-  });
-);
-```
 
 ## Prior art and motivation
 
