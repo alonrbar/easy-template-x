@@ -19,5 +19,5 @@ export abstract class TemplateExtension {
         this.utilities = utilities;
     }
 
-    public abstract execute(utilities: ExtensionUtilities, data: ScopeData, context: TemplateContext): void | Promise<void>;
+    public abstract execute(data: ScopeData, context: TemplateContext): void | Promise<void>;
 }

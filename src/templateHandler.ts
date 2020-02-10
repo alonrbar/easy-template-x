@@ -122,11 +122,7 @@ export class TemplateHandler {
 
     private async callExtensions<T extends Binary>(extensions: TemplateExtension[], scopeData: ScopeData, context: TemplateContext): Promise<void> {
         for (const extension of extensions) {
-            await extension.execute({
-                xmlParser: this.xmlParser,
-                docxParser: this.docxParser,
-                compiler: this.compiler
-            }, scopeData, context);
+            await extension.execute(scopeData, context);
         }
     }
 
