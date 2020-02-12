@@ -318,7 +318,9 @@ Some cases where an extension may be a good fit:
 - Adding and manipulating [Content Controls](http://www.datypic.com/sc/ooxml/e-w_sdtContent-2.html).
 - Leveraging [Data Binding](https://blogs.msdn.microsoft.com/modonovan/2006/05/22/word-2007-content-controls-and-xml-part-1-the-basics/) (where the data is stored in files other than the base Word files).
 
-By default no extensions will be loaded.
+To write an extension inherit from the [TemplateExtension](./src/extensions/templateExtension.ts) class.  
+
+By default no extension is loaded.
 
 Extensions and the order they run in are specified via the `TemplateHandlerOptions`.
 

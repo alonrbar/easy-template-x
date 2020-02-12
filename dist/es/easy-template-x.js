@@ -2700,6 +2700,20 @@ class TemplateCompiler {
 
 }
 
+class TemplateExtension {
+  constructor() {
+    _defineProperty(this, "utilities", void 0);
+  }
+
+  /**
+   * Called by the TemplateHandler at runtime.
+   */
+  setUtilities(utilities) {
+    this.utilities = utilities;
+  }
+
+}
+
 class JsZipHelper {
   static toJsZipOutputType(binaryOrType) {
     if (!binaryOrType) throw new MissingArgumentError("binaryOrType");
@@ -2853,7 +2867,7 @@ class TemplateHandler {
   constructor(options) {
     var _this$options$extensi, _this$options$extensi2, _this$options$extensi3, _this$options$extensi4;
 
-    _defineProperty(this, "version",  "0.10.0" );
+    _defineProperty(this, "version",  "0.10.1" );
 
     _defineProperty(this, "xmlParser", new XmlParser());
 
@@ -2970,4 +2984,4 @@ class TemplateHandler {
 
 }
 
-export { Base64, Binary, DelimiterSearcher, Delimiters, Docx, DocxParser, ImagePlugin, LOOP_CONTENT_TYPE, LinkPlugin, LoopPlugin, MalformedFileError, MaxXmlDepthError, MimeType, MimeTypeHelper, MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, Path, PluginContent, RawXmlPlugin, ScopeData, TEXT_CONTENT_TYPE, TEXT_NODE_NAME, TagDisposition, TagParser, TemplateCompiler, TemplateHandler, TemplateHandlerOptions, TemplatePlugin, TextPlugin, UnclosedTagError, UnidentifiedFileTypeError, UnknownContentTypeError, UnopenedTagError, UnsupportedFileTypeError, XmlDepthTracker, XmlNode, XmlNodeType, XmlParser, Zip, ZipObject, createDefaultPlugins, first, inheritsFrom, isPromiseLike, last, pushMany, sha1, toDictionary };
+export { Base64, Binary, DelimiterSearcher, Delimiters, Docx, DocxParser, ImagePlugin, LOOP_CONTENT_TYPE, LinkPlugin, LoopPlugin, MalformedFileError, MaxXmlDepthError, MimeType, MimeTypeHelper, MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, Path, PluginContent, RawXmlPlugin, ScopeData, TEXT_CONTENT_TYPE, TEXT_NODE_NAME, TagDisposition, TagParser, TemplateCompiler, TemplateExtension, TemplateHandler, TemplateHandlerOptions, TemplatePlugin, TextPlugin, UnclosedTagError, UnidentifiedFileTypeError, UnknownContentTypeError, UnopenedTagError, UnsupportedFileTypeError, XmlDepthTracker, XmlNode, XmlNodeType, XmlParser, Zip, ZipObject, createDefaultPlugins, first, inheritsFrom, isPromiseLike, last, pushMany, sha1, toDictionary };

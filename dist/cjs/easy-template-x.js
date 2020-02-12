@@ -2698,6 +2698,20 @@ class TemplateCompiler {
 
 }
 
+class TemplateExtension {
+  constructor() {
+    _defineProperty(this, "utilities", void 0);
+  }
+
+  /**
+   * Called by the TemplateHandler at runtime.
+   */
+  setUtilities(utilities) {
+    this.utilities = utilities;
+  }
+
+}
+
 class JsZipHelper {
   static toJsZipOutputType(binaryOrType) {
     if (!binaryOrType) throw new MissingArgumentError("binaryOrType");
@@ -2851,7 +2865,7 @@ class TemplateHandler {
   constructor(options) {
     var _this$options$extensi, _this$options$extensi2, _this$options$extensi3, _this$options$extensi4;
 
-    _defineProperty(this, "version",  "0.10.0" );
+    _defineProperty(this, "version",  "0.10.1" );
 
     _defineProperty(this, "xmlParser", new XmlParser());
 
@@ -2992,6 +3006,7 @@ exports.TEXT_CONTENT_TYPE = TEXT_CONTENT_TYPE;
 exports.TEXT_NODE_NAME = TEXT_NODE_NAME;
 exports.TagParser = TagParser;
 exports.TemplateCompiler = TemplateCompiler;
+exports.TemplateExtension = TemplateExtension;
 exports.TemplateHandler = TemplateHandler;
 exports.TemplateHandlerOptions = TemplateHandlerOptions;
 exports.TemplatePlugin = TemplatePlugin;

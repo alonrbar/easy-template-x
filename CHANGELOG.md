@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.10.1 - 2020-02-12](https://github.com/alonrbar/easy-template-x/tree/v0.10.1)
+
+### Fixed
+
+- Export extensions types.
+
 ## [0.10.0 - 2020-02-10](https://github.com/alonrbar/easy-template-x/tree/v0.10.0)
 
 ### Added

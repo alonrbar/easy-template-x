@@ -1,4 +1,5 @@
 export * from './compilation';
+export * from './extensions';
 export * from './errors';
 export * from './office';
 export * from './plugins';
