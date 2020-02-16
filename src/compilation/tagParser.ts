@@ -1,6 +1,7 @@
 import { Delimiters } from '../delimiters';
 import { MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError } from '../errors';
 import { DocxParser } from '../office';
+import { Regex } from '../utils';
 import { DelimiterMark } from './delimiterMark';
 import { Tag, TagDisposition } from './tag';
 
@@ -17,8 +18,7 @@ export class TagParser {
         if (!delimiters)
             throw new MissingArgumentError(nameof(delimiters));
 
-        // TODO: regex escape
-        this.tagRegex = new RegExp(`^[${delimiters.tagStart}](.*?)[${delimiters.tagEnd}]`, 'mi');
+        this.tagRegex = new RegExp(`^${Regex.escape(delimiters.tagStart)}(.*?)${Regex.escape(delimiters.tagEnd)}`, 'm');
     }
 
     public parse(delimiters: DelimiterMark[]): Tag[] {
@@ -68,10 +68,10 @@ export class TagParser {
 
     /**
      * Consolidate all tag's text into a single text node.
-     * 
-     * Example: 
-     * 
-     * Text node before: "some text {some tag} some more text" 
+     *
+     * Example:
+     *
+     * Text node before: "some text {some tag} some more text"
      * Text nodes after: [ "some text ", "{some tag}", " some more text" ]
      */
     private normalizeTagNodes(
@@ -95,7 +95,7 @@ export class TagParser {
 
         // trim end
         if (closeDelimiter.index < endTextNode.textContent.length - 1) {
-            endTextNode = this.docParser.splitTextNode(endTextNode, closeDelimiter.index + 1, true);
+            endTextNode = this.docParser.splitTextNode(endTextNode, closeDelimiter.index + this.delimiters.tagEnd.length, true);
             if (sameNode) {
                 startTextNode = endTextNode;
             }

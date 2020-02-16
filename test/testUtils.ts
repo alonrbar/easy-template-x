@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { loremIpsum } from 'lorem-ipsum';
-import { XmlNode, XmlParser } from 'src/xml';
+import { XmlNode, XmlParser } from '../src/xml';
 
 const xmlParser = new XmlParser();
 
