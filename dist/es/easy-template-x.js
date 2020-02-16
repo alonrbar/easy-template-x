@@ -264,6 +264,14 @@ class Path {
 
 }
 
+class Regex {
+  static escape(str) {
+    // https://stackoverflow.com/questions/1144783/how-to-replace-all-occurrences-of-a-string-in-javascript
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+  }
+
+}
+
 /**
  * Secure Hash Algorithm (SHA1)
  * 
@@ -1194,9 +1202,8 @@ class TagParser {
     _defineProperty(this, "tagRegex", void 0);
 
     if (!docParser) throw new MissingArgumentError("docParser");
-    if (!delimiters) throw new MissingArgumentError("delimiters"); // TODO: regex escape
-
-    this.tagRegex = new RegExp(`^[${delimiters.tagStart}](.*?)[${delimiters.tagEnd}]`, 'mi');
+    if (!delimiters) throw new MissingArgumentError("delimiters");
+    this.tagRegex = new RegExp(`^${Regex.escape(delimiters.tagStart)}(.*?)${Regex.escape(delimiters.tagEnd)}`, 'm');
   }
 
   parse(delimiters) {
@@ -1242,10 +1249,10 @@ class TagParser {
   }
   /**
    * Consolidate all tag's text into a single text node.
-   * 
-   * Example: 
-   * 
-   * Text node before: "some text {some tag} some more text" 
+   *
+   * Example:
+   *
+   * Text node before: "some text {some tag} some more text"
    * Text nodes after: [ "some text ", "{some tag}", " some more text" ]
    */
 
@@ -1265,7 +1272,7 @@ class TagParser {
 
 
     if (closeDelimiter.index < endTextNode.textContent.length - 1) {
-      endTextNode = this.docParser.splitTextNode(endTextNode, closeDelimiter.index + 1, true);
+      endTextNode = this.docParser.splitTextNode(endTextNode, closeDelimiter.index + this.delimiters.tagEnd.length, true);
 
       if (sameNode) {
         startTextNode = endTextNode;
@@ -2867,7 +2874,7 @@ class TemplateHandler {
   constructor(options) {
     var _this$options$extensi, _this$options$extensi2, _this$options$extensi3, _this$options$extensi4;
 
-    _defineProperty(this, "version",  "0.10.1" );
+    _defineProperty(this, "version",  "0.10.2" );
 
     _defineProperty(this, "xmlParser", new XmlParser());
 
@@ -2984,4 +2991,4 @@ class TemplateHandler {
 
 }
 
-export { Base64, Binary, DelimiterSearcher, Delimiters, Docx, DocxParser, ImagePlugin, LOOP_CONTENT_TYPE, LinkPlugin, LoopPlugin, MalformedFileError, MaxXmlDepthError, MimeType, MimeTypeHelper, MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, Path, PluginContent, RawXmlPlugin, ScopeData, TEXT_CONTENT_TYPE, TEXT_NODE_NAME, TagDisposition, TagParser, TemplateCompiler, TemplateExtension, TemplateHandler, TemplateHandlerOptions, TemplatePlugin, TextPlugin, UnclosedTagError, UnidentifiedFileTypeError, UnknownContentTypeError, UnopenedTagError, UnsupportedFileTypeError, XmlDepthTracker, XmlNode, XmlNodeType, XmlParser, Zip, ZipObject, createDefaultPlugins, first, inheritsFrom, isPromiseLike, last, pushMany, sha1, toDictionary };
+export { Base64, Binary, DelimiterSearcher, Delimiters, Docx, DocxParser, ImagePlugin, LOOP_CONTENT_TYPE, LinkPlugin, LoopPlugin, MalformedFileError, MaxXmlDepthError, MimeType, MimeTypeHelper, MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, Path, PluginContent, RawXmlPlugin, Regex, ScopeData, TEXT_CONTENT_TYPE, TEXT_NODE_NAME, TagDisposition, TagParser, TemplateCompiler, TemplateExtension, TemplateHandler, TemplateHandlerOptions, TemplatePlugin, TextPlugin, UnclosedTagError, UnidentifiedFileTypeError, UnknownContentTypeError, UnopenedTagError, UnsupportedFileTypeError, XmlDepthTracker, XmlNode, XmlNodeType, XmlParser, Zip, ZipObject, createDefaultPlugins, first, inheritsFrom, isPromiseLike, last, pushMany, sha1, toDictionary };

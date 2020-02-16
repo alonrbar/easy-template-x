@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.10.2 - 2020-02-16](https://github.com/alonrbar/easy-template-x/tree/v0.10.2)
+
+### Fixed
+
+- Parsing of tags with custom delimiters.
+
 ## [0.10.1 - 2020-02-12](https://github.com/alonrbar/easy-template-x/tree/v0.10.1)
 
 ### Fixed
