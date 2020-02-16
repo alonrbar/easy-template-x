@@ -119,7 +119,7 @@ export class TagParser {
             }
 
             if (curDelimiter.xmlTextNode === closeDelimiter.xmlTextNode) {
-                curDelimiter.index -= closeDelimiter.index + 1;
+                curDelimiter.index -= closeDelimiter.index + this.delimiters.tagEnd.length;
                 updated = true;
             }
 
