@@ -1296,7 +1296,7 @@ class TagParser {
       }
 
       if (curDelimiter.xmlTextNode === closeDelimiter.xmlTextNode) {
-        curDelimiter.index -= closeDelimiter.index + 1;
+        curDelimiter.index -= closeDelimiter.index + this.delimiters.tagEnd.length;
         updated = true;
       }
 
@@ -2872,7 +2872,7 @@ class TemplateHandler {
   constructor(options) {
     var _this$options$extensi, _this$options$extensi2, _this$options$extensi3, _this$options$extensi4;
 
-    _defineProperty(this, "version",  "0.10.2" );
+    _defineProperty(this, "version",  "0.10.3" );
 
     _defineProperty(this, "xmlParser", new XmlParser());
 
