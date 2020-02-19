@@ -19,6 +19,7 @@ Generate docx documents from templates, in Node or in the browser.
     - [Raw xml plugin](#raw-xml-plugin)
   - [Writing custom plugins](#writing-your-own-plugins)
 - [Extensions](#extensions)
+    - [Data Binding Extension](#data-binding-extension)
 - [Scope resolution](#scope-resolution)
 - [Advanced API](#note---advanced-api)
 - [Supported Binary Formats](#supported-binary-formats)
@@ -336,6 +337,12 @@ const handler = new TemplateHandler(
     });
 );
 ```
+
+### Data Binding Extension
+
+There is a [data binding extension](https://github.com/sebastianrogers/easy-template-x-data-binding) available that allows document metadata, stored in [Custom XML files](https://docs.microsoft.com/en-gb/archive/blogs/modonovan/word-2007-content-controls-and-xml-part-1-the-basics) inside the OOXML document, to be updated.
+
+This allows word forms to be populated automatically from external data sources.
 
 ## Scope resolution
 
