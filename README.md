@@ -312,22 +312,20 @@ export interface RawXmlContent extends PluginContent {
 
 ## Extensions
 
-Although most document manipulation can be achieved by using plugins, there are some cases where a more powerful tool is required. In order to extend the document manipulation process you can specify extensions that will be run before and/or after the standard template processing.
+While most document manipulation can be achieved using plugins, there are some cases where a more powerful tool is required. In order to extend the document manipulation process you can specify extensions that will be run before and/or after the standard template processing.
 
 To write an extension inherit from the [TemplateExtension](./src/extensions/templateExtension.ts) class.  
 
 By default no extension is loaded. Extensions and the order they run in are specified via the `TemplateHandlerOptions`.
 
 ```typescript
-const handler = new TemplateHandler(
-    new TemplateHandlerOptions({
-        extensions: {
-            afterCompilation: [
-                new DataBindingExtension()
-            ]
-        }
-    });
-);
+const handler = new TemplateHandler({
+    extensions: {
+        afterCompilation: [
+            new DataBindingExtension()
+        ]
+    }
+});
 ```
 
 ### Community Extensions
@@ -339,7 +337,7 @@ Want to see your extension here? Submit a pull request or [open an issue](https:
 
 The [easy-template-x-data-binding](https://github.com/sebastianrogers/easy-template-x-data-binding) extension supports updating [custom XML files](https://docs.microsoft.com/en-gb/archive/blogs/modonovan/word-2007-content-controls-and-xml-part-1-the-basics) inside Word documents.
 
-This allows using `easy-template-x` to automatically fill [Word forms](https://support.office.com/en-us/article/create-forms-that-users-complete-or-print-in-word-040c5cc1-e309-445b-94ac-542f732c8c8b) that uses content controls with information from external sources.
+This allows using `easy-template-x` to automatically fill [Word forms](https://support.office.com/en-us/article/create-forms-that-users-complete-or-print-in-word-040c5cc1-e309-445b-94ac-542f732c8c8b) that uses content controls.
 
 ## Scope resolution
 
@@ -415,7 +413,7 @@ While these packages has some great features such as GraphQL and inline
 JavaScript support in `docx-templates` and a breadth of additional (payed)
 modules in `docxtemplater`. This package, in accordance with it's declared above
 philosophy, offers some unique benefits including a most simple, non-programmer
-oriented template syntax, an even neater API (IMHO 😄), a _free_ image insertion
+oriented template syntax, an even neater API (IMHO), a _free_ image insertion
 plugin and a TypeScript code base. Hopefully it will serve you well :)
 
 ## Changelog
