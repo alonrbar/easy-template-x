@@ -19,6 +19,7 @@ Generate docx documents from templates, in Node or in the browser.
     - [Raw xml plugin](#raw-xml-plugin)
   - [Writing custom plugins](#writing-your-own-plugins)
 - [Extensions](#extensions)
+  - [Community Extensions](#community-extensions)
     - [Data Binding Extension](#data-binding-extension)
 - [Scope resolution](#scope-resolution)
 - [Advanced API](#note---advanced-api)
@@ -313,24 +314,15 @@ export interface RawXmlContent extends PluginContent {
 
 Although most document manipulation can be achieved by using plugins, there are some cases where a more powerful tool is required. In order to extend the document manipulation process you can specify extensions that will be run before and/or after the standard template processing.
 
-Some cases where an extension may be a good fit:
-
-- Manipulating the document metadata (author, keywords, description, etc.).
-- Adding and manipulating [Content Controls](http://www.datypic.com/sc/ooxml/e-w_sdtContent-2.html).
-- Leveraging [Data Binding](https://blogs.msdn.microsoft.com/modonovan/2006/05/22/word-2007-content-controls-and-xml-part-1-the-basics/) (where the data is stored in files other than the base Word files).
-
 To write an extension inherit from the [TemplateExtension](./src/extensions/templateExtension.ts) class.  
 
-By default no extension is loaded.
-
-Extensions and the order they run in are specified via the `TemplateHandlerOptions`.
+By default no extension is loaded. Extensions and the order they run in are specified via the `TemplateHandlerOptions`.
 
 ```typescript
 const handler = new TemplateHandler(
     new TemplateHandlerOptions({
         extensions: {
             afterCompilation: [
-                new ContentControlExtension(),
                 new DataBindingExtension()
             ]
         }
@@ -338,11 +330,16 @@ const handler = new TemplateHandler(
 );
 ```
 
-### Data Binding Extension
+### Community Extensions
 
-There is a [data binding extension](https://github.com/sebastianrogers/easy-template-x-data-binding) available that allows document metadata, stored in [Custom XML files](https://docs.microsoft.com/en-gb/archive/blogs/modonovan/word-2007-content-controls-and-xml-part-1-the-basics) inside the OOXML document, to be updated.
+The following extensions were developed by the community.  
+Want to see your extension here? Submit a pull request or [open an issue](https://github.com/alonrbar/easy-template-x/issues).
 
-This allows word forms to be populated automatically from external data sources.
+#### Data Binding Extension
+
+The [easy-template-x-data-binding](https://github.com/sebastianrogers/easy-template-x-data-binding) extension supports updating [custom XML files](https://docs.microsoft.com/en-gb/archive/blogs/modonovan/word-2007-content-controls-and-xml-part-1-the-basics) inside Word documents.
+
+This allows using `easy-template-x` to automatically fill [Word forms](https://support.office.com/en-us/article/create-forms-that-users-complete-or-print-in-word-040c5cc1-e309-445b-94ac-542f732c8c8b) that uses content controls with information from external sources.
 
 ## Scope resolution
 
