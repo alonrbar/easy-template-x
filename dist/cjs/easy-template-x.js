@@ -2872,7 +2872,7 @@ class TemplateHandler {
   constructor(options) {
     var _this$options$extensi, _this$options$extensi2, _this$options$extensi3, _this$options$extensi4;
 
-    _defineProperty(this, "version",  "0.10.3" );
+    _defineProperty(this, "version",  "0.10.4" );
 
     _defineProperty(this, "xmlParser", new XmlParser());
 

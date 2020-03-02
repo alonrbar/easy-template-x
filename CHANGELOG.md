@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.10.4 - 2020-03-02](https://github.com/alonrbar/easy-template-x/tree/v0.10.4)
+
+### Added
+
+- Expose "Community Extensions" on npm (readme changes).
+
 ## [0.10.3 - 2020-02-16](https://github.com/alonrbar/easy-template-x/tree/v0.10.3)
 
 ### Fixed
