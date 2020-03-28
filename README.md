@@ -249,7 +249,8 @@ Input data:
 {
     "Dont worry be happy": {
         _type: 'rawXml',
-        xml: '<w:sym w:font="Wingdings" w:char="F04A"/>'
+        xml: '<w:sym w:font="Wingdings" w:char="F04A"/>',
+        replaceParagraph: true,  // optional - if specified the `xml` property will be used to replace unit of block-level content
     }
 }
 ```
