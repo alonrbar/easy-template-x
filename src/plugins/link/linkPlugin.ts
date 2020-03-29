@@ -1,8 +1,8 @@
-import { ScopeData, Tag, TemplateContext } from '../compilation';
-import { DocxParser } from '../office';
-import { XmlNode } from '../xml';
+import { ScopeData, Tag, TemplateContext } from '../../compilation';
+import { DocxParser } from '../../office';
+import { XmlNode } from '../../xml';
+import { TemplatePlugin } from '../templatePlugin';
 import { LinkContent } from './linkContent';
-import { TemplatePlugin } from './templatePlugin';
 
 export class LinkPlugin extends TemplatePlugin {
 
@@ -46,7 +46,7 @@ export class LinkPlugin extends TemplatePlugin {
         const markupXml = this.utilities.xmlParser.parse(markupText);
         XmlNode.removeEmptyTextNodes(markupXml); // remove whitespace
 
-        // copy props from original run node (preserve style)        
+        // copy props from original run node (preserve style)
         const runProps = wordRunNode.childNodes.find(node => node.nodeName === DocxParser.RUN_PROPERTIES_NODE);
         if (runProps) {
             const linkRunProps = XmlNode.cloneNode(runProps, true);
@@ -58,13 +58,13 @@ export class LinkPlugin extends TemplatePlugin {
 
     private insertHyperlinkNode(linkMarkup: XmlNode, tagRunNode: XmlNode, tagTextNode: XmlNode) {
 
-        // Links are inserted at the 'run' level.  
+        // Links are inserted at the 'run' level.
         // Therefor we isolate the link tag to it's own run (it is already
         // isolated to it's own text node), insert the link markup and remove
         // the run.
         let textNodesInRun = tagRunNode.childNodes.filter(node => node.nodeName === DocxParser.TEXT_NODE);
         if (textNodesInRun.length > 1) {
-            
+
             const [runBeforeTag] = XmlNode.splitByChild(tagRunNode, tagTextNode, true);
             textNodesInRun = runBeforeTag.childNodes.filter(node => node.nodeName === DocxParser.TEXT_NODE);
 

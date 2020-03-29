@@ -1,13 +1,13 @@
-import { ImagePlugin } from './imagePlugin';
-import { LinkPlugin } from './linkPlugin';
-import { LoopPlugin } from './loopPlugin';
-import { RawXmlPlugin } from './rawXmlPlugin';
+import { ImagePlugin } from './image';
+import { LinkPlugin } from './link';
+import { LoopPlugin } from './loop';
+import { RawXmlPlugin } from './rawXml';
 import { TemplatePlugin } from './templatePlugin';
-import { TextPlugin } from './textPlugin';
+import { TextPlugin } from './text';
 
 export function createDefaultPlugins(): TemplatePlugin[] {
     return [
-        new LoopPlugin(), 
+        new LoopPlugin(),
         new RawXmlPlugin(),
         new ImagePlugin(),
         new LinkPlugin(),

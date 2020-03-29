@@ -1,6 +1,6 @@
-import { Tag } from '../../compilation';
-import { XmlNode } from '../../xml';
-import { PluginUtilities } from '../templatePlugin';
+import { Tag } from '../../../compilation';
+import { XmlNode } from '../../../xml';
+import { PluginUtilities } from '../../templatePlugin';
 import { ILoopStrategy, SplitBeforeResult } from './iLoopStrategy';
 
 export class LoopListStrategy implements ILoopStrategy {

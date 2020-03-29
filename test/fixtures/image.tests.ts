@@ -1,5 +1,5 @@
 import { MimeType } from 'src/mimeType';
-import { ImageContent } from 'src/plugins/imageContent';
+import { ImageContent } from 'src/plugins/image';
 import { TemplateHandler } from 'src/templateHandler';
 import { Zip } from 'src/zip';
 import { range, readResource } from '../testUtils';

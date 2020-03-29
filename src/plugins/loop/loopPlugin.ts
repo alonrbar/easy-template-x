@@ -1,9 +1,9 @@
-import { ScopeData, Tag, TemplateContext } from '../compilation';
-import { TemplateData } from '../templateData';
-import { last } from '../utils';
-import { XmlNode } from '../xml';
-import { ILoopStrategy, LoopListStrategy, LoopParagraphStrategy, LoopTableStrategy } from './loop';
-import { PluginUtilities, TemplatePlugin } from './templatePlugin';
+import { ScopeData, Tag, TemplateContext } from '../../compilation';
+import { TemplateData } from '../../templateData';
+import { last } from '../../utils';
+import { XmlNode } from '../../xml';
+import { PluginUtilities, TemplatePlugin } from '../templatePlugin';
+import { ILoopStrategy, LoopListStrategy, LoopParagraphStrategy, LoopTableStrategy } from './strategy';
 
 export const LOOP_CONTENT_TYPE = 'loop';
 
@@ -20,7 +20,7 @@ export class LoopPlugin extends TemplatePlugin {
     public setUtilities(utilities: PluginUtilities) {
         this.utilities = utilities;
         this.loopStrategies.forEach(strategy => strategy.setUtilities(utilities));
-    }    
+    }
 
     public async containerTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): Promise<void> {
 
@@ -44,7 +44,7 @@ export class LoopPlugin extends TemplatePlugin {
         // repeat (loop) the content
         const repeatedNodes = this.repeat(nodesToRepeat, value.length);
 
-        // recursive compilation 
+        // recursive compilation
         // (this step can be optimized in the future if we'll keep track of the
         // path to each token and use that to create new tokens instead of
         // search through the text again)

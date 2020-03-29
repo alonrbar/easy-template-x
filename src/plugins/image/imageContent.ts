@@ -1,6 +1,6 @@
-import { MimeType } from '../mimeType';
-import { Binary } from '../utils';
-import { PluginContent } from './pluginContent';
+import { MimeType } from '../../mimeType';
+import { Binary } from '../../utils';
+import { PluginContent } from '../pluginContent';
 
 export type ImageFormat = MimeType.Jpeg | MimeType.Png | MimeType.Gif | MimeType.Bmp | MimeType.Svg;
 

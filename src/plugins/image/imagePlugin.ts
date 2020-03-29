@@ -1,15 +1,15 @@
-import { ScopeData, Tag, TemplateContext } from '../compilation';
-import { MimeTypeHelper } from '../mimeType';
-import { XmlGeneralNode, XmlNode } from '../xml';
+import { ScopeData, Tag, TemplateContext } from '../../compilation';
+import { MimeTypeHelper } from '../../mimeType';
+import { XmlGeneralNode, XmlNode } from '../../xml';
+import { TemplatePlugin } from '../templatePlugin';
 import { ImageContent } from './imageContent';
-import { TemplatePlugin } from './templatePlugin';
 
 /**
- * Apparently it is not that important for the ID to be unique...  
+ * Apparently it is not that important for the ID to be unique...
  * Word displays two images correctly even if they both have the same ID.
  * Further more, Word will assign each a unique ID upon saving (it assigns
- * consecutive integers starting with 1).  
- * 
+ * consecutive integers starting with 1).
+ *
  * Note: The same principal applies to image names.
  *
  * Tested in Word v1908
@@ -49,7 +49,7 @@ export class ImagePlugin extends TemplatePlugin {
         // http://officeopenxml.com/drwPicInline.php
 
         //
-        // Performance note:  
+        // Performance note:
         //
         // I've tried to improve the markup generation performance by parsing
         // the string once and caching the result (and of course customizing it

@@ -1,4 +1,4 @@
-import { PluginContent } from './pluginContent';
+import { PluginContent } from '../pluginContent';
 
 export interface LinkContent extends PluginContent {
     _type: 'link';

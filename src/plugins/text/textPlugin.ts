@@ -1,7 +1,7 @@
-import { ScopeData, Tag } from '../compilation';
-import { DocxParser } from '../office';
-import { XmlNode, XmlTextNode } from '../xml';
-import { TemplatePlugin } from './templatePlugin';
+import { ScopeData, Tag } from '../../compilation';
+import { DocxParser } from '../../office';
+import { XmlNode, XmlTextNode } from '../../xml';
+import { TemplatePlugin } from '../templatePlugin';
 
 export const TEXT_CONTENT_TYPE = 'text';
 

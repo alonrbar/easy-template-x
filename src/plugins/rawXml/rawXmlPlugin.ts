@@ -1,7 +1,7 @@
-import { ScopeData, Tag } from '../compilation';
-import { XmlNode } from '../xml';
+import { ScopeData, Tag } from '../../compilation';
+import { XmlNode } from '../../xml';
+import { TemplatePlugin } from '../templatePlugin';
 import { RawXmlContent } from './rawXmlContent';
-import { TemplatePlugin } from './templatePlugin';
 
 export class RawXmlPlugin extends TemplatePlugin {
 
