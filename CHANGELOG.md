@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.11.1 - 2020-03-29](https://github.com/alonrbar/easy-template-x/tree/v0.11.1)
+
+### Fixed
+
+- Consistent handling of `RawXmlContent` when the `xml` prop is null.
+
 ## [0.11.0 - 2020-03-29](https://github.com/alonrbar/easy-template-x/tree/v0.11.0)
 
 ### Added

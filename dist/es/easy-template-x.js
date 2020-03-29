@@ -2513,14 +2513,10 @@ class RawXmlPlugin extends TemplatePlugin {
   }
 
   simpleTagReplacements(tag, data) {
-    let replaceNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
     const value = data.getScopeData();
+    const replaceNode = (value === null || value === void 0 ? void 0 : value.replaceParagraph) ? this.utilities.docxParser.containingParagraphNode(tag.xmlTextNode) : this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
 
-    if (value && typeof value.xml === 'string') {
-      if (value.replaceParagraph === true) {
-        replaceNode = this.utilities.docxParser.containingParagraphNode(tag.xmlTextNode);
-      }
-
+    if (typeof (value === null || value === void 0 ? void 0 : value.xml) === 'string') {
       const newNode = this.utilities.xmlParser.parse(value.xml);
       XmlNode.insertBefore(newNode, replaceNode);
     }
@@ -2874,7 +2870,7 @@ class TemplateHandler {
   constructor(options) {
     var _this$options$extensi, _this$options$extensi2, _this$options$extensi3, _this$options$extensi4;
 
-    _defineProperty(this, "version",  "0.11.0" );
+    _defineProperty(this, "version",  "0.11.1" );
 
     _defineProperty(this, "xmlParser", new XmlParser());
 
