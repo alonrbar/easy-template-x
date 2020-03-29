@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.11.0 - 2020-03-29](https://github.com/alonrbar/easy-template-x/tree/v0.11.0)
+
+### Added
+
+- Support for `RawXmlContent.replaceParagraph`.
+
 ## [0.10.4 - 2020-03-02](https://github.com/alonrbar/easy-template-x/tree/v0.10.4)
 
 ### Added

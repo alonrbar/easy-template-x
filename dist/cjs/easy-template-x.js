@@ -1417,16 +1417,15 @@ class TemplatePlugin {
 }
 
 /**
- * Apparently it is not that important for the ID to be unique...  
+ * Apparently it is not that important for the ID to be unique...
  * Word displays two images correctly even if they both have the same ID.
  * Further more, Word will assign each a unique ID upon saving (it assigns
- * consecutive integers starting with 1).  
- * 
+ * consecutive integers starting with 1).
+ *
  * Note: The same principal applies to image names.
  *
  * Tested in Word v1908
  */
-
 let nextImageId = 1;
 class ImagePlugin extends TemplatePlugin {
   constructor(...args) {
@@ -1459,7 +1458,7 @@ class ImagePlugin extends TemplatePlugin {
   createMarkup(imageId, relId, width, height) {
     // http://officeopenxml.com/drwPicInline.php
     //
-    // Performance note:  
+    // Performance note:
     //
     // I've tried to improve the markup generation performance by parsing
     // the string once and caching the result (and of course customizing it
@@ -2219,7 +2218,7 @@ class LinkPlugin extends TemplatePlugin {
         `;
     const markupXml = this.utilities.xmlParser.parse(markupText);
     XmlNode.removeEmptyTextNodes(markupXml); // remove whitespace
-    // copy props from original run node (preserve style)        
+    // copy props from original run node (preserve style)
 
     const runProps = wordRunNode.childNodes.find(node => node.nodeName === DocxParser.RUN_PROPERTIES_NODE);
 
@@ -2232,7 +2231,7 @@ class LinkPlugin extends TemplatePlugin {
   }
 
   insertHyperlinkNode(linkMarkup, tagRunNode, tagTextNode) {
-    // Links are inserted at the 'run' level.  
+    // Links are inserted at the 'run' level.
     // Therefor we isolate the link tag to it's own run (it is already
     // isolated to it's own text node), insert the link markup and remove
     // the run.
@@ -2454,7 +2453,7 @@ class LoopPlugin extends TemplatePlugin {
       lastNode
     } = loopStrategy.splitBefore(openTag, closeTag); // repeat (loop) the content
 
-    const repeatedNodes = this.repeat(nodesToRepeat, value.length); // recursive compilation 
+    const repeatedNodes = this.repeat(nodesToRepeat, value.length); // recursive compilation
     // (this step can be optimized in the future if we'll keep track of the
     // path to each token and use that to create new tokens instead of
     // search through the text again)
@@ -2511,12 +2510,6 @@ class RawXmlPlugin extends TemplatePlugin {
     _defineProperty(this, "contentType", 'rawXml');
   }
 
-  /**
-   * If TemplateData.replaceParagraph === true
-   * Replace the parent <w:p> for current <w:t> node with the specified xml markup.
-   * otherwise
-   * Replace the current <w:t> node with the specified xml markup.
-   */
   simpleTagReplacements(tag, data) {
     let replaceNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
     const value = data.getScopeData();
@@ -2879,7 +2872,7 @@ class TemplateHandler {
   constructor(options) {
     var _this$options$extensi, _this$options$extensi2, _this$options$extensi3, _this$options$extensi4;
 
-    _defineProperty(this, "version",  "0.10.4" );
+    _defineProperty(this, "version",  "0.11.0" );
 
     _defineProperty(this, "xmlParser", new XmlParser());
 

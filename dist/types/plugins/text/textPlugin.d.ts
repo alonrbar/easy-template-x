@@ -1,5 +1,5 @@
-import { ScopeData, Tag } from '../compilation';
-import { TemplatePlugin } from './templatePlugin';
+import { ScopeData, Tag } from '../../compilation';
+import { TemplatePlugin } from '../templatePlugin';
 export declare const TEXT_CONTENT_TYPE = "text";
 export declare class TextPlugin extends TemplatePlugin {
     readonly contentType = "text";

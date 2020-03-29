@@ -1,5 +1,5 @@
-import { ScopeData, Tag, TemplateContext } from '../compilation';
-import { PluginUtilities, TemplatePlugin } from './templatePlugin';
+import { ScopeData, Tag, TemplateContext } from '../../compilation';
+import { PluginUtilities, TemplatePlugin } from '../templatePlugin';
 export declare const LOOP_CONTENT_TYPE = "loop";
 export declare class LoopPlugin extends TemplatePlugin {
     readonly contentType = "loop";
