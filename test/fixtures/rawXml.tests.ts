@@ -21,7 +21,7 @@ describe('raw xml fixture', () => {
         const docXml = await handler.getXml(doc);
         expect(docXml).toMatchSnapshot();
 
-        // writeTempFile(doc, 'raw xml - output.docx');
+        // writeTempFile('raw xml - output.docx', doc);
     });
 
     it("inserts raw xml content into paragrafNode", async () => {
@@ -29,7 +29,7 @@ describe('raw xml fixture', () => {
         const template = readFixture("simple.docx");
 
         const data = {
-            // insert a smiley icon
+            // insert a table
             simple_prop: {
                 _type: 'rawXml',
                 xml: '<w:tbl><w:tr><w:tc><w:p><w:r><w:t>Hello</w:t></w:r></w:p></w:tc></w:tr></w:tbl>',
@@ -43,6 +43,6 @@ describe('raw xml fixture', () => {
         const docXml = await handler.getXml(doc);
         expect(docXml).toMatchSnapshot();
 
-        // writeTempFile(doc, 'raw xml - output.docx');
+        // writeTempFile('raw xml - output.docx', doc);
     });
 });

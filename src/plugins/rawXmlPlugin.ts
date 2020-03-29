@@ -7,19 +7,13 @@ export class RawXmlPlugin extends TemplatePlugin {
 
     public readonly contentType = 'rawXml';
 
-    /**
-     * If TemplateData.replaceParagraph === true
-     * Replace the parent <w:p> for current <w:t> node with the specified xml markup.
-     * otherwise
-     * Replace the current <w:t> node with the specified xml markup.
-     */
     public simpleTagReplacements(tag: Tag, data: ScopeData): void {
 
         let replaceNode: XmlNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
 
         const value = data.getScopeData<RawXmlContent>();
         if (value && typeof value.xml === 'string') {
-            if(value.replaceParagraph === true) {
+            if (value.replaceParagraph === true) {
                 replaceNode = this.utilities.docxParser.containingParagraphNode(tag.xmlTextNode);
             }
 
