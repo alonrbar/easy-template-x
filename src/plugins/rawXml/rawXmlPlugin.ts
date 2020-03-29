@@ -9,14 +9,13 @@ export class RawXmlPlugin extends TemplatePlugin {
 
     public simpleTagReplacements(tag: Tag, data: ScopeData): void {
 
-        let replaceNode: XmlNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
-
         const value = data.getScopeData<RawXmlContent>();
-        if (value && typeof value.xml === 'string') {
-            if (value.replaceParagraph === true) {
-                replaceNode = this.utilities.docxParser.containingParagraphNode(tag.xmlTextNode);
-            }
 
+        const replaceNode = value?.replaceParagraph ?
+            this.utilities.docxParser.containingParagraphNode(tag.xmlTextNode) :
+            this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
+
+        if (typeof value?.xml === 'string') {
             const newNode = this.utilities.xmlParser.parse(value.xml);
             XmlNode.insertBefore(newNode, replaceNode);
         }
