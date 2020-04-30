@@ -11,7 +11,7 @@ Generate docx documents from templates, in Node or in the browser.
 - [Browser Example](#browser-example)
 - [Live Demo](#live-demo)
 - [Plugins](#plugins)
-  - [Default plugins](#standard-plugins)
+  - [Core plugins](#core-plugins)
     - [Text plugin](#text-plugin)
     - [Loop plugin](#loop-plugin)
     - [Image plugin](#image-plugin)
@@ -123,7 +123,7 @@ Checkout this [live demo](https://codesandbox.io/s/easy-template-x-demo-x4ppu?fo
 
 `easy-template-x` uses a plugin model to support it's various template manipulation capabilities. There are some built-in plugins and you can also write your own custom plugins if required.
 
-### Default plugins
+### Core plugins
 
 These are the plugins that comes bundled with `easy-template-x`:
 
@@ -411,11 +411,12 @@ There are already some very good templating libraries out there, most notably th
 out of both and to add some good of it's own.
 
 While these packages has some great features such as GraphQL and inline
-JavaScript support in `docx-templates` and a breadth of additional (payed)
+JavaScript support in `docx-templates` and a breadth of additional (paid)
 modules in `docxtemplater`. This package, in accordance with it's declared above
-philosophy, offers some unique benefits including a most simple, non-programmer
-oriented template syntax, an even neater API (IMHO), a _free_ image insertion
-plugin and a TypeScript code base. Hopefully it will serve you well :)
+philosophy, offers some unique benefits including, a simple template syntax
+aimed to be handled by non-programmers, a cleaner API (IMHO), a _free_
+image insertion plugin and a TypeScript code base. Hopefully it will serve you
+well :)
 
 ## Changelog
 
