@@ -2,6 +2,7 @@ import { IMap } from '../types';
 import { Path } from '../utils';
 import { XmlGeneralNode, XmlNode, XmlParser } from '../xml';
 import { Zip } from '../zip';
+import { Relationship, RelTargetMode } from './relationship';
 
 /**
  * Handles the relationship logic of a single docx "part".
@@ -9,8 +10,7 @@ import { Zip } from '../zip';
  */
 export class Rels {
 
-    private root: XmlNode;
-    private relIds: IMap<boolean>;
+    private rels: IMap<Relationship>;
     private relTargets: IMap<string>;
     private nextRelId = 0;
 
@@ -31,7 +31,7 @@ export class Rels {
     /**
      * Returns the rel ID.
      */
-    public async add(relTarget: string, relType: string, additionalAttributes?: IMap<string>): Promise<string> {
+    public async add(relTarget: string, relType: string, relTargetMode?: RelTargetMode): Promise<string> {
 
         // if relTarget is an internal file it should be relative to the part dir
         if (relTarget.startsWith(this.partDir)) {
@@ -47,22 +47,26 @@ export class Rels {
         if (relId)
             return relId;
 
-        // add rel node
+        // create rel node
         relId = this.getNextRelId();
-        const relNode = XmlNode.createGeneralNode('Relationship');
-        relNode.attributes = Object.assign({
-            "Id": relId,
-            "Type": relType,
-            "Target": relTarget
-        }, additionalAttributes);
-        this.root.childNodes.push(relNode);
+        const rel = new Relationship({
+            id: relId,
+            type: relType,
+            target: relTarget,
+            targetMode: relTargetMode
+        });
 
         // update lookups
-        this.relIds[relId] = true;
+        this.rels[relId] = rel;
         this.relTargets[relTargetKey] = relId;
 
         // return
         return relId;
+    }
+
+    public async list(): Promise<Relationship[]> {
+        await this.parseRelsFile();
+        return Object.values(this.rels);
     }
 
     /**
@@ -72,10 +76,18 @@ export class Rels {
     public async save(): Promise<void> {
 
         // not change - no need to save
-        if (!this.root)
+        if (!this.rels)
             return;
 
-        const xmlContent = this.xmlParser.serialize(this.root);
+        // create rels xml
+        const root = XmlNode.createGeneralNode('Relationships');
+        root.attributes = {
+            'xmlns': 'http://schemas.openxmlformats.org/package/2006/relationships'
+        };
+        root.childNodes = Object.values(this.rels).map(rel => rel.toXml());
+
+        // serialize and save
+        const xmlContent = this.xmlParser.serialize(root);
         this.zip.setFile(this.relsFilePath, xmlContent);
     }
 
@@ -89,16 +101,18 @@ export class Rels {
         do {
             this.nextRelId++;
             relId = 'rId' + this.nextRelId;
-        } while (this.relIds[relId]);
+        } while (this.rels[relId]);
 
         return relId;
     }
 
     private async parseRelsFile(): Promise<void> {
-        if (this.root)
+
+        // already parsed
+        if (this.rels)
             return;
 
-        // parse the xml file
+        // parse xml
         let relsXml: string;
         const relsFile = this.zip.getFile(this.relsFilePath);
         if (relsFile) {
@@ -107,24 +121,26 @@ export class Rels {
             relsXml = `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
                       </Relationships>`;
         }
-        this.root = this.xmlParser.parse(relsXml);
+        const root = this.xmlParser.parse(relsXml);
 
-        // build lookups
-        this.relIds = {};
+        // parse relationship nodes
+        this.rels = {};
         this.relTargets = {};
-        for (const rel of this.root.childNodes) {
+        for (const relNode of root.childNodes) {
 
-            const attributes = (rel as XmlGeneralNode).attributes;
+            const attributes = (relNode as XmlGeneralNode).attributes;
             if (!attributes)
                 continue;
 
-            // relIds lookup
             const idAttr = attributes['Id'];
             if (!idAttr)
                 continue;
-            this.relIds[idAttr] = true;
 
-            // rel target lookup
+            // store rel
+            const rel = Relationship.fromXml(relNode as XmlGeneralNode);
+            this.rels[idAttr] = rel;
+
+            // create rel target lookup
             const typeAttr = attributes['Type'];
             const targetAttr = attributes['Target'];
             if (typeAttr && targetAttr) {

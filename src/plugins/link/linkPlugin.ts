@@ -21,8 +21,7 @@ export class LinkPlugin extends TemplatePlugin {
         }
 
         // add rel
-        const linkAttributes = { TargetMode: 'External' };
-        const relId = await context.docx.rels.add(content.target, LinkPlugin.linkRelType, linkAttributes);
+        const relId = await context.docx.rels.add(content.target, LinkPlugin.linkRelType, 'External');
 
         // generate markup
         const wordRunNode = this.utilities.docxParser.containingRunNode(wordTextNode);
