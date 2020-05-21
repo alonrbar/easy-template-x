@@ -33,7 +33,7 @@ export class ImagePlugin extends TemplatePlugin {
         // add the image file into the archive
         const mediaFilePath = await context.docx.mediaFiles.add(content.source, content.format);
         const relType = MimeTypeHelper.getOfficeRelType(content.format);
-        const relId = await context.docx.rels.add(mediaFilePath, relType);
+        const relId = await context.currentPart.rels.add(mediaFilePath, relType);
         await context.docx.contentTypes.ensureContentType(content.format);
 
         // create the xml markup

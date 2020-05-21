@@ -75,22 +75,29 @@ export class TemplateHandler {
 
         // load the docx file
         const docx = await this.loadDocx(templateFile);
-        const document = await docx.getDocument();
 
         // prepare context
         const scopeData = new ScopeData(data);
         const context: TemplateContext = {
-            docx
+            docx,
+            currentPart: null
         };
 
-        // extensions - before compilation
-        await this.callExtensions(this.options.extensions?.beforeCompilation, scopeData, context);
+        const contentParts = await docx.getContentParts();
+        for (const part of contentParts) {
 
-        // compilation (do replacements)
-        await this.compiler.compile(document, scopeData, context);
+            context.currentPart = part;
 
-        // extensions - after compilation
-        await this.callExtensions(this.options.extensions?.afterCompilation, scopeData, context);
+            // extensions - before compilation
+            await this.callExtensions(this.options.extensions?.beforeCompilation, scopeData, context);
+
+            // compilation (do replacements)
+            const xmlRoot = await part.xmlRoot();
+            await this.compiler.compile(xmlRoot, scopeData, context);
+
+            // extensions - after compilation
+            await this.callExtensions(this.options.extensions?.afterCompilation, scopeData, context);
+        }
 
         // export the result
         return docx.export(templateFile.constructor as Constructor<T>);
@@ -98,7 +105,7 @@ export class TemplateHandler {
 
     public async parseTags(templateFile: Binary): Promise<Tag[]> {
         const docx = await this.loadDocx(templateFile);
-        const document = await docx.getDocument();
+        const document = await docx.mainDocument.xmlRoot();
         return this.compiler.parseTags(document);
     }
 
@@ -107,16 +114,16 @@ export class TemplateHandler {
      */
     public async getText(docxFile: Binary): Promise<string> {
         const docx = await this.loadDocx(docxFile);
-        const text = await docx.getDocumentText();
+        const text = await docx.mainDocument.getText();
         return text;
     }
 
     /**
-     * Get the xml tree of the main document file.
+     * Get the xml root of the main document file.
      */
     public async getXml(docxFile: Binary): Promise<XmlNode> {
         const docx = await this.loadDocx(docxFile);
-        const document = await docx.getDocument();
+        const document = await docx.mainDocument.xmlRoot();
         return document;
     }
 

@@ -80,10 +80,7 @@ export class Rels {
             return;
 
         // create rels xml
-        const root = XmlNode.createGeneralNode('Relationships');
-        root.attributes = {
-            'xmlns': 'http://schemas.openxmlformats.org/package/2006/relationships'
-        };
+        const root = this.createRootNode();
         root.childNodes = Object.values(this.rels).map(rel => rel.toXml());
 
         // serialize and save
@@ -113,15 +110,14 @@ export class Rels {
             return;
 
         // parse xml
-        let relsXml: string;
+        let root: XmlNode;
         const relsFile = this.zip.getFile(this.relsFilePath);
         if (relsFile) {
-            relsXml = await relsFile.getContentText();
+            const xml = await relsFile.getContentText();
+            root = this.xmlParser.parse(xml);
         } else {
-            relsXml = `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-                      </Relationships>`;
+            root = this.createRootNode();
         }
-        const root = this.xmlParser.parse(relsXml);
 
         // parse relationship nodes
         this.rels = {};
@@ -152,5 +148,14 @@ export class Rels {
 
     private getRelTargetKey(type: string, target: string): string {
         return `${type} - ${target}`;
+    }
+
+    private createRootNode(): XmlGeneralNode {
+        const root = XmlNode.createGeneralNode('Relationships');
+        root.attributes = {
+            'xmlns': 'http://schemas.openxmlformats.org/package/2006/relationships'
+        };
+        root.childNodes = [];
+        return root;
     }
 }

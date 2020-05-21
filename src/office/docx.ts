@@ -1,37 +1,26 @@
 import { MalformedFileError } from '../errors';
 import { Constructor } from '../types';
 import { Binary } from '../utils';
-import { XmlNode, XmlParser } from '../xml';
+import { XmlParser } from '../xml';
 import { Zip } from '../zip';
 import { ContentTypesFile } from './contentTypesFile';
 import { MediaFiles } from './mediaFiles';
-import { Rels } from './rels';
+import { XmlPart } from './xmlPart';
 
 /**
  * Represents a single docx file.
  */
 export class Docx {
 
-    public get documentPath(): string {
+    private static readonly headerRelType = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/header';
+    private static readonly footerRelType = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer';
 
-        if (!this._documentPath) {
-
-            if (this.zip.isFileExist("word/document.xml")) {
-                this._documentPath = "word/document.xml";
-            }
-
-            // https://github.com/open-xml-templating/docxtemplater/issues/366
-            else if (this.zip.isFileExist("word/document2.xml")) {
-                this._documentPath = "word/document2.xml";
-            }
-        }
-
-        return this._documentPath;
-    }
-
-    public readonly rels: Rels;
+    public readonly mainDocument: XmlPart;
     public readonly mediaFiles: MediaFiles;
     public readonly contentTypes: ContentTypesFile;
+
+    private _headers: XmlPart[];
+    private _footers: XmlPart[];
 
     /**
      * **Notice:** You should only use this property if there is no other way to
@@ -41,17 +30,16 @@ export class Docx {
         return this.zip;
     }
 
-    private _documentPath: string;
-    private _document: XmlNode;
-
     constructor(
         private readonly zip: Zip,
         private readonly xmlParser: XmlParser
     ) {
-        if (!this.documentPath)
+        const mainDocumentPath = this.getMainDocumentPath();
+        if (!mainDocumentPath)
             throw new MalformedFileError('docx');
 
-        this.rels = new Rels(this.documentPath, zip, xmlParser);
+        this.mainDocument = new XmlPart(mainDocumentPath, zip, xmlParser);
+
         this.mediaFiles = new MediaFiles(zip);
         this.contentTypes = new ContentTypesFile(zip, xmlParser);
     }
@@ -61,27 +49,38 @@ export class Docx {
     //
 
     /**
-     * The xml root of the main document file.
+     * Returns the xml parts of the main document, headers and footers.
      */
-    public async getDocument(): Promise<XmlNode> {
-        if (!this._document) {
-            const xml = await this.zip.getFile(this.documentPath).getContentText();
-            this._document = this.xmlParser.parse(xml);
-        }
-        return this._document;
+    public async getContentParts(): Promise<XmlPart[]> {
+        const headers = await this.getHeaders();
+        const footers = await this.getFooters();
+        return [
+            this.mainDocument,
+            ...headers,
+            ...footers
+        ];
     }
 
-    /**
-     * Get the text content of the main document file.
-     */
-    public async getDocumentText(): Promise<string> {
-        const xmlDocument = await this.getDocument();
+    public async getHeaders(): Promise<XmlPart[]> {
+        if (this._headers)
+            return this._headers;
 
-        // ugly but good enough...
-        const xml = this.xmlParser.serialize(xmlDocument);
-        const domDocument = this.xmlParser.domParse(xml);
+        const rels = await this.mainDocument.rels.list();
+        const headerRels = rels.filter(rel => rel.type === Docx.headerRelType);
+        this._headers = headerRels.map(rel => new XmlPart("word/" + rel.target, this.zip, this.xmlParser));
 
-        return domDocument.documentElement.textContent;
+        return this._headers;
+    }
+
+    public async getFooters(): Promise<XmlPart[]> {
+        if (this._footers)
+            return this._footers;
+
+        const rels = await this.mainDocument.rels.list();
+        const footerRels = rels.filter(rel => rel.type === Docx.footerRelType);
+        this._footers = footerRels.map(rel => new XmlPart("word/" + rel.target, this.zip, this.xmlParser));
+
+        return this._footers;
     }
 
     public async export<T extends Binary>(outputType: Constructor<T>): Promise<T> {
@@ -93,15 +92,29 @@ export class Docx {
     // private methods
     //
 
+    private getMainDocumentPath(): string {
+
+        if (this.zip.isFileExist("word/document.xml"))
+            return "word/document.xml";
+
+        // https://github.com/open-xml-templating/docxtemplater/issues/366
+        if (this.zip.isFileExist("word/document2.xml"))
+            return "word/document2.xml";
+
+        return null;
+    }
+
     private async saveChanges() {
 
-        // save main document
-        const document = await this.getDocument();
-        const xmlContent = this.xmlParser.serialize(document);
-        this.zip.setFile(this.documentPath, xmlContent);
+        const parts = [
+            this.mainDocument,
+            ...(this._headers || []),
+            ...(this._footers || [])
+        ];
+        for (const part of parts) {
+            await part.saveChanges();
+        }
 
-        // save other parts
-        await this.rels.save();
         await this.contentTypes.save();
     }
 }
