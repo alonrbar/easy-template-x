@@ -9,4 +9,8 @@ export class Path {
         const lastSlashIndex = path.lastIndexOf('/');
         return path.substring(0, lastSlashIndex);
     }
+
+    public static combine(...parts: string[]): string {
+        return parts.filter(part => part?.trim()).join('/');
+    }
 }

@@ -7,6 +7,7 @@ module.exports = {
     "plugins": [
         "ts-nameof",
         "@babel/proposal-class-properties",
+        "@babel/proposal-nullish-coalescing-operator",
         "@babel/proposal-object-rest-spread",
         "@babel/proposal-optional-catch-binding",
         "@babel/proposal-optional-chaining",

@@ -176,7 +176,7 @@ export class TemplateHandler {
         }
 
         // load the docx file
-        const docx = this.docxParser.load(zip);
+        const docx = await this.docxParser.load(zip);
         return docx;
     }
 }

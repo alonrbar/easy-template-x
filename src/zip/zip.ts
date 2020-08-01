@@ -15,7 +15,10 @@ export class Zip {
     }
 
     public getFile(path: string): ZipObject {
-        return new ZipObject(this.zip.files[path]);
+        const internalZipObject = this.zip.files[path];
+        if (!internalZipObject)
+            return null;
+        return new ZipObject(internalZipObject);
     }
 
     public setFile(path: string, content: string | Binary): void {

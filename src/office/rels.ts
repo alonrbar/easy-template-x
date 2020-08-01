@@ -23,9 +23,9 @@ export class Rels {
         private readonly xmlParser: XmlParser
     ) {
 
-        this.partDir = Path.getDirectory(partPath);
-        const partFilename = Path.getFilename(partPath);
-        this.relsFilePath = `${this.partDir}/_rels/${partFilename}.rels`;
+        this.partDir = partPath && Path.getDirectory(partPath);
+        const partFilename = partPath && Path.getFilename(partPath);
+        this.relsFilePath = Path.combine(this.partDir, '_rels', `${partFilename ?? ''}.rels`);
     }
 
     /**
@@ -34,7 +34,7 @@ export class Rels {
     public async add(relTarget: string, relType: string, relTargetMode?: RelTargetMode): Promise<string> {
 
         // if relTarget is an internal file it should be relative to the part dir
-        if (relTarget.startsWith(this.partDir)) {
+        if (this.partDir && relTarget.startsWith(this.partDir)) {
             relTarget = relTarget.substr(this.partDir.length + 1);
         }
 

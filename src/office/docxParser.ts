@@ -6,11 +6,11 @@ export class DocxParser {
 
     /*
      * Word markup intro:
-     * 
+     *
      * In Word text nodes are contained in "run" nodes (which specifies text
      * properties such as font and color). The "run" nodes in turn are
      * contained in paragraph nodes which is the core unit of content.
-     * 
+     *
      * Example:
      *
      * <w:p>    <-- paragraph
@@ -20,7 +20,7 @@ export class DocxParser {
      *     </w:rPr>
      *     <w:t>This is text.</w:t>     <-- actual text
      *   </w:r>
-     * </w:p> 
+     * </w:p>
      *
      * see: http://officeopenxml.com/WPcontentOverview.php
      */
@@ -47,8 +47,8 @@ export class DocxParser {
     // parse document
     //
 
-    public load(zip: Zip): Docx {
-        return new Docx(zip, this.xmlParser);
+    public load(zip: Zip): Promise<Docx> {
+        return Docx.open(zip, this.xmlParser);
     }
 
     //
@@ -58,9 +58,9 @@ export class DocxParser {
     /**
      * Split the text node into two text nodes, each with it's own wrapping <w:t> node.
      * Returns the newly created text node.
-     * 
-     * @param textNode 
-     * @param splitIndex 
+     *
+     * @param textNode
+     * @param splitIndex
      * @param addBefore Should the new node be added before or after the original node.
      */
     public splitTextNode(textNode: XmlTextNode, splitIndex: number, addBefore: boolean): XmlTextNode {
