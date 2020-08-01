@@ -1,5 +1,5 @@
 import { MalformedFileError } from '../errors';
-import { Constructor } from '../types';
+import { Constructor, IMap } from '../types';
 import { Binary, last } from '../utils';
 import { XmlGeneralNode, XmlNodeType, XmlParser } from '../xml';
 import { Zip } from '../zip';
@@ -15,8 +15,6 @@ import { XmlPart } from './xmlPart';
 export class Docx {
 
     private static readonly mainDocumentRelType = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument';
-    private static readonly headerRelType = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/header';
-    private static readonly footerRelType = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer';
 
     //
     // static methods
@@ -45,8 +43,7 @@ export class Docx {
     public readonly mediaFiles: MediaFiles;
     public readonly contentTypes: ContentTypesFile;
 
-    private _headers: XmlPart[];
-    private _footers: XmlPart[];
+    private readonly _parts: IMap<XmlPart> = {};
 
     /**
      * **Notice:** You should only use this property if there is no other way to
@@ -87,35 +84,17 @@ export class Docx {
      * Returns the xml parts of the main document, headers and footers.
      */
     public async getContentParts(): Promise<XmlPart[]> {
-        const headers = await this.getHeaders();
-        const footers = await this.getFooters();
-        return [
-            this.mainDocument,
-            ...headers,
-            ...footers
+        const partTypes = [
+            ContentPartType.MainDocument,
+            ContentPartType.DefaultHeader,
+            ContentPartType.FirstHeader,
+            ContentPartType.EvenPagesHeader,
+            ContentPartType.DefaultFooter,
+            ContentPartType.FirstFooter,
+            ContentPartType.EvenPagesFooter
         ];
-    }
-
-    public async getHeaders(): Promise<XmlPart[]> {
-        if (this._headers)
-            return this._headers;
-
-        const rels = await this.mainDocument.rels.list();
-        const headerRels = rels.filter(rel => rel.type === Docx.headerRelType);
-        this._headers = headerRels.map(rel => new XmlPart("word/" + rel.target, this.zip, this.xmlParser));
-
-        return this._headers;
-    }
-
-    public async getFooters(): Promise<XmlPart[]> {
-        if (this._footers)
-            return this._footers;
-
-        const rels = await this.mainDocument.rels.list();
-        const footerRels = rels.filter(rel => rel.type === Docx.footerRelType);
-        this._footers = footerRels.map(rel => new XmlPart("word/" + rel.target, this.zip, this.xmlParser));
-
-        return this._footers;
+        const parts = await Promise.all(partTypes.map(p => this.getContentPart(p)));
+        return parts.filter(p => !!p);
     }
 
     public async export<T extends Binary>(outputType: Constructor<T>): Promise<T> {
@@ -140,7 +119,7 @@ export class Docx {
         if (sectionProps.nodeName != 'w:sectPr')
             return null;
 
-        // find header or footer reference
+        // find the header or footer reference
         const reference = sectionProps.childNodes?.find(node => {
             return node.nodeType === XmlNodeType.General &&
                 node.nodeName === nodeName &&
@@ -150,10 +129,14 @@ export class Docx {
         if (!relId)
             return null;
 
-        // create XmlPart
+        // return the XmlPart
         const rels = await this.mainDocument.rels.list();
-        const partRel = rels.find(r => r.id === relId);
-        return new XmlPart("word/" + partRel.target, this.zip, this.xmlParser);
+        const relTarget = rels.find(r => r.id === relId).target;
+        if (!this._parts[relTarget]) {
+            const part = new XmlPart("word/" + relTarget, this.zip, this.xmlParser);
+            this._parts[relTarget] = part;
+        }
+        return this._parts[relTarget];
     }
 
     private headerFooterNodeName(contentPartType: ContentPartType): string {
@@ -201,8 +184,7 @@ export class Docx {
 
         const parts = [
             this.mainDocument,
-            ...(this._headers || []),
-            ...(this._footers || [])
+            ...Object.values(this._parts)
         ];
         for (const part of parts) {
             await part.saveChanges();
