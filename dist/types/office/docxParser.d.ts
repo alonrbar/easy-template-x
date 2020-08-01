@@ -12,7 +12,7 @@ export declare class DocxParser {
     static readonly TABLE_CELL_NODE = "w:tc";
     static readonly NUMBER_PROPERTIES_NODE = "w:numPr";
     constructor(xmlParser: XmlParser);
-    load(zip: Zip): Docx;
+    load(zip: Zip): Promise<Docx>;
     splitTextNode(textNode: XmlTextNode, splitIndex: number, addBefore: boolean): XmlTextNode;
     joinTextNodesRange(from: XmlTextNode, to: XmlTextNode): void;
     joinParagraphs(first: XmlNode, second: XmlNode): void;

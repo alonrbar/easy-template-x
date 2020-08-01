@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.12.0 - 2020-08-01](https://github.com/alonrbar/easy-template-x/tree/v0.12.0)
+
+### Added
+
+- Headers and footers support.
+
 ## [0.11.1 - 2020-03-29](https://github.com/alonrbar/easy-template-x/tree/v0.11.1)
 
 ### Fixed
