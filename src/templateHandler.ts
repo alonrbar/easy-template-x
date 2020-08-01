@@ -2,7 +2,7 @@ import { DelimiterSearcher, ScopeData, Tag, TagParser, TemplateCompiler, Templat
 import { Delimiters } from './delimiters';
 import { MalformedFileError } from './errors';
 import { TemplateExtension } from './extensions';
-import { Docx, DocxParser } from './office';
+import { ContentPartType, Docx, DocxParser } from './office';
 import { TemplateData } from './templateData';
 import { TemplateHandlerOptions } from './templateHandlerOptions';
 import { Constructor } from './types';
@@ -71,6 +71,10 @@ export class TemplateHandler {
         });
     }
 
+    //
+    // public methods
+    //
+
     public async process<T extends Binary>(templateFile: T, data: TemplateData): Promise<T> {
 
         // load the docx file
@@ -103,28 +107,49 @@ export class TemplateHandler {
         return docx.export(templateFile.constructor as Constructor<T>);
     }
 
-    public async parseTags(templateFile: Binary): Promise<Tag[]> {
+    /**
+     * Get the text content of a single part of the document.
+     * If the part does not exists returns null.
+     *
+     * @param contentPart
+     * The content part of which to get it's text content.
+     * Defaults to `ContentPartType.MainDocument`.
+     */
+    public async parseTags(templateFile: Binary, contentPart = ContentPartType.MainDocument): Promise<Tag[]> {
         const docx = await this.loadDocx(templateFile);
-        const document = await docx.mainDocument.xmlRoot();
-        return this.compiler.parseTags(document);
+        const part = await docx.getContentPart(contentPart);
+        const xmlRoot = await part.xmlRoot();
+        return this.compiler.parseTags(xmlRoot);
     }
 
     /**
-     * Get the text content of the main document file.
+     * Get the text content of a single part of the document.
+     * If the part does not exists returns null.
+     *
+     * @param contentPart
+     * The content part of which to get it's text content.
+     * Defaults to `ContentPartType.MainDocument`.
      */
-    public async getText(docxFile: Binary): Promise<string> {
+    public async getText(docxFile: Binary, contentPart = ContentPartType.MainDocument): Promise<string> {
         const docx = await this.loadDocx(docxFile);
-        const text = await docx.mainDocument.getText();
+        const part = await docx.getContentPart(contentPart);
+        const text = await part.getText();
         return text;
     }
 
     /**
-     * Get the xml root of the main document file.
+     * Get the xml root of a single part of the document.
+     * If the part does not exists returns null.
+     *
+     * @param contentPart
+     * The content part of which to get it's text content.
+     * Defaults to `ContentPartType.MainDocument`.
      */
-    public async getXml(docxFile: Binary): Promise<XmlNode> {
+    public async getXml(docxFile: Binary, contentPart = ContentPartType.MainDocument): Promise<XmlNode> {
         const docx = await this.loadDocx(docxFile);
-        const document = await docx.mainDocument.xmlRoot();
-        return document;
+        const part = await docx.getContentPart(contentPart);
+        const xmlRoot = await part.xmlRoot();
+        return xmlRoot;
     }
 
     //

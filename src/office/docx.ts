@@ -3,6 +3,7 @@ import { Constructor } from '../types';
 import { Binary } from '../utils';
 import { XmlParser } from '../xml';
 import { Zip } from '../zip';
+import { ContentPartType } from './contentPartType';
 import { ContentTypesFile } from './contentTypesFile';
 import { MediaFiles } from './mediaFiles';
 import { XmlPart } from './xmlPart';
@@ -47,6 +48,10 @@ export class Docx {
     //
     // public methods
     //
+
+    public async getContentPart(type: ContentPartType): Promise<XmlPart> {
+        throw new Error("Not implemented");
+    }
 
     /**
      * Returns the xml parts of the main document, headers and footers.
