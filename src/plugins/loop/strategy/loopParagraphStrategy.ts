@@ -25,20 +25,15 @@ export class LoopParagraphStrategy implements ILoopStrategy {
         const firstParagraphIndex = parent.childNodes.indexOf(firstParagraph);
         const lastParagraphIndex = areSame ? firstParagraphIndex : parent.childNodes.indexOf(lastParagraph);
 
-        // TODO:
-        // The following split logic is flawed since we're splitting the
-        // paragraph but not the run so if there is additional content (or even
-        // other tags) on the same run we will lose it!
-
-        // split first paragraphs
-        let splitResult = XmlNode.splitByChild(firstParagraph, openTag.xmlTextNode, true);
+        // split first paragraph
+        let splitResult = this.utilities.docxParser.splitParagraphByTextNode(firstParagraph, openTag.xmlTextNode, true);
         firstParagraph = splitResult[0];
         const firstParagraphSplit = splitResult[1];
         if (areSame)
             lastParagraph = firstParagraphSplit;
 
         // split last paragraph
-        splitResult = XmlNode.splitByChild(lastParagraph, closeTag.xmlTextNode, true);
+        splitResult = this.utilities.docxParser.splitParagraphByTextNode(lastParagraph, closeTag.xmlTextNode, true);
         const lastParagraphSplit = splitResult[0];
         lastParagraph = splitResult[1];
 

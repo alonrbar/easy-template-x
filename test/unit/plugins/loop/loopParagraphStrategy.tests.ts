@@ -6,7 +6,7 @@ describe('nameof(LoopParagraphStrategy)', () => {
 
     describe('nameof(LoopParagraphStrategy.prototype.splitBefore)', () => {
 
-        it("when the loop tag's run has additional content before the tag, the extra content is preserved (bug #36)", () => {
+        it("when the closing loop tag's run has additional content before the tag, the extra content is preserved (bug #36)", () => {
 
             //
             // prepare

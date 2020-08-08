@@ -106,6 +106,16 @@ export class DocxParser {
     }
 
     /**
+     * Split the paragraph around the specified text node.
+     *
+     * @returns Two paragraphs - `left` and `right`. If the `removeTextNode` argument is
+     * `false` then the original text node is the first text node of `right`.
+     */
+    public splitParagraphByTextNode(paragraph: XmlNode, textNode: XmlTextNode, removeTextNode: boolean): [XmlNode, XmlNode] {
+        throw new Error("Not implemented");
+    }
+
+    /**
      * Move all text between the 'from' and 'to' nodes to the 'from' node.
      */
     public joinTextNodesRange(from: XmlTextNode, to: XmlTextNode): void {
