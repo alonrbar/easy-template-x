@@ -419,8 +419,6 @@ export const XmlNode = {
     },
 
     findParent(node: XmlNode, predicate: (node: XmlNode) => boolean): XmlNode {
-        if (!node)
-            return null;
 
         while (node) {
 
