@@ -403,11 +403,11 @@ export const XmlNode = {
         const right = parent;
 
         // move nodes from 'right' to 'left'
-        let curChild = parent.childNodes[0];
+        let curChild = right.childNodes[0];
         while (curChild != child) {
             XmlNode.remove(curChild);
             XmlNode.appendChild(left, curChild);
-            curChild = parent.childNodes[0];
+            curChild = right.childNodes[0];
         }
 
         // remove child
