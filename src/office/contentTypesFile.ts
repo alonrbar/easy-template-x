@@ -84,7 +84,7 @@ export class ContentTypesFile {
             if (!contentTypeAttribute)
                 continue;
 
-            this.contentTypes[contentTypeAttribute];
+            this.contentTypes[contentTypeAttribute] = true;
         }
     }
 }
