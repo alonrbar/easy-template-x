@@ -381,36 +381,41 @@ export const XmlNode = {
     },
 
     /**
-     * Split the original node into two sibling nodes.
-     * Returns both nodes.
+     * Split the original node into two sibling nodes. Returns both nodes.
      *
-     * @param root The node to split
-     * @param markerNode The node that marks the split position.
+     * @param parent The node to split
+     * @param child The node that marks the split position.
+     * @param removeChild Should this method remove the child while splitting.
+     *
+     * @returns Two nodes - `left` and `right`. If the `removeChild` argument is
+     * `false` then the original child node is the first child of `right`.
      */
-    splitByChild(root: XmlNode, markerNode: XmlNode, removeMarkerNode: boolean): [XmlNode, XmlNode] {
+    splitByChild(parent: XmlNode, child: XmlNode, removeChild: boolean): [XmlNode, XmlNode] {
 
-        // find the split path
-        const path = getDescendantPath(root, markerNode);
+        if (child.parentNode != parent)
+            throw new Error(`Node '${nameof(child)}' is not a child of '${nameof(parent)}'.`);
 
-        // split
-        const split = XmlNode.cloneNode(root, false);
-        const childIndex = path[0] + 1;
-        while (childIndex < root.childNodes.length) {
-            const curChild = root.childNodes[childIndex];
+        // create childless clone 'left'
+        const left = XmlNode.cloneNode(parent, false);
+        if (parent.parentNode) {
+            XmlNode.insertBefore(left, parent);
+        }
+        const right = parent;
+
+        // move nodes from 'right' to 'left'
+        let curChild = parent.childNodes[0];
+        while (curChild != child) {
             XmlNode.remove(curChild);
-            XmlNode.appendChild(split, curChild);
+            XmlNode.appendChild(left, curChild);
+            curChild = parent.childNodes[0];
         }
 
-        if (root.parentNode) {
-            XmlNode.insertAfter(split, root);
+        // remove child
+        if (removeChild) {
+            XmlNode.removeChild(right, 0);
         }
 
-        // remove marker node
-        if (removeMarkerNode && root.childNodes.length) {
-            XmlNode.removeChild(root, root.childNodes.length - 1);
-        }
-
-        return [root, split];
+        return [left, right];
     },
 
     findParent(node: XmlNode, predicate: (node: XmlNode) => boolean): XmlNode {
@@ -558,24 +563,6 @@ function cloneNodeDeep<T extends XmlNode>(original: T): T {
     }
 
     return clone as T;
-}
-
-function getDescendantPath(root: XmlNode, descendant: XmlNode): number[] {
-    const path: number[] = [];
-
-    let node = descendant;
-    while (node !== root) {
-        const parent = node.parentNode;
-        if (!parent)
-            throw new Error(`Argument ${nameof(descendant)} is not a descendant of ${nameof(root)}`);
-
-        const curChildIndex = parent.childNodes.indexOf(node);
-        path.push(curChildIndex);
-
-        node = parent;
-    }
-
-    return path.reverse();
 }
 
 function recursiveRemoveEmptyTextNodes(node: XmlNode): XmlNode {
