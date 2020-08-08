@@ -417,7 +417,7 @@ export const XmlNode = {
         if (!node)
             return null;
 
-        while (node.parentNode) {
+        while (node) {
 
             if (predicate(node))
                 return node;
