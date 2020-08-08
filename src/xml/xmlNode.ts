@@ -393,7 +393,7 @@ export const XmlNode = {
     splitByChild(parent: XmlNode, child: XmlNode, removeChild: boolean): [XmlNode, XmlNode] {
 
         if (child.parentNode != parent)
-            throw new Error(`Node '${nameof(child)}' is not a child of '${nameof(parent)}'.`);
+            throw new Error(`Node '${nameof(child)}' is not a direct child of '${nameof(parent)}'.`);
 
         // create childless clone 'left'
         const left = XmlNode.cloneNode(parent, false);
