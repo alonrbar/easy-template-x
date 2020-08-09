@@ -14,10 +14,13 @@ export declare class DocxParser {
     constructor(xmlParser: XmlParser);
     load(zip: Zip): Promise<Docx>;
     splitTextNode(textNode: XmlTextNode, splitIndex: number, addBefore: boolean): XmlTextNode;
+    splitParagraphByTextNode(paragraph: XmlNode, textNode: XmlTextNode, removeTextNode: boolean): [XmlNode, XmlNode];
     joinTextNodesRange(from: XmlTextNode, to: XmlTextNode): void;
     joinParagraphs(first: XmlNode, second: XmlNode): void;
     setSpacePreserveAttribute(node: XmlGeneralNode): void;
     isTextNode(node: XmlNode): boolean;
+    isRunNode(node: XmlNode): boolean;
+    isRunPropertiesNode(node: XmlNode): boolean;
     isTableCellNode(node: XmlNode): boolean;
     isParagraphNode(node: XmlNode): boolean;
     isListParagraph(paragraphNode: XmlNode): boolean;
@@ -27,4 +30,6 @@ export declare class DocxParser {
     containingRunNode(node: XmlNode): XmlNode;
     containingParagraphNode(node: XmlNode): XmlNode;
     containingTableRowNode(node: XmlNode): XmlNode;
+    isEmptyTextNode(node: XmlNode): boolean;
+    isEmptyRun(node: XmlNode): boolean;
 }

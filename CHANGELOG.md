@@ -1,10 +1,14 @@
 # Change Log
 
-## Unreleased
+## [1.0.0 - 2020-08-09](https://github.com/alonrbar/easy-template-x/tree/v1.0.0)
+
+**Stable release** - from now on breaking changes to the public API (the public
+interface of `TemplateHandler`) will introduce a new major release.
 
 ### Fixed
 
 - Initial content types parsing.
+- Bug in paragraph loops (#36).
 
 ## [0.12.0 - 2020-08-01](https://github.com/alonrbar/easy-template-x/tree/v0.12.0)
 

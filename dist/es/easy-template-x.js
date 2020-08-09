@@ -771,41 +771,44 @@ const XmlNode = {
   },
 
   /**
-   * Split the original node into two sibling nodes.
-   * Returns both nodes.
+   * Split the original node into two sibling nodes. Returns both nodes.
    *
-   * @param root The node to split
-   * @param markerNode The node that marks the split position.
+   * @param parent The node to split
+   * @param child The node that marks the split position.
+   * @param removeChild Should this method remove the child while splitting.
+   *
+   * @returns Two nodes - `left` and `right`. If the `removeChild` argument is
+   * `false` then the original child node is the first child of `right`.
    */
-  splitByChild(root, markerNode, removeMarkerNode) {
-    // find the split path
-    const path = getDescendantPath(root, markerNode); // split
+  splitByChild(parent, child, removeChild) {
+    if (child.parentNode != parent) throw new Error(`Node '${"child"}' is not a direct child of '${"parent"}'.`); // create childless clone 'left'
 
-    const split = XmlNode.cloneNode(root, false);
-    const childIndex = path[0] + 1;
+    const left = XmlNode.cloneNode(parent, false);
 
-    while (childIndex < root.childNodes.length) {
-      const curChild = root.childNodes[childIndex];
+    if (parent.parentNode) {
+      XmlNode.insertBefore(left, parent);
+    }
+
+    const right = parent; // move nodes from 'right' to 'left'
+
+    let curChild = right.childNodes[0];
+
+    while (curChild != child) {
       XmlNode.remove(curChild);
-      XmlNode.appendChild(split, curChild);
+      XmlNode.appendChild(left, curChild);
+      curChild = right.childNodes[0];
+    } // remove child
+
+
+    if (removeChild) {
+      XmlNode.removeChild(right, 0);
     }
 
-    if (root.parentNode) {
-      XmlNode.insertAfter(split, root);
-    } // remove marker node
-
-
-    if (removeMarkerNode && root.childNodes.length) {
-      XmlNode.removeChild(root, root.childNodes.length - 1);
-    }
-
-    return [root, split];
+    return [left, right];
   },
 
   findParent(node, predicate) {
-    if (!node) return null;
-
-    while (node.parentNode) {
+    while (node) {
       if (predicate(node)) return node;
       node = node.parentNode;
     }
@@ -927,21 +930,6 @@ function cloneNodeDeep(original) {
   }
 
   return clone;
-}
-
-function getDescendantPath(root, descendant) {
-  const path = [];
-  let node = descendant;
-
-  while (node !== root) {
-    const parent = node.parentNode;
-    if (!parent) throw new Error(`Argument ${"descendant"} is not a descendant of ${"root"}`);
-    const curChildIndex = parent.childNodes.indexOf(node);
-    path.push(curChildIndex);
-    node = parent;
-  }
-
-  return path.reverse();
 }
 
 function recursiveRemoveEmptyTextNodes(node) {
@@ -1625,7 +1613,7 @@ class ContentTypesFile {
       const genNode = node;
       const contentTypeAttribute = genNode.attributes['ContentType'];
       if (!contentTypeAttribute) continue;
-      this.contentTypes[contentTypeAttribute];
+      this.contentTypes[contentTypeAttribute] = true;
     }
   }
 
@@ -2200,6 +2188,74 @@ class DocxParser {
     return addBefore ? firstXmlTextNode : secondXmlTextNode;
   }
   /**
+   * Split the paragraph around the specified text node.
+   *
+   * @returns Two paragraphs - `left` and `right`. If the `removeTextNode` argument is
+   * `false` then the original text node is the first text node of `right`.
+   */
+
+
+  splitParagraphByTextNode(paragraph, textNode, removeTextNode) {
+    // input validation
+    const containingParagraph = this.containingParagraphNode(textNode);
+    if (containingParagraph != paragraph) throw new Error(`Node '${"textNode"}' is not a descendant of '${"paragraph"}'.`);
+    const runNode = this.containingRunNode(textNode);
+    const wordTextNode = this.containingTextNode(textNode); // create run clone
+
+    const leftRun = XmlNode.cloneNode(runNode, false);
+    const rightRun = runNode;
+    XmlNode.insertBefore(leftRun, rightRun); // copy props from original run node (preserve style)
+
+    const runProps = rightRun.childNodes.find(node => node.nodeName === DocxParser.RUN_PROPERTIES_NODE);
+
+    if (runProps) {
+      const leftRunProps = XmlNode.cloneNode(runProps, true);
+      XmlNode.appendChild(leftRun, leftRunProps);
+    } // move nodes from 'right' to 'left'
+
+
+    const firstRunChildIndex = runProps ? 1 : 0;
+    let curChild = rightRun.childNodes[firstRunChildIndex];
+
+    while (curChild != wordTextNode) {
+      XmlNode.remove(curChild);
+      XmlNode.appendChild(leftRun, curChild);
+      curChild = rightRun.childNodes[firstRunChildIndex];
+    } // remove text node
+
+
+    if (removeTextNode) {
+      XmlNode.removeChild(rightRun, firstRunChildIndex);
+    } // create paragraph clone
+
+
+    const leftPara = XmlNode.cloneNode(containingParagraph, false);
+    const rightPara = containingParagraph;
+    XmlNode.insertBefore(leftPara, rightPara); // copy props from original paragraph (preserve style)
+
+    const paragraphProps = rightPara.childNodes.find(node => node.nodeName === DocxParser.PARAGRAPH_PROPERTIES_NODE);
+
+    if (paragraphProps) {
+      const leftParagraphProps = XmlNode.cloneNode(paragraphProps, true);
+      XmlNode.appendChild(leftPara, leftParagraphProps);
+    } // move nodes from 'right' to 'left'
+
+
+    const firstParaChildIndex = paragraphProps ? 1 : 0;
+    curChild = rightPara.childNodes[firstParaChildIndex];
+
+    while (curChild != rightRun) {
+      XmlNode.remove(curChild);
+      XmlNode.appendChild(leftPara, curChild);
+      curChild = rightPara.childNodes[firstParaChildIndex];
+    } // clean paragraphs - remove empty runs
+
+
+    if (this.isEmptyRun(leftRun)) XmlNode.remove(leftRun);
+    if (this.isEmptyRun(rightRun)) XmlNode.remove(rightRun);
+    return [leftPara, rightPara];
+  }
+  /**
    * Move all text between the 'from' and 'to' nodes to the 'from' node.
    */
 
@@ -2304,6 +2360,14 @@ class DocxParser {
     return node.nodeName === DocxParser.TEXT_NODE;
   }
 
+  isRunNode(node) {
+    return node.nodeName === DocxParser.RUN_NODE;
+  }
+
+  isRunPropertiesNode(node) {
+    return node.nodeName === DocxParser.RUN_PROPERTIES_NODE;
+  }
+
   isTableCellNode(node) {
     return node.nodeName === DocxParser.TABLE_CELL_NODE;
   }
@@ -2371,6 +2435,34 @@ class DocxParser {
 
   containingTableRowNode(node) {
     return XmlNode.findParentByName(node, DocxParser.TABLE_ROW_NODE);
+  } //
+  // advanced node queries
+  //
+
+
+  isEmptyTextNode(node) {
+    var _node$childNodes;
+
+    if (!this.isTextNode(node)) throw new Error(`Text node expected but '${node.nodeName}' received.`);
+    if (!((_node$childNodes = node.childNodes) === null || _node$childNodes === void 0 ? void 0 : _node$childNodes.length)) return true;
+    const xmlTextNode = node.childNodes[0];
+    if (!XmlNode.isTextNode(xmlTextNode)) throw new Error("Invalid XML structure. 'w:t' node should contain a single text node only.");
+    if (!xmlTextNode.textContent) return true;
+    return false;
+  }
+
+  isEmptyRun(node) {
+    if (!this.isRunNode(node)) throw new Error(`Run node expected but '${node.nodeName}' received.`);
+
+    for (const child of (_node$childNodes2 = node.childNodes) !== null && _node$childNodes2 !== void 0 ? _node$childNodes2 : []) {
+      var _node$childNodes2;
+
+      if (this.isRunPropertiesNode(child)) continue;
+      if (this.isTextNode(child) && this.isEmptyTextNode(child)) continue;
+      return false;
+    }
+
+    return true;
   }
 
 }
@@ -2527,33 +2619,28 @@ class LoopParagraphStrategy {
     // gather some info
     let firstParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
     let lastParagraph = this.utilities.docxParser.containingParagraphNode(closeTag.xmlTextNode);
-    const areSame = firstParagraph === lastParagraph;
-    const parent = firstParagraph.parentNode;
-    const firstParagraphIndex = parent.childNodes.indexOf(firstParagraph);
-    const lastParagraphIndex = areSame ? firstParagraphIndex : parent.childNodes.indexOf(lastParagraph); // split first paragraphs
+    const areSame = firstParagraph === lastParagraph; // split first paragraph
 
-    let splitResult = XmlNode.splitByChild(firstParagraph, openTag.xmlTextNode, true);
+    let splitResult = this.utilities.docxParser.splitParagraphByTextNode(firstParagraph, openTag.xmlTextNode, true);
     firstParagraph = splitResult[0];
-    const firstParagraphSplit = splitResult[1];
-    if (areSame) lastParagraph = firstParagraphSplit; // split last paragraph
+    let afterFirstParagraph = splitResult[1];
+    if (areSame) lastParagraph = afterFirstParagraph; // split last paragraph
 
-    splitResult = XmlNode.splitByChild(lastParagraph, closeTag.xmlTextNode, true);
-    const lastParagraphSplit = splitResult[0];
-    lastParagraph = splitResult[1]; // fix references
+    splitResult = this.utilities.docxParser.splitParagraphByTextNode(lastParagraph, closeTag.xmlTextNode, true);
+    const beforeLastParagraph = splitResult[0];
+    lastParagraph = splitResult[1];
+    if (areSame) afterFirstParagraph = beforeLastParagraph; // disconnect splitted paragraph from their parents
 
-    XmlNode.removeChild(parent, firstParagraphIndex + 1);
-    if (!areSame) XmlNode.removeChild(parent, lastParagraphIndex);
-    firstParagraphSplit.parentNode = null;
-    lastParagraphSplit.parentNode = null; // extract all paragraphs in between
+    XmlNode.remove(afterFirstParagraph);
+    if (!areSame) XmlNode.remove(beforeLastParagraph); // extract all paragraphs in between
 
     let middleParagraphs;
 
     if (areSame) {
-      this.utilities.docxParser.joinParagraphs(firstParagraphSplit, lastParagraphSplit);
-      middleParagraphs = [firstParagraphSplit];
+      middleParagraphs = [afterFirstParagraph];
     } else {
       const inBetween = XmlNode.removeSiblings(firstParagraph, lastParagraph);
-      middleParagraphs = [firstParagraphSplit].concat(inBetween).concat(lastParagraphSplit);
+      middleParagraphs = [afterFirstParagraph].concat(inBetween).concat(beforeLastParagraph);
     }
 
     return {
@@ -3079,7 +3166,7 @@ class TemplateHandler {
   constructor(options) {
     var _this$options$extensi, _this$options$extensi2, _this$options$extensi3, _this$options$extensi4;
 
-    _defineProperty(this, "version",  "0.12.0" );
+    _defineProperty(this, "version",  "1.0.0" );
 
     _defineProperty(this, "xmlParser", new XmlParser());
 

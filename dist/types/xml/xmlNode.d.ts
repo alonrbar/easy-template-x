@@ -37,7 +37,7 @@ export declare const XmlNode: {
     removeChild: typeof removeChild;
     lastTextChild(node: XmlNode): XmlTextNode;
     removeSiblings(from: XmlNode, to: XmlNode): XmlNode[];
-    splitByChild(root: XmlNode, markerNode: XmlNode, removeMarkerNode: boolean): [XmlNode, XmlNode];
+    splitByChild(parent: XmlNode, child: XmlNode, removeChild: boolean): [XmlNode, XmlNode];
     findParent(node: XmlNode, predicate: (node: XmlNode) => boolean): XmlNode;
     findParentByName(node: XmlNode, nodeName: string): XmlNode;
     findChildByName(node: XmlNode, childName: string): XmlNode;
