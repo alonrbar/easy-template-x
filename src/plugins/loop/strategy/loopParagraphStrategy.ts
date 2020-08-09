@@ -21,37 +21,33 @@ export class LoopParagraphStrategy implements ILoopStrategy {
         let firstParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
         let lastParagraph = this.utilities.docxParser.containingParagraphNode(closeTag.xmlTextNode);
         const areSame = (firstParagraph === lastParagraph);
-        const parent = firstParagraph.parentNode;
-        const firstParagraphIndex = parent.childNodes.indexOf(firstParagraph);
-        const lastParagraphIndex = areSame ? firstParagraphIndex : parent.childNodes.indexOf(lastParagraph);
 
         // split first paragraph
         let splitResult = this.utilities.docxParser.splitParagraphByTextNode(firstParagraph, openTag.xmlTextNode, true);
         firstParagraph = splitResult[0];
-        const firstParagraphSplit = splitResult[1];
+        let afterFirstParagraph = splitResult[1];
         if (areSame)
-            lastParagraph = firstParagraphSplit;
+            lastParagraph = afterFirstParagraph;
 
         // split last paragraph
         splitResult = this.utilities.docxParser.splitParagraphByTextNode(lastParagraph, closeTag.xmlTextNode, true);
-        const lastParagraphSplit = splitResult[0];
+        const beforeLastParagraph = splitResult[0];
         lastParagraph = splitResult[1];
+        if (areSame)
+            afterFirstParagraph = beforeLastParagraph;
 
-        // fix references
-        XmlNode.removeChild(parent, firstParagraphIndex + 1);
+        // disconnect splitted paragraph from their parents
+        XmlNode.remove(afterFirstParagraph);
         if (!areSame)
-            XmlNode.removeChild(parent, lastParagraphIndex);
-        firstParagraphSplit.parentNode = null;
-        lastParagraphSplit.parentNode = null;
+            XmlNode.remove(beforeLastParagraph);
 
         // extract all paragraphs in between
         let middleParagraphs: XmlNode[];
         if (areSame) {
-            this.utilities.docxParser.joinParagraphs(firstParagraphSplit, lastParagraphSplit);
-            middleParagraphs = [firstParagraphSplit];
+            middleParagraphs = [afterFirstParagraph];
         } else {
             const inBetween = XmlNode.removeSiblings(firstParagraph, lastParagraph);
-            middleParagraphs = [firstParagraphSplit].concat(inBetween).concat(lastParagraphSplit);
+            middleParagraphs = [afterFirstParagraph].concat(inBetween).concat(beforeLastParagraph);
         }
 
         return {

@@ -112,7 +112,69 @@ export class DocxParser {
      * `false` then the original text node is the first text node of `right`.
      */
     public splitParagraphByTextNode(paragraph: XmlNode, textNode: XmlTextNode, removeTextNode: boolean): [XmlNode, XmlNode] {
-        throw new Error("Not implemented");
+
+        // input validation
+        const containingParagraph = this.containingParagraphNode(textNode);
+        if (containingParagraph != paragraph)
+            throw new Error(`Node '${nameof(textNode)}' is not a descendant of '${nameof(paragraph)}'.`);
+
+        const runNode = this.containingRunNode(textNode);
+        const wordTextNode = this.containingTextNode(textNode);
+
+        // create run clone
+        const leftRun = XmlNode.cloneNode(runNode, false);
+        const rightRun = runNode;
+        XmlNode.insertBefore(leftRun, rightRun);
+
+        // copy props from original run node (preserve style)
+        const runProps = rightRun.childNodes.find(node => node.nodeName === DocxParser.RUN_PROPERTIES_NODE);
+        if (runProps) {
+            const leftRunProps = XmlNode.cloneNode(runProps, true);
+            XmlNode.appendChild(leftRun, leftRunProps);
+        }
+
+        // move nodes from 'right' to 'left'
+        const firstRunChildIndex = (runProps ? 1 : 0);
+        let curChild = rightRun.childNodes[firstRunChildIndex];
+        while (curChild != wordTextNode) {
+            XmlNode.remove(curChild);
+            XmlNode.appendChild(leftRun, curChild);
+            curChild = rightRun.childNodes[firstRunChildIndex];
+        }
+
+        // remove text node
+        if (removeTextNode) {
+            XmlNode.removeChild(rightRun, firstRunChildIndex);
+        }
+
+        // create paragraph clone
+        const leftPara = XmlNode.cloneNode(containingParagraph, false);
+        const rightPara = containingParagraph;
+        XmlNode.insertBefore(leftPara, rightPara);
+
+        // copy props from original paragraph (preserve style)
+        const paragraphProps = rightPara.childNodes.find(node => node.nodeName === DocxParser.PARAGRAPH_PROPERTIES_NODE);
+        if (paragraphProps) {
+            const leftParagraphProps = XmlNode.cloneNode(paragraphProps, true);
+            XmlNode.appendChild(leftPara, leftParagraphProps);
+        }
+
+        // move nodes from 'right' to 'left'
+        const firstParaChildIndex = (paragraphProps ? 1 : 0);
+        curChild = rightPara.childNodes[firstParaChildIndex];
+        while (curChild != rightRun) {
+            XmlNode.remove(curChild);
+            XmlNode.appendChild(leftPara, curChild);
+            curChild = rightPara.childNodes[firstParaChildIndex];
+        }
+
+        // clean paragraphs - remove empty runs
+        if (this.isEmptyRun(leftRun))
+            XmlNode.remove(leftRun);
+        if (this.isEmptyRun(rightRun))
+            XmlNode.remove(rightRun);
+
+        return [leftPara, rightPara];
     }
 
     /**
@@ -222,6 +284,14 @@ export class DocxParser {
         return node.nodeName === DocxParser.TEXT_NODE;
     }
 
+    public isRunNode(node: XmlNode): boolean {
+        return node.nodeName === DocxParser.RUN_NODE;
+    }
+
+    public isRunPropertiesNode(node: XmlNode): boolean {
+        return node.nodeName === DocxParser.RUN_PROPERTIES_NODE;
+    }
+
     public isTableCellNode(node: XmlNode): boolean {
         return node.nodeName === DocxParser.TABLE_CELL_NODE;
     }
@@ -298,5 +368,44 @@ export class DocxParser {
      */
     public containingTableRowNode(node: XmlNode): XmlNode {
         return XmlNode.findParentByName(node, DocxParser.TABLE_ROW_NODE);
+    }
+
+    //
+    // advanced node queries
+    //
+
+    public isEmptyTextNode(node: XmlNode): boolean {
+        if (!this.isTextNode(node))
+            throw new Error(`Text node expected but '${node.nodeName}' received.`);
+
+        if (!node.childNodes?.length)
+            return true;
+
+        const xmlTextNode = node.childNodes[0];
+        if (!XmlNode.isTextNode(xmlTextNode))
+            throw new Error("Invalid XML structure. 'w:t' node should contain a single text node only.");
+
+        if (!xmlTextNode.textContent)
+            return true;
+
+        return false;
+    }
+
+    public isEmptyRun(node: XmlNode): boolean {
+        if (!this.isRunNode(node))
+            throw new Error(`Run node expected but '${node.nodeName}' received.`);
+
+        for (const child of (node.childNodes ?? [])) {
+
+            if (this.isRunPropertiesNode(child))
+                continue;
+
+            if (this.isTextNode(child) && this.isEmptyTextNode(child))
+                continue;
+
+            return false;
+        }
+
+        return true;
     }
 }

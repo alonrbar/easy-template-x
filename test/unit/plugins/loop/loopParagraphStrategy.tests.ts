@@ -2,9 +2,9 @@ import { LoopParagraphStrategy } from 'src/plugins/loop/strategy';
 import { parseXml } from '../../../testUtils';
 import { DocxParser, XmlParser, PluginUtilities, Tag, TagDisposition, XmlTextNode } from 'src';
 
-describe('nameof(LoopParagraphStrategy)', () => {
+describe(nameof(LoopParagraphStrategy), () => {
 
-    describe('nameof(LoopParagraphStrategy.prototype.splitBefore)', () => {
+    describe(nameof(LoopParagraphStrategy.prototype.splitBefore), () => {
 
         it("when the closing loop tag's run has additional content before the tag, the extra content is preserved (bug #36)", () => {
 
@@ -53,7 +53,13 @@ describe('nameof(LoopParagraphStrategy)', () => {
             //
 
             const { nodesToRepeat } = strategy.splitBefore(openTag, closeTag);
-            expect(nodesToRepeat[0].childNodes?.length).toBeTruthy(); // TODO: improve and add assertions
+
+            const paragraph = nodesToRepeat[0];
+            const run = paragraph?.childNodes?.[0];
+            const wordTextNode = run?.childNodes?.[0];
+            const textNode = wordTextNode?.childNodes?.[0] as XmlTextNode;
+            expect(textNode).toBeTruthy();
+            expect(textNode.textContent).toEqual('before');
         });
     });
 });
