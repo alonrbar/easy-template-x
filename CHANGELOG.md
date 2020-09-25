@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.0.1 - 2020-09-25](https://github.com/alonrbar/easy-template-x/tree/v1.0.1)
+
+### Changed
+
+- Update dependencies (jszip, xmldom).
+
 ## [1.0.0 - 2020-08-09](https://github.com/alonrbar/easy-template-x/tree/v1.0.0)
 
 **Stable release** - from now on breaking changes to the public API (the public
