@@ -408,14 +408,7 @@ There are already some very good templating libraries out there, most notably th
 - [docx-templates](https://github.com/guigrpa/docx-templates)
 
 `easy-template-x` takes great inspiration from both. It aspires to take the best
-out of both and to add some good of it's own.
-
-While these packages has some great features such as GraphQL and inline
-JavaScript support in `docx-templates` and a breadth of additional (paid)
-modules in `docxtemplater`. This package, in accordance with it's declared above
-philosophy, offers some unique benefits including, a simple template syntax
-aimed to be handled by non-programmers, a cleaner API (IMHO), a _free_
-image insertion plugin and a TypeScript code base. Hopefully it will serve you
+out of both and to add some good of it's own. Hopefully it will serve you
 well :)
 
 ## Changelog
