@@ -1,7 +1,7 @@
-import { TemplateContent, TemplateData } from "../templateData";
-import { last } from "../utils";
+import {TemplateContent, TemplateData} from '../templateData';
+import {last} from '../utils';
 
-const getProp = require("lodash.get");
+const getProp = require('lodash.get');
 
 export class ScopeData {
     public readonly path: (string | number)[] = [];
@@ -11,7 +11,7 @@ export class ScopeData {
         this.allData = data;
     }
 
-    public getScopeData<T extends TemplateContent | TemplateData[]>(): T{
+    public getScopeData<T extends TemplateContent | TemplateData[]>(): T {
         const lastKey = last(this.path);
 
         let result: any;
@@ -19,7 +19,11 @@ export class ScopeData {
 
         while (result === undefined && curPath.length) {
             const curScopePath = curPath.slice(0, curPath.length - 1);
-            result = getProp(this.allData, curScopePath.concat(lastKey));
+            let valuePath = curScopePath;
+            if (lastKey !== '@index') {
+                valuePath = curScopePath.concat(lastKey);
+            }
+            result = getProp(this.allData, valuePath);
             curPath = curScopePath;
         }
         return result;

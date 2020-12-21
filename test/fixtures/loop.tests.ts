@@ -1,5 +1,5 @@
-import { TemplateHandler } from 'src/templateHandler';
-import { readFixture } from './fixtureUtils';
+import {TemplateHandler} from 'src/templateHandler';
+import {readFixture} from './fixtureUtils';
 
 describe('loop fixtures', () => {
 
@@ -13,8 +13,8 @@ describe('loop fixtures', () => {
 
         const data = {
             loop_prop: [
-                { simple_prop: 'first' },
-                { simple_prop: 'second' }
+                {simple_prop: 'first'},
+                {simple_prop: 'second'}
             ]
         };
 
@@ -29,6 +29,32 @@ describe('loop fixtures', () => {
         // writeTempFile('simple loop - output.docx', doc);
     });
 
+    it("replaces paragraph loops with indexed value", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template = readFixture("loop - simple - index.docx");
+        const templateText = await handler.getText(template);
+        expect(templateText.trim()).toEqual("{#loop_prop}{@index}!{/loop_prop}");
+
+        const data = {
+            loop_prop: [
+                'first',
+                'second'
+            ]
+        };
+
+        const doc = await handler.process(template, data);
+
+        const docText = await handler.getText(doc);
+        expect(docText).toEqual("first!second!");
+
+        const docXml = await handler.getXml(doc);
+        expect(docXml).toMatchSnapshot();
+
+        // writeTempFile('loop - simple - index.docx', doc);
+    });
+
     it("replaces table row loops correctly", async () => {
 
         const handler = new TemplateHandler();
@@ -40,8 +66,8 @@ describe('loop fixtures', () => {
         const data = {
             outProp: 'I am out!',
             loop: [
-                { prop: 'first' },
-                { prop: 'second' }
+                {prop: 'first'},
+                {prop: 'second'}
             ]
         };
 
@@ -56,6 +82,33 @@ describe('loop fixtures', () => {
         // writeTempFile('loop - table - output.docx', doc);
     });
 
+    it("replaces table row loops with indexed value", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template = readFixture("loop - table - index.docx");
+        const templateText = await handler.getText(template);
+        expect(templateText.trim()).toEqual("{#loop}Repeat this text {@index} And this also…{/loop}");
+
+        const data = {
+            outProp: 'I am out!',
+            loop: [
+                'first',
+                'second'
+            ]
+        };
+
+        const doc = await handler.process(template, data);
+
+        const docText = await handler.getText(doc);
+        expect(docText).toEqual("Repeat this text first And this also…Repeat this text second And this also…");
+
+        const docXml = await handler.getXml(doc);
+        expect(docXml).toMatchSnapshot();
+
+        // writeTempFile('loop - table - index.docx', doc);
+    });
+
     it("replaces list loops correctly", async () => {
 
         const handler = new TemplateHandler();
@@ -68,14 +121,14 @@ describe('loop fixtures', () => {
             loop1: [
                 {
                     loop2: [
-                        { prop: 'first' },
-                        { prop: 'second' }
+                        {prop: 'first'},
+                        {prop: 'second'}
                     ]
                 },
                 {
                     loop2: [
-                        { prop: 'third' },
-                        { prop: 'forth' }
+                        {prop: 'third'},
+                        {prop: 'forth'}
                     ]
                 }]
         };
@@ -106,8 +159,8 @@ describe('loop fixtures', () => {
 
         const data = {
             loop_prop: [
-                { simple_prop: 'first' },
-                { simple_prop: 'second' }
+                {simple_prop: 'first'},
+                {simple_prop: 'second'}
             ]
         };
 
@@ -132,8 +185,8 @@ describe('loop fixtures', () => {
 
         const data = {
             loop_prop: [
-                { simple_prop: 'first' },
-                { simple_prop: 'second' }
+                {simple_prop: 'first'},
+                {simple_prop: 'second'}
             ]
         };
 
@@ -196,14 +249,14 @@ describe('loop fixtures', () => {
             loop_prop1: [
                 {
                     loop_prop2: [
-                        { simple_prop: 'first' },
-                        { simple_prop: 'second' }
+                        {simple_prop: 'first'},
+                        {simple_prop: 'second'}
                     ]
                 },
                 {
                     loop_prop2: [
-                        { simple_prop: 'third' },
-                        { simple_prop: 'forth' }
+                        {simple_prop: 'third'},
+                        {simple_prop: 'forth'}
                     ]
                 }
             ]
@@ -230,7 +283,7 @@ describe('loop fixtures', () => {
             loop_prop1: [
                 {
                     loop_prop2: [
-                        { simple_prop: 'some string' }
+                        {simple_prop: 'some string'}
                     ]
                 }
             ]
@@ -240,9 +293,9 @@ describe('loop fixtures', () => {
         const maxOuterLoop = 1000;
         const maxInnerLoop = 20;
         for (let i = 0; i < maxOuterLoop; i++) {
-            data.loop_prop1[i] = { loop_prop2: [] };
+            data.loop_prop1[i] = {loop_prop2: []};
             for (let j = 0; j < maxInnerLoop; j++) {
-                data.loop_prop1[i].loop_prop2[j] = { simple_prop: (i * maxOuterLoop + j).toString() };
+                data.loop_prop1[i].loop_prop2[j] = {simple_prop: (i * maxOuterLoop + j).toString()};
             }
         }
 
@@ -250,5 +303,4 @@ describe('loop fixtures', () => {
 
         // writeTempFile('nested loop speed test - output.docx', doc);
     }, 5 * 1000);
-
 });

@@ -1,8 +1,12 @@
 /.tmp
 /.vscode
+/.idea
 /node_modules
 /out
+/dist
 /test-reports
+/test/temp
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.DS_Store

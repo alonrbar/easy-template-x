@@ -1153,7 +1153,7 @@ class DelimiterSearcher {
 
 }
 
-const getProp = require("lodash.get");
+const getProp = require('lodash.get');
 
 class ScopeData {
   constructor(data) {
@@ -1171,7 +1171,13 @@ class ScopeData {
 
     while (result === undefined && curPath.length) {
       const curScopePath = curPath.slice(0, curPath.length - 1);
-      result = getProp(this.allData, curScopePath.concat(lastKey));
+      let valuePath = curScopePath;
+
+      if (lastKey !== '@index') {
+        valuePath = curScopePath.concat(lastKey);
+      }
+
+      result = getProp(this.allData, valuePath);
       curPath = curScopePath;
     }
 
