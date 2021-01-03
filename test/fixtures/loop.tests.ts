@@ -29,7 +29,7 @@ describe('loop fixtures', () => {
         // writeTempFile('simple loop - output.docx', doc);
     });
 
-    it("replaces paragraph loops with indexed value", async () => {
+    it("replaces paragraph loops with index of array", async () => {
 
         const handler = new TemplateHandler();
 
@@ -47,12 +47,64 @@ describe('loop fixtures', () => {
         const doc = await handler.process(template, data);
 
         const docText = await handler.getText(doc);
-        expect(docText).toEqual("first!second!");
+        expect(docText).toEqual("0!1!");
 
         const docXml = await handler.getXml(doc);
         expect(docXml).toMatchSnapshot();
 
         // writeTempFile('loop - simple - index.docx', doc);
+    });
+
+    it("replaces paragraph loops with count of array", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template = readFixture("loop - simple - count.docx");
+        const templateText = await handler.getText(template);
+        expect(templateText.trim()).toEqual("{#loop_prop}{@count}!{/loop_prop}");
+
+        const data = {
+            loop_prop: [
+                'first',
+                'second'
+            ]
+        };
+
+        const doc = await handler.process(template, data);
+
+        const docText = await handler.getText(doc);
+        expect(docText).toEqual("1!2!");
+
+        const docXml = await handler.getXml(doc);
+        expect(docXml).toMatchSnapshot();
+
+        // writeTempFile('loop - simple - count.docx', doc);
+    });
+
+    it("replaces paragraph loops with item of array", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template = readFixture("loop - simple - item.docx");
+        const templateText = await handler.getText(template);
+        expect(templateText.trim()).toEqual("{#loop_prop}{@item}!{/loop_prop}");
+
+        const data = {
+            loop_prop: [
+                'first',
+                'second'
+            ]
+        };
+
+        const doc = await handler.process(template, data);
+
+        const docText = await handler.getText(doc);
+        expect(docText).toEqual("first!second!");
+
+        const docXml = await handler.getXml(doc);
+        expect(docXml).toMatchSnapshot();
+
+        // writeTempFile('loop - simple - item.docx', doc);
     });
 
     it("replaces table row loops correctly", async () => {
@@ -82,13 +134,13 @@ describe('loop fixtures', () => {
         // writeTempFile('loop - table - output.docx', doc);
     });
 
-    it("replaces table row loops with indexed value", async () => {
+    fit("replaces table row loops with item of array", async () => {
 
         const handler = new TemplateHandler();
 
-        const template = readFixture("loop - table - index.docx");
+        const template = readFixture("loop - table - item.docx");
         const templateText = await handler.getText(template);
-        expect(templateText.trim()).toEqual("{#loop}Repeat this text {@index} And this also…{/loop}");
+        expect(templateText.trim()).toEqual("{#loop}Repeat this text {@item} And this also…{/loop}");
 
         const data = {
             outProp: 'I am out!',
@@ -106,7 +158,7 @@ describe('loop fixtures', () => {
         const docXml = await handler.getXml(doc);
         expect(docXml).toMatchSnapshot();
 
-        // writeTempFile('loop - table - index.docx', doc);
+        // writeTempFile('loop - table - item.docx', doc);
     });
 
     it("replaces list loops correctly", async () => {

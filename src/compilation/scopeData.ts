@@ -2,6 +2,9 @@ import {TemplateContent, TemplateData} from '../templateData';
 import {last} from '../utils';
 
 const getProp = require('lodash.get');
+const TOKEN_ITEM_OF_ARRAY = '@item';
+const TOKEN_INDEX_OF_ARRAY = '@index';
+const TOKEN_COUNT_OF_ARRAY = '@count';
 
 export class ScopeData {
     public readonly path: (string | number)[] = [];
@@ -19,11 +22,16 @@ export class ScopeData {
 
         while (result === undefined && curPath.length) {
             const curScopePath = curPath.slice(0, curPath.length - 1);
-            let valuePath = curScopePath;
-            if (lastKey !== '@index') {
-                valuePath = curScopePath.concat(lastKey);
+            if (lastKey === TOKEN_ITEM_OF_ARRAY) {
+                result = getProp(this.allData, curScopePath);
+            } else if (lastKey === TOKEN_INDEX_OF_ARRAY) {
+                result = last(curScopePath);
+            } else if (lastKey === TOKEN_COUNT_OF_ARRAY) {
+                result = last(curScopePath) as number + 1;
+            } else {
+                result = getProp(this.allData, curScopePath.concat(lastKey));
             }
-            result = getProp(this.allData, valuePath);
+
             curPath = curScopePath;
         }
         return result;
