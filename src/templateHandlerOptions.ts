@@ -1,6 +1,7 @@
+import { ScopeDataResolver } from './compilation';
 import { Delimiters } from './delimiters';
-import { createDefaultPlugins, LOOP_CONTENT_TYPE, TemplatePlugin, TEXT_CONTENT_TYPE } from './plugins';
 import { ExtensionOptions } from './extensions';
+import { createDefaultPlugins, LOOP_CONTENT_TYPE, TemplatePlugin, TEXT_CONTENT_TYPE } from './plugins';
 
 export class TemplateHandlerOptions {
 
@@ -15,6 +16,8 @@ export class TemplateHandlerOptions {
     public maxXmlDepth?= 20;
 
     public extensions?: ExtensionOptions = {};
+
+    public scopeDataResolver?: ScopeDataResolver;
 
     constructor(initial?: Partial<TemplateHandlerOptions>) {
         Object.assign(this, initial);

@@ -82,6 +82,7 @@ export class TemplateHandler {
 
         // prepare context
         const scopeData = new ScopeData(data);
+        scopeData.scopeDataResolver = this.options.scopeDataResolver;
         const context: TemplateContext = {
             docx,
             currentPart: null

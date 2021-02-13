@@ -80,9 +80,9 @@ export class LoopPlugin extends TemplatePlugin {
             curNodes.forEach(node => XmlNode.appendChild(dummyRootNode, node));
 
             // compile the new root
-            data.path.push(i);
+            data.pathPush(i);
             await this.utilities.compiler.compile(dummyRootNode, data, context);
-            data.path.pop();
+            data.pathPop();
 
             // disconnect from dummy root
             const curResult: XmlNode[] = [];

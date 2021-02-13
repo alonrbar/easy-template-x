@@ -57,14 +57,14 @@ export class TemplateCompiler {
         for (let tagIndex = 0; tagIndex < tags.length; tagIndex++) {
 
             const tag = tags[tagIndex];
-            data.path.push(tag.name);
+            data.pathPush(tag);
             const contentType = this.detectContentType(tag, data);
             const plugin = this.pluginsLookup[contentType];
             if (!plugin) {
                 throw new UnknownContentTypeError(
                     contentType,
                     tag.rawText,
-                    data.path.join('.')
+                    data.pathString()
                 );
             }
 
@@ -90,7 +90,7 @@ export class TemplateCompiler {
                 }
             }
 
-            data.path.pop();
+            data.pathPop();
         }
     }
 
