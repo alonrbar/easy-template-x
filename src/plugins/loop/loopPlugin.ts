@@ -26,8 +26,14 @@ export class LoopPlugin extends TemplatePlugin {
 
         let value = data.getScopeData<TemplateData[]>();
 
-        if (!value || !Array.isArray(value) || !value.length)
-            value = [];
+        // Non array value - treat as a boolean condition.
+        if (!Array.isArray(value)) {
+            if (!!value) {
+                value = [{}];
+            } else {
+                value = [];
+            }
+        }
 
         // vars
         const openTag = tags[0];

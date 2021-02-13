@@ -122,6 +122,46 @@ describe('loop fixtures', () => {
         // writeTempFile('loop - custom delimiters - output.docx', doc);
     });
 
+    it("supports boolean conditions", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template = readFixture("loop - conditions.docx");
+        const templateText = await handler.getText(template);
+        expect(templateText.trim()).toEqual("{#loop_prop1}hi!{#condition1}yes!{/}{#condition2}no!{/}{/}");
+
+        const data = {
+            loop_prop1: [
+                {
+                    condition1: true,
+                    condition2: false
+                },
+                {
+                    condition1: false,
+                    condition2: true
+                },
+                {
+                    condition1: false,
+                    condition2: false
+                },
+                {
+                    condition1: true,
+                    condition2: true
+                }
+            ]
+        };
+
+        const doc = await handler.process(template, data);
+
+        const docText = await handler.getText(doc);
+        expect(docText).toEqual("hi!yes!hi!no!hi!hi!yes!no!");
+
+        const docXml = await handler.getXml(doc);
+        expect(docXml).toMatchSnapshot();
+
+        // writeTempFile('loop - conditions - output.docx', doc);
+    });
+
     it("ignores the name of the closing tag", async () => {
 
         const handler = new TemplateHandler();
