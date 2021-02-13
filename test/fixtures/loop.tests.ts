@@ -122,6 +122,42 @@ describe('loop fixtures', () => {
         // writeTempFile('loop - custom delimiters - output.docx', doc);
     });
 
+    it("ignores the name of the closing tag", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template = readFixture("loop - nested - ignore closing tag name.docx");
+        const templateText = await handler.getText(template);
+        expect(templateText.trim()).toEqual("{#loop_prop1}hi!{#loop_prop2}{simple_prop}!{/some_name}{/}");
+
+        const data = {
+            loop_prop1: [
+                {
+                    loop_prop2: [
+                        { simple_prop: 'first' },
+                        { simple_prop: 'second' }
+                    ]
+                },
+                {
+                    loop_prop2: [
+                        { simple_prop: 'third' },
+                        { simple_prop: 'forth' }
+                    ]
+                }
+            ]
+        };
+
+        const doc = await handler.process(template, data);
+
+        const docText = await handler.getText(doc);
+        expect(docText).toEqual("hi!first!second!hi!third!forth!");
+
+        const docXml = await handler.getXml(doc);
+        expect(docXml).toMatchSnapshot();
+
+        // writeTempFile('nested loop ignore closing tag name - output.docx', doc);
+    });
+
     it("replaces a loop with open and close tag in the same paragraph correctly", async () => {
 
         const handler = new TemplateHandler();

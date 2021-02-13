@@ -1,4 +1,4 @@
-import { UnclosedTagError, UnknownContentTypeError } from '../errors';
+import { UnclosedTagError, UnknownContentTypeError, UnopenedTagError } from '../errors';
 import { PluginContent, TemplatePlugin } from '../plugins';
 import { IMap } from '../types';
 import { isPromiseLike, toDictionary } from '../utils';
@@ -110,15 +110,26 @@ export class TemplateCompiler {
     }
 
     private findCloseTagIndex(fromIndex: number, openTag: Tag, tags: Tag[]): number {
-
+        let openTags = 0;
         let i = fromIndex;
         for (; i < tags.length; i++) {
-            const closeTag = tags[i];
-            if (
-                closeTag.name === openTag.name &&
-                closeTag.disposition === TagDisposition.Close
-            ) {
-                break;
+            const tag = tags[i];
+            if (tag.disposition === TagDisposition.Open) {
+                openTags++;
+                continue;
+            }
+            if (tag.disposition == TagDisposition.Close) {
+                openTags--;
+                if (openTags === 0) {
+                    return i;
+                }
+                if (openTags < 0) {
+                    // As long as we don't change the input to
+                    // this method (fromIndex in particular) this
+                    // should never happen.
+                    throw new UnopenedTagError(tag.name);
+                }
+                continue;
             }
         }
 
