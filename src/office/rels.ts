@@ -94,7 +94,7 @@ export class Rels {
 
     private getNextRelId(): string {
 
-        let relId: string;;
+        let relId: string;
         do {
             this.nextRelId++;
             relId = 'rId' + this.nextRelId;

@@ -10,27 +10,27 @@ export const Binary = {
     // type detection
     //
 
-    isBlob(binary: any): binary is Blob {
-        return this.isBlobConstructor(binary.constructor);
+    isBlob(binary: unknown): binary is Blob {
+        return this.isBlobConstructor(binary.constructor as any);
     },
 
-    isArrayBuffer(binary: any): binary is ArrayBuffer {
-        return this.isArrayBufferConstructor(binary.constructor);
+    isArrayBuffer(binary: unknown): binary is ArrayBuffer {
+        return this.isArrayBufferConstructor(binary.constructor as any);
     },
 
-    isBuffer(binary: any): binary is Buffer {
-        return this.isBufferConstructor(binary.constructor);
+    isBuffer(binary: unknown): binary is Buffer {
+        return this.isBufferConstructor(binary.constructor as any);
     },
 
-    isBlobConstructor(binaryType: Constructor<any>): binaryType is Constructor<Blob> {
+    isBlobConstructor(binaryType: Constructor<unknown>): binaryType is Constructor<Blob> {
         return (typeof Blob !== 'undefined' && inheritsFrom(binaryType, Blob));
     },
 
-    isArrayBufferConstructor(binaryType: Constructor<any>): binaryType is Constructor<ArrayBuffer> {
+    isArrayBufferConstructor(binaryType: Constructor<unknown>): binaryType is Constructor<ArrayBuffer> {
         return (typeof ArrayBuffer !== 'undefined' && inheritsFrom(binaryType, ArrayBuffer));
     },
 
-    isBufferConstructor(binaryType: Constructor<any>): binaryType is Constructor<Buffer> {
+    isBufferConstructor(binaryType: Constructor<unknown>): binaryType is Constructor<Buffer> {
         return (typeof Buffer !== 'undefined' && inheritsFrom(binaryType, Buffer));
     },
 

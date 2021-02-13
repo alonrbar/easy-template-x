@@ -27,5 +27,5 @@ export class JsZipHelper {
             return 'nodebuffer';
 
         throw new Error(`Binary type '${(binaryType as any).name}' is not supported.`);
-    };
+    }
 }

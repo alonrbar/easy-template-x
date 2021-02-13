@@ -17,7 +17,7 @@ export class LoopPlugin extends TemplatePlugin {
         new LoopParagraphStrategy() // the default strategy
     ];
 
-    public setUtilities(utilities: PluginUtilities) {
+    public setUtilities(utilities: PluginUtilities): void {
         this.utilities = utilities;
         this.loopStrategies.forEach(strategy => strategy.setUtilities(utilities));
     }

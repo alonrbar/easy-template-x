@@ -4,7 +4,7 @@ export interface PluginContent {
 }
 
 export const PluginContent = {
-    isPluginContent(content: any): content is PluginContent {
-        return !!content && typeof content._type === 'string';
+    isPluginContent(content: unknown): content is PluginContent {
+        return !!content && typeof (content as any)._type === 'string';
     }
 };

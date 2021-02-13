@@ -7,7 +7,7 @@ export class LoopTableStrategy implements ILoopStrategy {
 
     private utilities: PluginUtilities;
 
-    public setUtilities(utilities: PluginUtilities) {
+    public setUtilities(utilities: PluginUtilities): void {
         this.utilities = utilities;
     }
 

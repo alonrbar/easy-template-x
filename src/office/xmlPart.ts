@@ -50,7 +50,7 @@ export class XmlPart {
         return domDocument.documentElement.textContent;
     }
 
-    public async saveChanges() {
+    public async saveChanges(): Promise<void> {
 
         // save xml
         if (this.root) {

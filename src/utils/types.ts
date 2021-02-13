@@ -5,6 +5,6 @@ export function inheritsFrom(derived: Constructor<any>, base: Constructor<any>):
     return derived === base || derived.prototype instanceof base;
 }
 
-export function isPromiseLike<T>(candidate: any): candidate is PromiseLike<T> {
-    return !!candidate && typeof candidate === 'object' && typeof candidate.then === 'function';
+export function isPromiseLike<T>(candidate: unknown): candidate is PromiseLike<T> {
+    return !!candidate && typeof candidate === 'object' && typeof (candidate as any).then === 'function';
 }

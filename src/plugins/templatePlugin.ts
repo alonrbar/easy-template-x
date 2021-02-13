@@ -22,7 +22,7 @@ export abstract class TemplatePlugin {
     /**
      * Called by the TemplateHandler at runtime.
      */
-    public setUtilities(utilities: PluginUtilities) {
+    public setUtilities(utilities: PluginUtilities): void {
         this.utilities = utilities;
     }
 

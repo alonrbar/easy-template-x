@@ -31,4 +31,4 @@ export function toDictionary<TIn, TOut = TIn>(array: TIn[], keySelector: ItemMap
         res[key] = value;
     });
     return res;
-};
+}

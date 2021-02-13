@@ -16,7 +16,7 @@ export abstract class TemplateExtension {
     /**
      * Called by the TemplateHandler at runtime.
      */
-    public setUtilities(utilities: ExtensionUtilities) {
+    public setUtilities(utilities: ExtensionUtilities): void {
         this.utilities = utilities;
     }
 

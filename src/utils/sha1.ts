@@ -1,11 +1,11 @@
 /**
  * Secure Hash Algorithm (SHA1)
- * 
+ *
  * Taken from here: http://www.webtoolkit.info/javascript-sha1.html
- * 
+ *
  * Recommended here: https://stackoverflow.com/questions/6122571/simple-non-secure-hash-function-for-javascript#6122732
  */
-export function sha1(msg: string) {
+export function sha1(msg: string): string {
 
     msg = utf8Encode(msg);
     const msgLength = msg.length;
