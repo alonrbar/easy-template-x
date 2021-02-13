@@ -15,12 +15,10 @@ export class ScopeData {
         const lastKey = last(this.path);
 
         let result: any;
-        let curPath = this.path.slice();
-
+        const curPath = this.path.slice();
         while (result === undefined && curPath.length) {
-            const curScopePath = curPath.slice(0, curPath.length - 1);
-            result = getProp(this.allData, curScopePath.concat(lastKey));
-            curPath = curScopePath;
+            curPath.pop();
+            result = getProp(this.allData, curPath.concat(lastKey));
         }
         return result;
     }
