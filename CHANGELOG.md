@@ -1,5 +1,17 @@
 # Change Log
 
+## [Unreleased](https://github.com/alonrbar/easy-template-x/tree/develop)
+
+### Added
+
+- Support for simple conditions ([docs](https://github.com/alonrbar/easy-template-x#conditions)).
+- Support for custom data resolvers - enables advanced syntax support ([docs](https://github.com/alonrbar/easy-template-x#advanced-syntax-and-custom-resolvers)).
+
+### Changed
+
+- **BREAKING** - Container closing tag name is ignored and no longer throws when
+  the closing tag has different name than the opening one.
+
 ## [1.0.1 - 2020-09-25](https://github.com/alonrbar/easy-template-x/tree/v1.0.1)
 
 ### Changed
