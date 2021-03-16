@@ -25,6 +25,10 @@ export default {
             extensions
         }),
         replace({
+            // replace options
+            preventAssignment: true,
+
+            // keywords:
             EASY_VERSION: JSON.stringify(pkg.version)
         }),
         babel({
