@@ -8,9 +8,10 @@ describe(nameof(ScopeData), () => {
         const value1 = scopeData.getScopeData();
         expect(value1).toEqual(undefined);
 
-        scopeData.scopeDataResolver = (p, d) => {
-            expect(p).toEqual([]);
-            expect(d).toEqual({});
+        scopeData.scopeDataResolver = (args) => {
+            expect(args.path).toEqual([]);
+            expect(args.strPath).toEqual([]);
+            expect(args.data).toEqual({});
             return 7;
         };
 
@@ -25,9 +26,10 @@ describe(nameof(ScopeData), () => {
         const value1 = scopeData.getScopeData();
         expect(value1).toEqual("world");
 
-        scopeData.scopeDataResolver = (p, d) => {
-            expect(p).toEqual([{ name: "hello" }]);
-            expect(d).toEqual({ hello: "world" });
+        scopeData.scopeDataResolver = (args) => {
+            expect(args.path).toEqual([{ name: "hello" }]);
+            expect(args.strPath).toEqual(["hello"]);
+            expect(args.data).toEqual({ hello: "world" });
             return "Bobby";
         };
 

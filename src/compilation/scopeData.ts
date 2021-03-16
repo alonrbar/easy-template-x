@@ -6,9 +6,31 @@ const getProp = require("lodash.get");
 
 export type PathPart = Tag | number;
 
-export type ScopeDataResolver = (path: PathPart[], data: TemplateData) => TemplateContent | TemplateData[];
+export interface ScopeDataArgs {
+    path: PathPart[];
+    /**
+     * The string representation of the path.
+     */
+    strPath: string[];
+    data: TemplateData;
+}
+
+export type ScopeDataResolver = (args: ScopeDataArgs) => TemplateContent | TemplateData[];
 
 export class ScopeData {
+
+    public static defaultResolver(args: ScopeDataArgs): TemplateContent | TemplateData[] {
+        let result: any;
+
+        const lastKey = last(args.strPath);
+        const curPath = args.strPath.slice();
+        while (result === undefined && curPath.length) {
+            curPath.pop();
+            result = getProp(args.data, curPath.concat(lastKey));
+        }
+        return result;
+    }
+
     public scopeDataResolver: ScopeDataResolver;
     public allData: TemplateData;
 
@@ -34,20 +56,15 @@ export class ScopeData {
         return this.strPath.join(".");
     }
 
-    public getScopeData<T extends TemplateContent | TemplateData[]>(): T{
-        // Custom resolver.
-        let result: any;
+    public getScopeData<T extends TemplateContent | TemplateData[]>(): T {
+        const args: ScopeDataArgs = {
+            path: this.path,
+            strPath: this.strPath,
+            data: this.allData
+        };
         if (this.scopeDataResolver) {
-            result = this.scopeDataResolver(this.path, this.allData);
+            return this.scopeDataResolver(args) as T;
         }
-
-        // Default resolution.
-        const lastKey = last(this.strPath);
-        const curPath = this.strPath.slice();
-        while (result === undefined && curPath.length) {
-            curPath.pop();
-            result = getProp(this.allData, curPath.concat(lastKey));
-        }
-        return result;
+        return ScopeData.defaultResolver(args) as T;
     }
 }
