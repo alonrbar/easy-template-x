@@ -495,7 +495,7 @@ In order to stay friendly for such potential users it keeps the template syntax 
 
 For the same reason it supports tags with whitespace and any unicode supported alphabet such as `{שם התלמיד}` or `{اسم المعلم}`.
 
-If your template do not need to meet such requirements, especially if they are meant to be edited by developers you can adopt a more sophisticated [alternative syntax](#advanced-syntax-and-custom-resolvers).
+If your template does not need to meet such requirements, especially if they are meant to be edited by developers you can adopt a more sophisticated [alternative syntax](#advanced-syntax-and-custom-resolvers).
 
 ## Prior art and motivation
 
