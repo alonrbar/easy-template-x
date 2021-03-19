@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased](https://github.com/alonrbar/easy-template-x/tree/develop)
+## [2.0.0 - 2021-03-19](https://github.com/alonrbar/easy-template-x/tree/v2.0.0)
 
 ### Added
 
@@ -10,7 +10,7 @@
 ### Changed
 
 - **BREAKING** - Container closing tag name is ignored and no longer throws when
-  the closing tag has different name than the opening one.
+  the closing tag has different name than the opening one ([docs](https://github.com/alonrbar/easy-template-x#loop-plugin)).
 
 ## [1.0.1 - 2020-09-25](https://github.com/alonrbar/easy-template-x/tree/v1.0.1)
 
