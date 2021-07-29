@@ -1,5 +1,11 @@
 # Change Log
 
+## [2.1.0 - 2021-07-29](https://github.com/alonrbar/easy-template-x/tree/v2.1.0)
+
+### Added
+
+- Add skipEmptyTag option ([#45](https://github.com/alonrbar/easy-template-x/issues/45)).
+
 ## [2.0.0 - 2021-03-19](https://github.com/alonrbar/easy-template-x/tree/v2.0.0)
 
 ### Added
