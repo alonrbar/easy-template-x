@@ -1,13 +1,19 @@
 import { UnclosedTagError, UnknownContentTypeError, UnopenedTagError } from '../errors';
 import { PluginContent, TemplatePlugin } from '../plugins';
 import { IMap } from '../types';
-import { isPromiseLike, toDictionary } from '../utils';
+import { isPromiseLike, stringValue, toDictionary } from '../utils';
 import { XmlNode } from '../xml';
 import { DelimiterSearcher } from './delimiterSearcher';
 import { ScopeData } from './scopeData';
 import { Tag, TagDisposition } from './tag';
 import { TagParser } from './tagParser';
 import { TemplateContext } from './templateContext';
+
+export interface TemplateCompilerOptions {
+    defaultContentType: string;
+    containerContentType: string;
+    skipEmptyTags?: boolean;
+}
 
 /**
  * The TemplateCompiler works roughly the same way as a source code compiler.
@@ -27,8 +33,7 @@ export class TemplateCompiler {
         private readonly delimiterSearcher: DelimiterSearcher,
         private readonly tagParser: TagParser,
         plugins: TemplatePlugin[],
-        private readonly defaultContentType: string,
-        private readonly containerContentType: string
+        private readonly options: TemplateCompilerOptions
     ) {
         this.pluginsLookup = toDictionary(plugins, p => p.contentType);
     }
@@ -69,12 +74,7 @@ export class TemplateCompiler {
             }
 
             if (tag.disposition === TagDisposition.SelfClosed) {
-
-                // replace simple tag
-                const job = plugin.simpleTagReplacements(tag, data, context);
-                if (isPromiseLike(job)) {
-                    await job;
-                }
+                await this.simpleTagReplacements(plugin, tag, data, context);
 
             } else if (tag.disposition === TagDisposition.Open) {
 
@@ -103,10 +103,21 @@ export class TemplateCompiler {
 
         // implicit - loop
         if (tag.disposition === TagDisposition.Open || tag.disposition === TagDisposition.Close)
-            return this.containerContentType;
+            return this.options.containerContentType;
 
         // implicit - text
-        return this.defaultContentType;
+        return this.options.defaultContentType;
+    }
+
+    private async simpleTagReplacements(plugin: TemplatePlugin, tag: Tag, data: ScopeData, context: TemplateContext): Promise<void> {
+        if (this.options.skipEmptyTags && stringValue(data.getScopeData()) === '') {
+            return;
+        }
+
+        const job = plugin.simpleTagReplacements(tag, data, context);
+        if (isPromiseLike(job)) {
+            await job;
+        }
     }
 
     private findCloseTagIndex(fromIndex: number, openTag: Tag, tags: Tag[]): number {

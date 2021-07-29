@@ -7,6 +7,15 @@ export class TemplateHandlerOptions {
 
     public plugins?: TemplatePlugin[] = createDefaultPlugins();
 
+    /**
+     * Determines the behavior in case of an empty input data. If set to true
+     * the tag will be left untouched, if set to false the tag will be replaced
+     * by an empty string.
+     *
+     * Default: false
+     */
+    public skipEmptyTags?= false;
+
     public defaultContentType?= TEXT_CONTENT_TYPE;
 
     public containerContentType?= LOOP_CONTENT_TYPE;

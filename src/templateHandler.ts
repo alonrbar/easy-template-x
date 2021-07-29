@@ -43,8 +43,11 @@ export class TemplateHandler {
             delimiterSearcher,
             tagParser,
             this.options.plugins,
-            this.options.defaultContentType,
-            this.options.containerContentType
+            {
+                skipEmptyTags: this.options.skipEmptyTags,
+                defaultContentType: this.options.defaultContentType,
+                containerContentType: this.options.containerContentType
+            }
         );
 
         this.options.plugins.forEach(plugin => {

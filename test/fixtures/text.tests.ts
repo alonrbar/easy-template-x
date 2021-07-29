@@ -2,7 +2,7 @@ import { TemplateHandler } from 'src/templateHandler';
 import { readFixture } from './fixtureUtils';
 
 describe('text tag fixtures', () => {
-    
+
     it("replaces a single tag", async () => {
 
         const handler = new TemplateHandler();
@@ -43,6 +43,30 @@ describe('text tag fixtures', () => {
 
         const docText = await handler.getText(doc);
         expect(docText.trim()).toEqual("");
+    });
+
+    it("skips empty tags if skipEmptyTags is true", async () => {
+
+        const handler = new TemplateHandler({
+            skipEmptyTags: true,
+        });
+
+        // load the template
+
+        const template: Buffer = readFixture("simple.docx");
+        const templateText = await handler.getText(template);
+        expect(templateText.trim()).toEqual("{simple_prop}");
+
+        // replace tags
+
+        const data = {
+            simple_prop: ''
+        };
+
+        const doc = await handler.process(template, data);
+
+        const docText = await handler.getText(doc);
+        expect(docText.trim()).toEqual("{simple_prop}");
     });
 
     it("handles numeric values", async () => {

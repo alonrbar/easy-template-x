@@ -1,5 +1,6 @@
 import { ScopeData, Tag } from '../../compilation';
 import { DocxParser } from '../../office';
+import { stringValue } from '../../utils';
 import { XmlNode, XmlTextNode } from '../../xml';
 import { TemplatePlugin } from '../templatePlugin';
 
@@ -15,8 +16,7 @@ export class TextPlugin extends TemplatePlugin {
     public simpleTagReplacements(tag: Tag, data: ScopeData): void {
 
         const value = data.getScopeData();
-        const stringValue = (value === null || value === undefined) ? '' : value.toString();
-        const lines = stringValue.split('\n');
+        const lines = stringValue(value).split('\n');
 
         if (lines.length < 2) {
             this.replaceSingleLine(tag.xmlTextNode, lines.length ? lines[0] : '');
