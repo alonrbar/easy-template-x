@@ -1,0 +1,28 @@
+name: Push test
+
+on: [ push, pull_request ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.14.2
+
+      - name: Cache node modules
+        id: node-modules-cache
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: node_modules-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+
+      - run: yarn install --ignore-platform --frozen-lockfile --no-cache
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
+
+      - run: yarn typecheck
+      - run: yarn lint
+      - run: yarn test
