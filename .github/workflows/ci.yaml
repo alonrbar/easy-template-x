@@ -26,3 +26,9 @@ jobs:
       - run: yarn typecheck
       - run: yarn lint
       - run: yarn test --ci --runInBand
+
+      - name: Test Summary
+        uses: test-summary/action@v1
+        with:
+          paths: "test-reports/junit.xml"
+        if: always()
