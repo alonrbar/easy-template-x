@@ -296,6 +296,54 @@ describe('loop fixtures', () => {
         // writeTempFile('nested loop - output.docx', doc);
     });
 
+    it("replaces a loop inside a condition inside a loop correctly", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template = readFixture("loop - nested with condition.docx");
+        const templateText = await handler.getText(template);
+        expect(templateText.trim()).toEqual("{# teams}{# display}{name}:{# members}First Name: {name}, Last Name: {surname}{/ members};{/}{/ teams}");
+
+        const data = {
+            "teams": [
+                {
+                    "display": true,
+                    "name": "Team A",
+                    "members": [
+                        { "name": "Bryson", "surname": "Pike" },
+                        { "name": "Beatriz", "surname": "Schmitt" },
+                    ]
+                },
+                {
+                    "display": false,
+                    "name": "Team B",
+                    "members": [
+                        { "name": "Charis", "surname": "Hilton" },
+                        { "name": "John", "surname": "Plant" },
+                    ]
+                },
+                {
+                    "display": true,
+                    "name": "Team C",
+                    "members": [
+                        { "name": "Fionn", "surname": "Lyons" },
+                        { "name": "Pedro", "surname": "Compton" }
+                    ]
+                }
+            ]
+        };
+
+        const doc = await handler.process(template, data);
+
+        const docText = await handler.getText(doc);
+        expect(docText).toEqual("Team A:First Name: Bryson, Last Name: Pike;First Name: Beatriz, Last Name: Schmitt;Team C:First Name: Fionn, Last Name: Lyons;First Name: Pedro, Last Name: Compton;");
+
+        const docXml = await handler.getXml(doc);
+        expect(docXml).toMatchSnapshot();
+
+        // writeTempFile('loop - nested with condition - output.docx', doc);
+    });
+
     it("replaces nested loops fast enough", async () => {
 
         const handler = new TemplateHandler();
