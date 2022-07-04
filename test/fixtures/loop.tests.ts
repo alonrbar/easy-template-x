@@ -296,6 +296,33 @@ describe('loop fixtures', () => {
         // writeTempFile('nested loop - output.docx', doc);
     });
 
+    it("replaces nested conditions correctly", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template = readFixture("loop - condition in condition.docx");
+        const templateText = await handler.getText(template);
+        expect(templateText.trim()).toEqual("{# condition a}{# condition b}{yes}{/}{# condition c}{no}{/}{/}");
+
+        const data = {
+            "condition a": true,
+            "condition b": true,
+            "condition c": false,
+            "yes": "Yes!",
+            "no": "Oh no!",
+        };
+
+        const doc = await handler.process(template, data);
+
+        const docText = await handler.getText(doc);
+        expect(docText).toEqual("Yes!");
+
+        const docXml = await handler.getXml(doc);
+        expect(docXml).toMatchSnapshot();
+
+        // writeTempFile('loop - condition in condition - output.docx', doc);
+    });
+
     it("replaces a loop inside a condition inside a loop correctly", async () => {
 
         const handler = new TemplateHandler();
