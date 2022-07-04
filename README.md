@@ -13,6 +13,7 @@ Generate docx documents from templates, in Node or in the browser.
   - [Text plugin](#text-plugin)
   - [Loop plugin](#loop-plugin)
     - [Conditions](#conditions)
+    - [Nested Conditions](#nested-conditions)
   - [Image plugin](#image-plugin)
   - [Link plugin](#link-plugin)
   - [Raw xml plugin](#raw-xml-plugin)
@@ -185,7 +186,7 @@ Output document:
 
 You can render content conditionally depending on a boolean value using the same syntax used for loops.
 
-The example below shows two lines being rendered, each with different content depeneding on the truthy value.
+The example below shows two lines being rendered, each with different content depending on the truthy value.
 
 Input template:
 
@@ -206,7 +207,50 @@ Output document:
 
 ![output document](./docs/assets/simple-condition-out.png?raw=true)
 
-_For a more powerful conditional syntax see the [alternative syntax](#advanced-syntax-and-custom-resolvers) section._
+#### Nested Conditions
+
+Nested conditions are also supported, so you can nest other tags including loop tags and even other conditions in them. When doing so remember to format your data accordingly. See the example below for clarification:
+
+Input template:
+
+![input template](./docs/assets/nested-conditions-in.png?raw=true)
+
+Input data:
+
+Notice how even though `name` and `members` are nested in the template under the `show` condition their values are adjacent to it in the input data.
+
+```javascript
+{
+    "teams": [
+        {
+            show: true,
+            name: "A-Team",
+            members: [
+                { name: "Hannibal" },
+                { name: "Face" },
+                { name: "Murdock" },
+                { name: "Baracus" },
+            ]
+        },
+        {
+            show: false,
+            name: "B-Team",
+            members: [
+                { name: "Alice" },
+                { name: "Bob" },
+                { name: "Charlie" },
+                { name: "Dave" },
+            ]
+        }
+    ],
+}
+```
+
+Output document:
+
+![output document](./docs/assets/nested-conditions-out.png?raw=true)
+
+_If you are looking for a yet more powerful conditional syntax see the [alternative syntax](#advanced-syntax-and-custom-resolvers) section._
 
 ### Image plugin
 
