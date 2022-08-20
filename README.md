@@ -18,6 +18,7 @@ Generate docx documents from templates, in Node or in the browser.
   - [Link plugin](#link-plugin)
   - [Raw xml plugin](#raw-xml-plugin)
   - [Writing custom plugins](#writing-your-own-plugins)
+- [Listing tags](#listing-tags)
 - [Scope resolution](#scope-resolution)
 - [Extensions](#extensions)
   - [Community Extensions](#community-extensions)
@@ -381,6 +382,19 @@ export interface RawXmlContent extends PluginContent {
     _type: 'rawXml';
     xml: string;
 }
+```
+
+## Listing tags
+
+You can get the list of [tags](https://github.com/alonrbar/easy-template-x/blob/8a88535ef090fc357cf3523411bef0d0729d10c8/src/compilation/tag.ts) in a template by calling the `parseTags` method as follows:
+
+```typescript
+import { TemplateHandler } from 'easy-template-x';
+
+const templateFile = fs.readFileSync('myTemplate.docx');
+
+const handler = new TemplateHandler();
+const tags = await handler.parseTags(templateFile);
 ```
 
 ## Scope resolution

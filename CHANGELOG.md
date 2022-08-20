@@ -1,5 +1,11 @@
 # Change Log
 
+## [3.0.2 - 2022-08-20](https://github.com/alonrbar/easy-template-x/tree/v3.0.2)
+
+### Added
+
+- Add documentation for the `parseTags` method ([here](https://github.com/alonrbar/easy-template-x#listing-tags)).
+
 ## [3.0.1 - 2022-08-20](https://github.com/alonrbar/easy-template-x/tree/v3.0.1)
 
 ### Fixed
