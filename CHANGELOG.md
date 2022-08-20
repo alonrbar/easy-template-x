@@ -4,7 +4,7 @@
 
 ### Added
 
-- **BREAKING** - Add support for nesting tags, loops and other conditions inside simple conditions (fixes [#49](https://github.com/alonrbar/easy-template-x/issues/49)). This requires changing the way some values are look up in the input data. Please see the readme file for details (https://github.com/alonrbar/easy-template-x#nested-conditions).
+- **BREAKING** - Add support for nesting tags, loops and other conditions inside simple conditions (fixes [#49](https://github.com/alonrbar/easy-template-x/issues/49)). This requires changing the way some values are look up in the input data. Please see the readme file for details ([here](https://github.com/alonrbar/easy-template-x#nested-conditions)).
 
 ## [2.1.0 - 2021-07-29](https://github.com/alonrbar/easy-template-x/tree/v2.1.0)
 
