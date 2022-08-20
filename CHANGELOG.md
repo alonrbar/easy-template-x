@@ -1,6 +1,6 @@
 # Change Log
 
-## [03175360 - 2022-08-20](https://github.com/alonrbar/easy-template-x/tree/v3.0.1)
+## [3.0.1 - 2022-08-20](https://github.com/alonrbar/easy-template-x/tree/v3.0.1)
 
 ### Fixed
 
