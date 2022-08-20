@@ -1,5 +1,11 @@
 # Change Log
 
+## [03175360 - 2022-08-20](https://github.com/alonrbar/easy-template-x/tree/v3.0.1)
+
+### Fixed
+
+- Use ESM import for `lodash.get` so the package can be used with modern bundlers (fixes [#66](https://github.com/alonrbar/easy-template-x/issues/66)).
+
 ## [3.0.0 - 2022-07-04](https://github.com/alonrbar/easy-template-x/tree/v3.0.0)
 
 ### Added
