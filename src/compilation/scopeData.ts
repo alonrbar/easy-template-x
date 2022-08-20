@@ -1,8 +1,7 @@
+import getProp from 'lodash.get';
 import { TemplateContent, TemplateData } from '../templateData';
 import { isNumber, last } from '../utils';
 import { Tag } from './tag';
-
-const getProp = require("lodash.get");
 
 export type PathPart = Tag | number;
 
