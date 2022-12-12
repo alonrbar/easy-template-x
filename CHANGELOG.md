@@ -1,10 +1,16 @@
 # Change Log
 
+## [3.0.4 - 2022-12-12](https://github.com/alonrbar/easy-template-x/tree/v3.0.4)
+
+### Fixed
+
+- Encode attribute values ([#62](https://github.com/alonrbar/easy-template-x/issues/62)).
+
 ## [3.0.3 - 2022-12-12](https://github.com/alonrbar/easy-template-x/tree/v3.0.3)
 
 ### Changed
 
-- Update dependencies (jszip, xmldom).
+- Update dependencies (jszip, xmldom) ([#73](https://github.com/alonrbar/easy-template-x/issues/73)).
 
 ## [3.0.2 - 2022-08-20](https://github.com/alonrbar/easy-template-x/tree/v3.0.2)
 
@@ -16,13 +22,13 @@
 
 ### Fixed
 
-- Use ESM import for `lodash.get` so the package can be used with modern bundlers (fixes [#66](https://github.com/alonrbar/easy-template-x/issues/66)).
+- Use ESM import for `lodash.get` so the package can be used with modern bundlers ([#66](https://github.com/alonrbar/easy-template-x/issues/66)).
 
 ## [3.0.0 - 2022-07-04](https://github.com/alonrbar/easy-template-x/tree/v3.0.0)
 
 ### Added
 
-- **BREAKING** - Add support for nesting tags, loops and other conditions inside simple conditions (fixes [#49](https://github.com/alonrbar/easy-template-x/issues/49)). This requires changing the way some values are look up in the input data. Please see the readme file for details ([here](https://github.com/alonrbar/easy-template-x#nested-conditions)).
+- **BREAKING** - Add support for nesting tags, loops and other conditions inside simple conditions ([#49](https://github.com/alonrbar/easy-template-x/issues/49)). This requires changing the way some values are look up in the input data. Please see the readme file for details ([here](https://github.com/alonrbar/easy-template-x#nested-conditions)).
 
 ## [2.1.0 - 2021-07-29](https://github.com/alonrbar/easy-template-x/tree/v2.1.0)
 
@@ -56,7 +62,7 @@ interface of `TemplateHandler`) will introduce a new major release.
 ### Fixed
 
 - Initial content types parsing.
-- Bug in paragraph loops (#36).
+- Bug in paragraph loops ([#36](https://github.com/alonrbar/easy-template-x/issues/36))).
 
 ## [0.12.0 - 2020-08-01](https://github.com/alonrbar/easy-template-x/tree/v0.12.0)
 
@@ -110,7 +116,7 @@ interface of `TemplateHandler`) will introduce a new major release.
 
 ### Added
 
-- Extensions API (#24).
+- Extensions API ([#24](https://github.com/alonrbar/easy-template-x/issues/24))).
 
 ## [0.8.3 - 2019-12-27](https://github.com/alonrbar/easy-template-x/tree/v0.8.3)
 
@@ -122,7 +128,7 @@ interface of `TemplateHandler`) will introduce a new major release.
 
 ### Changed
 
-- `ScopeData.getScopeData` is now generic (#17).
+- `ScopeData.getScopeData` is now generic ([#17](https://github.com/alonrbar/easy-template-x/issues/17))).
 - The `data` argument of `TemplateHandler.process` is now strongly typed.
 - Bundle with Rollup instead of Webpack.
 - Auto generate typings.
