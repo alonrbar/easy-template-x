@@ -20,7 +20,7 @@ jobs:
           path: node_modules
           key: node_modules-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
 
-      - run: yarn install --ignore-platform --frozen-lockfile --no-cache
+      - run: yarn install --immutable
         if: steps.node-modules-cache.outputs.cache-hit != 'true'
 
       - run: yarn typecheck
