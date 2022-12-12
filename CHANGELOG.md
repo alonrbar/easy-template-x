@@ -1,5 +1,11 @@
 # Change Log
 
+## [3.0.3 - 2022-12-12](https://github.com/alonrbar/easy-template-x/tree/v3.0.3)
+
+### Changed
+
+- Update dependencies (jszip, xmldom).
+
 ## [3.0.2 - 2022-08-20](https://github.com/alonrbar/easy-template-x/tree/v3.0.2)
 
 ### Added
