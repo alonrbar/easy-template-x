@@ -1,4 +1,4 @@
-import * as xmldom from 'xmldom';
+import { DOMParser } from '@xmldom/xmldom';
 import { MissingArgumentError } from '../errors';
 import { XmlNode } from './xmlNode';
 
@@ -10,7 +10,7 @@ export class XmlParser {
      * handles xml namespaces more forgivingly (required mainly by the
      * RawXmlPlugin).
      */
-    private static readonly parser = new xmldom.DOMParser();
+    private static readonly parser = new DOMParser();
 
     public parse(str: string): XmlNode {
         const doc = this.domParse(str);
@@ -26,5 +26,5 @@ export class XmlParser {
 
     public serialize(xmlNode: XmlNode): string {
         return XmlParser.xmlHeader + XmlNode.serialize(xmlNode);
-    }    
+    }
 }

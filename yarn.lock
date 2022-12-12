@@ -1372,13 +1372,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/xmldom@npm:0.1.31":
-  version: 0.1.31
-  resolution: "@types/xmldom@npm:0.1.31"
-  checksum: 127a6e3c5b92663af29ff9ee66152286f0c381e35b0265161cc2583a7829b4d15c7e46f724337b8d2b89b06685baf0176c3d724cdb08881166a587f83ebd63e8
-  languageName: node
-  linkType: hard
-
 "@types/yargs-parser@npm:*":
   version: 13.1.0
   resolution: "@types/yargs-parser@npm:13.1.0"
@@ -1509,6 +1502,13 @@ __metadata:
     "@typescript-eslint/types": 5.30.4
     eslint-visitor-keys: ^3.3.0
   checksum: ec39680a89b058e8350adc084c2a957e83161e87ac9732c9fef8fd3045ce5004e059b2ddb0c366192806e3998bf3263c8bbb2cc74a4f2ad3313154ed35dd479a
+  languageName: node
+  linkType: hard
+
+"@xmldom/xmldom@npm:0.8.6":
+  version: 0.8.6
+  resolution: "@xmldom/xmldom@npm:0.8.6"
+  checksum: f17ac6d99a971a6aeb831fcfc5cfa86f367664e45815046548814b2deb17ccc421fef4e0d5ba29e66179d112b552f6caa5680064f8e7bd8a389b788a60404c8e
   languageName: node
   linkType: hard
 
@@ -2257,9 +2257,9 @@ __metadata:
     "@types/jszip": 3.4.1
     "@types/node": 18.0.1
     "@types/ts-nameof": 4.2.1
-    "@types/xmldom": 0.1.31
     "@typescript-eslint/eslint-plugin": 5.30.4
     "@typescript-eslint/parser": 5.30.4
+    "@xmldom/xmldom": 0.8.6
     babel-jest: 28.1.2
     babel-loader: 8.2.5
     babel-plugin-ts-nameof: 4.2.1
@@ -2275,7 +2275,6 @@ __metadata:
     rollup-plugin-babel: 4.4.0
     rollup-plugin-node-resolve: 5.2.0
     typescript: 4.7.4
-    xmldom: 0.6.0
   languageName: unknown
   linkType: soft
 
@@ -5483,13 +5482,6 @@ __metadata:
   version: 1.0.1
   resolution: "xml@npm:1.0.1"
   checksum: 11b5545ef3f8fec3fa29ce251f50ad7b6c97c103ed4d851306ec23366f5fa4699dd6a942262df52313a0cd1840ab26256da253c023bad3309d8ce46fe6020ca0
-  languageName: node
-  linkType: hard
-
-"xmldom@npm:0.6.0":
-  version: 0.6.0
-  resolution: "xmldom@npm:0.6.0"
-  checksum: 710f64f5b2ba8ac1cbcf62c2e35b095a2f9ccbd596062efe037a5ca85d3ee077b691c4d74952ff476e4bab0dd82727604262899f25dddbb02f89ddeea4cca7f9
   languageName: node
   linkType: hard
 
