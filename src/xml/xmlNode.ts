@@ -88,7 +88,7 @@ export const XmlNode = {
             const attributeNames = Object.keys(node.attributes);
             if (attributeNames.length) {
                 attributes = ' ' + attributeNames
-                    .map(name => `${name}="${node.attributes[name]}"`)
+                    .map(name => `${name}="${this.encodeValue(node.attributes[name] || '')}"`)
                     .join(' ');
             }
         }

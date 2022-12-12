@@ -23,6 +23,14 @@ describe(nameof(XmlNode), () => {
             expect(str).toEqual('');
         });
 
+        it('serializes an attribute with quotes', () => {
+            const node = XmlNode.createGeneralNode('node');
+            node.attributes = {
+                att: 'Some "quoted" value.'
+            };
+            const str = XmlNode.serialize(node);
+            expect(str).toEqual('<node att="Some &quot;quoted&quot; value."/>');
+        });
     });
 
     describe(nameof(XmlNode.fromDomNode), () => {
@@ -86,7 +94,7 @@ describe(nameof(XmlNode), () => {
             const child2 = root.childNodes[1];
             const child3 = root.childNodes[2];
             const grandchild1 = root.childNodes[2].childNodes[0];
-            
+
             // child #1
             expect(child1.nodeName).toEqual('child');
             expect(child1.nodeType).toEqual(XmlNodeType.General);
