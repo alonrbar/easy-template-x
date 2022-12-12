@@ -2266,7 +2266,7 @@ __metadata:
     eslint: 8.19.0
     jest: 28.1.2
     jest-junit: 14.0.0
-    jszip: 3.10.0
+    jszip: 3.10.1
     lodash.get: 4.4.2
     lorem-ipsum: 2.0.8
     rimraf: 3.0.2
@@ -3788,15 +3788,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jszip@npm:3.10.0":
-  version: 3.10.0
-  resolution: "jszip@npm:3.10.0"
+"jszip@npm:3.10.1":
+  version: 3.10.1
+  resolution: "jszip@npm:3.10.1"
   dependencies:
     lie: ~3.3.0
     pako: ~1.0.2
     readable-stream: ~2.3.6
     setimmediate: ^1.0.5
-  checksum: 80cc8e0e466467e9e21447f604f9262509b29a9c65170a3fee415ac0a403beb370840973cdc17f75d2b92ab3e60685f94d267706510d46bed2dd14858a38e459
+  checksum: abc77bfbe33e691d4d1ac9c74c8851b5761fba6a6986630864f98d876f3fcc2d36817dfc183779f32c00157b5d53a016796677298272a714ae096dfe6b1c8b60
   languageName: node
   linkType: hard
 
