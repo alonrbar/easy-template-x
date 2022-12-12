@@ -16,7 +16,7 @@
 
 ### Added
 
-- Add documentation for the `parseTags` method ([here](https://github.com/alonrbar/easy-template-x#listing-tags)).
+- Add documentation for the `parseTags` method ([here](https://github.com/alonrbar/easy-template-x#listing-tags)) ([#65](https://github.com/alonrbar/easy-template-x/issues/65)).
 
 ## [3.0.1 - 2022-08-20](https://github.com/alonrbar/easy-template-x/tree/v3.0.1)
 
@@ -62,7 +62,7 @@ interface of `TemplateHandler`) will introduce a new major release.
 ### Fixed
 
 - Initial content types parsing.
-- Bug in paragraph loops ([#36](https://github.com/alonrbar/easy-template-x/issues/36))).
+- Bug in paragraph loops ([#36](https://github.com/alonrbar/easy-template-x/issues/36)).
 
 ## [0.12.0 - 2020-08-01](https://github.com/alonrbar/easy-template-x/tree/v0.12.0)
 
@@ -116,7 +116,7 @@ interface of `TemplateHandler`) will introduce a new major release.
 
 ### Added
 
-- Extensions API ([#24](https://github.com/alonrbar/easy-template-x/issues/24))).
+- Extensions API ([#24](https://github.com/alonrbar/easy-template-x/issues/24)).
 
 ## [0.8.3 - 2019-12-27](https://github.com/alonrbar/easy-template-x/tree/v0.8.3)
 
@@ -128,7 +128,7 @@ interface of `TemplateHandler`) will introduce a new major release.
 
 ### Changed
 
-- `ScopeData.getScopeData` is now generic ([#17](https://github.com/alonrbar/easy-template-x/issues/17))).
+- `ScopeData.getScopeData` is now generic ([#17](https://github.com/alonrbar/easy-template-x/issues/17)).
 - The `data` argument of `TemplateHandler.process` is now strongly typed.
 - Bundle with Rollup instead of Webpack.
 - Auto generate typings.
