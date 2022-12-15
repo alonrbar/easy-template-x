@@ -98,33 +98,35 @@ export class DelimiterSearcher {
                     match.firstMatchIndex = textIndex;
                 }
 
-                // full delimiter match
-                if (match.delimiterIndex === delimiterPattern.length - 1) {
-
-                    // move all delimiters characters to the same text node
-                    if (match.openNodes.length > 1) {
-
-                        const firstNode = first(match.openNodes);
-                        const lastNode = last(match.openNodes);
-                        this.docxParser.joinTextNodesRange(firstNode, lastNode);
-
-                        textIndex += (firstNode.textContent.length - node.textContent.length);
-                        node = firstNode;
-                    }
-
-                    // store delimiter
-                    const delimiterMark = this.createDelimiterMark(match, lookForOpenDelimiter);
-                    delimiters.push(delimiterMark);
-
-                    // update state
-                    lookForOpenDelimiter = !lookForOpenDelimiter;
-                    match.reset();
-                    if (textIndex < node.textContent.length - 1) {
-                        match.openNodes.push(node);
-                    }
-
-                } else {
+                // partial match
+                if (match.delimiterIndex !== delimiterPattern.length - 1) {
                     match.delimiterIndex++;
+                    textIndex++;
+                    continue;
+                }
+
+                // full delimiter match
+
+                // move all delimiters characters to the same text node
+                if (match.openNodes.length > 1) {
+
+                    const firstNode = first(match.openNodes);
+                    const lastNode = last(match.openNodes);
+                    this.docxParser.joinTextNodesRange(firstNode, lastNode);
+
+                    textIndex += (firstNode.textContent.length - node.textContent.length);
+                    node = firstNode;
+                }
+
+                // store delimiter
+                const delimiterMark = this.createDelimiterMark(match, lookForOpenDelimiter);
+                delimiters.push(delimiterMark);
+
+                // update state
+                lookForOpenDelimiter = !lookForOpenDelimiter;
+                match.reset();
+                if (textIndex < node.textContent.length - 1) {
+                    match.openNodes.push(node);
                 }
 
                 textIndex++;
