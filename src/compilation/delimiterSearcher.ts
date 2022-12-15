@@ -69,26 +69,7 @@ export class DelimiterSearcher {
 
                 // no match
                 if (char !== delimiterPattern[match.delimiterIndex]) {
-
-                    //
-                    // go back to first open node
-                    //
-                    // Required for cases where the text has repeating
-                    // characters that are the same as a delimiter prefix.
-                    // For instance:
-                    // Delimiter is '{!' and template text contains the string '{{!'
-                    //
-                    if (match.firstMatchIndex !== -1) {
-                        node = first(match.openNodes);
-                        textIndex = match.firstMatchIndex;
-                    }
-
-                    // update state
-                    match.reset();
-                    if (textIndex < node.textContent.length - 1) {
-                        match.openNodes.push(node);
-                    }
-
+                    [node, textIndex] = this.noMatch(node, textIndex, match);
                     textIndex++;
                     continue;
                 }
@@ -106,29 +87,7 @@ export class DelimiterSearcher {
                 }
 
                 // full delimiter match
-
-                // move all delimiters characters to the same text node
-                if (match.openNodes.length > 1) {
-
-                    const firstNode = first(match.openNodes);
-                    const lastNode = last(match.openNodes);
-                    this.docxParser.joinTextNodesRange(firstNode, lastNode);
-
-                    textIndex += (firstNode.textContent.length - node.textContent.length);
-                    node = firstNode;
-                }
-
-                // store delimiter
-                const delimiterMark = this.createDelimiterMark(match, lookForOpenDelimiter);
-                delimiters.push(delimiterMark);
-
-                // update state
-                lookForOpenDelimiter = !lookForOpenDelimiter;
-                match.reset();
-                if (textIndex < node.textContent.length - 1) {
-                    match.openNodes.push(node);
-                }
-
+                [node, textIndex, lookForOpenDelimiter] = this.fullMatch(node, textIndex, lookForOpenDelimiter, match, delimiters);
                 textIndex++;
             }
 
@@ -136,6 +95,56 @@ export class DelimiterSearcher {
         }
 
         return delimiters;
+    }
+
+    private noMatch(node: XmlTextNode, textIndex: number, match: MatchState): [XmlTextNode, number] {
+        //
+        // go back to first open node
+        //
+        // Required for cases where the text has repeating
+        // characters that are the same as a delimiter prefix.
+        // For instance:
+        // Delimiter is '{!' and template text contains the string '{{!'
+        //
+        if (match.firstMatchIndex !== -1) {
+            node = first(match.openNodes);
+            textIndex = match.firstMatchIndex;
+        }
+
+        // update state
+        match.reset();
+        if (textIndex < node.textContent.length - 1) {
+            match.openNodes.push(node);
+        }
+
+        return [node, textIndex];
+    }
+
+    private fullMatch(node: XmlTextNode, textIndex: number, lookForOpenDelimiter: boolean, match: MatchState, delimiters: DelimiterMark[]): [XmlTextNode, number, boolean] {
+
+        // move all delimiters characters to the same text node
+        if (match.openNodes.length > 1) {
+
+            const firstNode = first(match.openNodes);
+            const lastNode = last(match.openNodes);
+            this.docxParser.joinTextNodesRange(firstNode, lastNode);
+
+            textIndex += (firstNode.textContent.length - node.textContent.length);
+            node = firstNode;
+        }
+
+        // store delimiter
+        const delimiterMark = this.createDelimiterMark(match, lookForOpenDelimiter);
+        delimiters.push(delimiterMark);
+
+        // update state
+        lookForOpenDelimiter = !lookForOpenDelimiter;
+        match.reset();
+        if (textIndex < node.textContent.length - 1) {
+            match.openNodes.push(node);
+        }
+
+        return [node, textIndex, lookForOpenDelimiter];
     }
 
     private shouldSearchNode(node: XmlNode): node is XmlTextNode {
