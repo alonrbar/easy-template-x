@@ -31,7 +31,7 @@ export class DelimiterSearcher {
     public findDelimiters(node: XmlNode): DelimiterMark[] {
 
         //
-        // Performance note: 
+        // Performance note:
         //
         // The search efficiency is o(m*n) where n is the text size and m is the
         // delimiter length. We could use a variation of the KMP algorithm here
@@ -65,55 +65,17 @@ export class DelimiterSearcher {
             while (textIndex < node.textContent.length) {
 
                 const delimiterPattern = lookForOpenDelimiter ? this.startDelimiter : this.endDelimiter;
-
-                // char match
                 const char = node.textContent[textIndex];
-                if (char === delimiterPattern[match.delimiterIndex]) {
-
-                    // first match
-                    if (match.firstMatchIndex === -1) {
-                        match.firstMatchIndex = textIndex;
-                    }
-
-                    // full delimiter match
-                    if (match.delimiterIndex === delimiterPattern.length - 1) {
-
-                        // move all delimiters characters to the same text node
-                        if (match.openNodes.length > 1) {
-                            
-                            const firstNode = first(match.openNodes);
-                            const lastNode = last(match.openNodes);
-                            this.docxParser.joinTextNodesRange(firstNode, lastNode);
-                            
-                            textIndex += (firstNode.textContent.length - node.textContent.length);
-                            node = firstNode;
-                        }
-
-                        // store delimiter
-                        const delimiterMark = this.createDelimiterMark(match, lookForOpenDelimiter);
-                        delimiters.push(delimiterMark);
-
-                        // update state
-                        lookForOpenDelimiter = !lookForOpenDelimiter;
-                        match.reset();
-                        if (textIndex < node.textContent.length - 1) {
-                            match.openNodes.push(node);
-                        }
-
-                    } else {
-                        match.delimiterIndex++;
-                    }
-                }
 
                 // no match
-                else {
+                if (char !== delimiterPattern[match.delimiterIndex]) {
 
                     //
                     // go back to first open node
                     //
                     // Required for cases where the text has repeating
-                    // characters that are the same as a delimiter prefix.  
-                    // For instance:  
+                    // characters that are the same as a delimiter prefix.
+                    // For instance:
                     // Delimiter is '{!' and template text contains the string '{{!'
                     //
                     if (match.firstMatchIndex !== -1) {
@@ -126,6 +88,43 @@ export class DelimiterSearcher {
                     if (textIndex < node.textContent.length - 1) {
                         match.openNodes.push(node);
                     }
+
+                    textIndex++;
+                    continue;
+                }
+
+                // first match
+                if (match.firstMatchIndex === -1) {
+                    match.firstMatchIndex = textIndex;
+                }
+
+                // full delimiter match
+                if (match.delimiterIndex === delimiterPattern.length - 1) {
+
+                    // move all delimiters characters to the same text node
+                    if (match.openNodes.length > 1) {
+
+                        const firstNode = first(match.openNodes);
+                        const lastNode = last(match.openNodes);
+                        this.docxParser.joinTextNodesRange(firstNode, lastNode);
+
+                        textIndex += (firstNode.textContent.length - node.textContent.length);
+                        node = firstNode;
+                    }
+
+                    // store delimiter
+                    const delimiterMark = this.createDelimiterMark(match, lookForOpenDelimiter);
+                    delimiters.push(delimiterMark);
+
+                    // update state
+                    lookForOpenDelimiter = !lookForOpenDelimiter;
+                    match.reset();
+                    if (textIndex < node.textContent.length - 1) {
+                        match.openNodes.push(node);
+                    }
+
+                } else {
+                    match.delimiterIndex++;
                 }
 
                 textIndex++;
