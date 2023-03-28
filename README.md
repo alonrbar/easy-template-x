@@ -268,6 +268,7 @@ Input data:
     "Kung Fu Hero": {
         _type: "image",
         source: fs.readFileSync("hero.png"),
+        descr: "Kung Fu Hero" // This is the Image's Alt Text - If it equals "", the image will be decorative (no Alt Text)
         format: MimeType.Png,
         width: 200,
         height: 200
