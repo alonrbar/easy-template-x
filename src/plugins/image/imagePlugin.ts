@@ -38,13 +38,13 @@ export class ImagePlugin extends TemplatePlugin {
 
         // create the xml markup
         const imageId = nextImageId++;
-        const imageXml = this.createMarkup(imageId, content.descr, relId, content.width, content.height);
+        const imageXml = this.createMarkup(imageId, content.altText, relId, content.width, content.height);
 
         XmlNode.insertAfter(imageXml, wordTextNode);
         XmlNode.remove(wordTextNode);
     }
 
-    private createMarkup(imageId: number, descr: string, relId: string, width: number, height: number): XmlNode {
+    private createMarkup(imageId: number, altText: string, relId: string, width: number, height: number): XmlNode {
 
         // http://officeopenxml.com/drwPicInline.php
 
@@ -59,8 +59,8 @@ export class ImagePlugin extends TemplatePlugin {
         //
 
         const name = `Picture ${imageId}`;
-        const decorative = descr==='' ? 1 : 0;
-        const descrTag = decorative===0 ? `descr="${descr}"` : '';
+        const decorative = !altText ? 1 : 0;
+        const descrTag = (!altText? '' : `descr="${altText}"`);
         const markupText = `
             <w:drawing>
                 <wp:inline distT="0" distB="0" distL="0" distR="0">

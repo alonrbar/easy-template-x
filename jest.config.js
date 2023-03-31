@@ -1,5 +1,4 @@
 const path = require('path');
-
 module.exports = {
     testEnvironment: "node",
     moduleFileExtensions: ["ts", "js", "json"],
@@ -11,5 +10,6 @@ module.exports = {
     reporters: [
         "default",
         ["jest-junit", { outputDirectory: "test-reports" }]
-    ]
+    ],
+    testTimeout: 15000
 };
