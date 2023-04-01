@@ -1,5 +1,15 @@
 # Change Log
 
+## [3.1.0 - 2023-04-01](https://github.com/alonrbar/easy-template-x/tree/v3.1.0)
+
+### Added
+
+- Image alt text support ([#86](https://github.com/alonrbar/easy-template-x/pull/86)).
+
+### Changed
+
+- Update dependencies (xmldom).
+
 ## [3.0.4 - 2022-12-12](https://github.com/alonrbar/easy-template-x/tree/v3.0.4)
 
 ### Fixed
