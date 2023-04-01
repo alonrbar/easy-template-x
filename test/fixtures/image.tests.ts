@@ -30,7 +30,34 @@ describe('image fixtures', () => {
         const docXml = await handler.getXml(doc);
         expect(docXml).toMatchSnapshot();
 
-        // writeTempFile(doc, 'image - simple - output.docx');
+        // writeTempFile('image - simple - output.docx', doc);
+    });
+
+    it("replaces a single image tag with alt text", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template = readFixture("simple.docx");
+        const imageFile = readResource("panda1.jpg");
+
+        const imageData = {
+            _type: 'image',
+            format: MimeType.Jpeg,
+            altText: "There is no spoon.",
+            source: imageFile,
+            height: 325,
+            width: 600
+        };
+        const data = {
+            simple_prop: imageData
+        };
+
+        const doc = await handler.process(template, data);
+
+        const docXml = await handler.getXml(doc);
+        expect(docXml).toMatchSnapshot();
+
+        // writeTempFile('image - alt text - output.docx', doc);
     });
 
     it("adds two different images", async () => {

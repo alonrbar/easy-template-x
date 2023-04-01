@@ -1,4 +1,5 @@
 const path = require('path');
+
 module.exports = {
     testEnvironment: "node",
     moduleFileExtensions: ["ts", "js", "json"],
