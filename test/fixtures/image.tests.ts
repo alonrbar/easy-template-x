@@ -17,6 +17,7 @@ describe('image fixtures', () => {
         const imageData = {
             _type: 'image',
             format: MimeType.Jpeg,
+            altText: 'altText',
             source: imageFile,
             height: 325,
             width: 600
@@ -53,6 +54,7 @@ describe('image fixtures', () => {
         const imageData1: ImageContent = {
             _type: 'image',
             format: MimeType.Jpeg,
+            altText: 'altText',
             source: imageFile1,
             height: 325,
             width: 600
@@ -60,6 +62,7 @@ describe('image fixtures', () => {
         const imageData2: ImageContent = {
             _type: 'image',
             format: MimeType.Png,
+            altText: 'altText',
             source: imageFile2,
             height: 300,
             width: 300
@@ -89,6 +92,7 @@ describe('image fixtures', () => {
         const imageData: ImageContent = {
             _type: 'image',
             format: MimeType.Jpeg,
+            altText: 'altText',
             source: imageFile,
             height: 325,
             width: 600
@@ -122,6 +126,7 @@ describe('image fixtures', () => {
         const imageData: ImageContent = {
             _type: 'image',
             format: MimeType.Jpeg,
+            altText: 'altText',
             source: imageFile,
             height: 325,
             width: 600
@@ -156,6 +161,7 @@ describe('image fixtures', () => {
         const imageData: ImageContent = {
             _type: 'image',
             format: MimeType.Jpeg,
+            altText: 'altText',
             source: imageFile,
             height: 50,
             width: 100

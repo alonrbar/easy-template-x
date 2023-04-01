@@ -76,6 +76,7 @@ describe('header and footer fixtures', () => {
             "my header": {
                 _type: 'image',
                 format: MimeType.Jpeg,
+                altText: 'altText',
                 source: headerImageFile,
                 height: 100,
                 width: 200
@@ -84,6 +85,7 @@ describe('header and footer fixtures', () => {
             "my footer": {
                 _type: 'image',
                 format: MimeType.Png,
+                altText: 'altText',
                 source: footerImageFile,
                 height: 100,
                 width: 100

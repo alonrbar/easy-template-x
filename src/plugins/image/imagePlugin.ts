@@ -38,13 +38,13 @@ export class ImagePlugin extends TemplatePlugin {
 
         // create the xml markup
         const imageId = nextImageId++;
-        const imageXml = this.createMarkup(imageId, relId, content.width, content.height);
+        const imageXml = this.createMarkup(imageId, content.altText, relId, content.width, content.height);
 
         XmlNode.insertAfter(imageXml, wordTextNode);
         XmlNode.remove(wordTextNode);
     }
 
-    private createMarkup(imageId: number, relId: string, width: number, height: number): XmlNode {
+    private createMarkup(imageId: number, altText: string, relId: string, width: number, height: number): XmlNode {
 
         // http://officeopenxml.com/drwPicInline.php
 
@@ -59,18 +59,26 @@ export class ImagePlugin extends TemplatePlugin {
         //
 
         const name = `Picture ${imageId}`;
+        const decorative = !altText ? 1 : 0;
+        const descrTag = (!altText? '' : `descr="${altText}"`);
         const markupText = `
             <w:drawing>
                 <wp:inline distT="0" distB="0" distL="0" distR="0">
                     <wp:extent cx="${this.pixelsToEmu(width)}" cy="${this.pixelsToEmu(height)}"/>
                     <wp:effectExtent l="0" t="0" r="0" b="0"/>
-                    <wp:docPr id="${imageId}" name="${name}"/>
+                    <wp:docPr id="${imageId}" name="${name}" ${descrTag}>
+                      <a:extLst xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                        <a:ext uri="{C183D7F6-B498-43B3-948B-1728B52AA6E4}">
+                            <adec:decorative xmlns:adec="http://schemas.microsoft.com/office/drawing/2017/decorative" val="${decorative}"/>
+                        </a:ext>
+                      </a:extLst>
+                    </wp:docPr>
                     <wp:cNvGraphicFramePr>
                         <a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/>
                     </wp:cNvGraphicFramePr>
                     <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
                         <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
-                            ${this.pictureMarkup(name, relId, width, height)}
+                            ${this.pictureMarkup(imageId, name, descrTag, relId, width, height, decorative)}
                         </a:graphicData>
                     </a:graphic>
                 </wp:inline>
@@ -83,7 +91,7 @@ export class ImagePlugin extends TemplatePlugin {
         return markupXml;
     }
 
-    private pictureMarkup(name: string, relId: string, width: number, height: number) {
+    private pictureMarkup(imageId: number, name: string, descrTag: string, relId: string, width: number, height: number, decorative: number) {
 
         // http://officeopenxml.com/drwPic.php
 
@@ -95,7 +103,13 @@ export class ImagePlugin extends TemplatePlugin {
         return `
             <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
                 <pic:nvPicPr>
-                    <pic:cNvPr id="0" name="${name}"/>
+                    <pic:cNvPr id="${imageId}" name="${name}" ${descrTag}>
+                        <a:extLst>
+                        <a:ext uri="{C183D7F6-B498-43B3-948B-1728B52AA6E4}">
+                            <adec:decorative xmlns:adec="http://schemas.microsoft.com/office/drawing/2017/decorative" val="${decorative}"/>
+                        </a:ext>
+                        </a:extLst>
+                    </pic:cNvPr>
                     <pic:cNvPicPr>
                         <a:picLocks noChangeAspect="1" noChangeArrowheads="1"/>
                     </pic:cNvPicPr>

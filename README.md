@@ -268,7 +268,7 @@ Input data:
     "Kung Fu Hero": {
         _type: "image",
         source: fs.readFileSync("hero.png"),
-        format: MimeType.Png,
+        altText: "Kung Fu Hero", // Optional
         width: 200,
         height: 200
     }
