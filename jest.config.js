@@ -10,6 +10,5 @@ module.exports = {
     reporters: [
         "default",
         ["jest-junit", { outputDirectory: "test-reports" }]
-    ],
-    testTimeout: 15000
+    ]
 };

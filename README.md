@@ -268,6 +268,7 @@ Input data:
     "Kung Fu Hero": {
         _type: "image",
         source: fs.readFileSync("hero.png"),
+        format: MimeType.Png,
         altText: "Kung Fu Hero", // Optional
         width: 200,
         height: 200
@@ -294,7 +295,7 @@ Input data:
 {
     "easy": {
         _type: 'link',
-        text: 'super easy',  // optional - if not specified the `target` property will be used
+        text: 'super easy',  // Optional - if not specified the `target` property will be used
         target: 'https://github.com/alonrbar/easy-template-x'
     }
 }
@@ -323,7 +324,7 @@ Input data:
     "Dont worry be happy": {
         _type: 'rawXml',
         xml: '<w:sym w:font="Wingdings" w:char="F04A"/>',
-        replaceParagraph: false,  // optional - should the plugin replace an entire paragraph or just the tag itself
+        replaceParagraph: false,  // Optional - should the plugin replace an entire paragraph or just the tag itself
     }
 }
 ```

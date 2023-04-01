@@ -59,17 +59,15 @@ export class ImagePlugin extends TemplatePlugin {
         //
 
         const name = `Picture ${imageId}`;
-        const decorative = !altText ? 1 : 0;
-        const descrTag = (!altText? '' : `descr="${altText}"`);
         const markupText = `
             <w:drawing>
                 <wp:inline distT="0" distB="0" distL="0" distR="0">
                     <wp:extent cx="${this.pixelsToEmu(width)}" cy="${this.pixelsToEmu(height)}"/>
                     <wp:effectExtent l="0" t="0" r="0" b="0"/>
-                    <wp:docPr id="${imageId}" name="${name}" ${descrTag}>
+                    <wp:docPr id="${imageId}" name="${name}"${this.descrAttribute(altText)}>
                       <a:extLst xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
                         <a:ext uri="{C183D7F6-B498-43B3-948B-1728B52AA6E4}">
-                            <adec:decorative xmlns:adec="http://schemas.microsoft.com/office/drawing/2017/decorative" val="${decorative}"/>
+                            <adec:decorative xmlns:adec="http://schemas.microsoft.com/office/drawing/2017/decorative" val="${this.decorative(altText)}"/>
                         </a:ext>
                       </a:extLst>
                     </wp:docPr>
@@ -78,7 +76,7 @@ export class ImagePlugin extends TemplatePlugin {
                     </wp:cNvGraphicFramePr>
                     <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
                         <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
-                            ${this.pictureMarkup(imageId, name, descrTag, relId, width, height, decorative)}
+                            ${this.pictureMarkup(imageId, name, altText, relId, width, height)}
                         </a:graphicData>
                     </a:graphic>
                 </wp:inline>
@@ -91,7 +89,7 @@ export class ImagePlugin extends TemplatePlugin {
         return markupXml;
     }
 
-    private pictureMarkup(imageId: number, name: string, descrTag: string, relId: string, width: number, height: number, decorative: number) {
+    private pictureMarkup(imageId: number, name: string, altText: string, relId: string, width: number, height: number) {
 
         // http://officeopenxml.com/drwPic.php
 
@@ -103,10 +101,10 @@ export class ImagePlugin extends TemplatePlugin {
         return `
             <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
                 <pic:nvPicPr>
-                    <pic:cNvPr id="${imageId}" name="${name}" ${descrTag}>
+                    <pic:cNvPr id="${imageId}" name="${name}"${this.descrAttribute(altText)}>
                         <a:extLst>
                         <a:ext uri="{C183D7F6-B498-43B3-948B-1728B52AA6E4}">
-                            <adec:decorative xmlns:adec="http://schemas.microsoft.com/office/drawing/2017/decorative" val="${decorative}"/>
+                            <adec:decorative xmlns:adec="http://schemas.microsoft.com/office/drawing/2017/decorative" val="${this.decorative(altText)}"/>
                         </a:ext>
                         </a:extLst>
                     </pic:cNvPr>
@@ -152,5 +150,15 @@ export class ImagePlugin extends TemplatePlugin {
         // http://www.java2s.com/Code/CSharp/2D-Graphics/ConvertpixelstoEMUEMUtopixels.htm
 
         return Math.round(pixels * 9525);
+    }
+
+    private descrAttribute(altText: string): string {
+        if (!altText)
+            return "";
+        return ` descr="${altText}"`;
+    }
+
+    private decorative(altText: string): number {
+        return !altText ? 1 : 0;
     }
 }
