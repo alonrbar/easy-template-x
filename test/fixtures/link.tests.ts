@@ -11,7 +11,8 @@ describe('link fixture', () => {
             link: {
                 _type: 'link',
                 text: "It's easy...",
-                target: 'https://github.com/alonrbar/easy-template-x'
+                target: 'https://github.com/alonrbar/easy-template-x',
+                tooltip: 'Click to open link'
             }
         };
         
