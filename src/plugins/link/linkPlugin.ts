@@ -43,6 +43,9 @@ export class LinkPlugin extends TemplatePlugin {
         const markupText = `
             <w:hyperlink r:id="${relId}" ${attrs} w:history="1">
                 <w:r>
+                    <w:rPr>
+                        <w:rStyle w:val="Hyperlink"/>
+                    </w:rPr>
                     <w:t>${content.text || content.target}</w:t>
                 </w:r>
             </w:hyperlink>
