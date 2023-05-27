@@ -1,5 +1,11 @@
 # Change Log
 
+## [3.2.0 - 2023-05-27](https://github.com/alonrbar/easy-template-x/tree/v3.2.0)
+
+### Added
+
+- Link tooltip support ([#91](https://github.com/alonrbar/easy-template-x/pull/91)).
+
 ## [3.1.0 - 2023-04-01](https://github.com/alonrbar/easy-template-x/tree/v3.1.0)
 
 ### Added
