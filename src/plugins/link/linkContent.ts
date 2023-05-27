@@ -7,4 +7,5 @@ export interface LinkContent extends PluginContent {
      */
     text?: string;
     target: string;
+    tooltip?: string;
 }

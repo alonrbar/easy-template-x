@@ -35,9 +35,17 @@ export class LinkPlugin extends TemplatePlugin {
 
         // http://officeopenxml.com/WPhyperlink.php
 
+        let attrs = '';
+        if (content.tooltip) {
+            attrs += `w:tooltip="${content.tooltip}"`;
+        }
+
         const markupText = `
-            <w:hyperlink r:id="${relId}" w:history="1">
+            <w:hyperlink r:id="${relId}" ${attrs} w:history="1">
                 <w:r>
+                    <w:rPr>
+                        <w:rStyle w:val="Hyperlink"/>
+                    </w:rPr>
                     <w:t>${content.text || content.target}</w:t>
                 </w:r>
             </w:hyperlink>
