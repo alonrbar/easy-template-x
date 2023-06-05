@@ -35,18 +35,15 @@ export class LoopTableStrategy implements ILoopStrategy {
         };
     }
 
-    public mergeBack(rowGroups: XmlNode[][], firstRow: XmlNode, lastRow: XmlNode): void {
-
+    public mergeBack(rowGroups: XmlNode[][], firstRow: XmlNode, lastRow: XmlNode, nodesToRepeat: XmlNode[]): void {
         for (const curRowsGroup of rowGroups) {
             for (const row of curRowsGroup) {
                 XmlNode.insertBefore(row, lastRow);
             }
         }
 
-        // remove the old rows
-        XmlNode.remove(firstRow);
-        if (firstRow !== lastRow) {
-            XmlNode.remove(lastRow);
+        for (const node of nodesToRepeat) {
+            XmlNode.remove(node);
         }
     }
 }

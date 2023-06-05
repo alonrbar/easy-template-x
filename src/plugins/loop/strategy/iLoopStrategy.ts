@@ -10,7 +10,7 @@ export interface ILoopStrategy {
 
     splitBefore(openTag: Tag, closeTag: Tag): SplitBeforeResult;
 
-    mergeBack(compiledNodes: XmlNode[][], firstNode: XmlNode, lastNode: XmlNode): void;
+    mergeBack(compiledNodes: XmlNode[][], firstNode: XmlNode, lastNode: XmlNode, nodesToRepeat: XmlNode[]): void;
 }
 
 export interface SplitBeforeResult {

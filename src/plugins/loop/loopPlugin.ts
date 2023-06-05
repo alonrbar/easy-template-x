@@ -58,7 +58,7 @@ export class LoopPlugin extends TemplatePlugin {
         const compiledNodes = await this.compile(isCondition, repeatedNodes, data, context);
 
         // merge back to the document
-        loopStrategy.mergeBack(compiledNodes, firstNode, lastNode);
+        loopStrategy.mergeBack(compiledNodes, firstNode, lastNode, nodesToRepeat);
     }
 
     private repeat(nodes: XmlNode[], times: number): XmlNode[][] {
