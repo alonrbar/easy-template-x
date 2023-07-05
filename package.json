@@ -1,5 +1,5 @@
 {
-  "name": "easy-template-x",
+  "name": "@bbitgmbh/easy-template-x",
   "version": "3.2.0",
   "description": "Generate docx documents from templates, in Node or in the browser.",
   "keywords": [
@@ -12,13 +12,13 @@
   ],
   "author": "Alon Bar",
   "license": "MIT",
-  "homepage": "https://github.com/alonrbar/easy-template-x",
+  "homepage": "https://github.com/bbitgmbh/easy-template-x",
   "repository": {
     "type": "git",
-    "url": "https://github.com/alonrbar/easy-template-x.git"
+    "url": "https://github.com/bbitgmbh/easy-template-x.git"
   },
   "bugs": {
-    "url": "https://github.com/alonrbar/easy-template-x/issues"
+    "url": "https://github.com/bbitgmbh/easy-template-x/issues"
   },
   "main": "dist/cjs/easy-template-x.js",
   "module": "dist/es/easy-template-x.js",

@@ -1,4 +1,7 @@
-# easy-template-x
+# easy-template-x Fork
+This is a fork of the awesome [easy-template-x](https://github.com/alonrbar/easy-template-x) project with some additional bugfixes which haven't been integrated yet into the main repository.
+
+# easy-template-x Original
 
 Generate docx documents from templates, in Node or in the browser.
 
