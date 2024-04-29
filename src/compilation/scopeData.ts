@@ -3,7 +3,7 @@ import { TemplateContent, TemplateData } from '../templateData';
 import { isNumber, last } from '../utils';
 import { Tag } from './tag';
 
-export type PathPart = Tag | number;
+export type PathPart = Tag | number | null;
 
 export interface ScopeDataArgs {
     path: PathPart[];
