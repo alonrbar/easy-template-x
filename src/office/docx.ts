@@ -116,7 +116,7 @@ export class Docx {
         const docRoot = await this.mainDocument.xmlRoot();
         const body = docRoot.childNodes[0];
         const sectionProps = last(body.childNodes.filter(node => node.nodeType === XmlNodeType.General));
-        if (sectionProps.nodeName != 'w:sectPr')
+        if (sectionProps?.nodeName != 'w:sectPr')
             return null;
 
         // find the header or footer reference
