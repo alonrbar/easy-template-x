@@ -150,7 +150,7 @@ export const XmlNode = {
                 xmlNode = this.createTextNode(domNode.textContent);
                 break;
             case domNode.COMMENT_NODE:
-                xmlNode = this.createCommentNode(domNode.textContent);
+                xmlNode = this.createCommentNode(domNode.textContent?.trim());
                 break;
             case domNode.ELEMENT_NODE:
                 const generalNode = xmlNode = this.createGeneralNode(domNode.nodeName);

@@ -253,8 +253,8 @@ describe(nameof(XmlNode), () => {
 const xmlParser = new XmlParser();
 
 function createDomNode(xml: string, removeWhiteSpace = false): Node {
-    if (removeWhiteSpace)
-        xml = xml.replace(/\s/g, '');
+    if (removeWhiteSpace) // remove all whitespace outside of tags
+        xml = xml.replace(/>\s+</g, '><').trim();
     const document = xmlParser.domParse(xml);
     return document.documentElement;
 }
