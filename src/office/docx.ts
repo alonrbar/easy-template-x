@@ -114,7 +114,10 @@ export class Docx {
         // find the last section properties
         // see: http://officeopenxml.com/WPsection.php
         const docRoot = await this.mainDocument.xmlRoot();
-        const body = docRoot.childNodes[0];
+        const body = docRoot.childNodes.find(node => node.nodeName == 'w:body');
+        if (body == null)
+            return null;
+
         const sectionProps = last(body.childNodes.filter(node => node.nodeType === XmlNodeType.General));
         if (sectionProps.nodeName != 'w:sectPr')
             return null;
