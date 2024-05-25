@@ -208,8 +208,10 @@ export class DocxParser {
             }
             while (curWordTextNode) {
 
-                if (curWordTextNode.nodeName !== DocxParser.TEXT_NODE)
+                if (curWordTextNode.nodeName !== DocxParser.TEXT_NODE) {
+                    curWordTextNode = curWordTextNode.nextSibling;
                     continue;
+                }
 
                 // move text to first node
                 const curXmlTextNode = XmlNode.lastTextChild(curWordTextNode);
