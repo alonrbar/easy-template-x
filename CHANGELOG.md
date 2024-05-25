@@ -1,5 +1,11 @@
 # Change Log
 
+## [3.2.1 - 2024-05-25](https://github.com/alonrbar/easy-template-x/tree/v3.2.1)
+
+### Fixed
+
+- Properly handle XML comments in template doc ([#113](https://github.com/alonrbar/easy-template-x/pull/113)).
+
 ## [3.2.0 - 2023-05-27](https://github.com/alonrbar/easy-template-x/tree/v3.2.0)
 
 ### Added
