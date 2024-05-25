@@ -4,10 +4,11 @@ import { last } from '../utils';
 
 export enum XmlNodeType {
     Text = "Text",
-    General = "General"
+    General = "General",
+    Comment = "Comment",
 }
 
-export type XmlNode = XmlTextNode | XmlGeneralNode;
+export type XmlNode = XmlTextNode | XmlGeneralNode | XmlCommentNode;
 
 export interface XmlNodeBase {
     nodeType: XmlNodeType;
@@ -18,11 +19,18 @@ export interface XmlNodeBase {
 }
 
 export const TEXT_NODE_NAME = '#text'; // see: https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeName
+export const COMMENT_NODE_NAME = '#comment';
 
 export interface XmlTextNode extends XmlNodeBase {
     nodeType: XmlNodeType.Text;
     nodeName: typeof TEXT_NODE_NAME;
     textContent: string;
+}
+
+export interface XmlCommentNode extends XmlNodeBase {
+    nodeType: XmlNodeType.Comment;
+    nodeName: typeof COMMENT_NODE_NAME;
+    commentContent: string;
 }
 
 export interface XmlGeneralNode extends XmlNodeBase {
@@ -48,6 +56,14 @@ export const XmlNode = {
         return {
             nodeType: XmlNodeType.General,
             nodeName: name
+        };
+    },
+
+    createCommentNode(text?: string): XmlCommentNode {
+        return {
+            nodeType: XmlNodeType.Comment,
+            nodeName: COMMENT_NODE_NAME,
+            commentContent: text
         };
     },
 
@@ -81,6 +97,10 @@ export const XmlNode = {
     serialize(node: XmlNode): string {
         if (this.isTextNode(node))
             return this.encodeValue(node.textContent || '');
+
+        if (this.isCommentNode(node)) {
+            return `<!-- ${this.encodeValue(node.commentContent || '')} -->`;
+        }
 
         // attributes
         let attributes = '';
@@ -125,25 +145,27 @@ export const XmlNode = {
         let xmlNode: XmlNode;
 
         // basic properties
-        if (domNode.nodeType === domNode.TEXT_NODE) {
-
-            xmlNode = this.createTextNode(domNode.textContent);
-
-        } else {
-
-            xmlNode = this.createGeneralNode(domNode.nodeName);
-
-            // attributes
-            if (domNode.nodeType === domNode.ELEMENT_NODE) {
+        switch (domNode.nodeType) {
+            case domNode.TEXT_NODE:
+                xmlNode = this.createTextNode(domNode.textContent);
+                break;
+            case domNode.COMMENT_NODE:
+                xmlNode = this.createCommentNode(domNode.textContent?.trim());
+                break;
+            case domNode.ELEMENT_NODE:
+                const generalNode = xmlNode = this.createGeneralNode(domNode.nodeName);
                 const attributes = (domNode as Element).attributes;
                 if (attributes) {
-                    (xmlNode as XmlGeneralNode).attributes = {};
+                    generalNode.attributes = {};
                     for (let i = 0; i < attributes.length; i++) {
                         const curAttribute = attributes.item(i);
-                        (xmlNode as XmlGeneralNode).attributes[curAttribute.name] = curAttribute.value;
+                        generalNode.attributes[curAttribute.name] = curAttribute.value;
                     }
                 }
-            }
+                break;
+            default:
+                xmlNode = this.createGeneralNode(domNode.nodeName);
+                break;
         }
 
         // children
@@ -177,6 +199,16 @@ export const XmlNode = {
         if (node.nodeType === XmlNodeType.Text || node.nodeName === TEXT_NODE_NAME) {
             if (!(node.nodeType === XmlNodeType.Text && node.nodeName === TEXT_NODE_NAME)) {
                 throw new Error(`Invalid text node. Type: '${node.nodeType}', Name: '${node.nodeName}'.`);
+            }
+            return true;
+        }
+        return false;
+    },
+
+    isCommentNode(node: XmlNode): node is XmlCommentNode {
+        if (node.nodeType === XmlNodeType.Comment || node.nodeName === COMMENT_NODE_NAME) {
+            if (!(node.nodeType === XmlNodeType.Comment && node.nodeName === COMMENT_NODE_NAME)) {
+                throw new Error(`Invalid comment node. Type: '${node.nodeType}', Name: '${node.nodeName}'.`);
             }
             return true;
         }

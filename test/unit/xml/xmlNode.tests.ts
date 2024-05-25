@@ -1,4 +1,4 @@
-import { TEXT_NODE_NAME, XmlNode, XmlNodeType, XmlParser } from 'src/xml';
+import {COMMENT_NODE_NAME, TEXT_NODE_NAME, XmlCommentNode, XmlNode, XmlNodeType, XmlParser, XmlTextNode} from 'src/xml';
 import { parseXml } from '../../testUtils';
 
 describe(nameof(XmlNode), () => {
@@ -30,6 +30,12 @@ describe(nameof(XmlNode), () => {
             };
             const str = XmlNode.serialize(node);
             expect(str).toEqual('<node att="Some &quot;quoted&quot; value."/>');
+        });
+
+        it('serializes a comment node', () => {
+            const node = XmlNode.createCommentNode('comment');
+            const str = XmlNode.serialize(node);
+            expect(str).toEqual('<!-- comment -->');
         });
     });
 
@@ -75,6 +81,7 @@ describe(nameof(XmlNode), () => {
         it('creates a valid xml tree from a mixed tree', () => {
             const domNode = createDomNode(`
                 <root>
+                    <!-- comment -->
                     <child></child>
                     <child></child>
                     <other-child>hi</other-child>
@@ -87,13 +94,22 @@ describe(nameof(XmlNode), () => {
             expect(root.nodeName).toEqual('root');
             expect(root.nodeType).toEqual(XmlNodeType.General);
             expect(root.parentNode).toBeFalsy();
-            expect(root.childNodes.length).toEqual(3);
+            expect(root.childNodes.length).toEqual(4);
             expect(root.nextSibling).toBeFalsy();
 
-            const child1 = root.childNodes[0];
-            const child2 = root.childNodes[1];
-            const child3 = root.childNodes[2];
-            const grandchild1 = root.childNodes[2].childNodes[0];
+            const comment = root.childNodes[0];
+            const child1 = root.childNodes[1];
+            const child2 = root.childNodes[2];
+            const child3 = root.childNodes[3];
+            const grandchild1 = root.childNodes[3].childNodes[0];
+
+            // comment
+            expect(comment.nodeName).toEqual(COMMENT_NODE_NAME);
+            expect(comment.nodeType).toEqual(XmlNodeType.Comment);
+            expect(comment.parentNode).toEqual(root);
+            expect(comment.childNodes).toBeFalsy();
+            expect((comment as XmlCommentNode).commentContent).toEqual('comment');
+            expect(comment.nextSibling).toEqual(child1);
 
             // child #1
             expect(child1.nodeName).toEqual('child');
@@ -120,6 +136,7 @@ describe(nameof(XmlNode), () => {
             expect(grandchild1.nodeName).toEqual(TEXT_NODE_NAME);
             expect(grandchild1.nodeType).toEqual(XmlNodeType.Text);
             expect(grandchild1.parentNode).toEqual(child3);
+            expect((grandchild1 as XmlTextNode).textContent).toEqual('hi');
             expect(grandchild1.childNodes).toBeFalsy();
             expect(grandchild1.nextSibling).toBeFalsy();
         });
@@ -236,8 +253,8 @@ describe(nameof(XmlNode), () => {
 const xmlParser = new XmlParser();
 
 function createDomNode(xml: string, removeWhiteSpace = false): Node {
-    if (removeWhiteSpace)
-        xml = xml.replace(/\s/g, '');
+    if (removeWhiteSpace) // remove all whitespace outside of tags
+        xml = xml.replace(/>\s+</g, '><').trim();
     const document = xmlParser.domParse(xml);
     return document.documentElement;
 }
