@@ -121,7 +121,7 @@ function saveFile(filename, blob) {
 
 ## Live Demo
 
-Checkout this [live demo](https://codesandbox.io/s/easy-template-x-demo-x4ppu?fontsize=14&module=%2Findex.ts) on CodeSandbox 😎
+Checkout this [live demo](https://codesandbox.io/p/sandbox/easy-template-x-demo-x4ppu?file=%2Findex.ts) on CodeSandbox 😎
 
 ## Plugins
 
