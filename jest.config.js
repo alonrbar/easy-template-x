@@ -10,6 +10,12 @@ module.exports = {
     ],
     reporters: [
         "default",
-        ["jest-junit", { outputDirectory: "test-reports" }]
+        ["jest-junit", { outputDirectory: "test-reports" }],
+        ["jest-html-reporters", {
+            publicPath: "./test-reports",
+            filename: "report.html",
+            urlForTestFiles: "https://github.com/alonrbar/easy-template-x/blob/develop",
+            inlineSource: true,
+        }]
     ]
 };

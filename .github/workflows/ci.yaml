@@ -28,7 +28,14 @@ jobs:
       - run: yarn test --ci --runInBand
 
       - name: Test Summary
+        if: always()
         uses: test-summary/action@v1
         with:
           paths: "test-reports/junit.xml"
+
+      - name: Detailed test report
         if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: Test Report
+          path: test-reports/report.html

@@ -64,6 +64,7 @@
     "babel-plugin-ts-nameof": "4.2.1",
     "eslint": "8.19.0",
     "jest": "28.1.2",
+    "jest-html-reporters": "3.1.7",
     "jest-junit": "14.0.0",
     "lorem-ipsum": "2.0.8",
     "rimraf": "3.0.2",
