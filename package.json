@@ -38,6 +38,7 @@
     "build": "yarn build-types && yarn build-src",
     "release": "yarn clean && yarn quality && yarn build"
   },
+  "packageManager": "yarn@4.3.1",
   "dependencies": {
     "@xmldom/xmldom": "0.8.7",
     "jszip": "3.10.1",
