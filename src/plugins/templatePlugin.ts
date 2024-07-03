@@ -8,8 +8,6 @@ export interface PluginUtilities {
     xmlParser: XmlParser;
 }
 
-/* eslint-disable @typescript-eslint/member-ordering */
-
 export abstract class TemplatePlugin {
 
     /**

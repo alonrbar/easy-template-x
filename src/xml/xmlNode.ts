@@ -146,13 +146,15 @@ export const XmlNode = {
 
         // basic properties
         switch (domNode.nodeType) {
-            case domNode.TEXT_NODE:
+            case domNode.TEXT_NODE: {
                 xmlNode = this.createTextNode(domNode.textContent);
                 break;
-            case domNode.COMMENT_NODE:
+            }
+            case domNode.COMMENT_NODE: {
                 xmlNode = this.createCommentNode(domNode.textContent?.trim());
                 break;
-            case domNode.ELEMENT_NODE:
+            }
+            case domNode.ELEMENT_NODE: {
                 const generalNode = xmlNode = this.createGeneralNode(domNode.nodeName);
                 const attributes = (domNode as Element).attributes;
                 if (attributes) {
@@ -163,9 +165,11 @@ export const XmlNode = {
                     }
                 }
                 break;
-            default:
+            }
+            default: {
                 xmlNode = this.createGeneralNode(domNode.nodeName);
                 break;
+            }
         }
 
         // children

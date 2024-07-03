@@ -1,26 +1,15 @@
-{
-    "root": true,
-    "env": {
-        "browser": true,
-        "commonjs": true,
-        "es6": true,
-        "node": true
-    },
-    "extends": [
-        "plugin:@typescript-eslint/recommended"
+// @ts-check
+
+import eslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
+
+export default tseslint.config({
+    files: ['**/*.ts'],
+    extends: [
+        eslint.configs.recommended,
+        ...tseslint.configs.recommended,
     ],
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-        "ecmaFeatures": {
-            "jsx": true,
-            "modules": true
-        },
-        "ecmaVersion": 2018
-    },
-    "plugins": [
-        "@typescript-eslint"
-    ],
-    "rules": {
+    rules: {
         "@typescript-eslint/camelcase": "off",
         "@typescript-eslint/class-name-casing": "off",
         "@typescript-eslint/explicit-function-return-type": "off",
@@ -63,5 +52,5 @@
         "no-var": "error",
         "prefer-const": "error",
         "semi": ["error", "always"]
-    }
-}
+    },
+});
