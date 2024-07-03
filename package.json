@@ -20,6 +20,7 @@
   "bugs": {
     "url": "https://github.com/alonrbar/easy-template-x/issues"
   },
+  "type": "module",
   "main": "dist/cjs/easy-template-x.js",
   "module": "dist/es/easy-template-x.js",
   "typings": "dist/types/index.d.ts",

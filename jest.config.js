@@ -1,6 +1,6 @@
-const path = require('path');
+import path from 'node:path';
 
-module.exports = {
+export default {
     testEnvironment: "node",
     moduleFileExtensions: ["ts", "js", "json"],
     moduleDirectories: [path.resolve("."), "node_modules"],
