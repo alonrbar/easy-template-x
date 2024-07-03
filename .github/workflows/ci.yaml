@@ -8,14 +8,14 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20.14.0
 
       - name: Cache node modules
         id: node-modules-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: node_modules-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
@@ -29,13 +29,13 @@ jobs:
 
       - name: Test Summary
         if: always()
-        uses: test-summary/action@v1
+        uses: test-summary/action@v2
         with:
           paths: "test-reports/junit.xml"
 
       - name: Detailed test report
         if: always()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: Test Report
           path: test-reports/report.html
