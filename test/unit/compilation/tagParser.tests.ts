@@ -336,6 +336,59 @@ describe(TagParser, () => {
         expect(tags[2].name).toEqual('loop');
         expect(tags[2].rawText).toEqual('{/loop}');
     });
+
+    test('tag options', () => {
+
+        const text = '{#loop[opt:"yes"]}{/loop}';
+        const paragraph = parseXml(`
+            <w:p>
+                <w:r>
+                    <w:t>${text}</w:t>
+                </w:r>
+            </w:p>
+        `);
+
+        const textNode = paragraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
+        const delimiters: DelimiterMark[] = [
+            {
+                isOpen: true,
+                index: 0,
+                xmlTextNode: textNode
+            },
+            {
+                isOpen: false,
+                index: 17,
+                xmlTextNode: textNode
+            },
+            {
+                isOpen: true,
+                index: 18,
+                xmlTextNode: textNode
+            },
+            {
+                isOpen: false,
+                index: 24,
+                xmlTextNode: textNode
+            }
+        ];
+
+        const parser = createTagParser();
+        const tags = parser.parse(delimiters);
+
+        expect(tags.length).toEqual(2);
+
+        // open tag
+        expect(tags[0].disposition).toEqual(TagDisposition.Open);
+        expect(tags[0].name).toEqual('loop');
+        expect(tags[0].options).toEqual({ opt: 'yes' });
+        expect(tags[0].rawText).toEqual('{#loop[opt:"yes"]}');
+
+        // close tag
+        expect(tags[1].disposition).toEqual(TagDisposition.Close);
+        expect(tags[1].name).toEqual('loop');
+        expect(tags[1].options).toBeFalsy();
+        expect(tags[1].rawText).toEqual('{/loop}');
+    });
 });
 
 function createTagParser(): TagParser {

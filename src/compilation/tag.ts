@@ -1,3 +1,4 @@
+import { IMap } from '../types';
 import { XmlTextNode } from '../xml';
 
 export enum TagDisposition {
@@ -6,8 +7,9 @@ export enum TagDisposition {
     SelfClosed = "SelfClosed"
 }
 
-export interface Tag {    
+export interface Tag {
     name: string;
+    options: IMap<any>;
     /**
      * The full tag text, for instance: "{#my-tag}".
      */

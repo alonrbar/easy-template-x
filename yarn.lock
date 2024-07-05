@@ -2713,6 +2713,7 @@ __metadata:
     jest: "npm:29.7.0"
     jest-html-reporters: "npm:3.1.7"
     jest-junit: "npm:16.0.0"
+    json5: "npm:2.2.3"
     jszip: "npm:3.10.1"
     lodash.get: "npm:4.4.2"
     lorem-ipsum: "npm:2.0.8"
@@ -4269,7 +4270,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"json5@npm:^2.2.2, json5@npm:^2.2.3":
+"json5@npm:2.2.3, json5@npm:^2.2.2, json5@npm:^2.2.3":
   version: 2.2.3
   resolution: "json5@npm:2.2.3"
   bin:

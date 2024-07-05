@@ -1,3 +1,4 @@
+import * as JSON5 from 'json5';
 import { Delimiters } from '../delimiters';
 import { MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError } from '../errors';
 import { DocxParser } from '../office';
@@ -18,7 +19,8 @@ export class TagParser {
         if (!delimiters)
             throw new MissingArgumentError(nameof(delimiters));
 
-        this.tagRegex = new RegExp(`^${Regex.escape(delimiters.tagStart)}(.*?)${Regex.escape(delimiters.tagEnd)}`, 'm');
+        const tagOptionsRegex = `${Regex.escape(delimiters.tagOptionsStart)}(?<tagOptions>.*?)${Regex.escape(delimiters.tagOptionsEnd)}`;
+        this.tagRegex = new RegExp(`^${Regex.escape(delimiters.tagStart)}(?<tagName>.*?)(${tagOptionsRegex})?${Regex.escape(delimiters.tagEnd)}`, 'm');
     }
 
     public parse(delimiters: DelimiterMark[]): Tag[] {
@@ -136,23 +138,36 @@ export class TagParser {
         tag.rawText = tag.xmlTextNode.textContent;
 
         const tagParts = this.tagRegex.exec(tag.rawText);
-        const tagContent = (tagParts[1] || '').trim();
-        if (!tagContent || !tagContent.length) {
+        const tagName = (tagParts.groups?.["tagName"] || '').trim();
+
+        // Ignoring empty tags.
+        if (!tagName?.length) {
             tag.disposition = TagDisposition.SelfClosed;
             return;
         }
 
-        if (tagContent.startsWith(this.delimiters.containerTagOpen)) {
-            tag.disposition = TagDisposition.Open;
-            tag.name = tagContent.slice(this.delimiters.containerTagOpen.length).trim();
-
-        } else if (tagContent.startsWith(this.delimiters.containerTagClose)) {
-            tag.disposition = TagDisposition.Close;
-            tag.name = tagContent.slice(this.delimiters.containerTagClose.length).trim();
-
-        } else {
-            tag.disposition = TagDisposition.SelfClosed;
-            tag.name = tagContent;
+        // Tag options.
+        const tagOptionsText = (tagParts.groups?.["tagOptions"] || '').trim();
+        if (tagOptionsText) {
+            tag.options = JSON5.parse("{" + tagOptionsText + "}");
         }
+
+        // Container open tag.
+        if (tagName.startsWith(this.delimiters.containerTagOpen)) {
+            tag.disposition = TagDisposition.Open;
+            tag.name = tagName.slice(this.delimiters.containerTagOpen.length).trim();
+            return;
+        }
+
+        // Container close tag.
+        if (tagName.startsWith(this.delimiters.containerTagClose)) {
+            tag.disposition = TagDisposition.Close;
+            tag.name = tagName.slice(this.delimiters.containerTagClose.length).trim();
+            return;
+        }
+
+        // Self-closed tag.
+        tag.disposition = TagDisposition.SelfClosed;
+        tag.name = tagName;
     }
 }

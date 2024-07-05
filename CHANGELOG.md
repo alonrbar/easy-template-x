@@ -5,6 +5,7 @@
 ## Changed
 
 - **BREAKING** - A loop inside a single table cell is assumed to be a paragraph loop, not a table loop (will repeat content, not rows; should fix [#50](https://github.com/alonrbar/easy-template-x/issues/50), [#52](https://github.com/alonrbar/easy-template-x/issues/52), [#56](https://github.com/alonrbar/easy-template-x/issues/56), [#85](https://github.com/alonrbar/easy-template-x/issues/85), [#92](https://github.com/alonrbar/easy-template-x/issues/92) and [#110](https://github.com/alonrbar/easy-template-x/issues/110)).
+- **BREAKING** - Introduce "tag options" syntax: `{tag name [options]}`. E.g. `{Students [loopOver: "row"]}`.
 
 ## [3.2.1 - 2024-05-25](https://github.com/alonrbar/easy-template-x/tree/v3.2.1)
 

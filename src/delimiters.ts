@@ -5,6 +5,8 @@ export class Delimiters {
     public tagEnd = "}";
     public containerTagOpen = "#";
     public containerTagClose = "/";
+    public tagOptionsStart = "[";
+    public tagOptionsEnd = "]";
 
     constructor(initial?: Partial<Delimiters>) {
         Object.assign(this, initial);
