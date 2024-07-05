@@ -6,17 +6,17 @@ import { DocxParser } from 'src/office';
 import { XmlParser, XmlTextNode } from 'src/xml';
 import { parseXml } from '../../testUtils';
 
-describe(nameof(TagParser), () => {
+describe(TagParser, () => {
 
-    it('trims tag names', () => {
-        
+    test('trim tag names', () => {
+
         const paragraph = parseXml(`
             <w:p><w:r><w:t>{# my loop  }{ my tag  }{/  my loop }</w:t></w:r></w:p>
         `, false);
 
         const textNode = paragraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
         expect(textNode.textContent).toEqual('{# my loop  }{ my tag  }{/  my loop }');
-        
+
         const delimiters: DelimiterMark[] = [
             {
                 isOpen: true,
@@ -68,10 +68,10 @@ describe(nameof(TagParser), () => {
         // close tag
         expect(tags[2].disposition).toEqual(TagDisposition.Close);
         expect(tags[2].name).toEqual('my loop');
-        expect(tags[2].rawText).toEqual('{/  my loop }');        
+        expect(tags[2].rawText).toEqual('{/  my loop }');
     });
 
-    it('parses correctly multiple tags on the same text node', () => {
+    test('multiple tags on the same text node', () => {
 
         const paragraph = parseXml(`
             <w:p>
@@ -121,7 +121,7 @@ describe(nameof(TagParser), () => {
         expect(tags[1].rawText).toEqual('{/loop}');
     });
 
-    it('parses correctly multiple tags on the same text node, with leading text', () => {
+    test('multiple tags on the same text node, with leading text', () => {
 
         const paragraph = parseXml(`
             <w:p>
@@ -171,7 +171,7 @@ describe(nameof(TagParser), () => {
         expect(tags[1].rawText).toEqual('{/loop}');
     });
 
-    it('parses correctly a butterfly }{', () => {
+    test('parse a butterfly }{', () => {
 
         const paragraphNode = parseXml(`
             <w:p>
@@ -226,7 +226,7 @@ describe(nameof(TagParser), () => {
         expect(tags[1].rawText).toEqual('{/loop}');
     });
 
-    it('parses correctly a splitted simple tag', () => {
+    test('splitted simple tag', () => {
 
         const paragraphNode = parseXml(`
             <w:p>
@@ -264,10 +264,10 @@ describe(nameof(TagParser), () => {
         expect(tags[0].rawText).toEqual('{#loop}');
     });
 
-    it('parses correctly a splitted closing tag', () => {
+    test('splitted closing tag', () => {
 
         const paragraphNode = parseXml(`
-            <w:p>                
+            <w:p>
                 <w:r>
                     <w:t>{#loop}{text}{/</w:t>
                 </w:r>
