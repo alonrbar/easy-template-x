@@ -12,10 +12,19 @@ export class LoopTableStrategy implements ILoopStrategy {
     }
 
     public isApplicable(openTag: Tag, closeTag: Tag): boolean {
-        const containingParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
-        if (!containingParagraph.parentNode)
+        const openParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
+        if (!openParagraph.parentNode)
             return false;
-        return this.utilities.docxParser.isTableCellNode(containingParagraph.parentNode);
+
+        const closeParagraph = this.utilities.docxParser.containingParagraphNode(closeTag.xmlTextNode);
+        if (!closeParagraph.parentNode)
+            return false;
+
+        // If both tags are in the same cell, assume it's a paragraph loop (iterate content, not rows).
+        if (openParagraph.parentNode === closeParagraph.parentNode)
+            return false;
+
+        return this.utilities.docxParser.isTableCellNode(openParagraph.parentNode);
     }
 
     public splitBefore(openTag: Tag, closeTag: Tag): SplitBeforeResult {

@@ -410,4 +410,37 @@ describe('loop fixtures', () => {
             // writeTempFile('simple loop - same line - output.docx', doc);
         });
     });
+
+    describe('table', () => {
+
+        test("two loops in the same row", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("loop - advanced tables.docx");
+            const templateText = await handler.getText(template);
+            expect(templateText.trim()).toEqual("{#loop1}{val}{/loop1}{#loop2}{val}{/loop2}");
+
+            const data = {
+                loop1: [
+                    { val: 'val1' },
+                    { val: 'val2' }
+                ],
+                loop2: [
+                    { val: 'val3' },
+                    { val: 'val4' }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docText = await handler.getText(doc);
+            expect(docText).toEqual("val1val2val3val4");
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - advanced tables - output.docx', doc);
+        });
+    });
 });
