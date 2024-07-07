@@ -14,6 +14,7 @@ Generate docx documents from templates, in Node or in the browser.
   - [Loop plugin](#loop-plugin)
     - [Conditions](#conditions)
     - [Nested Conditions](#nested-conditions)
+    - [Controlling loop behavior](#controlling-loop-behavior)
   - [Image plugin](#image-plugin)
   - [Link plugin](#link-plugin)
   - [Raw xml plugin](#raw-xml-plugin)
@@ -253,6 +254,39 @@ Output document:
 
 _If you are looking for a yet more powerful conditional syntax see the [alternative syntax](#advanced-syntax-and-custom-resolvers) section._
 
+#### Controlling loop behavior
+
+To control the loop (or condition) behavior you can use the `loopOver` option.
+
+Given this data:
+
+```javascript
+{
+    students: [
+        { name: "Alice" },
+        { name: "Bob" }
+    ]
+}
+```
+
+You can use either this template:
+
+![input template](./docs/assets/loop-over-row-in.png?raw=true)
+
+Or this one:
+
+![input template](./docs/assets/loop-over-content-in.png?raw=true)
+
+The first will produce this document:
+
+![output document](./docs/assets/loop-over-row-out.png?raw=true)
+
+And the second will produce this one:
+
+![output document](./docs/assets/loop-over-content-out.png?raw=true)
+
+By default `easy-template-x` will loop over "content" if the opening and closing loop tags are in the same table cell and "row" otherwise.
+
 ### Image plugin
 
 Embed images into the document.
@@ -480,7 +514,9 @@ const handler = new TemplateHandler({
         tagStart: "{",
         tagEnd: "}",
         containerTagOpen: "#",
-        containerTagClose: "/"
+        containerTagClose: "/",
+        tagOptionsStart: "[",
+        tagOptionsEnd: "]"
     },
 
     maxXmlDepth: 20,
