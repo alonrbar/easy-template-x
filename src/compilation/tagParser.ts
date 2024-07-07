@@ -1,6 +1,6 @@
 import * as JSON5 from 'json5';
 import { Delimiters } from '../delimiters';
-import { MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError } from '../errors';
+import { MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, TagOptionsParseError } from '../errors';
 import { DocxParser } from '../office';
 import { Regex } from '../utils';
 import { DelimiterMark } from './delimiterMark';
@@ -149,7 +149,11 @@ export class TagParser {
         // Tag options.
         const tagOptionsText = (tagParts.groups?.["tagOptions"] || '').trim();
         if (tagOptionsText) {
-            tag.options = JSON5.parse("{" + tagOptionsText + "}");
+            try {
+                tag.options = JSON5.parse("{" + tagOptionsText + "}");
+            } catch (e) {
+                throw new TagOptionsParseError(tag.rawText, e);
+            }
         }
 
         // Container open tag.

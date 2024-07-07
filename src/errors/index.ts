@@ -3,6 +3,7 @@ export * from './maxXmlDepthError';
 export * from './missingArgumentError';
 export * from './missingCloseDelimiterError';
 export * from './missingStartDelimiterError';
+export * from './tagOptionsParseError';
 export * from './unclosedTagError';
 export * from './unidentifiedFileTypeError';
 export * from './unknownContentTypeError';
