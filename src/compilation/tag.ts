@@ -9,7 +9,7 @@ export enum TagDisposition {
 
 export interface Tag {
     name: string;
-    options: IMap<any>;
+    options?: IMap<any>;
     /**
      * The full tag text, for instance: "{#my-tag}".
      */
