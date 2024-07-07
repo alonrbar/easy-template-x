@@ -1,4 +1,5 @@
 import { TemplateHandler } from 'src/templateHandler';
+import { removeWhiteSpace } from 'test/testUtils';
 import { readFixture } from './fixtureUtils';
 
 describe('loop fixtures', () => {
@@ -413,13 +414,17 @@ describe('loop fixtures', () => {
 
     describe('table', () => {
 
-        test("two loops in the same row", async () => {
+        test("loopOver option", async () => {
 
             const handler = new TemplateHandler();
 
-            const template = readFixture("loop - advanced tables.docx");
+            const template = readFixture("loop - table - loopOver.docx");
             const templateText = await handler.getText(template);
-            expect(templateText.trim()).toEqual("{#loop1}{val}{/loop1}{#loop2}{val}{/loop2}");
+            expect(removeWhiteSpace(templateText)).toEqual(removeWhiteSpace(`
+                [Row1]{#loop1}{val}{/loop1}{#loop2}{val}{/loop2}
+                [Row2]{#loop3[loopOver:“row”]}{val}{/loop3}
+                [Row3]{#loop4[loopOver:“content”]}{val}{/loop4}
+            `));
 
             const data = {
                 loop1: [
@@ -429,18 +434,26 @@ describe('loop fixtures', () => {
                 loop2: [
                     { val: 'val3' },
                     { val: 'val4' }
+                ],
+                loop3: [
+                    { val: 'val5' },
+                    { val: 'val6' }
+                ],
+                loop4: [
+                    { val: 'val7' },
+                    { val: 'val8' }
                 ]
             };
 
             const doc = await handler.process(template, data);
 
             const docText = await handler.getText(doc);
-            expect(docText).toEqual("val1val2val3val4");
+            expect(docText).toEqual("[Row1]val1val2val3val4[Row2]val5[Row2]val6[Row3]val7val8");
 
             const docXml = await handler.getXml(doc);
             expect(docXml).toMatchSnapshot();
 
-            // writeTempFile('loop - advanced tables - output.docx', doc);
+            // writeTempFile('loop - table - loopOver - output.docx', doc);
         });
     });
 });

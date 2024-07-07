@@ -4,9 +4,13 @@ import { XmlNode, XmlParser } from '../src/xml';
 
 const xmlParser = new XmlParser();
 
+export function removeWhiteSpace(text: string): string {
+    return _removeWhiteSpace(text);
+}
+
 export function parseXml(xml: string, removeWhiteSpace = true): XmlNode {
     if (removeWhiteSpace)
-        xml = xml.replace(/\s/g, '');
+        xml = _removeWhiteSpace(xml);
     return xmlParser.parse(xml);
 }
 
@@ -33,4 +37,8 @@ export function writeTempFile(filename: string, file: Buffer): string {
     const path = '/temp/' + filename;
     fs.writeFileSync(path, file);
     return path;
+}
+
+function _removeWhiteSpace(text: string): string {
+    return text.replace(/\s/g, '');
 }

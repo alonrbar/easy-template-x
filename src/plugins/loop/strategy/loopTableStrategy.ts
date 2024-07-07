@@ -1,6 +1,7 @@
 import { Tag } from '../../../compilation';
 import { XmlNode } from '../../../xml';
 import { PluginUtilities } from '../../templatePlugin';
+import { LoopOver, LoopTagOptions } from '../loopTagOptions';
 import { ILoopStrategy, SplitBeforeResult } from './iLoopStrategy';
 
 export class LoopTableStrategy implements ILoopStrategy {
@@ -16,15 +17,24 @@ export class LoopTableStrategy implements ILoopStrategy {
         if (!openParagraph.parentNode)
             return false;
 
+        if (!this.utilities.docxParser.isTableCellNode(openParagraph.parentNode))
+            return false;
+
         const closeParagraph = this.utilities.docxParser.containingParagraphNode(closeTag.xmlTextNode);
         if (!closeParagraph.parentNode)
             return false;
 
-        // If both tags are in the same cell, assume it's a paragraph loop (iterate content, not rows).
-        if (openParagraph.parentNode === closeParagraph.parentNode)
+        if (!this.utilities.docxParser.isTableCellNode(closeParagraph.parentNode))
             return false;
 
-        return this.utilities.docxParser.isTableCellNode(openParagraph.parentNode);
+        const options = openTag.options as LoopTagOptions;
+        const forceRowLoop = options?.loopOver === LoopOver.Row;
+
+        // If both tags are in the same cell, assume it's a paragraph loop (iterate content, not rows).
+        if (!forceRowLoop && openParagraph.parentNode === closeParagraph.parentNode)
+            return false;
+
+        return true;
     }
 
     public splitBefore(openTag: Tag, closeTag: Tag): SplitBeforeResult {
