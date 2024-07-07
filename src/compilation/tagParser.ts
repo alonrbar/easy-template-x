@@ -2,7 +2,7 @@ import * as JSON5 from 'json5';
 import { Delimiters } from '../delimiters';
 import { MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, TagOptionsParseError } from '../errors';
 import { DocxParser } from '../office';
-import { Regex } from '../utils';
+import { normalizeDoubleQuotes, Regex } from '../utils';
 import { DelimiterMark } from './delimiterMark';
 import { Tag, TagDisposition } from './tag';
 
@@ -150,7 +150,7 @@ export class TagParser {
         const tagOptionsText = (tagParts.groups?.["tagOptions"] || '').trim();
         if (tagOptionsText) {
             try {
-                tag.options = JSON5.parse("{" + tagOptionsText + "}");
+                tag.options = JSON5.parse("{" + normalizeDoubleQuotes(tagOptionsText) + "}");
             } catch (e) {
                 throw new TagOptionsParseError(tag.rawText, e);
             }
