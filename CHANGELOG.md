@@ -1,5 +1,11 @@
 # Change Log
 
+## [4.1.0 - 2024-07-17](https://github.com/alonrbar/easy-template-x/tree/v4.1.0)
+
+### Added
+
+- Image transparency support ([#109](https://github.com/alonrbar/easy-template-x/issues/109)).
+
 ## [4.0.0 - 2024-07-07](https://github.com/alonrbar/easy-template-x/tree/v4.0.0)
 
 This version introduces the notion of "tag options". These options are controlled through the template and are useful for situations where we want to allow the template author to use the same data in different ways. For instance, if we have a collection in the data and we want to allow the template author to use this collection inside a table to either produce _multiple rows_ **or** in order to expand the collection inside a _single table cell_. In this case, the template author will be able to specify either `{# my collection [loopOver: "row"]}` or `{# my collection [loopOver: "content"]}` to control the resulting outcome.
