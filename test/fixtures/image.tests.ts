@@ -7,7 +7,7 @@ import { readFixture } from './fixtureUtils';
 
 describe('image fixtures', () => {
 
-    it("replaces a single image tag", async () => {
+    test("simple", async () => {
 
         const handler = new TemplateHandler();
 
@@ -33,7 +33,7 @@ describe('image fixtures', () => {
         // writeTempFile('image - simple - output.docx', doc);
     });
 
-    it("replaces a single image tag with alt text", async () => {
+    test("alt text", async () => {
 
         const handler = new TemplateHandler();
 
@@ -60,7 +60,34 @@ describe('image fixtures', () => {
         // writeTempFile('image - alt text - output.docx', doc);
     });
 
-    it("adds two different images", async () => {
+    test("transparency", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template = readFixture("simple.docx");
+        const imageFile = readResource("panda1.jpg");
+
+        const imageData: ImageContent = {
+            _type: 'image',
+            format: MimeType.Jpeg,
+            transparencyPercent: 33,
+            source: imageFile,
+            height: 325,
+            width: 600
+        };
+        const data = {
+            simple_prop: imageData
+        };
+
+        const doc = await handler.process(template, data);
+
+        const docXml = await handler.getXml(doc);
+        expect(docXml).toMatchSnapshot();
+
+        // writeTempFile('image - transparency - output.docx', doc);
+    });
+
+    test("two different images", async () => {
 
         //
         // NOTICE:
@@ -106,7 +133,7 @@ describe('image fixtures', () => {
         // writeTempFile(doc, 'image - two - output.docx');
     });
 
-    it("inserts the same image to the archive only once", async () => {
+    test("insert the same image to the archive multiple times - stored only once", async () => {
 
         const handler = new TemplateHandler();
 
@@ -138,7 +165,7 @@ describe('image fixtures', () => {
         // writeTempFile(doc, 'image - loop same - output.docx');
     });
 
-    it("using the same template handler to add the same image to two different files works", async () => {
+    test("using the same template handler to add the same image to two different files works", async () => {
 
         const handler = new TemplateHandler();
 
@@ -173,7 +200,7 @@ describe('image fixtures', () => {
         // writeTempFile(doc2, 'image - two files 2 - output.docx');
     });
 
-    it("image markup generation is fast enough", async () => {
+    test("image markup generation is fast enough", async () => {
 
         const handler = new TemplateHandler();
 

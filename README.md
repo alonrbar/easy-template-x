@@ -303,9 +303,10 @@ Input data:
         _type: "image",
         source: fs.readFileSync("hero.png"),
         format: MimeType.Png,
-        altText: "Kung Fu Hero", // Optional
         width: 200,
-        height: 200
+        height: 200,
+        altText: "Kung Fu Hero", // Optional
+        transparencyPercent: 80 // Optional
     }
 }
 ```
