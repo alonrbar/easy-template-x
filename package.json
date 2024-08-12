@@ -33,7 +33,7 @@
     "src"
   ],
   "scripts": {
-    "clean": "rimraf .tmp dist test-reports",
+    "clean": "rimraf .tmp dist test-reports && yarn clean-dist-verify",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"./{src,test}/**/!(*.d).ts\"",
     "test": "jest --verbose",
@@ -41,7 +41,13 @@
     "build-src": "rollup -c",
     "build-types": "tsc -p tsconfig.types.json --emitDeclarationOnly",
     "build": "yarn build-types && yarn build-src",
-    "release": "yarn clean && yarn quality && yarn build"
+    "release": "yarn clean && yarn quality && yarn build && yarn dist-verify",
+    "dist-verify": "yarn dist-verify-cjs && yarn dist-verify-es",
+    "dist-verify-cjs": "cd dist-verify/cjs && npm install && node main.js",
+    "dist-verify-es": "cd dist-verify/es && npm install && node main.js",
+    "clean-dist-verify": "yarn clean-dist-verify-cjs && yarn clean-dist-verify-es",
+    "clean-dist-verify-cjs": "rimraf dist-verify/cjs/node_modules dist-verify/cjs/package-lock.json",
+    "clean-dist-verify-es": "rimraf dist-verify/es/node_modules dist-verify/es/package-lock.json"
   },
   "packageManager": "yarn@4.3.1",
   "dependencies": {
