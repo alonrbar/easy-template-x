@@ -1,5 +1,11 @@
 # Change Log
 
+## [4.1.1 - 2024-08-12](https://github.com/alonrbar/easy-template-x/tree/v4.1.1)
+
+### Fixed
+
+- Fix importing the package without a bundler ([#120](https://github.com/alonrbar/easy-template-x/issues/120)).
+
 ## [4.1.0 - 2024-07-17](https://github.com/alonrbar/easy-template-x/tree/v4.1.0)
 
 ### Added
