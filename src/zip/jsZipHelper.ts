@@ -1,4 +1,4 @@
-import * as JSZip from 'jszip';
+import JSZip from 'jszip';
 import { MissingArgumentError } from '../errors';
 import { Constructor } from '../types';
 import { Binary } from '../utils';

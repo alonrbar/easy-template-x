@@ -23,7 +23,7 @@
         // --- validation options --- //
 
         "alwaysStrict": true,
-        "allowSyntheticDefaultImports": false,
+        "allowSyntheticDefaultImports": true,
         "allowUnreachableCode": false,
         "forceConsistentCasingInFileNames": true,
         "lib": ["dom", "es2022"],
