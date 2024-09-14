@@ -26,7 +26,7 @@
         "allowSyntheticDefaultImports": true,
         "allowUnreachableCode": false,
         "forceConsistentCasingInFileNames": true,
-        "lib": ["dom", "es2022"],
+        "lib": ["dom", "es2023"],
         "noImplicitAny": true,
         "noImplicitReturns": true,
         "noImplicitThis": true,
