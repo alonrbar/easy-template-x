@@ -1,4 +1,4 @@
-import * as JSON5 from 'json5';
+import JSON5 from 'json5';
 import { Delimiters } from '../delimiters';
 import { MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, TagOptionsParseError } from '../errors';
 import { DocxParser } from '../office';
