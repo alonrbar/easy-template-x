@@ -24,8 +24,14 @@
   "main": "dist/cjs/easy-template-x.cjs",
   "module": "dist/es/easy-template-x.mjs",
   "exports": {
-    "require": "./dist/cjs/easy-template-x.cjs",
-    "import": "./dist/es/easy-template-x.mjs"
+    "require": {
+      "default": "./dist/cjs/easy-template-x.cjs",
+      "types": "./dist/types/index.d.ts"
+    },
+    "import": {
+      "default": "./dist/es/easy-template-x.mjs",
+      "types": "./dist/types/index.d.ts"
+    }
   },
   "typings": "dist/types/index.d.ts",
   "files": [
