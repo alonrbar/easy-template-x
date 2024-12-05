@@ -82,7 +82,7 @@
     "rollup-plugin-auto-external": "2.0.0",
     "rollup-plugin-babel": "4.4.0",
     "rollup-plugin-node-resolve": "5.2.0",
-    "typescript": "5.5.3",
+    "typescript": "5.7.2",
     "typescript-eslint": "7.15.0"
   }
 }
