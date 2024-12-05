@@ -1,5 +1,11 @@
 # Change Log
 
+## [4.1.3 - 2024-12-05](https://github.com/alonrbar/easy-template-x/tree/v4.1.3)
+
+### Fixed
+
+- Fix "Module not found: Default condition should be last one" error.
+
 ## [4.1.2 - 2024-12-05](https://github.com/alonrbar/easy-template-x/tree/v4.1.2)
 
 ### Fixed
