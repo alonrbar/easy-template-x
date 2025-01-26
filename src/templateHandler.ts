@@ -122,6 +122,9 @@ export class TemplateHandler {
     public async parseTags(templateFile: Binary, contentPart: ContentPartType = ContentPartType.MainDocument): Promise<Tag[]> {
         const docx = await this.loadDocx(templateFile);
         const part = await docx.getContentPart(contentPart);
+        if (!part) {
+            return null;
+        }
         const xmlRoot = await part.xmlRoot();
         return this.compiler.parseTags(xmlRoot);
     }
