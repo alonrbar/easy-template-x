@@ -1,11 +1,13 @@
 import { IMap } from '../types';
 import { XmlTextNode } from '../xml';
 
-export enum TagDisposition {
-    Open = "Open",
-    Close = "Close",
-    SelfClosed = "SelfClosed"
-}
+export const TagDisposition = Object.freeze({
+    Open: "Open",
+    Close: "Close",
+    SelfClosed: "SelfClosed"
+} as const);
+
+export type TagDisposition = typeof TagDisposition[keyof typeof TagDisposition];
 
 export interface Tag {
     name: string;

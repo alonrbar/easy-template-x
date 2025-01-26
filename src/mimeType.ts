@@ -1,12 +1,14 @@
 import { UnsupportedFileTypeError } from './errors';
 
-export enum MimeType {
-    Png = 'image/png',
-    Jpeg = 'image/jpeg',
-    Gif = 'image/gif',
-    Bmp = 'image/bmp',
-    Svg = 'image/svg+xml'
-}
+export const MimeType = Object.freeze({
+    Png: 'image/png',
+    Jpeg: 'image/jpeg',
+    Gif: 'image/gif',
+    Bmp: 'image/bmp',
+    Svg: 'image/svg+xml'
+} as const);
+
+export type MimeType = typeof MimeType[keyof typeof MimeType];
 
 export class MimeTypeHelper {
 

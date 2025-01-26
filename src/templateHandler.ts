@@ -119,7 +119,7 @@ export class TemplateHandler {
      * The content part of which to get it's text content.
      * Defaults to `ContentPartType.MainDocument`.
      */
-    public async parseTags(templateFile: Binary, contentPart = ContentPartType.MainDocument): Promise<Tag[]> {
+    public async parseTags(templateFile: Binary, contentPart: ContentPartType = ContentPartType.MainDocument): Promise<Tag[]> {
         const docx = await this.loadDocx(templateFile);
         const part = await docx.getContentPart(contentPart);
         const xmlRoot = await part.xmlRoot();
@@ -134,7 +134,7 @@ export class TemplateHandler {
      * The content part of which to get it's text content.
      * Defaults to `ContentPartType.MainDocument`.
      */
-    public async getText(docxFile: Binary, contentPart = ContentPartType.MainDocument): Promise<string> {
+    public async getText(docxFile: Binary, contentPart: ContentPartType = ContentPartType.MainDocument): Promise<string> {
         const docx = await this.loadDocx(docxFile);
         const part = await docx.getContentPart(contentPart);
         const text = await part.getText();
@@ -149,7 +149,7 @@ export class TemplateHandler {
      * The content part of which to get it's text content.
      * Defaults to `ContentPartType.MainDocument`.
      */
-    public async getXml(docxFile: Binary, contentPart = ContentPartType.MainDocument): Promise<XmlNode> {
+    public async getXml(docxFile: Binary, contentPart: ContentPartType = ContentPartType.MainDocument): Promise<XmlNode> {
         const docx = await this.loadDocx(docxFile);
         const part = await docx.getContentPart(contentPart);
         const xmlRoot = await part.xmlRoot();
