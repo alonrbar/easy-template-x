@@ -1,5 +1,16 @@
 # Change Log
 
+## [4.1.4 - 2025-01-26](https://github.com/alonrbar/easy-template-x/tree/v4.1.4)
+
+## Changed
+
+- **BREAKING** - Use `Object.freeze` instead of TypeScript enums for constants.
+  It can break TypeScript typings in some cases. See [this commit](https://github.com/alonrbar/easy-template-x/commit/fdd67af4605c03bb2a11dab33fe00ce8ba699a88) for examples on how to fix it.
+
+### Fixed
+
+- Parsing of rels target paths in some uncommon cases.
+
 ## [4.1.3 - 2024-12-05](https://github.com/alonrbar/easy-template-x/tree/v4.1.3)
 
 ### Fixed
