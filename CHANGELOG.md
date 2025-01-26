@@ -1,5 +1,11 @@
 # Change Log
 
+## [4.1.6 - 2025-01-26](https://github.com/alonrbar/easy-template-x/tree/v4.1.6)
+
+### Fixed
+
+- Fix `parseTags` error when the content part does not exist.
+
 ## [4.1.5 - 2025-01-26](https://github.com/alonrbar/easy-template-x/tree/v4.1.5)
 
 ### Fixed
