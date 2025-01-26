@@ -93,8 +93,14 @@ export class Docx {
             ContentPartType.FirstFooter,
             ContentPartType.EvenPagesFooter
         ];
-        const parts = await Promise.all(partTypes.map(p => this.getContentPart(p)));
-        return parts.filter(p => !!p);
+        const parts: XmlPart[] = [];
+        for (const partType of partTypes) {
+            const part = await this.getContentPart(partType);
+            if (part) {
+                parts.push(part);
+            }
+        }
+        return parts;
     }
 
     public async export<T extends Binary>(outputType: Constructor<T>): Promise<T> {
@@ -115,7 +121,7 @@ export class Docx {
         // see: http://officeopenxml.com/WPsection.php
         const docRoot = await this.mainDocument.xmlRoot();
         const body = docRoot.childNodes.find(node => node.nodeName == 'w:body');
-        if (body == null)
+        if (body === null)
             return null;
 
         const sectionProps = last(body.childNodes.filter(node => node.nodeType === XmlNodeType.General));
@@ -136,7 +142,8 @@ export class Docx {
         const rels = await this.mainDocument.rels.list();
         const relTarget = rels.find(r => r.id === relId).target;
         if (!this._parts[relTarget]) {
-            const part = new XmlPart("word/" + relTarget, this.zip, this.xmlParser);
+            const partPath = relTarget.startsWith('word/') ? relTarget : "word/" + relTarget;
+            const part = new XmlPart(partPath, this.zip, this.xmlParser);
             this._parts[relTarget] = part;
         }
         return this._parts[relTarget];

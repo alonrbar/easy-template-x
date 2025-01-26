@@ -31,7 +31,8 @@ export class XmlPart {
      */
     public async xmlRoot(): Promise<XmlNode> {
         if (!this.root) {
-            const xml = await this.zip.getFile(this.path).getContentText();
+            const file = this.zip.getFile(this.path);
+            const xml = await file.getContentText();
             this.root = this.xmlParser.parse(xml);
         }
         return this.root;

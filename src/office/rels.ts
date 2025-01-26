@@ -138,7 +138,7 @@ export class Rels {
 
             // create rel target lookup
             const typeAttr = attributes['Type'];
-            const targetAttr = attributes['Target'];
+            const targetAttr = Relationship.normalizeRelTarget(attributes['Target']);
             if (typeAttr && targetAttr) {
                 const relTargetKey = this.getRelTargetKey(typeAttr, targetAttr);
                 this.relTargets[relTargetKey] = idAttr;

@@ -8,9 +8,19 @@ export class Relationship {
         return new Relationship({
             id: xml.attributes?.['Id'],
             type: xml.attributes?.['Type'],
-            target: xml.attributes?.['Target'],
+            target: Relationship.normalizeRelTarget(xml.attributes?.['Target']),
             targetMode: xml.attributes?.['TargetMode'] as RelTargetMode,
         });
+    }
+
+    public static normalizeRelTarget(target: string): string {
+        if (!target) {
+            return target;
+        }
+        if (target.startsWith('/')) {
+            return target.substring(1);
+        }
+        return target;
     }
 
     id: string;
