@@ -1,5 +1,11 @@
 # Change Log
 
+## [4.1.5 - 2025-01-26](https://github.com/alonrbar/easy-template-x/tree/v4.1.5)
+
+### Fixed
+
+- Fix not publishing the release bundle (dist).
+
 ## [4.1.4 - 2025-01-26](https://github.com/alonrbar/easy-template-x/tree/v4.1.4)
 
 ## Changed
