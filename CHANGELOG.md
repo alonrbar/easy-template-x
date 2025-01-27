@@ -1,4 +1,4 @@
-# Change Log
+# Changelog
 
 ## [4.1.7 - 2025-01-27](https://github.com/alonrbar/easy-template-x/tree/v4.1.7)
 
@@ -20,7 +20,7 @@
 
 ## [4.1.4 - 2025-01-26](https://github.com/alonrbar/easy-template-x/tree/v4.1.4)
 
-## Changed
+### Changed
 
 - **BREAKING** - Use `Object.freeze` instead of TypeScript enums for constants.
   It can break TypeScript typings in some cases. See [this commit](https://github.com/alonrbar/easy-template-x/commit/fdd67af4605c03bb2a11dab33fe00ce8ba699a88) for examples on how to fix it.
