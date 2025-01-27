@@ -109,22 +109,17 @@ export class Docx {
 
     private async getHeaderOrFooter(type: ContentPartType): Promise<XmlPart> {
 
+        // Find all section properties (http://officeopenxml.com/WPsection.php)
+        const docRoot = await this.mainDocument.xmlRoot();
+        const sectionProps = this.allSectionProperties(docRoot as XmlGeneralNode);
+        if (!sectionProps?.length) {
+            return null;
+        }
+
+        // Find the header or footer reference
         const nodeName = this.headerFooterNodeName(type);
         const nodeTypeAttribute = this.headerFooterType(type);
-
-        // find the last section properties
-        // see: http://officeopenxml.com/WPsection.php
-        const docRoot = await this.mainDocument.xmlRoot();
-        const body = docRoot.childNodes.find(node => node.nodeName == 'w:body');
-        if (body === null)
-            return null;
-
-        const sectionProps = last(body.childNodes.filter(node => node.nodeType === XmlNodeType.General));
-        if (sectionProps.nodeName != 'w:sectPr')
-            return null;
-
-        // find the header or footer reference
-        const reference = sectionProps.childNodes?.find(node => {
+        const reference = sectionProps.map(secPr => secPr.childNodes ?? []).flat().find(node => {
             return node.nodeType === XmlNodeType.General &&
                 node.nodeName === nodeName &&
                 node.attributes?.['w:type'] === nodeTypeAttribute;
@@ -144,7 +139,7 @@ export class Docx {
         return this._parts[relTarget];
     }
 
-    private headerFooterNodeName(contentPartType: ContentPartType): string {
+    private headerFooterNodeName(contentPartType: ContentPartType) {
         switch (contentPartType) {
 
             case ContentPartType.DefaultHeader:
@@ -162,7 +157,7 @@ export class Docx {
         }
     }
 
-    private headerFooterType(contentPartType: ContentPartType): string {
+    private headerFooterType(contentPartType: ContentPartType) {
 
         // https://docs.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.headerfootervalues?view=openxml-2.8.1
 
@@ -196,5 +191,54 @@ export class Docx {
         }
 
         await this.contentTypes.save();
+    }
+
+    private allSectionProperties(docRoot: XmlGeneralNode): XmlGeneralNode[] {
+        const body = docRoot.childNodes.find(node => node.nodeName == 'w:body');
+        if (!body) {
+            return null;
+        }
+
+        //
+        // http://officeopenxml.com/WPsection.php:
+        //
+        // For all sections except the last section, the sectPr element is
+        // stored as a child element of the last paragraph in the section. For
+        // the last section, the sectPr is stored as a child element of the body
+        // element.
+        //
+
+        const sectionProps: XmlGeneralNode[] = [];
+
+        // All sections but the last section
+        for (const node of (body.childNodes ?? [])) {
+
+            // Traverse paragraphs
+            if (node.nodeName !== 'w:p') {
+                continue;
+            }
+
+            // Find paragraph properties
+            const pPr = node.childNodes?.find(child => child.nodeName === 'w:pPr');
+            if (!pPr) {
+                continue;
+            }
+
+            // Find section properties
+            const sectPr = pPr.childNodes?.find(child => child.nodeName === 'w:sectPr');
+            if (!sectPr) {
+                continue;
+            }
+
+            sectionProps.push(sectPr as XmlGeneralNode);
+        }
+
+        // The last section
+        const lastSectionProps = last(body.childNodes.filter(node => node.nodeName === 'w:sectPr'));
+        if (lastSectionProps) {
+            sectionProps.push(lastSectionProps as XmlGeneralNode);
+        }
+
+        return sectionProps;
     }
 }

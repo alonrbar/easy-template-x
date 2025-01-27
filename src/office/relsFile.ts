@@ -5,8 +5,9 @@ import { Zip } from '../zip';
 import { Relationship, RelTargetMode } from './relationship';
 
 /**
- * Handles the relationship logic of a single docx "part".
- * http://officeopenxml.com/anatomyofOOXML.php
+ * A rels file is an xml file that contains the relationship information of a single docx "part".
+ *
+ * See: http://officeopenxml.com/anatomyofOOXML.php
  */
 export class RelsFile {
 

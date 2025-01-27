@@ -115,4 +115,27 @@ describe('header and footer fixtures', () => {
 
         // writeTempFile('header and footer - image - output.docx', doc);
     });
+
+    it("processes header and footer references in the middle of the document", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template: Buffer = readFixture("header and footer - middle reference.docx");
+
+        const headerTextBefore = await handler.getText(template, ContentPartType.DefaultHeader);
+        expect(headerTextBefore.trim()).toContain("client.court.courtFile");
+        expect(headerTextBefore.trim()).not.toContain("TEST");
+
+        const data = {
+            "client.court.courtFile": "TEST",
+        };
+
+        const doc = await handler.process(template, data);
+
+        const headerTextAfter = await handler.getText(doc, ContentPartType.DefaultHeader);
+        expect(headerTextAfter.trim()).toContain("TEST");
+        expect(headerTextAfter.trim()).not.toContain("client.court.courtFile");
+
+        // writeTempFile('invisible header - output.docx', doc);
+    });
 });
