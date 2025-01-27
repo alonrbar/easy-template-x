@@ -57,14 +57,14 @@
 
 This version introduces the notion of "tag options". These options are controlled through the template and are useful for situations where we want to allow the template author to use the same data in different ways. For instance, if we have a collection in the data and we want to allow the template author to use this collection inside a table to either produce _multiple rows_ **or** in order to expand the collection inside a _single table cell_. In this case, the template author will be able to specify either `{# my collection [loopOver: "row"]}` or `{# my collection [loopOver: "content"]}` to control the resulting outcome.
 
-## Added
+### Added
 
 - **BREAKING** - Introduce "tag options" syntax: `{tag name [options]}`. E.g. `{# Students [loopOver: "rows"]}`.
   - This may break existing templates that use brackets as part of their tag names.
   - If you still need to use brackets in the tag name (for instance if you are using an  [advanced syntax](https://github.com/alonrbar/easy-template-x?tab=readme-ov-file#advanced-syntax-and-custom-resolvers) and access an array element by index), you can change the tag options delimiters through the [TemplateHandler options](https://github.com/alonrbar/easy-template-x?tab=readme-ov-file#template-handler-options) (e.g. use `[[ options ]]` instead of `[ options ]`).
 - `loopOver` tag option, to control loop behavior in tables, as explained above.
 
-## Changed
+### Changed
 
 - **BREAKING** - A loop inside a single table cell is assumed to be a paragraph loop, not a table loop (will repeat content, not rows; should fix [#50](https://github.com/alonrbar/easy-template-x/issues/50), [#52](https://github.com/alonrbar/easy-template-x/issues/52), [#56](https://github.com/alonrbar/easy-template-x/issues/56), [#85](https://github.com/alonrbar/easy-template-x/issues/85), [#92](https://github.com/alonrbar/easy-template-x/issues/92) and [#110](https://github.com/alonrbar/easy-template-x/issues/110)). The default behavior can be overridden by using the new `loopOver` option.
 
