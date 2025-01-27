@@ -1,5 +1,11 @@
 # Change Log
 
+## [4.1.7 - 2025-01-27](https://github.com/alonrbar/easy-template-x/tree/v4.1.7)
+
+### Fixed
+
+- Fix processing of header and footer referenced in the middle of the document.
+
 ## [4.1.6 - 2025-01-26](https://github.com/alonrbar/easy-template-x/tree/v4.1.6)
 
 ### Fixed
