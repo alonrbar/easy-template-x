@@ -1,6 +1,6 @@
 import { XmlNode, XmlParser } from '../xml';
 import { Zip } from '../zip';
-import { Rels } from './rels';
+import { RelsFile } from './relsFile';
 
 /**
  * Represents an xml file that is part of an OPC package.
@@ -9,7 +9,7 @@ import { Rels } from './rels';
  */
 export class XmlPart {
 
-    public readonly rels: Rels;
+    public readonly rels: RelsFile;
 
     private root: XmlNode;
 
@@ -18,7 +18,7 @@ export class XmlPart {
         private readonly zip: Zip,
         private readonly xmlParser: XmlParser
     ) {
-        this.rels = new Rels(this.path, zip, xmlParser);
+        this.rels = new RelsFile(this.path, zip, xmlParser);
     }
 
     //

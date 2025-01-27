@@ -8,7 +8,7 @@ import { Relationship, RelTargetMode } from './relationship';
  * Handles the relationship logic of a single docx "part".
  * http://officeopenxml.com/anatomyofOOXML.php
  */
-export class Rels {
+export class RelsFile {
 
     private rels: IMap<Relationship>;
     private relTargets: IMap<string>;

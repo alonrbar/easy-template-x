@@ -1,5 +1,17 @@
 import { XmlGeneralNode, XmlNode } from '../xml';
 
+/**
+ * The types of relationships that can be created in a docx file.
+ * A non-comprehensive list.
+ */
+export const RelType = Object.freeze({
+    MainDocument: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument',
+    Header: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/header',
+    Footer: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer',
+    Link: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink',
+    Image: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
+} as const);
+
 export type RelTargetMode = 'Internal' | 'External';
 
 export class Relationship {

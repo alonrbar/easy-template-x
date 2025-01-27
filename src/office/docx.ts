@@ -6,19 +6,14 @@ import { Zip } from '../zip';
 import { ContentPartType } from './contentPartType';
 import { ContentTypesFile } from './contentTypesFile';
 import { MediaFiles } from './mediaFiles';
-import { Rels } from './rels';
+import { RelType } from "./relationship";
+import { RelsFile } from './relsFile';
 import { XmlPart } from './xmlPart';
 
 /**
  * Represents a single docx file.
  */
 export class Docx {
-
-    private static readonly mainDocumentRelType = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument';
-
-    //
-    // static methods
-    //
 
     public static async open(zip: Zip, xmlParser: XmlParser): Promise<Docx> {
         const mainDocumentPath = await Docx.getMainDocumentPath(zip, xmlParser);
@@ -30,9 +25,9 @@ export class Docx {
 
     private static async getMainDocumentPath(zip: Zip, xmlParser: XmlParser): Promise<string> {
         const rootPart = '';
-        const rootRels = new Rels(rootPart, zip, xmlParser);
+        const rootRels = new RelsFile(rootPart, zip, xmlParser);
         const relations = await rootRels.list();
-        return relations.find(rel => rel.type == Docx.mainDocumentRelType)?.target;
+        return relations.find(rel => rel.type == RelType.MainDocument)?.target;
     }
 
     //

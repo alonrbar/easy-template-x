@@ -1,4 +1,5 @@
-import { UnsupportedFileTypeError } from './errors';
+import { UnsupportedFileTypeError } from "./errors";
+import { RelType } from "./office/relationship";
 
 export const MimeType = Object.freeze({
     Png: 'image/png',
@@ -36,7 +37,7 @@ export class MimeTypeHelper {
             case MimeType.Gif:
             case MimeType.Bmp:
             case MimeType.Svg:
-                return "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image";
+                return RelType.Image;
             default:
                 throw new UnsupportedFileTypeError(mime);
         }

@@ -1,12 +1,10 @@
-import { ScopeData, Tag, TemplateContext } from '../../compilation';
-import { DocxParser } from '../../office';
-import { XmlNode } from '../../xml';
-import { TemplatePlugin } from '../templatePlugin';
-import { LinkContent } from './linkContent';
+import { ScopeData, Tag, TemplateContext } from "../../compilation";
+import { DocxParser, RelType } from "../../office";
+import { XmlNode } from "../../xml";
+import { TemplatePlugin } from "../templatePlugin";
+import { LinkContent } from "./linkContent";
 
 export class LinkPlugin extends TemplatePlugin {
-
-    private static readonly linkRelType = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink';
 
     public readonly contentType = 'link';
 
@@ -21,7 +19,7 @@ export class LinkPlugin extends TemplatePlugin {
         }
 
         // add rel
-        const relId = await context.currentPart.rels.add(content.target, LinkPlugin.linkRelType, 'External');
+        const relId = await context.currentPart.rels.add(content.target, RelType.Link, 'External');
 
         // generate markup
         const wordRunNode = this.utilities.docxParser.containingRunNode(wordTextNode);
