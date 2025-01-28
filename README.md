@@ -592,17 +592,6 @@ For the same reason it supports tags with whitespace and any unicode supported a
 
 If your template does not need to meet such requirements, especially if they are meant to be edited by developers you can adopt a more sophisticated [alternative syntax](#advanced-syntax-and-custom-resolvers).
 
-## Prior art and motivation
-
-There are already some very good templating libraries out there, most notably these two:
-
-- [docxtemplater](https://github.com/open-xml-templating/docxtemplater)
-- [docx-templates](https://github.com/guigrpa/docx-templates)
-
-`easy-template-x` takes great inspiration from both. It aspires to take the best
-out of both and to add some good of it's own. Hopefully it will serve you
-well :)
-
 ## Changelog
 
 The change log can be found [here](https://github.com/alonrbar/easy-template-x/blob/master/CHANGELOG.md).
