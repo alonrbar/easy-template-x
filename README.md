@@ -376,7 +376,7 @@ make it easier to do the actual xml modification.
 
 _To better understand the internal structure of Word documents check out [this excellent source](http://officeopenxml.com/WPcontentOverview.php)._
 
-Example plugin implementation ([source](./src/plugins/rawXmlPlugin.ts)):
+Example plugin implementation ([source](./src/plugins/rawXml/rawXmlPlugin.ts)):
 
 ```typescript
 /**
