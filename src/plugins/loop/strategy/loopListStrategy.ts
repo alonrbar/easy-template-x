@@ -11,7 +11,11 @@ export class LoopListStrategy implements ILoopStrategy {
         this.utilities = utilities;
     }
 
-    public isApplicable(openTag: Tag, closeTag: Tag): boolean {
+    public isApplicable(openTag: Tag, closeTag: Tag, isCondition: boolean): boolean {
+        if (isCondition) {
+            return false;
+        }
+
         const containingParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
         return this.utilities.docxParser.isListParagraph(containingParagraph);
     }

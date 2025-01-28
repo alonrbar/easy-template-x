@@ -165,6 +165,27 @@ describe('loop fixtures', () => {
             // writeTempFile('loop - conditions - output.docx', doc);
         });
 
+        test("boolean conditions in lists", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("loop - list - conditions.docx");
+            const templateText = await handler.getText(template);
+            expect(templateText.trim()).toEqual("Point of contact: {#isLegal}legal@abc.com{/}{#isMarketing}marketing@abc.com{/}");
+
+            const data = {
+                isLegal: true,
+                isMarketing: false
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docText = await handler.getText(doc);
+            expect(docText).toEqual("Point of contact: legal@abc.com");
+
+            // writeTempFile('loop - list - conditions - output.docx', doc);
+        });
+
         test("ignore closing tag name", async () => {
 
             const handler = new TemplateHandler();

@@ -12,7 +12,7 @@ export class LoopTableStrategy implements ILoopStrategy {
         this.utilities = utilities;
     }
 
-    public isApplicable(openTag: Tag, closeTag: Tag): boolean {
+    public isApplicable(openTag: Tag, closeTag: Tag, isCondition: boolean): boolean {
         const openParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
         if (!openParagraph.parentNode)
             return false;

@@ -11,7 +11,7 @@ export class LoopParagraphStrategy implements ILoopStrategy {
         this.utilities = utilities;
     }
 
-    public isApplicable(openTag: Tag, closeTag: Tag): boolean {
+    public isApplicable(openTag: Tag, closeTag: Tag, isCondition: boolean): boolean {
         return true;
     }
 

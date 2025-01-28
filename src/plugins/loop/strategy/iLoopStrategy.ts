@@ -6,7 +6,7 @@ export interface ILoopStrategy {
 
     setUtilities(utilities: PluginUtilities): void;
 
-    isApplicable(openTag: Tag, closeTag: Tag): boolean;
+    isApplicable(openTag: Tag, closeTag: Tag, isCondition: boolean): boolean;
 
     splitBefore(openTag: Tag, closeTag: Tag): SplitBeforeResult;
 
