@@ -2,7 +2,7 @@ import { DelimiterMark } from 'src/compilation/delimiterMark';
 import { TagDisposition } from 'src/compilation/tag';
 import { TagParser } from 'src/compilation/tagParser';
 import { Delimiters } from 'src/delimiters';
-import { TagOptionsParseError } from 'src/errors';
+import { MissingCloseDelimiterError, TagOptionsParseError } from 'src/errors';
 import { DocxParser } from 'src/office';
 import { XmlParser, XmlTextNode } from 'src/xml';
 import { parseXml } from '../../testUtils';
@@ -336,6 +336,41 @@ describe(TagParser, () => {
         expect(tags[2].disposition).toEqual(TagDisposition.Close);
         expect(tags[2].name).toEqual('loop');
         expect(tags[2].rawText).toEqual('{/loop}');
+    });
+
+    test('close delimiter in different paragraph throws MissingCloseDelimiterError', () => {
+
+        const body = parseXml(`
+            <w:body>
+                <w:p><w:r><w:t>{my_simple_</w:t></w:r></w:p>
+                <w:p><w:r><w:t>tag}</w:t></w:r></w:p>
+            </w:body>
+        `, false);
+
+        const firstParagraph = body.childNodes.find(node => node.nodeName === 'w:p');
+        const secondParagraph = body.childNodes.findLast(node => node.nodeName === 'w:p');
+
+        const firstRun = firstParagraph.childNodes[0];
+        const secondRun = secondParagraph.childNodes[0];
+
+        const firstTextNode = firstRun.childNodes[0] as XmlTextNode;
+        const secondTextNode = secondRun.childNodes[0] as XmlTextNode;
+
+        const delimiters: DelimiterMark[] = [
+            {
+                isOpen: true,
+                index: 0,
+                xmlTextNode: firstTextNode
+            },
+            {
+                isOpen: false,
+                index: 4,
+                xmlTextNode: secondTextNode
+            }
+        ];
+
+        const parser = createTagParser();
+        expect(() => parser.parse(delimiters)).toThrow(MissingCloseDelimiterError);
     });
 
     test('tag options - simple', () => {

@@ -87,6 +87,14 @@ export class TagParser {
         let endTextNode = closeDelimiter.xmlTextNode;
         const sameNode = (startTextNode === endTextNode);
 
+        if (!sameNode) {
+            const startParagraph = this.docParser.containingParagraphNode(startTextNode);
+            const endParagraph = this.docParser.containingParagraphNode(endTextNode);
+            if (startParagraph !== endParagraph) {
+                throw new MissingCloseDelimiterError(startTextNode.textContent);
+            }
+        }
+
         // trim start
         if (openDelimiter.index > 0) {
             this.docParser.splitTextNode(startTextNode, openDelimiter.index, true);
