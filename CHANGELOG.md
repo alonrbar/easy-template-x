@@ -1,10 +1,16 @@
 # Changelog
 
+## [4.1.8 - 2025-01-28](https://github.com/alonrbar/easy-template-x/tree/v4.1.8)
+
+### Fixed
+
+- Throw MissingCloseDelimiterError when tag is split between paragraphs ([#126](https://github.com/alonrbar/easy-template-x/issues/126)).
+
 ## [4.1.7 - 2025-01-27](https://github.com/alonrbar/easy-template-x/tree/v4.1.7)
 
 ### Fixed
 
-- Fix processing of header and footer referenced in the middle of the document.
+- Fix processing of header and footer referenced in the middle of the document ([#127](https://github.com/alonrbar/easy-template-x/issues/127)).
 
 ## [4.1.6 - 2025-01-26](https://github.com/alonrbar/easy-template-x/tree/v4.1.6)
 
