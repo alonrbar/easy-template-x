@@ -1,5 +1,16 @@
 # Changelog
 
+## [5.0.0 - 2025-01-28](https://github.com/alonrbar/easy-template-x/tree/v5.0.0)
+
+### Fixed
+
+- **BREAKING** - Fix list conditions
+  ([#123](https://github.com/alonrbar/easy-template-x/issues/123)).  
+  It may break some templates that are using loops in lists but are sometimes
+  passing empty values (e.g. null or undefined) to hide the list completely. In
+  these cases they should pass an empty array instead, to make sure the list is
+  removed and not just its content.
+
 ## [4.1.8 - 2025-01-28](https://github.com/alonrbar/easy-template-x/tree/v4.1.8)
 
 ### Fixed
