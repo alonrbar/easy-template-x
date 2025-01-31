@@ -6,6 +6,21 @@ Generate docx documents from templates, in Node or in the browser.
 [![npm version](https://img.shields.io/npm/v/easy-template-x.svg)](https://www.npmjs.com/package/easy-template-x)
 [![npm license](https://img.shields.io/npm/l/easy-template-x.svg)](https://www.npmjs.com/package/easy-template-x)
 
+> ---
+>
+> 🚀 **Looking for a managed solution?**
+>
+> Check out [templatedocs.io](https://templatedocs.io) - a cloud platform for document generation with:
+>
+> ✓ PDF support  
+> ✓ REST API integration  
+> ✓ Live preview functionality  
+> ✓ Easy-to-use UI  
+>
+> And more...
+>
+> ---
+
 - [Node Example](#node-example)
 - [Browser Example](#browser-example)
 - [Live Demo](#live-demo)
