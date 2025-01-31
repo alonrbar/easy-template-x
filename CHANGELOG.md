@@ -1,5 +1,11 @@
 # Changelog
 
+## [5.0.1 - 2025-01-31](https://github.com/alonrbar/easy-template-x/tree/v5.0.1)
+
+## Added
+
+- Link to https://templatedocs.io.
+
 ## [5.0.0 - 2025-01-28](https://github.com/alonrbar/easy-template-x/tree/v5.0.0)
 
 ### Fixed
