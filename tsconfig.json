@@ -24,7 +24,7 @@
 
         "alwaysStrict": true,
         "allowSyntheticDefaultImports": true,
-        "allowUnreachableCode": false,
+        "allowUnreachableCode": true,
         "forceConsistentCasingInFileNames": true,
         "lib": ["dom", "es2023"],
         "noImplicitAny": true,

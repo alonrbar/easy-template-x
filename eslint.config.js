@@ -48,7 +48,7 @@ export default tseslint.config({
         "@typescript-eslint/no-var-requires": "off",
         "linebreak-style": "off",
         "no-multiple-empty-lines": ["error", { "max": 1 }],
-        "no-unreachable": "warn",
+        "no-unreachable": "error",
         "no-var": "error",
         "prefer-const": "error",
         "semi": ["error", "always"]
