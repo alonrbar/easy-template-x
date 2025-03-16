@@ -4,7 +4,7 @@ import { PluginUtilities } from '../../templatePlugin';
 import { LoopOver, LoopTagOptions } from '../loopTagOptions';
 import { ILoopStrategy, SplitBeforeResult } from './iLoopStrategy';
 
-export class LoopTableStrategy implements ILoopStrategy {
+export class LoopTableRowsStrategy implements ILoopStrategy {
 
     private utilities: PluginUtilities;
 
@@ -13,25 +13,19 @@ export class LoopTableStrategy implements ILoopStrategy {
     }
 
     public isApplicable(openTag: Tag, closeTag: Tag, isCondition: boolean): boolean {
-        const openParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
-        if (!openParagraph.parentNode)
+        const openCell = this.utilities.docxParser.containingTableCellNode(openTag.xmlTextNode);
+        if (!openCell)
             return false;
 
-        if (!this.utilities.docxParser.isTableCellNode(openParagraph.parentNode))
-            return false;
-
-        const closeParagraph = this.utilities.docxParser.containingParagraphNode(closeTag.xmlTextNode);
-        if (!closeParagraph.parentNode)
-            return false;
-
-        if (!this.utilities.docxParser.isTableCellNode(closeParagraph.parentNode))
+        const closeCell = this.utilities.docxParser.containingTableCellNode(closeTag.xmlTextNode);
+        if (!closeCell)
             return false;
 
         const options = openTag.options as LoopTagOptions;
         const forceRowLoop = options?.loopOver === LoopOver.Row;
 
         // If both tags are in the same cell, assume it's a paragraph loop (iterate content, not rows).
-        if (!forceRowLoop && openParagraph.parentNode === closeParagraph.parentNode)
+        if (!forceRowLoop && openCell === closeCell)
             return false;
 
         return true;

@@ -32,6 +32,7 @@ export class DocxParser {
     public static readonly TEXT_NODE = 'w:t';
     public static readonly TABLE_ROW_NODE = 'w:tr';
     public static readonly TABLE_CELL_NODE = 'w:tc';
+    public static readonly TABLE_NODE = 'w:tbl';
     public static readonly NUMBER_PROPERTIES_NODE = 'w:numPr';
 
     //
@@ -370,6 +371,20 @@ export class DocxParser {
      */
     public containingTableRowNode(node: XmlNode): XmlNode {
         return XmlNode.findParentByName(node, DocxParser.TABLE_ROW_NODE);
+    }
+
+    /**
+     * Search **upwards** for the first "table cell" node.
+     */
+    public containingTableCellNode(node: XmlNode): XmlNode {
+        return XmlNode.findParentByName(node, DocxParser.TABLE_CELL_NODE);
+    }
+
+    /**
+     * Search **upwards** for the first "table" node.
+     */
+    public containingTableNode(node: XmlNode): XmlNode {
+        return XmlNode.findParentByName(node, DocxParser.TABLE_NODE);
     }
 
     //

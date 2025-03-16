@@ -4,6 +4,10 @@ export const LoopOver = Object.freeze({
      */
     Row: 'row',
     /**
+     * Loop over the entire column.
+     */
+    Column: 'column',
+    /**
      * Loop over the content enclosed between the opening and closing tag.
      */
     Content: 'content'

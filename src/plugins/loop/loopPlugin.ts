@@ -1,9 +1,9 @@
-import { PathPart, ScopeData, Tag, TemplateContext } from '../../compilation';
-import { TemplateData } from '../../templateData';
-import { last } from '../../utils';
-import { XmlNode } from '../../xml';
-import { PluginUtilities, TemplatePlugin } from '../templatePlugin';
-import { ILoopStrategy, LoopListStrategy, LoopParagraphStrategy, LoopTableStrategy } from './strategy';
+import { PathPart, ScopeData, Tag, TemplateContext } from "../../compilation";
+import { TemplateData } from "../../templateData";
+import { last } from "../../utils";
+import { XmlNode } from "../../xml";
+import { PluginUtilities, TemplatePlugin } from "../templatePlugin";
+import { ILoopStrategy, LoopListStrategy, LoopParagraphStrategy, LoopTableColumnsStrategy, LoopTableRowsStrategy } from "./strategy";
 
 export const LOOP_CONTENT_TYPE = 'loop';
 
@@ -12,7 +12,8 @@ export class LoopPlugin extends TemplatePlugin {
     public readonly contentType = LOOP_CONTENT_TYPE;
 
     private readonly loopStrategies: ILoopStrategy[] = [
-        new LoopTableStrategy(),
+        new LoopTableColumnsStrategy(),
+        new LoopTableRowsStrategy(),
         new LoopListStrategy(),
         new LoopParagraphStrategy() // the default strategy
     ];
