@@ -1,8 +1,8 @@
-import { IMap } from '../types';
-import { Path } from '../utils';
-import { XmlGeneralNode, XmlNode, XmlParser } from '../xml';
-import { Zip } from '../zip';
-import { Relationship, RelTargetMode } from './relationship';
+import { IMap } from "../types";
+import { Path } from "../utils";
+import { XmlGeneralNode, XmlNode, xmlParser } from "../xml";
+import { Zip } from "../zip";
+import { Relationship, RelTargetMode } from "./relationship";
 
 /**
  * A rels file is an xml file that contains the relationship information of a single docx "part".
@@ -20,8 +20,7 @@ export class RelsFile {
 
     constructor(
         partPath: string,
-        private readonly zip: Zip,
-        private readonly xmlParser: XmlParser
+        private readonly zip: Zip
     ) {
 
         this.partDir = partPath && Path.getDirectory(partPath);
@@ -85,7 +84,7 @@ export class RelsFile {
         root.childNodes = Object.values(this.rels).map(rel => rel.toXml());
 
         // serialize and save
-        const xmlContent = this.xmlParser.serialize(root);
+        const xmlContent = xmlParser.serialize(root);
         this.zip.setFile(this.relsFilePath, xmlContent);
     }
 
@@ -115,7 +114,7 @@ export class RelsFile {
         const relsFile = this.zip.getFile(this.relsFilePath);
         if (relsFile) {
             const xml = await relsFile.getContentText();
-            root = this.xmlParser.parse(xml);
+            root = xmlParser.parse(xml);
         } else {
             root = this.createRootNode();
         }

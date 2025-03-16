@@ -1,6 +1,5 @@
 import { MimeType } from 'src/mimeType';
 import { RelsFile } from 'src/office/relsFile';
-import { XmlParser } from 'src';
 
 describe(RelsFile, () => {
 
@@ -12,7 +11,7 @@ describe(RelsFile, () => {
                 getFile: (): any => null
             };
 
-            const rels = new RelsFile('word/document.xml', fakeZip, new XmlParser());
+            const rels = new RelsFile('word/document.xml', fakeZip);
 
             const rel1 = await rels.add('my image.jpeg', MimeType.Jpeg);
             const rel2 = await rels.add('my image.jpeg', MimeType.Jpeg);

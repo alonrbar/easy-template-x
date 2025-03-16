@@ -1,14 +1,14 @@
-import { DelimiterSearcher, ScopeData, Tag, TagParser, TemplateCompiler, TemplateContext } from './compilation';
-import { Delimiters } from './delimiters';
-import { MalformedFileError } from './errors';
-import { TemplateExtension } from './extensions';
-import { ContentPartType, Docx, DocxParser } from './office';
-import { TemplateData } from './templateData';
-import { TemplateHandlerOptions } from './templateHandlerOptions';
-import { Constructor } from './types';
-import { Binary } from './utils';
-import { XmlNode, XmlParser } from './xml';
-import { Zip } from './zip';
+import { DelimiterSearcher, ScopeData, Tag, TagParser, TemplateCompiler, TemplateContext } from "./compilation";
+import { Delimiters } from "./delimiters";
+import { MalformedFileError } from "./errors";
+import { TemplateExtension } from "./extensions";
+import { ContentPartType, Docx, DocxParser } from "./office";
+import { TemplateData } from "./templateData";
+import { TemplateHandlerOptions } from "./templateHandlerOptions";
+import { Constructor } from "./types";
+import { Binary } from "./utils";
+import { XmlNode, xmlParser } from "./xml";
+import { Zip } from "./zip";
 
 export class TemplateHandler {
 
@@ -17,7 +17,6 @@ export class TemplateHandler {
      */
     public readonly version = (typeof EASY_VERSION !== 'undefined' ? EASY_VERSION : 'null');
 
-    private readonly xmlParser = new XmlParser();
     private readonly docxParser: DocxParser;
     private readonly compiler: TemplateCompiler;
 
@@ -30,7 +29,7 @@ export class TemplateHandler {
         // this is the library's composition root
         //
 
-        this.docxParser = new DocxParser(this.xmlParser);
+        this.docxParser = new DocxParser();
 
         const delimiterSearcher = new DelimiterSearcher(this.docxParser);
         delimiterSearcher.startDelimiter = this.options.delimiters.tagStart;
@@ -52,14 +51,14 @@ export class TemplateHandler {
 
         this.options.plugins.forEach(plugin => {
             plugin.setUtilities({
-                xmlParser: this.xmlParser,
+                xmlParser: xmlParser,
                 docxParser: this.docxParser,
                 compiler: this.compiler
             });
         });
 
         const extensionUtilities = {
-            xmlParser: this.xmlParser,
+            xmlParser: xmlParser,
             docxParser: this.docxParser,
             tagParser,
             compiler: this.compiler
@@ -183,7 +182,7 @@ export class TemplateHandler {
         }
 
         // load the docx file
-        const docx = await this.docxParser.load(zip);
+        const docx = await Docx.open(zip);
         return docx;
     }
 }

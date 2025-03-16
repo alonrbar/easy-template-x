@@ -1,6 +1,6 @@
-import { XmlNode, XmlParser } from '../xml';
-import { Zip } from '../zip';
-import { RelsFile } from './relsFile';
+import { XmlNode, xmlParser } from "../xml";
+import { Zip } from "../zip";
+import { RelsFile } from "./relsFile";
 
 /**
  * Represents an xml file that is part of an OPC package.
@@ -15,10 +15,9 @@ export class XmlPart {
 
     constructor(
         public readonly path: string,
-        private readonly zip: Zip,
-        private readonly xmlParser: XmlParser
+        private readonly zip: Zip
     ) {
-        this.rels = new RelsFile(this.path, zip, xmlParser);
+        this.rels = new RelsFile(this.path, zip);
     }
 
     //
@@ -33,7 +32,7 @@ export class XmlPart {
         if (!this.root) {
             const file = this.zip.getFile(this.path);
             const xml = await file.getContentText();
-            this.root = this.xmlParser.parse(xml);
+            this.root = xmlParser.parse(xml);
         }
         return this.root;
     }
@@ -45,8 +44,8 @@ export class XmlPart {
         const xmlDocument = await this.xmlRoot();
 
         // ugly but good enough...
-        const xml = this.xmlParser.serialize(xmlDocument);
-        const domDocument = this.xmlParser.domParse(xml);
+        const xml = xmlParser.serialize(xmlDocument);
+        const domDocument = xmlParser.domParse(xml);
 
         return domDocument.documentElement.textContent;
     }
@@ -56,7 +55,7 @@ export class XmlPart {
         // save xml
         if (this.root) {
             const xmlRoot = await this.xmlRoot();
-            const xmlContent = this.xmlParser.serialize(xmlRoot);
+            const xmlContent = xmlParser.serialize(xmlRoot);
             this.zip.setFile(this.path, xmlContent);
         }
 

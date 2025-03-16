@@ -1,6 +1,6 @@
 import { LoopParagraphStrategy } from 'src/plugins/loop/strategy';
 import { parseXml } from '../../../testUtils';
-import { DocxParser, XmlParser, PluginUtilities, Tag, TagDisposition, XmlTextNode } from 'src';
+import { DocxParser, PluginUtilities, Tag, TagDisposition, XmlTextNode } from 'src';
 
 describe(nameof(LoopParagraphStrategy), () => {
 
@@ -44,7 +44,7 @@ describe(nameof(LoopParagraphStrategy), () => {
 
             const strategy = new LoopParagraphStrategy();
             const pluginUtilities: PluginUtilities = {
-                docxParser: new DocxParser(new XmlParser())
+                docxParser: new DocxParser()
             } as any;
             strategy.setUtilities(pluginUtilities);
 

@@ -1,7 +1,7 @@
 import { MalformedFileError } from '../errors';
 import { Constructor, IMap } from '../types';
 import { Binary, last } from '../utils';
-import { XmlGeneralNode, XmlNodeType, XmlParser } from '../xml';
+import { XmlGeneralNode, XmlNodeType } from '../xml';
 import { Zip } from '../zip';
 import { ContentPartType } from './contentPartType';
 import { ContentTypesFile } from './contentTypesFile';
@@ -15,17 +15,17 @@ import { XmlPart } from './xmlPart';
  */
 export class Docx {
 
-    public static async open(zip: Zip, xmlParser: XmlParser): Promise<Docx> {
-        const mainDocumentPath = await Docx.getMainDocumentPath(zip, xmlParser);
+    public static async open(zip: Zip): Promise<Docx> {
+        const mainDocumentPath = await Docx.getMainDocumentPath(zip);
         if (!mainDocumentPath)
             throw new MalformedFileError('docx');
 
-        return new Docx(mainDocumentPath, zip, xmlParser);
+        return new Docx(mainDocumentPath, zip);
     }
 
-    private static async getMainDocumentPath(zip: Zip, xmlParser: XmlParser): Promise<string> {
+    private static async getMainDocumentPath(zip: Zip): Promise<string> {
         const rootPart = '';
-        const rootRels = new RelsFile(rootPart, zip, xmlParser);
+        const rootRels = new RelsFile(rootPart, zip);
         const relations = await rootRels.list();
         return relations.find(rel => rel.type == RelType.MainDocument)?.target;
     }
@@ -55,11 +55,10 @@ export class Docx {
     private constructor(
         mainDocumentPath: string,
         private readonly zip: Zip,
-        private readonly xmlParser: XmlParser
     ) {
-        this.mainDocument = new XmlPart(mainDocumentPath, zip, xmlParser);
+        this.mainDocument = new XmlPart(mainDocumentPath, zip);
         this.mediaFiles = new MediaFiles(zip);
-        this.contentTypes = new ContentTypesFile(zip, xmlParser);
+        this.contentTypes = new ContentTypesFile(zip);
     }
 
     //
@@ -133,7 +132,7 @@ export class Docx {
         const relTarget = rels.find(r => r.id === relId).target;
         if (!this._parts[relTarget]) {
             const partPath = relTarget.startsWith('word/') ? relTarget : "word/" + relTarget;
-            const part = new XmlPart(partPath, this.zip, this.xmlParser);
+            const part = new XmlPart(partPath, this.zip);
             this._parts[relTarget] = part;
         }
         return this._parts[relTarget];

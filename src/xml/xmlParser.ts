@@ -28,3 +28,5 @@ export class XmlParser {
         return XmlParser.xmlHeader + XmlNode.serialize(xmlNode);
     }
 }
+
+export const xmlParser = new XmlParser();

@@ -1,6 +1,4 @@
-import { XmlGeneralNode, XmlNode, XmlParser, XmlTextNode } from '../xml';
-import { Zip } from '../zip';
-import { Docx } from './docx';
+import { XmlGeneralNode, XmlNode, XmlTextNode } from '../xml';
 
 export class DocxParser {
 
@@ -34,23 +32,6 @@ export class DocxParser {
     public static readonly TABLE_CELL_NODE = 'w:tc';
     public static readonly TABLE_NODE = 'w:tbl';
     public static readonly NUMBER_PROPERTIES_NODE = 'w:numPr';
-
-    //
-    // constructor
-    //
-
-    constructor(
-        private readonly xmlParser: XmlParser
-    ) {
-    }
-
-    //
-    // parse document
-    //
-
-    public load(zip: Zip): Promise<Docx> {
-        return Docx.open(zip, this.xmlParser);
-    }
 
     //
     // content manipulation

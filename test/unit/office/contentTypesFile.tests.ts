@@ -1,5 +1,4 @@
 import { MimeType } from 'src/mimeType';
-import { XmlParser } from 'src';
 import { ContentTypesFile } from 'src/office/contentTypesFile';
 
 describe(nameof(ContentTypesFile), () => {
@@ -14,7 +13,7 @@ describe(nameof(ContentTypesFile), () => {
                 })
             };
 
-            const contentTypes = new ContentTypesFile(fakeZip, new XmlParser());
+            const contentTypes = new ContentTypesFile(fakeZip);
             const countBefore = await contentTypes.count();
             expect(countBefore).toEqual(10);
 

@@ -1,8 +1,6 @@
 import * as fs from 'fs';
 import { loremIpsum } from 'lorem-ipsum';
-import { XmlNode, XmlParser } from '../src/xml';
-
-const xmlParser = new XmlParser();
+import { XmlNode, xmlParser } from '../src/xml';
 
 export function removeWhiteSpace(text: string): string {
     return _removeWhiteSpace(text);

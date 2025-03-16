@@ -1,5 +1,5 @@
-import {COMMENT_NODE_NAME, TEXT_NODE_NAME, XmlCommentNode, XmlNode, XmlNodeType, XmlParser, XmlTextNode} from 'src/xml';
-import { parseXml } from '../../testUtils';
+import { COMMENT_NODE_NAME, TEXT_NODE_NAME, XmlCommentNode, XmlNode, XmlNodeType, xmlParser, XmlTextNode } from "src/xml";
+import { parseXml } from "../../testUtils";
 
 describe(nameof(XmlNode), () => {
 
@@ -249,8 +249,6 @@ describe(nameof(XmlNode), () => {
     });
 
 });
-
-const xmlParser = new XmlParser();
 
 function createDomNode(xml: string, removeWhiteSpace = false): Node {
     if (removeWhiteSpace) // remove all whitespace outside of tags

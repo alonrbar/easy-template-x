@@ -1,7 +1,7 @@
-import { MimeType, MimeTypeHelper } from '../mimeType';
-import { IMap } from '../types';
-import { XmlGeneralNode, XmlNode, XmlParser } from '../xml';
-import { Zip } from '../zip';
+import { MimeType, MimeTypeHelper } from "../mimeType";
+import { IMap } from "../types";
+import { XmlGeneralNode, XmlNode, xmlParser } from "../xml";
+import { Zip } from "../zip";
 
 /**
  * http://officeopenxml.com/anatomyofOOXML.php
@@ -17,8 +17,7 @@ export class ContentTypesFile {
     private contentTypes: IMap<boolean>;
 
     constructor(
-        private readonly zip: Zip,
-        private readonly xmlParser: XmlParser
+        private readonly zip: Zip
     ) {
     }
 
@@ -60,7 +59,7 @@ export class ContentTypesFile {
         if (!this.addedNew)
             return;
 
-        const xmlContent = this.xmlParser.serialize(this.root);
+        const xmlContent = xmlParser.serialize(this.root);
         this.zip.setFile(ContentTypesFile.contentTypesFilePath, xmlContent);
     }
 
@@ -70,7 +69,7 @@ export class ContentTypesFile {
 
         // parse the xml file
         const contentTypesXml = await this.zip.getFile(ContentTypesFile.contentTypesFilePath).getContentText();
-        this.root = this.xmlParser.parse(contentTypesXml);
+        this.root = xmlParser.parse(contentTypesXml);
 
         // build the content types lookup
         this.contentTypes = {};

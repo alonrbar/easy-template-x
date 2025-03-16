@@ -1,11 +1,11 @@
-import { DelimiterMark } from 'src/compilation/delimiterMark';
-import { TagDisposition } from 'src/compilation/tag';
-import { TagParser } from 'src/compilation/tagParser';
-import { Delimiters } from 'src/delimiters';
-import { MissingCloseDelimiterError, TagOptionsParseError } from 'src/errors';
-import { DocxParser } from 'src/office';
-import { XmlParser, XmlTextNode } from 'src/xml';
-import { parseXml } from '../../testUtils';
+import { DelimiterMark } from "src/compilation/delimiterMark";
+import { TagDisposition } from "src/compilation/tag";
+import { TagParser } from "src/compilation/tagParser";
+import { Delimiters } from "src/delimiters";
+import { MissingCloseDelimiterError, TagOptionsParseError } from "src/errors";
+import { DocxParser } from "src/office";
+import { XmlTextNode } from "src/xml";
+import { parseXml } from "../../testUtils";
 
 describe(TagParser, () => {
 
@@ -497,8 +497,7 @@ describe(TagParser, () => {
 
 function createTagParser(delim?: Partial<Delimiters>): TagParser {
 
-    const xmlParser = new XmlParser();
-    const docxParser = new DocxParser(xmlParser);
+    const docxParser = new DocxParser();
     const delimiters = new Delimiters(delim);
     return new TagParser(docxParser, delimiters);
 }

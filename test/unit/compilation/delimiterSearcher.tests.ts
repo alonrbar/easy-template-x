@@ -1,6 +1,6 @@
 import { DelimiterMark, DelimiterSearcher } from 'src/compilation';
 import { DocxParser } from 'src/office';
-import { XmlParser, XmlTextNode } from 'src/xml';
+import { XmlTextNode } from 'src/xml';
 import { parseXml } from '../../testUtils';
 
 describe(nameof(DelimiterSearcher), () => {
@@ -402,7 +402,6 @@ describe(nameof(DelimiterSearcher), () => {
 });
 
 function createDelimiterSearcher(): DelimiterSearcher {
-    const xmlParser = new XmlParser();
-    const docxParser = new DocxParser(xmlParser);
+    const docxParser = new DocxParser();
     return new DelimiterSearcher(docxParser);
 }

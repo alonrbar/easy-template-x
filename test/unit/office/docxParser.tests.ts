@@ -1,5 +1,5 @@
 import { DocxParser } from 'src/office';
-import { XmlParser, XmlTextNode } from 'src/xml';
+import { XmlTextNode } from 'src/xml';
 import { parseXml } from '../../testUtils';
 
 describe(nameof(DocxParser), () => {
@@ -113,6 +113,5 @@ describe(nameof(DocxParser), () => {
 });
 
 function createDocxParser(): DocxParser {
-    const xmlParser = new XmlParser();
-    return new DocxParser(xmlParser);
+    return new DocxParser();
 }
