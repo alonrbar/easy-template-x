@@ -282,7 +282,7 @@ The default heuristics are as follows:
 1. If both loop tags are inside the same table cell - the plugin assumes you want to repeat the **cell content**, not the row or column.
 2. If both loop tags are in the same column - the plugin will repeat the **column**.
 3. If both loop tags are inside a table - the plugin will repeat the relevant table **rows**.
-4. If both loop tags are in list - the plugin will repeat the relevant **list items**.
+4. If both loop tags are in a list - the plugin will repeat the relevant **list items**.
 5. Otherwise - the plugin will use a naive approach for repeating the **content** in between the loop tags.
 
 ##### Changing the default

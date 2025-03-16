@@ -4,7 +4,7 @@
 
 ## Added
 
-- Table columns loop support (#41).
+- Table columns loop support ([#41](https://github.com/alonrbar/easy-template-x/issues/41)).
 
 ## [5.0.1 - 2025-01-31](https://github.com/alonrbar/easy-template-x/tree/v5.0.1)
 
