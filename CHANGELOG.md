@@ -1,5 +1,11 @@
 # Changelog
 
+## [5.1.0 - 2025-03-16](https://github.com/alonrbar/easy-template-x/tree/v5.1.0)
+
+## Added
+
+- Table columns loop support (#41).
+
 ## [5.0.1 - 2025-01-31](https://github.com/alonrbar/easy-template-x/tree/v5.0.1)
 
 ## Added
