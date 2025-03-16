@@ -14,7 +14,7 @@ export default tseslint.config({
         "@typescript-eslint/class-name-casing": "off",
         "@typescript-eslint/explicit-function-return-type": "off",
         "@typescript-eslint/explicit-member-accessibility": "off",
-        "@typescript-eslint/indent": ["error", 4, {
+        "indent": ["error", 4, {
             "flatTernaryExpressions": true,
             "SwitchCase": 1
         }],
