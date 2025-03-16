@@ -46,7 +46,6 @@ Generate docx documents from templates, in Node or in the browser.
 - [Supported Binary Formats](#supported-binary-formats)
 - [Internal API](#note---internal-api)
 - [Philosophy](#philosophy)
-- [Prior art and motivation](#prior-art-and-motivation)
 - [Changelog](#changelog)
 
 ## Node Example
@@ -175,7 +174,7 @@ Output document:
 
 ### Loop plugin
 
-Iterates text, table rows and lists.  
+Iterates text, table rows, table columns and lists.  
 Requires an opening tag that starts with `#` and a closing tag that starts with `/` ([configurable](#custom-tag-delimiters)).
 
 **Note**: The closing tag does not need to have the same name as the opening tag, or a name at all. This will work `{#loop}{/loop}`, but also this `{#loop}{/}` and even this `{#loop}{/something else}`.
@@ -272,9 +271,28 @@ _If you are looking for a yet more powerful conditional syntax see the [alternat
 
 #### Controlling loop behavior
 
-To control the loop (or condition) behavior you can use the `loopOver` option.
+The loop plugin uses some heuristics to determine the right behavior in each
+case (i.e. when to loop over rows, columns, paragraphs, etc.). You can control this behavior
+explicitly through the `loopOver` option as explain below.
 
-Given this data:
+##### Default behavior
+
+The default heuristics are as follows:
+
+1. If both loop tags are inside the same table cell - the plugin assumes you want to repeat the **cell content**, not the row or column.
+2. If both loop tags are in the same column - the plugin will repeat the **column**.
+3. If both loop tags are inside a table - the plugin will repeat the relevant table **rows**.
+4. If both loop tags are in list - the plugin will repeat the relevant **list items**.
+5. Otherwise - the plugin will use a naive approach for repeating the **content** in between the loop tags.
+
+##### Changing the default
+
+To use a different behavior than the default one you can use the `loopOver`
+option. Supported values are: `row`, `column` and `content`.
+
+**Note:** This option controls conditions too.
+
+For instance, given this data:
 
 ```javascript
 {
@@ -285,11 +303,15 @@ Given this data:
 }
 ```
 
-You can use either this template:
+You can use this syntax:
 
 ![input template](./docs/assets/loop-over-row-in.png?raw=true)
 
-Or this one:
+Or this syntax:
+
+![input template](./docs/assets/loop-over-column-in.png?raw=true)
+
+Or this syntax:
 
 ![input template](./docs/assets/loop-over-content-in.png?raw=true)
 
@@ -297,11 +319,13 @@ The first will produce this document:
 
 ![output document](./docs/assets/loop-over-row-out.png?raw=true)
 
-And the second will produce this one:
+The second will produce this document:
+
+![output document](./docs/assets/loop-over-column-out.png?raw=true)
+
+And the third will produce this document:
 
 ![output document](./docs/assets/loop-over-content-out.png?raw=true)
-
-By default `easy-template-x` will loop over "content" if the opening and closing loop tags are in the same table cell and "row" otherwise.
 
 ### Image plugin
 
