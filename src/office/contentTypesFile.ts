@@ -16,9 +16,10 @@ export class ContentTypesFile {
 
     private contentTypes: IMap<boolean>;
 
-    constructor(
-        private readonly zip: Zip
-    ) {
+    private readonly zip: Zip;
+
+    constructor(zip: Zip) {
+        this.zip = zip;
     }
 
     public async ensureContentType(mime: MimeType): Promise<void> {

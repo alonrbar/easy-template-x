@@ -40,9 +40,13 @@ export class DelimiterSearcher {
     public startDelimiter = "{";
     public endDelimiter = "}";
 
-    constructor(private readonly docxParser: DocxParser) {
+    private readonly docxParser: DocxParser;
+
+    constructor(docxParser: DocxParser) {
         if (!docxParser)
             throw new MissingArgumentError(nameof(docxParser));
+
+        this.docxParser = docxParser;
     }
 
     public findDelimiters(node: XmlNode): DelimiterMark[] {

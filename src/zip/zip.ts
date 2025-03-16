@@ -11,7 +11,10 @@ export class Zip {
         return new Zip(zip);
     }
 
-    private constructor(private readonly zip: JSZip) {
+    private readonly zip: JSZip;
+
+    private constructor(zip: JSZip) {
+        this.zip = zip;
     }
 
     public getFile(path: string): ZipObject {

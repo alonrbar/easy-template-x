@@ -17,7 +17,11 @@ export class ZipObject {
         return this.zipObject.dir;
     }
 
-    constructor(private readonly zipObject: JSZip.JSZipObject) { }
+    private readonly zipObject: JSZip.JSZipObject;
+
+    constructor(zipObject: JSZip.JSZipObject) {
+        this.zipObject = zipObject;
+    }
 
     public getContentText(): Promise<string> {
         return this.zipObject.async('text');

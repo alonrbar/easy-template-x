@@ -17,12 +17,10 @@ export class RelsFile {
 
     private readonly partDir: string;
     private readonly relsFilePath: string;
+    private readonly zip: Zip;
 
-    constructor(
-        partPath: string,
-        private readonly zip: Zip
-    ) {
-
+    constructor(partPath: string, zip: Zip) {
+        this.zip = zip;
         this.partDir = partPath && Path.getDirectory(partPath);
         const partFilename = partPath && Path.getFilename(partPath);
         this.relsFilePath = Path.combine(this.partDir, '_rels', `${partFilename ?? ''}.rels`);

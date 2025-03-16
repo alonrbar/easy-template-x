@@ -10,13 +10,15 @@ import { RelsFile } from "./relsFile";
 export class XmlPart {
 
     public readonly rels: RelsFile;
+    public readonly path: string;
 
     private root: XmlNode;
 
-    constructor(
-        public readonly path: string,
-        private readonly zip: Zip
-    ) {
+    private readonly zip: Zip;
+
+    constructor(path: string, zip: Zip) {
+        this.path = path;
+        this.zip = zip;
         this.rels = new RelsFile(this.path, zip);
     }
 

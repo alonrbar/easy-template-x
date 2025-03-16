@@ -28,14 +28,20 @@ export interface TemplateCompilerOptions {
 export class TemplateCompiler {
 
     private readonly pluginsLookup: IMap<TemplatePlugin>;
+    private readonly delimiterSearcher: DelimiterSearcher;
+    private readonly tagParser: TagParser;
+    private readonly options: TemplateCompilerOptions;
 
     constructor(
-        private readonly delimiterSearcher: DelimiterSearcher,
-        private readonly tagParser: TagParser,
+        delimiterSearcher: DelimiterSearcher,
+        tagParser: TagParser,
         plugins: TemplatePlugin[],
-        private readonly options: TemplateCompilerOptions
+        options: TemplateCompilerOptions
     ) {
+        this.delimiterSearcher = delimiterSearcher;
+        this.tagParser = tagParser;
         this.pluginsLookup = toDictionary(plugins, p => p.contentType);
+        this.options = options;
     }
 
     /**

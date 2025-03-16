@@ -10,14 +10,20 @@ export class TagParser {
 
     private readonly tagRegex: RegExp;
 
+    private readonly docParser: DocxParser;
+    private readonly delimiters: Delimiters;
+
     constructor(
-        private readonly docParser: DocxParser,
-        private readonly delimiters: Delimiters
+        docParser: DocxParser,
+        delimiters: Delimiters
     ) {
         if (!docParser)
             throw new MissingArgumentError(nameof(docParser));
         if (!delimiters)
             throw new MissingArgumentError(nameof(delimiters));
+
+        this.docParser = docParser;
+        this.delimiters = delimiters;
 
         const tagOptionsRegex = `${Regex.escape(delimiters.tagOptionsStart)}(?<tagOptions>.*?)${Regex.escape(delimiters.tagOptionsEnd)}`;
         this.tagRegex = new RegExp(`^${Regex.escape(delimiters.tagStart)}(?<tagName>.*?)(${tagOptionsRegex})?${Regex.escape(delimiters.tagEnd)}`, 'm');

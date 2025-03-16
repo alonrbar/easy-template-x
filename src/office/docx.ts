@@ -40,6 +40,8 @@ export class Docx {
 
     private readonly _parts: IMap<XmlPart> = {};
 
+    private readonly zip: Zip;
+
     /**
      * **Notice:** You should only use this property if there is no other way to
      * do what you need. Use with caution.
@@ -54,8 +56,9 @@ export class Docx {
 
     private constructor(
         mainDocumentPath: string,
-        private readonly zip: Zip,
+        zip: Zip,
     ) {
+        this.zip = zip;
         this.mainDocument = new XmlPart(mainDocumentPath, zip);
         this.mediaFiles = new MediaFiles(zip);
         this.contentTypes = new ContentTypesFile(zip);

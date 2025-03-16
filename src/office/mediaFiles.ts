@@ -14,7 +14,10 @@ export class MediaFiles {
     private readonly files = new Map<Binary, string>();
     private nextFileId = 0;
 
-    constructor(private readonly zip: Zip) {
+    private readonly zip: Zip;
+
+    constructor(zip: Zip) {
+        this.zip = zip;
     }
 
     /**
