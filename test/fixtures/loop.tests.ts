@@ -476,5 +476,45 @@ describe('loop fixtures', () => {
 
             // writeTempFile('loop - table - loopOver - output.docx', doc);
         });
+
+        test("table column loop", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("loop - table - columns.docx");
+            const templateText = await handler.getText(template);
+            expect(removeWhiteSpace(templateText)).toEqual(removeWhiteSpace(`
+                Static 1    {#loop}{prop1}  Static 4
+                Static 2    Repeat me
+                            {prop2}         Static 5
+                Static 3    {/loop}         Static 6
+            `));
+
+            const data = {
+                loop: [
+                    {
+                        prop1: 'Dynamic 1',
+                        prop2: 'Dynamic 2'
+                    },
+                    {
+                        prop1: 'Dynamic 3',
+                        prop2: 'Dynamic 4'
+                    }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docText = await handler.getText(doc);
+            expect(removeWhiteSpace(docText)).toEqual(removeWhiteSpace(`
+                Static 1    Dynamic 1   Dynamic 3   Static 4
+                Static 2    Repeat me   Repeat me
+                            Dynamic 2   Dynamic 4   Static 5
+                Static 3                            Static 6
+            `));
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+        });
     });
 });
