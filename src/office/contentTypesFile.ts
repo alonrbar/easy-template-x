@@ -1,6 +1,6 @@
 import { MimeType, MimeTypeHelper } from "src/mimeType";
 import { IMap } from "src/types";
-import { xml, XmlGeneralNode, XmlNode, xmlParser } from "src/xml";
+import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 import { Zip } from "src/zip";
 
 /**
@@ -60,7 +60,7 @@ export class ContentTypesFile {
         if (!this.addedNew)
             return;
 
-        const xmlContent = xmlParser.serialize(this.root);
+        const xmlContent = xml.parser.serializeFile(this.root);
         this.zip.setFile(ContentTypesFile.contentTypesFilePath, xmlContent);
     }
 
@@ -70,7 +70,7 @@ export class ContentTypesFile {
 
         // parse the xml file
         const contentTypesXml = await this.zip.getFile(ContentTypesFile.contentTypesFilePath).getContentText();
-        this.root = xmlParser.parse(contentTypesXml);
+        this.root = xml.parser.parse(contentTypesXml);
 
         // build the content types lookup
         this.contentTypes = {};

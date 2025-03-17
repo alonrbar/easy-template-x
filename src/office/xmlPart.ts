@@ -1,5 +1,5 @@
-import { XmlNode, xmlParser } from "../xml";
-import { Zip } from "../zip";
+import { xml, XmlNode } from "src/xml";
+import { Zip } from "src/zip";
 import { RelsFile } from "./relsFile";
 
 /**
@@ -33,8 +33,8 @@ export class XmlPart {
     public async xmlRoot(): Promise<XmlNode> {
         if (!this.root) {
             const file = this.zip.getFile(this.path);
-            const xml = await file.getContentText();
-            this.root = xmlParser.parse(xml);
+            const xmlString = await file.getContentText();
+            this.root = xml.parser.parse(xmlString);
         }
         return this.root;
     }
@@ -46,8 +46,8 @@ export class XmlPart {
         const xmlDocument = await this.xmlRoot();
 
         // ugly but good enough...
-        const xml = xmlParser.serialize(xmlDocument);
-        const domDocument = xmlParser.domParse(xml);
+        const xmlString = xml.parser.serializeFile(xmlDocument);
+        const domDocument = xml.parser.domParse(xmlString);
 
         return domDocument.documentElement.textContent;
     }
@@ -57,7 +57,7 @@ export class XmlPart {
         // save xml
         if (this.root) {
             const xmlRoot = await this.xmlRoot();
-            const xmlContent = xmlParser.serialize(xmlRoot);
+            const xmlContent = xml.parser.serializeFile(xmlRoot);
             this.zip.setFile(this.path, xmlContent);
         }
 

@@ -1,3 +1,4 @@
+import { DOMParser } from "@xmldom/xmldom";
 import { MissingArgumentError } from "src/errors";
 import { last } from "src/utils";
 import { COMMENT_NODE_NAME, XmlGeneralNode, XmlNode, XmlNodeType } from "./xmlNode";
@@ -6,10 +7,105 @@ import { XmlTextNode } from "./xmlNode";
 
 export class XmlUtils {
 
+    public readonly parser = new Parser();
     public readonly create = new Create();
-    public readonly serialize = new Serialize();
     public readonly query = new Query();
     public readonly modify = new Modify();
+}
+
+class Parser {
+
+    private static xmlFileHeader = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+
+    /**
+     * We always use the DOMParser from 'xmldom', even in the browser since it
+     * handles xml namespaces more forgivingly (required mainly by the
+     * RawXmlPlugin).
+     */
+    private static readonly parser = new DOMParser();
+
+    public parse(str: string): XmlNode {
+        const doc = this.domParse(str);
+        return xml.create.fromDomNode(doc.documentElement);
+    }
+
+    public domParse(str: string): Document {
+        if (str === null || str === undefined)
+            throw new MissingArgumentError(nameof(str));
+
+        return Parser.parser.parseFromString(str, "text/xml");
+    }
+
+    /**
+     * Encode string to make it safe to use inside xml tags.
+     *
+     * https://stackoverflow.com/questions/7918868/how-to-escape-xml-entities-in-javascript
+     */
+    public encodeValue(str: string): string {
+        if (str === null || str === undefined)
+            throw new MissingArgumentError(nameof(str));
+        if (typeof str !== 'string')
+            throw new TypeError(`Expected a string, got '${(str as any).constructor.name}'.`);
+
+        return str.replace(/[<>&'"]/g, c => {
+            switch (c) {
+                case '<': return '&lt;';
+                case '>': return '&gt;';
+                case '&': return '&amp;';
+                case '\'': return '&apos;';
+                case '"': return '&quot;';
+            }
+            return '';
+        });
+    }
+
+    public serializeNode(node: XmlNode): string {
+        if (xml.query.isTextNode(node))
+            return xml.parser.encodeValue(node.textContent || '');
+
+        if (xml.query.isCommentNode(node)) {
+            return `<!-- ${xml.parser.encodeValue(node.commentContent || '')} -->`;
+        }
+
+        // attributes
+        let attributes = '';
+        if (node.attributes) {
+            const attributeNames = Object.keys(node.attributes);
+            if (attributeNames.length) {
+                attributes = ' ' + attributeNames
+                    .map(name => `${name}="${xml.parser.encodeValue(node.attributes[name] || '')}"`)
+                    .join(' ');
+            }
+        }
+
+        // open tag
+        const hasChildren = (node.childNodes || []).length > 0;
+        const suffix = hasChildren ? '' : '/';
+        const openTag = `<${node.nodeName}${attributes}${suffix}>`;
+
+        let xmlString: string;
+
+        if (hasChildren) {
+
+            // child nodes
+            const childrenXml = node.childNodes
+                .map(child => xml.parser.serializeNode(child))
+                .join('');
+
+            // close tag
+            const closeTag = `</${node.nodeName}>`;
+
+            xmlString = openTag + childrenXml + closeTag;
+        } else {
+            xmlString = openTag;
+        }
+
+        return xmlString;
+    }
+
+    public serializeFile(xmlNode: XmlNode): string {
+        return Parser.xmlFileHeader + xml.parser.serializeNode(xmlNode);
+    }
 }
 
 class Create {
@@ -109,76 +205,6 @@ class Create {
         }
 
         return xmlNode as XmlNode;
-    }
-}
-
-class Serialize {
-
-    /**
-     * Encode string to make it safe to use inside xml tags.
-     *
-     * https://stackoverflow.com/questions/7918868/how-to-escape-xml-entities-in-javascript
-     */
-    public encodeValue(str: string): string {
-        if (str === null || str === undefined)
-            throw new MissingArgumentError(nameof(str));
-        if (typeof str !== 'string')
-            throw new TypeError(`Expected a string, got '${(str as any).constructor.name}'.`);
-
-        return str.replace(/[<>&'"]/g, c => {
-            switch (c) {
-                case '<': return '&lt;';
-                case '>': return '&gt;';
-                case '&': return '&amp;';
-                case '\'': return '&apos;';
-                case '"': return '&quot;';
-            }
-            return '';
-        });
-    }
-
-    public serializeNode(node: XmlNode): string {
-        if (xml.query.isTextNode(node))
-            return xml.serialize.encodeValue(node.textContent || '');
-
-        if (xml.query.isCommentNode(node)) {
-            return `<!-- ${xml.serialize.encodeValue(node.commentContent || '')} -->`;
-        }
-
-        // attributes
-        let attributes = '';
-        if (node.attributes) {
-            const attributeNames = Object.keys(node.attributes);
-            if (attributeNames.length) {
-                attributes = ' ' + attributeNames
-                    .map(name => `${name}="${xml.serialize.encodeValue(node.attributes[name] || '')}"`)
-                    .join(' ');
-            }
-        }
-
-        // open tag
-        const hasChildren = (node.childNodes || []).length > 0;
-        const suffix = hasChildren ? '' : '/';
-        const openTag = `<${node.nodeName}${attributes}${suffix}>`;
-
-        let xmlString: string;
-
-        if (hasChildren) {
-
-            // child nodes
-            const childrenXml = node.childNodes
-                .map(child => xml.serialize.serializeNode(child))
-                .join('');
-
-            // close tag
-            const closeTag = `</${node.nodeName}>`;
-
-            xmlString = openTag + childrenXml + closeTag;
-        } else {
-            xmlString = openTag;
-        }
-
-        return xmlString;
     }
 }
 

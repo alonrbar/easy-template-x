@@ -1,15 +1,15 @@
-import * as fs from 'fs';
-import { loremIpsum } from 'lorem-ipsum';
-import { XmlNode, xmlParser } from '../src/xml';
+import * as fs from "fs";
+import { loremIpsum } from "lorem-ipsum";
+import { xml, XmlNode } from "../src/xml";
 
 export function removeWhiteSpace(text: string): string {
     return _removeWhiteSpace(text);
 }
 
-export function parseXml(xml: string, removeWhiteSpace = true): XmlNode {
+export function parseXml(xmlString: string, removeWhiteSpace = true): XmlNode {
     if (removeWhiteSpace)
-        xml = _removeWhiteSpace(xml);
-    return xmlParser.parse(xml);
+        xmlString = _removeWhiteSpace(xmlString);
+    return xml.parser.parse(xmlString);
 }
 
 export function randomWords(count = 1): string {

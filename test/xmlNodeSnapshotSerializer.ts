@@ -13,7 +13,7 @@ const serializer: jest.SnapshotSerializerPlugin = {
     },
 
     print(value) {
-        return xml.serialize.serializeNode(value as any);
+        return xml.parser.serializeNode(value as any);
     },
 };
 

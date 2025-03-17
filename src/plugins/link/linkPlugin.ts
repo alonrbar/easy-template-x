@@ -1,7 +1,7 @@
 import { ScopeData, Tag, TemplateContext } from "src/compilation";
 import { RelType, wml, WmlNode } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
-import { xml, XmlNode, xmlParser } from "src/xml";
+import { xml, XmlNode } from "src/xml";
 import { LinkContent } from "./linkContent";
 
 export class LinkPlugin extends TemplatePlugin {
@@ -48,7 +48,7 @@ export class LinkPlugin extends TemplatePlugin {
                 </w:r>
             </w:hyperlink>
         `;
-        const markupXml = xmlParser.parse(markupText);
+        const markupXml = xml.parser.parse(markupText);
         xml.modify.removeEmptyTextNodes(markupXml); // remove whitespace
 
         // copy props from original run node (preserve style)

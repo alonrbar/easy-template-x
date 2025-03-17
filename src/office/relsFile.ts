@@ -1,7 +1,7 @@
 import { Relationship, RelTargetMode } from "src/office";
 import { IMap } from "src/types";
 import { Path } from "src/utils";
-import { xml, XmlGeneralNode, XmlNode, xmlParser } from "src/xml";
+import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 import { Zip } from "src/zip";
 
 /**
@@ -82,7 +82,7 @@ export class RelsFile {
         root.childNodes = Object.values(this.rels).map(rel => rel.toXml());
 
         // serialize and save
-        const xmlContent = xmlParser.serialize(root);
+        const xmlContent = xml.parser.serializeFile(root);
         this.zip.setFile(this.relsFilePath, xmlContent);
     }
 
@@ -111,8 +111,8 @@ export class RelsFile {
         let root: XmlNode;
         const relsFile = this.zip.getFile(this.relsFilePath);
         if (relsFile) {
-            const xml = await relsFile.getContentText();
-            root = xmlParser.parse(xml);
+            const xmlString = await relsFile.getContentText();
+            root = xml.parser.parse(xmlString);
         } else {
             root = this.createRootNode();
         }

@@ -3,7 +3,7 @@ import { ArgumentError } from "src/errors";
 import { MimeTypeHelper } from "src/mimeType";
 import { wml } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
-import { xml, XmlGeneralNode, XmlNode, xmlParser } from "src/xml";
+import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 import { ImageContent } from "./imageContent";
 
 /**
@@ -79,7 +79,7 @@ export class ImagePlugin extends TemplatePlugin {
             </w:drawing>
         `;
 
-        const markupXml = xmlParser.parse(markupText) as XmlGeneralNode;
+        const markupXml = xml.parser.parse(markupText) as XmlGeneralNode;
         xml.modify.removeEmptyTextNodes(markupXml); // remove whitespace
 
         return markupXml;

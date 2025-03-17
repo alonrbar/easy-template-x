@@ -1,26 +1,26 @@
-import { COMMENT_NODE_NAME, TEXT_NODE_NAME, XmlCommentNode, XmlNode, XmlNodeType, xmlParser, XmlTextNode } from "src/xml";
+import { COMMENT_NODE_NAME, TEXT_NODE_NAME, XmlCommentNode, XmlNode, XmlNodeType, XmlTextNode } from "src/xml";
 import { parseXml } from "../../testUtils";
 import { xml, XmlUtils } from "src/xml/xml";
 
 describe(XmlUtils, () => {
 
-    describe(xml.serialize.serializeNode, () => {
+    describe(xml.parser.serializeNode, () => {
 
         it('serializes a simple text node', () => {
             const node = xml.create.textNode('hello');
-            const str = xml.serialize.serializeNode(node);
+            const str = xml.parser.serializeNode(node);
             expect(str).toEqual('hello');
         });
 
         it('serializes a text node with null value as an empty string', () => {
             const node = xml.create.textNode(null);
-            const str = xml.serialize.serializeNode(node);
+            const str = xml.parser.serializeNode(node);
             expect(str).toEqual('');
         });
 
         it('serializes a text node with undefined value as an empty string', () => {
             const node = xml.create.textNode(undefined);
-            const str = xml.serialize.serializeNode(node);
+            const str = xml.parser.serializeNode(node);
             expect(str).toEqual('');
         });
 
@@ -29,13 +29,13 @@ describe(XmlUtils, () => {
             node.attributes = {
                 att: 'Some "quoted" value.'
             };
-            const str = xml.serialize.serializeNode(node);
+            const str = xml.parser.serializeNode(node);
             expect(str).toEqual('<node att="Some &quot;quoted&quot; value."/>');
         });
 
         it('serializes a comment node', () => {
             const node = xml.create.commentNode('comment');
-            const str = xml.serialize.serializeNode(node);
+            const str = xml.parser.serializeNode(node);
             expect(str).toEqual('<!-- comment -->');
         });
     });
@@ -251,9 +251,9 @@ describe(XmlUtils, () => {
 
 });
 
-function createDomNode(xml: string, removeWhiteSpace = false): Node {
+function createDomNode(xmlString: string, removeWhiteSpace = false): Node {
     if (removeWhiteSpace) // remove all whitespace outside of tags
-        xml = xml.replace(/>\s+</g, '><').trim();
-    const document = xmlParser.domParse(xml);
+        xmlString = xmlString.replace(/>\s+</g, '><').trim();
+    const document = xml.parser.domParse(xmlString);
     return document.documentElement;
 }
