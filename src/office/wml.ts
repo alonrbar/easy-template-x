@@ -1,27 +1,46 @@
-import { XmlGeneralNode, XmlNode, XmlTextNode } from '../xml';
+import { XmlGeneralNode, XmlNode, XmlTextNode } from "src/xml";
 
-export class DocxParser {
+//
+// Wordprocessing Markup Language (WML) intro:
+//
+// In Word text nodes are contained in "run" nodes (which specifies text
+// properties such as font and color). The "run" nodes in turn are
+// contained in paragraph nodes which is the core unit of content.
+//
+// Example:
+//
+// <w:p>    <-- paragraph
+//   <w:r>      <-- run
+//     <w:rPr>      <-- run properties
+//       <w:b/>     <-- bold
+//     </w:rPr>
+//     <w:t>This is text.</w:t>     <-- actual text
+//   </w:r>
+// </w:p>
+//
+// see: http://officeopenxml.com/WPcontentOverview.php
+//
 
-    /*
-     * Word markup intro:
-     *
-     * In Word text nodes are contained in "run" nodes (which specifies text
-     * properties such as font and color). The "run" nodes in turn are
-     * contained in paragraph nodes which is the core unit of content.
-     *
-     * Example:
-     *
-     * <w:p>    <-- paragraph
-     *   <w:r>      <-- run
-     *     <w:rPr>      <-- run properties
-     *       <w:b/>     <-- bold
-     *     </w:rPr>
-     *     <w:t>This is text.</w:t>     <-- actual text
-     *   </w:r>
-     * </w:p>
-     *
-     * see: http://officeopenxml.com/WPcontentOverview.php
+/**
+ * Wordprocessing Markup Language (WML) utilities.
+ */
+export class Wml {
+
+    /**
+     * Wordprocessing Markup Language (WML) query utilities.
      */
+    public readonly query = new Query();
+
+    /**
+     * Wordprocessing Markup Language (WML) modify utilities.
+     */
+    public readonly modify = new Modify();
+}
+
+/**
+ * Wordprocessing Markup Language (WML) node names.
+ */
+export class WmlNode {
 
     public static readonly PARAGRAPH_NODE = 'w:p';
     public static readonly PARAGRAPH_PROPERTIES_NODE = 'w:pPr';
@@ -32,10 +51,12 @@ export class DocxParser {
     public static readonly TABLE_CELL_NODE = 'w:tc';
     public static readonly TABLE_NODE = 'w:tbl';
     public static readonly NUMBER_PROPERTIES_NODE = 'w:numPr';
+}
 
-    //
-    // content manipulation
-    //
+/**
+ * Wordprocessing Markup Language (WML) modify utilities.
+ */
+class Modify {
 
     /**
      * Split the text node into two text nodes, each with it's own wrapping <w:t> node.
@@ -51,14 +72,14 @@ export class DocxParser {
         let secondXmlTextNode: XmlTextNode;
 
         // split nodes
-        const wordTextNode = this.containingTextNode(textNode);
+        const wordTextNode = wml.query.containingTextNode(textNode);
         const newWordTextNode = XmlNode.cloneNode(wordTextNode, true);
 
         // set space preserve to prevent display differences after splitting
         // (otherwise if there was a space in the middle of the text node and it
         // is now at the beginning or end of the text node it will be ignored)
-        this.setSpacePreserveAttribute(wordTextNode);
-        this.setSpacePreserveAttribute(newWordTextNode);
+        wml.modify.setSpacePreserveAttribute(wordTextNode);
+        wml.modify.setSpacePreserveAttribute(newWordTextNode);
 
         if (addBefore) {
 
@@ -96,12 +117,12 @@ export class DocxParser {
     public splitParagraphByTextNode(paragraph: XmlNode, textNode: XmlTextNode, removeTextNode: boolean): [XmlNode, XmlNode] {
 
         // input validation
-        const containingParagraph = this.containingParagraphNode(textNode);
+        const containingParagraph = wml.query.containingParagraphNode(textNode);
         if (containingParagraph != paragraph)
             throw new Error(`Node '${nameof(textNode)}' is not a descendant of '${nameof(paragraph)}'.`);
 
-        const runNode = this.containingRunNode(textNode);
-        const wordTextNode = this.containingTextNode(textNode);
+        const runNode = wml.query.containingRunNode(textNode);
+        const wordTextNode = wml.query.containingTextNode(textNode);
 
         // create run clone
         const leftRun = XmlNode.cloneNode(runNode, false);
@@ -109,7 +130,7 @@ export class DocxParser {
         XmlNode.insertBefore(leftRun, rightRun);
 
         // copy props from original run node (preserve style)
-        const runProps = rightRun.childNodes.find(node => node.nodeName === DocxParser.RUN_PROPERTIES_NODE);
+        const runProps = rightRun.childNodes.find(node => node.nodeName === WmlNode.RUN_PROPERTIES_NODE);
         if (runProps) {
             const leftRunProps = XmlNode.cloneNode(runProps, true);
             XmlNode.appendChild(leftRun, leftRunProps);
@@ -135,7 +156,7 @@ export class DocxParser {
         XmlNode.insertBefore(leftPara, rightPara);
 
         // copy props from original paragraph (preserve style)
-        const paragraphProps = rightPara.childNodes.find(node => node.nodeName === DocxParser.PARAGRAPH_PROPERTIES_NODE);
+        const paragraphProps = rightPara.childNodes.find(node => node.nodeName === WmlNode.PARAGRAPH_PROPERTIES_NODE);
         if (paragraphProps) {
             const leftParagraphProps = XmlNode.cloneNode(paragraphProps, true);
             XmlNode.appendChild(leftPara, leftParagraphProps);
@@ -151,9 +172,9 @@ export class DocxParser {
         }
 
         // clean paragraphs - remove empty runs
-        if (this.isEmptyRun(leftRun))
+        if (wml.query.isEmptyRun(leftRun))
             XmlNode.remove(leftRun);
-        if (this.isEmptyRun(rightRun))
+        if (wml.query.isEmptyRun(rightRun))
             XmlNode.remove(rightRun);
 
         return [leftPara, rightPara];
@@ -165,16 +186,16 @@ export class DocxParser {
     public joinTextNodesRange(from: XmlTextNode, to: XmlTextNode): void {
 
         // find run nodes
-        const firstRunNode = this.containingRunNode(from);
-        const secondRunNode = this.containingRunNode(to);
+        const firstRunNode = wml.query.containingRunNode(from);
+        const secondRunNode = wml.query.containingRunNode(to);
 
         const paragraphNode = firstRunNode.parentNode;
         if (secondRunNode.parentNode !== paragraphNode)
             throw new Error('Can not join text nodes from separate paragraphs.');
 
         // find "word text nodes"
-        const firstWordTextNode = this.containingTextNode(from);
-        const secondWordTextNode = this.containingTextNode(to);
+        const firstWordTextNode = wml.query.containingTextNode(from);
+        const secondWordTextNode = wml.query.containingTextNode(to);
         const totalText: string[] = [];
 
         // iterate runs
@@ -186,11 +207,11 @@ export class DocxParser {
             if (curRunNode === firstRunNode) {
                 curWordTextNode = firstWordTextNode;
             } else {
-                curWordTextNode = this.firstTextNodeChild(curRunNode);
+                curWordTextNode = wml.query.firstTextNodeChild(curRunNode);
             }
             while (curWordTextNode) {
 
-                if (curWordTextNode.nodeName !== DocxParser.TEXT_NODE) {
+                if (curWordTextNode.nodeName !== WmlNode.TEXT_NODE) {
                     curWordTextNode = curWordTextNode.nextSibling;
                     continue;
                 }
@@ -242,7 +263,7 @@ export class DocxParser {
         let childIndex = 0;
         while (second.childNodes && childIndex < second.childNodes.length) {
             const curChild = second.childNodes[childIndex];
-            if (curChild.nodeName === DocxParser.RUN_NODE) {
+            if (curChild.nodeName === WmlNode.RUN_NODE) {
                 XmlNode.removeChild(second, childIndex);
                 XmlNode.appendChild(first, curChild);
             } else {
@@ -259,42 +280,44 @@ export class DocxParser {
             node.attributes['xml:space'] = 'preserve';
         }
     }
+}
 
-    //
-    // node queries
-    //
+/**
+ * Wordprocessing Markup Language (WML) query utilities.
+ */
+class Query {
 
     public isTextNode(node: XmlNode): boolean {
-        return node.nodeName === DocxParser.TEXT_NODE;
+        return node.nodeName === WmlNode.TEXT_NODE;
     }
 
     public isRunNode(node: XmlNode): boolean {
-        return node.nodeName === DocxParser.RUN_NODE;
+        return node.nodeName === WmlNode.RUN_NODE;
     }
 
     public isRunPropertiesNode(node: XmlNode): boolean {
-        return node.nodeName === DocxParser.RUN_PROPERTIES_NODE;
+        return node.nodeName === WmlNode.RUN_PROPERTIES_NODE;
     }
 
     public isTableCellNode(node: XmlNode): boolean {
-        return node.nodeName === DocxParser.TABLE_CELL_NODE;
+        return node.nodeName === WmlNode.TABLE_CELL_NODE;
     }
 
     public isParagraphNode(node: XmlNode): boolean {
-        return node.nodeName === DocxParser.PARAGRAPH_NODE;
+        return node.nodeName === WmlNode.PARAGRAPH_NODE;
     }
 
     public isListParagraph(paragraphNode: XmlNode): boolean {
-        const paragraphProperties = this.paragraphPropertiesNode(paragraphNode);
-        const listNumberProperties = XmlNode.findChildByName(paragraphProperties, DocxParser.NUMBER_PROPERTIES_NODE);
+        const paragraphProperties = wml.query.paragraphPropertiesNode(paragraphNode);
+        const listNumberProperties = XmlNode.findChildByName(paragraphProperties, WmlNode.NUMBER_PROPERTIES_NODE);
         return !!listNumberProperties;
     }
 
     public paragraphPropertiesNode(paragraphNode: XmlNode): XmlNode {
-        if (!this.isParagraphNode(paragraphNode))
+        if (!wml.query.isParagraphNode(paragraphNode))
             throw new Error(`Expected paragraph node but received a '${paragraphNode.nodeName}' node.`);
 
-        return XmlNode.findChildByName(paragraphNode, DocxParser.PARAGRAPH_PROPERTIES_NODE);
+        return XmlNode.findChildByName(paragraphNode, WmlNode.PARAGRAPH_PROPERTIES_NODE);
     }
 
     /**
@@ -305,14 +328,14 @@ export class DocxParser {
         if (!node)
             return null;
 
-        if (node.nodeName !== DocxParser.RUN_NODE)
+        if (node.nodeName !== WmlNode.RUN_NODE)
             return null;
 
         if (!node.childNodes)
             return null;
 
         for (const child of node.childNodes) {
-            if (child.nodeName === DocxParser.TEXT_NODE)
+            if (child.nodeName === WmlNode.TEXT_NODE)
                 return child;
         }
 
@@ -330,50 +353,50 @@ export class DocxParser {
         if (!XmlNode.isTextNode(node))
             throw new Error(`'Invalid argument ${nameof(node)}. Expected a XmlTextNode.`);
 
-        return XmlNode.findParentByName(node, DocxParser.TEXT_NODE) as XmlGeneralNode;
+        return XmlNode.findParentByName(node, WmlNode.TEXT_NODE) as XmlGeneralNode;
     }
 
     /**
      * Search **upwards** for the first run node.
      */
     public containingRunNode(node: XmlNode): XmlNode {
-        return XmlNode.findParentByName(node, DocxParser.RUN_NODE);
+        return XmlNode.findParentByName(node, WmlNode.RUN_NODE);
     }
 
     /**
      * Search **upwards** for the first paragraph node.
      */
     public containingParagraphNode(node: XmlNode): XmlNode {
-        return XmlNode.findParentByName(node, DocxParser.PARAGRAPH_NODE);
+        return XmlNode.findParentByName(node, WmlNode.PARAGRAPH_NODE);
     }
 
     /**
      * Search **upwards** for the first "table row" node.
      */
     public containingTableRowNode(node: XmlNode): XmlNode {
-        return XmlNode.findParentByName(node, DocxParser.TABLE_ROW_NODE);
+        return XmlNode.findParentByName(node, WmlNode.TABLE_ROW_NODE);
     }
 
     /**
      * Search **upwards** for the first "table cell" node.
      */
     public containingTableCellNode(node: XmlNode): XmlNode {
-        return XmlNode.findParentByName(node, DocxParser.TABLE_CELL_NODE);
+        return XmlNode.findParentByName(node, WmlNode.TABLE_CELL_NODE);
     }
 
     /**
      * Search **upwards** for the first "table" node.
      */
     public containingTableNode(node: XmlNode): XmlNode {
-        return XmlNode.findParentByName(node, DocxParser.TABLE_NODE);
+        return XmlNode.findParentByName(node, WmlNode.TABLE_NODE);
     }
 
     //
-    // advanced node queries
+    // Advanced queries
     //
 
     public isEmptyTextNode(node: XmlNode): boolean {
-        if (!this.isTextNode(node))
+        if (!wml.query.isTextNode(node))
             throw new Error(`Text node expected but '${node.nodeName}' received.`);
 
         if (!node.childNodes?.length)
@@ -390,15 +413,15 @@ export class DocxParser {
     }
 
     public isEmptyRun(node: XmlNode): boolean {
-        if (!this.isRunNode(node))
+        if (!wml.query.isRunNode(node))
             throw new Error(`Run node expected but '${node.nodeName}' received.`);
 
         for (const child of (node.childNodes ?? [])) {
 
-            if (this.isRunPropertiesNode(child))
+            if (wml.query.isRunPropertiesNode(child))
                 continue;
 
-            if (this.isTextNode(child) && this.isEmptyTextNode(child))
+            if (wml.query.isTextNode(child) && wml.query.isEmptyTextNode(child))
                 continue;
 
             return false;
@@ -407,3 +430,8 @@ export class DocxParser {
         return true;
     }
 }
+
+/**
+ * Wordprocessing Markup Language (WML) utilities.
+ */
+export const wml = new Wml();

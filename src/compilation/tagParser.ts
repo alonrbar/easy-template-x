@@ -1,28 +1,20 @@
-import JSON5 from 'json5';
-import { Delimiters } from '../delimiters';
-import { MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, TagOptionsParseError } from '../errors';
-import { DocxParser } from '../office';
-import { normalizeDoubleQuotes, Regex } from '../utils';
-import { DelimiterMark } from './delimiterMark';
-import { Tag, TagDisposition } from './tag';
+import JSON5 from "json5";
+import { Delimiters } from "src/delimiters";
+import { MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, TagOptionsParseError } from "src/errors";
+import { wml } from "src/office";
+import { normalizeDoubleQuotes, Regex } from "src/utils";
+import { DelimiterMark } from "./delimiterMark";
+import { Tag, TagDisposition } from "./tag";
 
 export class TagParser {
 
     private readonly tagRegex: RegExp;
-
-    private readonly docParser: DocxParser;
     private readonly delimiters: Delimiters;
 
-    constructor(
-        docParser: DocxParser,
-        delimiters: Delimiters
-    ) {
-        if (!docParser)
-            throw new MissingArgumentError(nameof(docParser));
+    constructor(delimiters: Delimiters) {
         if (!delimiters)
             throw new MissingArgumentError(nameof(delimiters));
 
-        this.docParser = docParser;
         this.delimiters = delimiters;
 
         const tagOptionsRegex = `${Regex.escape(delimiters.tagOptionsStart)}(?<tagOptions>.*?)${Regex.escape(delimiters.tagOptionsEnd)}`;
@@ -94,8 +86,8 @@ export class TagParser {
         const sameNode = (startTextNode === endTextNode);
 
         if (!sameNode) {
-            const startParagraph = this.docParser.containingParagraphNode(startTextNode);
-            const endParagraph = this.docParser.containingParagraphNode(endTextNode);
+            const startParagraph = wml.query.containingParagraphNode(startTextNode);
+            const endParagraph = wml.query.containingParagraphNode(endTextNode);
             if (startParagraph !== endParagraph) {
                 throw new MissingCloseDelimiterError(startTextNode.textContent);
             }
@@ -103,7 +95,7 @@ export class TagParser {
 
         // trim start
         if (openDelimiter.index > 0) {
-            this.docParser.splitTextNode(startTextNode, openDelimiter.index, true);
+            wml.modify.splitTextNode(startTextNode, openDelimiter.index, true);
             if (sameNode) {
                 closeDelimiter.index -= openDelimiter.index;
             }
@@ -111,7 +103,7 @@ export class TagParser {
 
         // trim end
         if (closeDelimiter.index < endTextNode.textContent.length - 1) {
-            endTextNode = this.docParser.splitTextNode(endTextNode, closeDelimiter.index + this.delimiters.tagEnd.length, true);
+            endTextNode = wml.modify.splitTextNode(endTextNode, closeDelimiter.index + this.delimiters.tagEnd.length, true);
             if (sameNode) {
                 startTextNode = endTextNode;
             }
@@ -119,7 +111,7 @@ export class TagParser {
 
         // join nodes
         if (!sameNode) {
-            this.docParser.joinTextNodesRange(startTextNode, endTextNode);
+            wml.modify.joinTextNodesRange(startTextNode, endTextNode);
             endTextNode = startTextNode;
         }
 

@@ -1,9 +1,10 @@
-import { ScopeData, Tag, TemplateContext } from '../../compilation';
-import { ArgumentError } from '../../errors';
-import { MimeTypeHelper } from '../../mimeType';
-import { XmlGeneralNode, XmlNode } from '../../xml';
-import { TemplatePlugin } from '../templatePlugin';
-import { ImageContent } from './imageContent';
+import { ScopeData, Tag, TemplateContext } from "src/compilation";
+import { ArgumentError } from "src/errors";
+import { MimeTypeHelper } from "src/mimeType";
+import { wml } from "src/office";
+import { TemplatePlugin } from "src/plugins/templatePlugin";
+import { XmlGeneralNode, XmlNode, xmlParser } from "src/xml";
+import { ImageContent } from "./imageContent";
 
 /**
  * Apparently it is not that important for the ID to be unique...
@@ -23,7 +24,7 @@ export class ImagePlugin extends TemplatePlugin {
 
     public async simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): Promise<void> {
 
-        const wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
+        const wordTextNode = wml.query.containingTextNode(tag.xmlTextNode);
 
         const content = data.getScopeData<ImageContent>();
         if (!content || !content.source) {
@@ -78,7 +79,7 @@ export class ImagePlugin extends TemplatePlugin {
             </w:drawing>
         `;
 
-        const markupXml = this.utilities.xmlParser.parse(markupText) as XmlGeneralNode;
+        const markupXml = xmlParser.parse(markupText) as XmlGeneralNode;
         XmlNode.removeEmptyTextNodes(markupXml); // remove whitespace
 
         return markupXml;

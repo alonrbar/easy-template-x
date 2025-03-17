@@ -1,7 +1,8 @@
-import { Tag } from '../../../compilation';
-import { XmlNode } from '../../../xml';
-import { PluginUtilities } from '../../templatePlugin';
-import { ILoopStrategy, SplitBeforeResult } from './iLoopStrategy';
+import { Tag } from "src/compilation";
+import { wml } from "src/office";
+import { PluginUtilities } from "src/plugins/templatePlugin";
+import { XmlNode } from "src/xml";
+import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
 export class LoopListStrategy implements ILoopStrategy {
 
@@ -16,14 +17,14 @@ export class LoopListStrategy implements ILoopStrategy {
             return false;
         }
 
-        const containingParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
-        return this.utilities.docxParser.isListParagraph(containingParagraph);
+        const containingParagraph = wml.query.containingParagraphNode(openTag.xmlTextNode);
+        return wml.query.isListParagraph(containingParagraph);
     }
 
     public splitBefore(openTag: Tag, closeTag: Tag): SplitBeforeResult {
 
-        const firstParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
-        const lastParagraph = this.utilities.docxParser.containingParagraphNode(closeTag.xmlTextNode);
+        const firstParagraph = wml.query.containingParagraphNode(openTag.xmlTextNode);
+        const lastParagraph = wml.query.containingParagraphNode(closeTag.xmlTextNode);
         const paragraphsToRepeat = XmlNode.siblingsInRange(firstParagraph, lastParagraph);
 
         // remove the loop tags

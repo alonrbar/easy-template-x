@@ -1,8 +1,9 @@
-import { Tag } from '../../../compilation';
-import { XmlNode } from '../../../xml';
-import { PluginUtilities } from '../../templatePlugin';
-import { LoopOver, LoopTagOptions } from '../loopTagOptions';
-import { ILoopStrategy, SplitBeforeResult } from './iLoopStrategy';
+import { Tag } from "src/compilation";
+import { wml } from "src/office";
+import { LoopOver, LoopTagOptions } from "src/plugins/loop/loopTagOptions";
+import { PluginUtilities } from "src/plugins/templatePlugin";
+import { XmlNode } from "src/xml";
+import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
 export class LoopTableColumnsStrategy implements ILoopStrategy {
 
@@ -13,11 +14,11 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
     }
 
     public isApplicable(openTag: Tag, closeTag: Tag, isCondition: boolean): boolean {
-        const openCell = this.utilities.docxParser.containingTableCellNode(openTag.xmlTextNode);
+        const openCell = wml.query.containingTableCellNode(openTag.xmlTextNode);
         if (!openCell)
             return false;
 
-        const closeCell = this.utilities.docxParser.containingTableCellNode(closeTag.xmlTextNode);
+        const closeCell = wml.query.containingTableCellNode(closeTag.xmlTextNode);
         if (!closeCell)
             return false;
 
@@ -28,11 +29,11 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
         if (!forceColumnLoop && openCell === closeCell)
             return false;
 
-        const openTable = this.utilities.docxParser.containingTableNode(openCell);
+        const openTable = wml.query.containingTableNode(openCell);
         if (!openTable)
             return false;
 
-        const closeTable = this.utilities.docxParser.containingTableNode(closeCell);
+        const closeTable = wml.query.containingTableNode(closeCell);
         if (!closeTable)
             return false;
 
@@ -40,11 +41,11 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
         if (openTable !== closeTable)
             return false;
 
-        const openRow = this.utilities.docxParser.containingTableRowNode(openCell);
+        const openRow = wml.query.containingTableRowNode(openCell);
         if (!openRow)
             return false;
 
-        const closeRow = this.utilities.docxParser.containingTableRowNode(closeCell);
+        const closeRow = wml.query.containingTableRowNode(closeCell);
         if (!closeRow)
             return false;
 
@@ -65,16 +66,16 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
 
     public splitBefore(openTag: Tag, closeTag: Tag): SplitBeforeResult {
 
-        const firstCell = this.utilities.docxParser.containingTableCellNode(openTag.xmlTextNode);
-        const lastCell = this.utilities.docxParser.containingTableCellNode(closeTag.xmlTextNode);
+        const firstCell = wml.query.containingTableCellNode(openTag.xmlTextNode);
+        const lastCell = wml.query.containingTableCellNode(closeTag.xmlTextNode);
 
-        const firstRow = this.utilities.docxParser.containingTableRowNode(firstCell);
-        const lastRow = this.utilities.docxParser.containingTableRowNode(lastCell);
+        const firstRow = wml.query.containingTableRowNode(firstCell);
+        const lastRow = wml.query.containingTableRowNode(lastCell);
 
         const firstColumnIndex = firstRow.childNodes?.findIndex(child => child === firstCell);
         const lastColumnIndex = lastRow.childNodes?.findIndex(child => child === lastCell);
 
-        const table = this.utilities.docxParser.containingTableNode(firstCell);
+        const table = wml.query.containingTableNode(firstCell);
 
         // Remove the loop tags
         XmlNode.remove(openTag.xmlTextNode);
@@ -93,11 +94,11 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
 
     public mergeBack(columnsWrapperGroups: XmlNode[][], firstCell: XmlNode, lastCell: XmlNode): void {
 
-        const table = this.utilities.docxParser.containingTableNode(firstCell);
-        const firstRow = this.utilities.docxParser.containingTableRowNode(firstCell);
+        const table = wml.query.containingTableNode(firstCell);
+        const firstRow = wml.query.containingTableRowNode(firstCell);
         const firstColumnIndex = firstRow.childNodes?.findIndex(child => child === firstCell);
 
-        const lastRow = this.utilities.docxParser.containingTableRowNode(lastCell);
+        const lastRow = wml.query.containingTableRowNode(lastCell);
         const lastColumnIndex = lastRow.childNodes?.findIndex(child => child === lastCell);
 
         let index = firstColumnIndex + 1;

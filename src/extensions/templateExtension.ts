@@ -1,12 +1,8 @@
-import { ScopeData, TagParser, TemplateCompiler, TemplateContext } from '../compilation';
-import { DocxParser } from '../office';
-import { XmlParser } from '../xml';
+import { ScopeData, TagParser, TemplateCompiler, TemplateContext } from 'src/compilation';
 
 export interface ExtensionUtilities {
     compiler: TemplateCompiler;
     tagParser: TagParser;
-    docxParser: DocxParser;
-    xmlParser: XmlParser;
 }
 
 export abstract class TemplateExtension {

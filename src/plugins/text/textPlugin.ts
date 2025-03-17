@@ -1,8 +1,8 @@
-import { ScopeData, Tag } from '../../compilation';
-import { DocxParser } from '../../office';
-import { stringValue } from '../../utils';
-import { XmlNode, XmlTextNode } from '../../xml';
-import { TemplatePlugin } from '../templatePlugin';
+import { ScopeData, Tag } from "src/compilation";
+import { WmlNode, wml } from "src/office";
+import { TemplatePlugin } from "src/plugins/templatePlugin";
+import { stringValue } from "src/utils";
+import { XmlNode, XmlTextNode } from "src/xml";
 
 export const TEXT_CONTENT_TYPE = 'text';
 
@@ -31,13 +31,13 @@ export class TextPlugin extends TemplatePlugin {
         textNode.textContent = text;
 
         // make sure leading and trailing whitespace are preserved
-        const wordTextNode = this.utilities.docxParser.containingTextNode(textNode);
-        this.utilities.docxParser.setSpacePreserveAttribute(wordTextNode);
+        const wordTextNode = wml.query.containingTextNode(textNode);
+        wml.modify.setSpacePreserveAttribute(wordTextNode);
     }
 
     private replaceMultiLine(textNode: XmlTextNode, lines: string[]) {
 
-        const runNode = this.utilities.docxParser.containingRunNode(textNode);
+        const runNode = wml.query.containingRunNode(textNode);
 
         // first line
         textNode.textContent = lines[0];
@@ -60,10 +60,10 @@ export class TextPlugin extends TemplatePlugin {
     }
 
     private createWordTextNode(text: string): XmlNode {
-        const wordTextNode = XmlNode.createGeneralNode(DocxParser.TEXT_NODE);
+        const wordTextNode = XmlNode.createGeneralNode(WmlNode.TEXT_NODE);
 
         wordTextNode.attributes = {};
-        this.utilities.docxParser.setSpacePreserveAttribute(wordTextNode);
+        wml.modify.setSpacePreserveAttribute(wordTextNode);
 
         wordTextNode.childNodes = [
             XmlNode.createTextNode(text)

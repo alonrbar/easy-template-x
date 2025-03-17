@@ -1,7 +1,8 @@
-import { Tag } from '../../../compilation';
-import { XmlNode } from '../../../xml';
-import { PluginUtilities } from '../../templatePlugin';
-import { ILoopStrategy, SplitBeforeResult } from './iLoopStrategy';
+import { Tag } from "src/compilation";
+import { wml } from "src/office";
+import { PluginUtilities } from "src/plugins/templatePlugin";
+import { XmlNode } from "src/xml";
+import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
 export class LoopParagraphStrategy implements ILoopStrategy {
 
@@ -18,19 +19,19 @@ export class LoopParagraphStrategy implements ILoopStrategy {
     public splitBefore(openTag: Tag, closeTag: Tag): SplitBeforeResult {
 
         // gather some info
-        let firstParagraph = this.utilities.docxParser.containingParagraphNode(openTag.xmlTextNode);
-        let lastParagraph = this.utilities.docxParser.containingParagraphNode(closeTag.xmlTextNode);
+        let firstParagraph = wml.query.containingParagraphNode(openTag.xmlTextNode);
+        let lastParagraph = wml.query.containingParagraphNode(closeTag.xmlTextNode);
         const areSame = (firstParagraph === lastParagraph);
 
         // split first paragraph
-        let splitResult = this.utilities.docxParser.splitParagraphByTextNode(firstParagraph, openTag.xmlTextNode, true);
+        let splitResult = wml.modify.splitParagraphByTextNode(firstParagraph, openTag.xmlTextNode, true);
         firstParagraph = splitResult[0];
         let afterFirstParagraph = splitResult[1];
         if (areSame)
             lastParagraph = afterFirstParagraph;
 
         // split last paragraph
-        splitResult = this.utilities.docxParser.splitParagraphByTextNode(lastParagraph, closeTag.xmlTextNode, true);
+        splitResult = wml.modify.splitParagraphByTextNode(lastParagraph, closeTag.xmlTextNode, true);
         const beforeLastParagraph = splitResult[0];
         lastParagraph = splitResult[1];
         if (areSame)
@@ -63,7 +64,7 @@ export class LoopParagraphStrategy implements ILoopStrategy {
         for (const curParagraphsGroup of middleParagraphs) {
 
             // merge first paragraphs
-            this.utilities.docxParser.joinParagraphs(mergeTo, curParagraphsGroup[0]);
+            wml.modify.joinParagraphs(mergeTo, curParagraphsGroup[0]);
 
             // add middle and last paragraphs to the original document
             for (let i = 1; i < curParagraphsGroup.length; i++) {
@@ -73,7 +74,7 @@ export class LoopParagraphStrategy implements ILoopStrategy {
         }
 
         // merge last paragraph
-        this.utilities.docxParser.joinParagraphs(mergeTo, lastParagraph);
+        wml.modify.joinParagraphs(mergeTo, lastParagraph);
 
         // remove the old last paragraph (was merged into the new one)
         XmlNode.remove(lastParagraph);

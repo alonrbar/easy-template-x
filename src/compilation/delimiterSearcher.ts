@@ -1,8 +1,7 @@
-import { MissingArgumentError } from '../errors';
-import { DocxParser } from '../office';
-import { first, last } from '../utils';
-import { XmlDepthTracker, XmlNode, XmlTextNode } from '../xml';
-import { DelimiterMark } from './delimiterMark';
+import { wml } from "src/office";
+import { first, last } from "src/utils";
+import { XmlDepthTracker, XmlNode, XmlTextNode } from "src/xml";
+import { DelimiterMark } from "./delimiterMark";
 
 class MatchState {
 
@@ -40,15 +39,6 @@ export class DelimiterSearcher {
     public startDelimiter = "{";
     public endDelimiter = "}";
 
-    private readonly docxParser: DocxParser;
-
-    constructor(docxParser: DocxParser) {
-        if (!docxParser)
-            throw new MissingArgumentError(nameof(docxParser));
-
-        this.docxParser = docxParser;
-    }
-
     public findDelimiters(node: XmlNode): DelimiterMark[] {
 
         //
@@ -70,7 +60,7 @@ export class DelimiterSearcher {
         while (node) {
 
             // Reset state on paragraph transition
-            if (this.docxParser.isParagraphNode(node)) {
+            if (wml.query.isParagraphNode(node)) {
                 match.reset();
             }
 
@@ -148,7 +138,7 @@ export class DelimiterSearcher {
 
             const firstNode = first(match.openNodes);
             const lastNode = last(match.openNodes);
-            this.docxParser.joinTextNodesRange(firstNode, lastNode);
+            wml.modify.joinTextNodesRange(firstNode, lastNode);
 
             textIndex += (firstNode.textContent.length - node.textContent.length);
             node = firstNode;
@@ -176,7 +166,7 @@ export class DelimiterSearcher {
             return false;
         if (!node.parentNode)
             return false;
-        if (!this.docxParser.isTextNode(node.parentNode))
+        if (!wml.query.isTextNode(node.parentNode))
             return false;
 
         return true;

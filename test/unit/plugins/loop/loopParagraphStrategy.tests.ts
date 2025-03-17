@@ -1,6 +1,6 @@
-import { LoopParagraphStrategy } from 'src/plugins/loop/strategy';
-import { parseXml } from '../../../testUtils';
-import { DocxParser, PluginUtilities, Tag, TagDisposition, XmlTextNode } from 'src';
+import { PluginUtilities, Tag, TagDisposition, XmlTextNode } from "src";
+import { LoopParagraphStrategy } from "src/plugins/loop/strategy";
+import { parseXml } from "../../../testUtils";
 
 describe(nameof(LoopParagraphStrategy), () => {
 
@@ -43,9 +43,7 @@ describe(nameof(LoopParagraphStrategy), () => {
             expect(closeTag.xmlTextNode.textContent).toEqual('{/loop}');
 
             const strategy = new LoopParagraphStrategy();
-            const pluginUtilities: PluginUtilities = {
-                docxParser: new DocxParser()
-            } as any;
+            const pluginUtilities: PluginUtilities = {} as any;
             strategy.setUtilities(pluginUtilities);
 
             //

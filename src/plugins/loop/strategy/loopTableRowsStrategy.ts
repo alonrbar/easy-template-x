@@ -1,8 +1,9 @@
-import { Tag } from '../../../compilation';
-import { XmlNode } from '../../../xml';
-import { PluginUtilities } from '../../templatePlugin';
-import { LoopOver, LoopTagOptions } from '../loopTagOptions';
-import { ILoopStrategy, SplitBeforeResult } from './iLoopStrategy';
+import { Tag } from "src/compilation";
+import { wml } from "src/office";
+import { PluginUtilities } from "src/plugins/templatePlugin";
+import { XmlNode } from "src/xml";
+import { LoopOver, LoopTagOptions } from "../loopTagOptions";
+import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
 export class LoopTableRowsStrategy implements ILoopStrategy {
 
@@ -13,11 +14,11 @@ export class LoopTableRowsStrategy implements ILoopStrategy {
     }
 
     public isApplicable(openTag: Tag, closeTag: Tag, isCondition: boolean): boolean {
-        const openCell = this.utilities.docxParser.containingTableCellNode(openTag.xmlTextNode);
+        const openCell = wml.query.containingTableCellNode(openTag.xmlTextNode);
         if (!openCell)
             return false;
 
-        const closeCell = this.utilities.docxParser.containingTableCellNode(closeTag.xmlTextNode);
+        const closeCell = wml.query.containingTableCellNode(closeTag.xmlTextNode);
         if (!closeCell)
             return false;
 
@@ -33,8 +34,8 @@ export class LoopTableRowsStrategy implements ILoopStrategy {
 
     public splitBefore(openTag: Tag, closeTag: Tag): SplitBeforeResult {
 
-        const firstRow = this.utilities.docxParser.containingTableRowNode(openTag.xmlTextNode);
-        const lastRow = this.utilities.docxParser.containingTableRowNode(closeTag.xmlTextNode);
+        const firstRow = wml.query.containingTableRowNode(openTag.xmlTextNode);
+        const lastRow = wml.query.containingTableRowNode(closeTag.xmlTextNode);
         const rowsToRepeat = XmlNode.siblingsInRange(firstRow, lastRow);
 
         // remove the loop tags
