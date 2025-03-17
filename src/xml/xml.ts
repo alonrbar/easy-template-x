@@ -14,7 +14,7 @@ export class XmlUtils {
 
 class Create {
 
-    public createTextNode(text?: string): XmlTextNode {
+    public textNode(text?: string): XmlTextNode {
         return {
             nodeType: XmlNodeType.Text,
             nodeName: TEXT_NODE_NAME,
@@ -22,14 +22,14 @@ class Create {
         };
     }
 
-    public createGeneralNode(name: string): XmlGeneralNode {
+    public generalNode(name: string): XmlGeneralNode {
         return {
             nodeType: XmlNodeType.General,
             nodeName: name
         };
     }
 
-    public createCommentNode(text?: string): XmlCommentNode {
+    public commentNode(text?: string): XmlCommentNode {
         return {
             nodeType: XmlNodeType.Comment,
             nodeName: COMMENT_NODE_NAME,
@@ -63,15 +63,15 @@ class Create {
         // basic properties
         switch (domNode.nodeType) {
             case domNode.TEXT_NODE: {
-                xmlNode = xml.create.createTextNode(domNode.textContent);
+                xmlNode = xml.create.textNode(domNode.textContent);
                 break;
             }
             case domNode.COMMENT_NODE: {
-                xmlNode = xml.create.createCommentNode(domNode.textContent?.trim());
+                xmlNode = xml.create.commentNode(domNode.textContent?.trim());
                 break;
             }
             case domNode.ELEMENT_NODE: {
-                const generalNode = xmlNode = xml.create.createGeneralNode(domNode.nodeName);
+                const generalNode = xmlNode = xml.create.generalNode(domNode.nodeName);
                 const attributes = (domNode as Element).attributes;
                 if (attributes) {
                     generalNode.attributes = {};
@@ -83,7 +83,7 @@ class Create {
                 break;
             }
             default: {
-                xmlNode = xml.create.createGeneralNode(domNode.nodeName);
+                xmlNode = xml.create.generalNode(domNode.nodeName);
                 break;
             }
         }
@@ -137,7 +137,7 @@ class Serialize {
         });
     }
 
-    public serialize(node: XmlNode): string {
+    public serializeNode(node: XmlNode): string {
         if (xml.query.isTextNode(node))
             return xml.serialize.encodeValue(node.textContent || '');
 
@@ -167,7 +167,7 @@ class Serialize {
 
             // child nodes
             const childrenXml = node.childNodes
-                .map(child => xml.serialize.serialize(child))
+                .map(child => xml.serialize.serializeNode(child))
                 .join('');
 
             // close tag

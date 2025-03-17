@@ -26,7 +26,7 @@ export class XmlParser {
     }
 
     public serialize(xmlNode: XmlNode): string {
-        return XmlParser.xmlHeader + xml.serialize.serialize(xmlNode);
+        return XmlParser.xmlHeader + xml.serialize.serializeNode(xmlNode);
     }
 }
 

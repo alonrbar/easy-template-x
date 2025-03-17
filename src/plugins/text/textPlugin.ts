@@ -56,17 +56,17 @@ export class TextPlugin extends TemplatePlugin {
     }
 
     private getLineBreak(): XmlNode {
-        return xml.create.createGeneralNode('w:br');
+        return xml.create.generalNode('w:br');
     }
 
     private createWordTextNode(text: string): XmlNode {
-        const wordTextNode = xml.create.createGeneralNode(WmlNode.TEXT_NODE);
+        const wordTextNode = xml.create.generalNode(WmlNode.Text);
 
         wordTextNode.attributes = {};
         wml.modify.setSpacePreserveAttribute(wordTextNode);
 
         wordTextNode.childNodes = [
-            xml.create.createTextNode(text)
+            xml.create.textNode(text)
         ];
 
         return wordTextNode;

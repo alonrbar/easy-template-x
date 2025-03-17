@@ -83,7 +83,7 @@ export class LoopPlugin extends TemplatePlugin {
 
             // create dummy root node
             const curNodes = nodeGroups[i];
-            const dummyRootNode = xml.create.createGeneralNode('dummyRootNode');
+            const dummyRootNode = xml.create.generalNode('dummyRootNode');
             curNodes.forEach(node => xml.modify.appendChild(dummyRootNode, node));
 
             // compile the new root

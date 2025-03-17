@@ -149,7 +149,7 @@ export class RelsFile {
     }
 
     private createRootNode(): XmlGeneralNode {
-        const root = xml.create.createGeneralNode('Relationships');
+        const root = xml.create.generalNode('Relationships');
         root.attributes = {
             'xmlns': 'http://schemas.openxmlformats.org/package/2006/relationships'
         };

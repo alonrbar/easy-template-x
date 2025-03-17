@@ -33,7 +33,7 @@ export class ContentTypesFile {
 
         // add new
         const extension = MimeTypeHelper.getDefaultExtension(mime);
-        const typeNode = xml.create.createGeneralNode('Default');
+        const typeNode = xml.create.generalNode('Default');
         typeNode.attributes = {
             "Extension": extension,
             "ContentType": mime

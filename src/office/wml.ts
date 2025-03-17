@@ -42,15 +42,15 @@ export class Wml {
  */
 export class WmlNode {
 
-    public static readonly PARAGRAPH_NODE = 'w:p';
-    public static readonly PARAGRAPH_PROPERTIES_NODE = 'w:pPr';
-    public static readonly RUN_NODE = 'w:r';
-    public static readonly RUN_PROPERTIES_NODE = 'w:rPr';
-    public static readonly TEXT_NODE = 'w:t';
-    public static readonly TABLE_ROW_NODE = 'w:tr';
-    public static readonly TABLE_CELL_NODE = 'w:tc';
-    public static readonly TABLE_NODE = 'w:tbl';
-    public static readonly NUMBER_PROPERTIES_NODE = 'w:numPr';
+    public static readonly Paragraph = 'w:p';
+    public static readonly ParagraphProperties = 'w:pPr';
+    public static readonly Run = 'w:r';
+    public static readonly RunProperties = 'w:rPr';
+    public static readonly Text = 'w:t';
+    public static readonly Table = 'w:tbl';
+    public static readonly TableRow = 'w:tr';
+    public static readonly TableCell = 'w:tc';
+    public static readonly NumberProperties = 'w:numPr';
 }
 
 /**
@@ -130,7 +130,7 @@ class Modify {
         xml.modify.insertBefore(leftRun, rightRun);
 
         // copy props from original run node (preserve style)
-        const runProps = rightRun.childNodes.find(node => node.nodeName === WmlNode.RUN_PROPERTIES_NODE);
+        const runProps = rightRun.childNodes.find(node => node.nodeName === WmlNode.RunProperties);
         if (runProps) {
             const leftRunProps = xml.create.cloneNode(runProps, true);
             xml.modify.appendChild(leftRun, leftRunProps);
@@ -156,7 +156,7 @@ class Modify {
         xml.modify.insertBefore(leftPara, rightPara);
 
         // copy props from original paragraph (preserve style)
-        const paragraphProps = rightPara.childNodes.find(node => node.nodeName === WmlNode.PARAGRAPH_PROPERTIES_NODE);
+        const paragraphProps = rightPara.childNodes.find(node => node.nodeName === WmlNode.ParagraphProperties);
         if (paragraphProps) {
             const leftParagraphProps = xml.create.cloneNode(paragraphProps, true);
             xml.modify.appendChild(leftPara, leftParagraphProps);
@@ -211,7 +211,7 @@ class Modify {
             }
             while (curWordTextNode) {
 
-                if (curWordTextNode.nodeName !== WmlNode.TEXT_NODE) {
+                if (curWordTextNode.nodeName !== WmlNode.Text) {
                     curWordTextNode = curWordTextNode.nextSibling;
                     continue;
                 }
@@ -263,7 +263,7 @@ class Modify {
         let childIndex = 0;
         while (second.childNodes && childIndex < second.childNodes.length) {
             const curChild = second.childNodes[childIndex];
-            if (curChild.nodeName === WmlNode.RUN_NODE) {
+            if (curChild.nodeName === WmlNode.Run) {
                 xml.modify.removeChild(second, childIndex);
                 xml.modify.appendChild(first, curChild);
             } else {
@@ -288,28 +288,28 @@ class Modify {
 class Query {
 
     public isTextNode(node: XmlNode): boolean {
-        return node.nodeName === WmlNode.TEXT_NODE;
+        return node.nodeName === WmlNode.Text;
     }
 
     public isRunNode(node: XmlNode): boolean {
-        return node.nodeName === WmlNode.RUN_NODE;
+        return node.nodeName === WmlNode.Run;
     }
 
     public isRunPropertiesNode(node: XmlNode): boolean {
-        return node.nodeName === WmlNode.RUN_PROPERTIES_NODE;
+        return node.nodeName === WmlNode.RunProperties;
     }
 
     public isTableCellNode(node: XmlNode): boolean {
-        return node.nodeName === WmlNode.TABLE_CELL_NODE;
+        return node.nodeName === WmlNode.TableCell;
     }
 
     public isParagraphNode(node: XmlNode): boolean {
-        return node.nodeName === WmlNode.PARAGRAPH_NODE;
+        return node.nodeName === WmlNode.Paragraph;
     }
 
     public isListParagraph(paragraphNode: XmlNode): boolean {
         const paragraphProperties = wml.query.paragraphPropertiesNode(paragraphNode);
-        const listNumberProperties = xml.query.findChildByName(paragraphProperties, WmlNode.NUMBER_PROPERTIES_NODE);
+        const listNumberProperties = xml.query.findChildByName(paragraphProperties, WmlNode.NumberProperties);
         return !!listNumberProperties;
     }
 
@@ -317,7 +317,7 @@ class Query {
         if (!wml.query.isParagraphNode(paragraphNode))
             throw new Error(`Expected paragraph node but received a '${paragraphNode.nodeName}' node.`);
 
-        return xml.query.findChildByName(paragraphNode, WmlNode.PARAGRAPH_PROPERTIES_NODE);
+        return xml.query.findChildByName(paragraphNode, WmlNode.ParagraphProperties);
     }
 
     /**
@@ -328,14 +328,14 @@ class Query {
         if (!node)
             return null;
 
-        if (node.nodeName !== WmlNode.RUN_NODE)
+        if (node.nodeName !== WmlNode.Run)
             return null;
 
         if (!node.childNodes)
             return null;
 
         for (const child of node.childNodes) {
-            if (child.nodeName === WmlNode.TEXT_NODE)
+            if (child.nodeName === WmlNode.Text)
                 return child;
         }
 
@@ -353,42 +353,42 @@ class Query {
         if (!xml.query.isTextNode(node))
             throw new Error(`'Invalid argument ${nameof(node)}. Expected a XmlTextNode.`);
 
-        return xml.query.findParentByName(node, WmlNode.TEXT_NODE) as XmlGeneralNode;
+        return xml.query.findParentByName(node, WmlNode.Text) as XmlGeneralNode;
     }
 
     /**
      * Search **upwards** for the first run node.
      */
     public containingRunNode(node: XmlNode): XmlNode {
-        return xml.query.findParentByName(node, WmlNode.RUN_NODE);
+        return xml.query.findParentByName(node, WmlNode.Run);
     }
 
     /**
      * Search **upwards** for the first paragraph node.
      */
     public containingParagraphNode(node: XmlNode): XmlNode {
-        return xml.query.findParentByName(node, WmlNode.PARAGRAPH_NODE);
+        return xml.query.findParentByName(node, WmlNode.Paragraph);
     }
 
     /**
      * Search **upwards** for the first "table row" node.
      */
     public containingTableRowNode(node: XmlNode): XmlNode {
-        return xml.query.findParentByName(node, WmlNode.TABLE_ROW_NODE);
+        return xml.query.findParentByName(node, WmlNode.TableRow);
     }
 
     /**
      * Search **upwards** for the first "table cell" node.
      */
     public containingTableCellNode(node: XmlNode): XmlNode {
-        return xml.query.findParentByName(node, WmlNode.TABLE_CELL_NODE);
+        return xml.query.findParentByName(node, WmlNode.TableCell);
     }
 
     /**
      * Search **upwards** for the first "table" node.
      */
     public containingTableNode(node: XmlNode): XmlNode {
-        return xml.query.findParentByName(node, WmlNode.TABLE_NODE);
+        return xml.query.findParentByName(node, WmlNode.Table);
     }
 
     //

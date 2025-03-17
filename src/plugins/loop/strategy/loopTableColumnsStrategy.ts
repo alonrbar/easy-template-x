@@ -114,7 +114,7 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
 
     private extractColumns(table: XmlNode, firstColumnIndex: number, lastColumnIndex: number): XmlNode {
         // Create a synthetic table to hold the columns
-        const syntheticTable = xml.create.createGeneralNode('w:tbl');
+        const syntheticTable = xml.create.generalNode('w:tbl');
 
         // For each row in the original table
         const rows = table.childNodes?.filter(node => node.nodeName === 'w:tr') || [];

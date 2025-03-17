@@ -4,38 +4,38 @@ import { xml, XmlUtils } from "src/xml/xml";
 
 describe(XmlUtils, () => {
 
-    describe(xml.serialize.serialize, () => {
+    describe(xml.serialize.serializeNode, () => {
 
         it('serializes a simple text node', () => {
-            const node = xml.create.createTextNode('hello');
-            const str = xml.serialize.serialize(node);
+            const node = xml.create.textNode('hello');
+            const str = xml.serialize.serializeNode(node);
             expect(str).toEqual('hello');
         });
 
         it('serializes a text node with null value as an empty string', () => {
-            const node = xml.create.createTextNode(null);
-            const str = xml.serialize.serialize(node);
+            const node = xml.create.textNode(null);
+            const str = xml.serialize.serializeNode(node);
             expect(str).toEqual('');
         });
 
         it('serializes a text node with undefined value as an empty string', () => {
-            const node = xml.create.createTextNode(undefined);
-            const str = xml.serialize.serialize(node);
+            const node = xml.create.textNode(undefined);
+            const str = xml.serialize.serializeNode(node);
             expect(str).toEqual('');
         });
 
         it('serializes an attribute with quotes', () => {
-            const node = xml.create.createGeneralNode('node');
+            const node = xml.create.generalNode('node');
             node.attributes = {
                 att: 'Some "quoted" value.'
             };
-            const str = xml.serialize.serialize(node);
+            const str = xml.serialize.serializeNode(node);
             expect(str).toEqual('<node att="Some &quot;quoted&quot; value."/>');
         });
 
         it('serializes a comment node', () => {
-            const node = xml.create.createCommentNode('comment');
-            const str = xml.serialize.serialize(node);
+            const node = xml.create.commentNode('comment');
+            const str = xml.serialize.serializeNode(node);
             expect(str).toEqual('<!-- comment -->');
         });
     });

@@ -52,7 +52,7 @@ export class LinkPlugin extends TemplatePlugin {
         xml.modify.removeEmptyTextNodes(markupXml); // remove whitespace
 
         // copy props from original run node (preserve style)
-        const runProps = wordRunNode.childNodes.find(node => node.nodeName === WmlNode.RUN_PROPERTIES_NODE);
+        const runProps = wordRunNode.childNodes.find(node => node.nodeName === WmlNode.RunProperties);
         if (runProps) {
             const linkRunProps = xml.create.cloneNode(runProps, true);
             markupXml.childNodes[0].childNodes.unshift(linkRunProps);
@@ -67,11 +67,11 @@ export class LinkPlugin extends TemplatePlugin {
         // Therefor we isolate the link tag to it's own run (it is already
         // isolated to it's own text node), insert the link markup and remove
         // the run.
-        let textNodesInRun = tagRunNode.childNodes.filter(node => node.nodeName === WmlNode.TEXT_NODE);
+        let textNodesInRun = tagRunNode.childNodes.filter(node => node.nodeName === WmlNode.Text);
         if (textNodesInRun.length > 1) {
 
             const [runBeforeTag] = xml.modify.splitByChild(tagRunNode, tagTextNode, true);
-            textNodesInRun = runBeforeTag.childNodes.filter(node => node.nodeName === WmlNode.TEXT_NODE);
+            textNodesInRun = runBeforeTag.childNodes.filter(node => node.nodeName === WmlNode.Text);
 
             xml.modify.insertAfter(linkMarkup, runBeforeTag);
             if (textNodesInRun.length === 0) {

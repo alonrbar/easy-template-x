@@ -46,7 +46,7 @@ export class Relationship {
 
     public toXml(): XmlGeneralNode {
 
-        const node = xml.create.createGeneralNode('Relationship');
+        const node = xml.create.generalNode('Relationship');
         node.attributes = {};
 
         // set only non-empty attributes
