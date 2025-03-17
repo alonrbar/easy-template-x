@@ -308,12 +308,12 @@ class Query {
     }
 
     public isListParagraph(paragraphNode: XmlNode): boolean {
-        const paragraphProperties = wml.query.paragraphPropertiesNode(paragraphNode);
+        const paragraphProperties = wml.query.findParagraphPropertiesNode(paragraphNode);
         const listNumberProperties = xml.query.findChildByName(paragraphProperties, WmlNode.NumberProperties);
         return !!listNumberProperties;
     }
 
-    public paragraphPropertiesNode(paragraphNode: XmlNode): XmlNode {
+    public findParagraphPropertiesNode(paragraphNode: XmlNode): XmlNode {
         if (!wml.query.isParagraphNode(paragraphNode))
             throw new Error(`Expected paragraph node but received a '${paragraphNode.nodeName}' node.`);
 
