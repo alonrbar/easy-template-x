@@ -1,16 +1,9 @@
 import { Tag } from "src/compilation";
 import { wml } from "src/office";
-import { PluginUtilities } from "src/plugins/templatePlugin";
-import { XmlNode } from "src/xml";
+import { xml, XmlNode } from "src/xml";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
 export class LoopParagraphStrategy implements ILoopStrategy {
-
-    private utilities: PluginUtilities;
-
-    public setUtilities(utilities: PluginUtilities): void {
-        this.utilities = utilities;
-    }
 
     public isApplicable(openTag: Tag, closeTag: Tag, isCondition: boolean): boolean {
         return true;
@@ -38,16 +31,16 @@ export class LoopParagraphStrategy implements ILoopStrategy {
             afterFirstParagraph = beforeLastParagraph;
 
         // disconnect splitted paragraph from their parents
-        XmlNode.remove(afterFirstParagraph);
+        xml.modify.remove(afterFirstParagraph);
         if (!areSame)
-            XmlNode.remove(beforeLastParagraph);
+            xml.modify.remove(beforeLastParagraph);
 
         // extract all paragraphs in between
         let middleParagraphs: XmlNode[];
         if (areSame) {
             middleParagraphs = [afterFirstParagraph];
         } else {
-            const inBetween = XmlNode.removeSiblings(firstParagraph, lastParagraph);
+            const inBetween = xml.modify.removeSiblings(firstParagraph, lastParagraph);
             middleParagraphs = [afterFirstParagraph].concat(inBetween).concat(beforeLastParagraph);
         }
 
@@ -68,7 +61,7 @@ export class LoopParagraphStrategy implements ILoopStrategy {
 
             // add middle and last paragraphs to the original document
             for (let i = 1; i < curParagraphsGroup.length; i++) {
-                XmlNode.insertBefore(curParagraphsGroup[i], lastParagraph);
+                xml.modify.insertBefore(curParagraphsGroup[i], lastParagraph);
                 mergeTo = curParagraphsGroup[i];
             }
         }
@@ -77,6 +70,6 @@ export class LoopParagraphStrategy implements ILoopStrategy {
         wml.modify.joinParagraphs(mergeTo, lastParagraph);
 
         // remove the old last paragraph (was merged into the new one)
-        XmlNode.remove(lastParagraph);
+        xml.modify.remove(lastParagraph);
     }
 }

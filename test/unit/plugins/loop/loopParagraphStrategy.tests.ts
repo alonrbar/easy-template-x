@@ -1,4 +1,4 @@
-import { PluginUtilities, Tag, TagDisposition, XmlTextNode } from "src";
+import { Tag, TagDisposition, XmlTextNode } from "src";
 import { LoopParagraphStrategy } from "src/plugins/loop/strategy";
 import { parseXml } from "../../../testUtils";
 
@@ -43,8 +43,6 @@ describe(nameof(LoopParagraphStrategy), () => {
             expect(closeTag.xmlTextNode.textContent).toEqual('{/loop}');
 
             const strategy = new LoopParagraphStrategy();
-            const pluginUtilities: PluginUtilities = {} as any;
-            strategy.setUtilities(pluginUtilities);
 
             //
             // test

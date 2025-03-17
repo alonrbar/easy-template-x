@@ -1,8 +1,8 @@
-import { PathPart, ScopeData, Tag, TemplateContext } from "../../compilation";
-import { TemplateData } from "../../templateData";
-import { last } from "../../utils";
-import { XmlNode } from "../../xml";
-import { PluginUtilities, TemplatePlugin } from "../templatePlugin";
+import { PathPart, ScopeData, Tag, TemplateContext } from "src/compilation";
+import { PluginUtilities, TemplatePlugin } from "src/plugins/templatePlugin";
+import { TemplateData } from "src/templateData";
+import { last } from "src/utils";
+import { xml, XmlNode } from "src/xml";
 import { ILoopStrategy, LoopListStrategy, LoopParagraphStrategy, LoopTableColumnsStrategy, LoopTableRowsStrategy } from "./strategy";
 
 export const LOOP_CONTENT_TYPE = 'loop';
@@ -20,7 +20,6 @@ export class LoopPlugin extends TemplatePlugin {
 
     public setUtilities(utilities: PluginUtilities): void {
         this.utilities = utilities;
-        this.loopStrategies.forEach(strategy => strategy.setUtilities(utilities));
     }
 
     public async containerTagReplacements(tags: Tag[], data: ScopeData, context: TemplateContext): Promise<void> {
@@ -69,7 +68,7 @@ export class LoopPlugin extends TemplatePlugin {
         const allResults: XmlNode[][] = [];
 
         for (let i = 0; i < times; i++) {
-            const curResult = nodes.map(node => XmlNode.cloneNode(node, true));
+            const curResult = nodes.map(node => xml.create.cloneNode(node, true));
             allResults.push(curResult);
         }
 
@@ -84,8 +83,8 @@ export class LoopPlugin extends TemplatePlugin {
 
             // create dummy root node
             const curNodes = nodeGroups[i];
-            const dummyRootNode = XmlNode.createGeneralNode('dummyRootNode');
-            curNodes.forEach(node => XmlNode.appendChild(dummyRootNode, node));
+            const dummyRootNode = xml.create.createGeneralNode('dummyRootNode');
+            curNodes.forEach(node => xml.modify.appendChild(dummyRootNode, node));
 
             // compile the new root
             const conditionTag = this.updatePathBefore(isCondition, data, i);
@@ -95,7 +94,7 @@ export class LoopPlugin extends TemplatePlugin {
             // disconnect from dummy root
             const curResult: XmlNode[] = [];
             while (dummyRootNode.childNodes && dummyRootNode.childNodes.length) {
-                const child = XmlNode.removeChild(dummyRootNode, 0);
+                const child = xml.modify.removeChild(dummyRootNode, 0);
                 curResult.push(child);
             }
             compiledNodeGroups.push(curResult);

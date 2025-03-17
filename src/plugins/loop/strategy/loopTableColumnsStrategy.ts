@@ -1,17 +1,10 @@
 import { Tag } from "src/compilation";
 import { wml } from "src/office";
 import { LoopOver, LoopTagOptions } from "src/plugins/loop/loopTagOptions";
-import { PluginUtilities } from "src/plugins/templatePlugin";
-import { XmlNode } from "src/xml";
+import { xml, XmlNode } from "src/xml";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
 export class LoopTableColumnsStrategy implements ILoopStrategy {
-
-    private utilities: PluginUtilities;
-
-    public setUtilities(utilities: PluginUtilities): void {
-        this.utilities = utilities;
-    }
 
     public isApplicable(openTag: Tag, closeTag: Tag, isCondition: boolean): boolean {
         const openCell = wml.query.containingTableCellNode(openTag.xmlTextNode);
@@ -78,8 +71,8 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
         const table = wml.query.containingTableNode(firstCell);
 
         // Remove the loop tags
-        XmlNode.remove(openTag.xmlTextNode);
-        XmlNode.remove(closeTag.xmlTextNode);
+        xml.modify.remove(openTag.xmlTextNode);
+        xml.modify.remove(closeTag.xmlTextNode);
 
         // Extract the columns to repeat.
         // This is a single synthetic table with the columns to repeat.
@@ -121,22 +114,22 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
 
     private extractColumns(table: XmlNode, firstColumnIndex: number, lastColumnIndex: number): XmlNode {
         // Create a synthetic table to hold the columns
-        const syntheticTable = XmlNode.createGeneralNode('w:tbl');
+        const syntheticTable = xml.create.createGeneralNode('w:tbl');
 
         // For each row in the original table
         const rows = table.childNodes?.filter(node => node.nodeName === 'w:tr') || [];
         for (const row of rows) {
-            const newRow = XmlNode.cloneNode(row, false);
+            const newRow = xml.create.cloneNode(row, false);
             const cells = row.childNodes?.filter(node => node.nodeName === 'w:tc') || [];
 
             // Copy only the cells within our column range
             for (let i = firstColumnIndex; i <= lastColumnIndex; i++) {
                 if (cells[i]) {
-                    XmlNode.appendChild(newRow, XmlNode.cloneNode(cells[i], true));
+                    xml.modify.appendChild(newRow, xml.create.cloneNode(cells[i], true));
                 }
             }
 
-            XmlNode.appendChild(syntheticTable, newRow);
+            xml.modify.appendChild(syntheticTable, newRow);
         }
 
         return syntheticTable;
@@ -162,7 +155,7 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
                 throw new Error(`Cell not found in synthetic source table row ${i}.`);
             }
 
-            XmlNode.insertChild(targetRow, XmlNode.cloneNode(sourceCell, true), index);
+            xml.modify.insertChild(targetRow, xml.create.cloneNode(sourceCell, true), index);
         }
     }
 
@@ -177,7 +170,7 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
                 continue;
             }
 
-            XmlNode.remove(row.childNodes[index]);
+            xml.modify.remove(row.childNodes[index]);
         }
     }
 }

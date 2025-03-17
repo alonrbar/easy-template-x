@@ -1,4 +1,4 @@
-import { XmlGeneralNode, XmlNode } from '../xml';
+import { xml, XmlGeneralNode } from "src/xml";
 
 /**
  * The types of relationships that can be created in a docx file.
@@ -46,7 +46,7 @@ export class Relationship {
 
     public toXml(): XmlGeneralNode {
 
-        const node = XmlNode.createGeneralNode('Relationship');
+        const node = xml.create.createGeneralNode('Relationship');
         node.attributes = {};
 
         // set only non-empty attributes

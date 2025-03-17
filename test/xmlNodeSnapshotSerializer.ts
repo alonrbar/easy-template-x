@@ -1,4 +1,4 @@
-import { XmlNodeType, XmlNode } from 'src/xml';
+import { XmlNodeType, xml } from 'src/xml';
 
 // add XmlNode snapshot serializer
 // (otherwise simple image markup snapshot takes more than 100MB!)
@@ -13,7 +13,7 @@ const serializer: jest.SnapshotSerializerPlugin = {
     },
 
     print(value) {
-        return XmlNode.serialize(value as any);
+        return xml.serialize.serialize(value as any);
     },
 };
 

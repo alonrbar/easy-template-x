@@ -1,10 +1,7 @@
-import { Tag } from '../../../compilation';
-import { XmlNode } from '../../../xml';
-import { PluginUtilities } from '../../templatePlugin';
+import { Tag } from "src/compilation";
+import { XmlNode } from "src/xml";
 
 export interface ILoopStrategy {
-
-    setUtilities(utilities: PluginUtilities): void;
 
     isApplicable(openTag: Tag, closeTag: Tag, isCondition: boolean): boolean;
 

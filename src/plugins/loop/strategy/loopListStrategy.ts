@@ -1,16 +1,9 @@
 import { Tag } from "src/compilation";
 import { wml } from "src/office";
-import { PluginUtilities } from "src/plugins/templatePlugin";
-import { XmlNode } from "src/xml";
+import { xml, XmlNode } from "src/xml";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
 export class LoopListStrategy implements ILoopStrategy {
-
-    private utilities: PluginUtilities;
-
-    public setUtilities(utilities: PluginUtilities): void {
-        this.utilities = utilities;
-    }
 
     public isApplicable(openTag: Tag, closeTag: Tag, isCondition: boolean): boolean {
         if (isCondition) {
@@ -25,11 +18,11 @@ export class LoopListStrategy implements ILoopStrategy {
 
         const firstParagraph = wml.query.containingParagraphNode(openTag.xmlTextNode);
         const lastParagraph = wml.query.containingParagraphNode(closeTag.xmlTextNode);
-        const paragraphsToRepeat = XmlNode.siblingsInRange(firstParagraph, lastParagraph);
+        const paragraphsToRepeat = xml.query.siblingsInRange(firstParagraph, lastParagraph);
 
         // remove the loop tags
-        XmlNode.remove(openTag.xmlTextNode);
-        XmlNode.remove(closeTag.xmlTextNode);
+        xml.modify.remove(openTag.xmlTextNode);
+        xml.modify.remove(closeTag.xmlTextNode);
 
         return {
             firstNode: firstParagraph,
@@ -42,14 +35,14 @@ export class LoopListStrategy implements ILoopStrategy {
 
         for (const curParagraphsGroup of paragraphGroups) {
             for (const paragraph of curParagraphsGroup) {
-                XmlNode.insertBefore(paragraph, lastParagraphs);
+                xml.modify.insertBefore(paragraph, lastParagraphs);
             }
         }
 
         // remove the old paragraphs
-        XmlNode.remove(firstParagraph);
+        xml.modify.remove(firstParagraph);
         if (firstParagraph !== lastParagraphs) {
-            XmlNode.remove(lastParagraphs);
+            xml.modify.remove(lastParagraphs);
         }
     }
 }

@@ -1,7 +1,7 @@
 import { ScopeData, Tag, TemplateContext } from "src/compilation";
 import { RelType, wml, WmlNode } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
-import { XmlNode, xmlParser } from "src/xml";
+import { xml, XmlNode, xmlParser } from "src/xml";
 import { LinkContent } from "./linkContent";
 
 export class LinkPlugin extends TemplatePlugin {
@@ -14,7 +14,7 @@ export class LinkPlugin extends TemplatePlugin {
 
         const content = data.getScopeData<LinkContent>();
         if (!content || !content.target) {
-            XmlNode.remove(wordTextNode);
+            xml.modify.remove(wordTextNode);
             return;
         }
 
@@ -49,12 +49,12 @@ export class LinkPlugin extends TemplatePlugin {
             </w:hyperlink>
         `;
         const markupXml = xmlParser.parse(markupText);
-        XmlNode.removeEmptyTextNodes(markupXml); // remove whitespace
+        xml.modify.removeEmptyTextNodes(markupXml); // remove whitespace
 
         // copy props from original run node (preserve style)
         const runProps = wordRunNode.childNodes.find(node => node.nodeName === WmlNode.RUN_PROPERTIES_NODE);
         if (runProps) {
-            const linkRunProps = XmlNode.cloneNode(runProps, true);
+            const linkRunProps = xml.create.cloneNode(runProps, true);
             markupXml.childNodes[0].childNodes.unshift(linkRunProps);
         }
 
@@ -70,19 +70,19 @@ export class LinkPlugin extends TemplatePlugin {
         let textNodesInRun = tagRunNode.childNodes.filter(node => node.nodeName === WmlNode.TEXT_NODE);
         if (textNodesInRun.length > 1) {
 
-            const [runBeforeTag] = XmlNode.splitByChild(tagRunNode, tagTextNode, true);
+            const [runBeforeTag] = xml.modify.splitByChild(tagRunNode, tagTextNode, true);
             textNodesInRun = runBeforeTag.childNodes.filter(node => node.nodeName === WmlNode.TEXT_NODE);
 
-            XmlNode.insertAfter(linkMarkup, runBeforeTag);
+            xml.modify.insertAfter(linkMarkup, runBeforeTag);
             if (textNodesInRun.length === 0) {
-                XmlNode.remove(runBeforeTag);
+                xml.modify.remove(runBeforeTag);
             }
         }
 
         // already isolated
         else {
-            XmlNode.insertAfter(linkMarkup, tagRunNode);
-            XmlNode.remove(tagRunNode);
+            xml.modify.insertAfter(linkMarkup, tagRunNode);
+            xml.modify.remove(tagRunNode);
         }
     }
 }

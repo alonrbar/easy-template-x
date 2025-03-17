@@ -1,17 +1,10 @@
 import { Tag } from "src/compilation";
 import { wml } from "src/office";
-import { PluginUtilities } from "src/plugins/templatePlugin";
-import { XmlNode } from "src/xml";
+import { xml, XmlNode } from "src/xml";
 import { LoopOver, LoopTagOptions } from "../loopTagOptions";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
 export class LoopTableRowsStrategy implements ILoopStrategy {
-
-    private utilities: PluginUtilities;
-
-    public setUtilities(utilities: PluginUtilities): void {
-        this.utilities = utilities;
-    }
 
     public isApplicable(openTag: Tag, closeTag: Tag, isCondition: boolean): boolean {
         const openCell = wml.query.containingTableCellNode(openTag.xmlTextNode);
@@ -36,11 +29,11 @@ export class LoopTableRowsStrategy implements ILoopStrategy {
 
         const firstRow = wml.query.containingTableRowNode(openTag.xmlTextNode);
         const lastRow = wml.query.containingTableRowNode(closeTag.xmlTextNode);
-        const rowsToRepeat = XmlNode.siblingsInRange(firstRow, lastRow);
+        const rowsToRepeat = xml.query.siblingsInRange(firstRow, lastRow);
 
         // remove the loop tags
-        XmlNode.remove(openTag.xmlTextNode);
-        XmlNode.remove(closeTag.xmlTextNode);
+        xml.modify.remove(openTag.xmlTextNode);
+        xml.modify.remove(closeTag.xmlTextNode);
 
         return {
             firstNode: firstRow,
@@ -53,14 +46,14 @@ export class LoopTableRowsStrategy implements ILoopStrategy {
 
         for (const curRowsGroup of rowGroups) {
             for (const row of curRowsGroup) {
-                XmlNode.insertBefore(row, lastRow);
+                xml.modify.insertBefore(row, lastRow);
             }
         }
 
         // remove the old rows
-        XmlNode.remove(firstRow);
+        xml.modify.remove(firstRow);
         if (firstRow !== lastRow) {
-            XmlNode.remove(lastRow);
+            xml.modify.remove(lastRow);
         }
     }
 }

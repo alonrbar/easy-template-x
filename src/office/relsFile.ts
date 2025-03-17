@@ -1,8 +1,8 @@
-import { IMap } from "../types";
-import { Path } from "../utils";
-import { XmlGeneralNode, XmlNode, xmlParser } from "../xml";
-import { Zip } from "../zip";
-import { Relationship, RelTargetMode } from "./relationship";
+import { Relationship, RelTargetMode } from "src/office";
+import { IMap } from "src/types";
+import { Path } from "src/utils";
+import { xml, XmlGeneralNode, XmlNode, xmlParser } from "src/xml";
+import { Zip } from "src/zip";
 
 /**
  * A rels file is an xml file that contains the relationship information of a single docx "part".
@@ -149,7 +149,7 @@ export class RelsFile {
     }
 
     private createRootNode(): XmlGeneralNode {
-        const root = XmlNode.createGeneralNode('Relationships');
+        const root = xml.create.createGeneralNode('Relationships');
         root.attributes = {
             'xmlns': 'http://schemas.openxmlformats.org/package/2006/relationships'
         };

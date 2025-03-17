@@ -1,4 +1,4 @@
-import { XmlGeneralNode, XmlNode, XmlTextNode } from "src/xml";
+import { xml, XmlGeneralNode, XmlNode, XmlTextNode } from "src/xml";
 
 //
 // Wordprocessing Markup Language (WML) intro:
@@ -73,7 +73,7 @@ class Modify {
 
         // split nodes
         const wordTextNode = wml.query.containingTextNode(textNode);
-        const newWordTextNode = XmlNode.cloneNode(wordTextNode, true);
+        const newWordTextNode = xml.create.cloneNode(wordTextNode, true);
 
         // set space preserve to prevent display differences after splitting
         // (otherwise if there was a space in the middle of the text node and it
@@ -84,19 +84,19 @@ class Modify {
         if (addBefore) {
 
             // insert new node before existing one
-            XmlNode.insertBefore(newWordTextNode, wordTextNode);
+            xml.modify.insertBefore(newWordTextNode, wordTextNode);
 
-            firstXmlTextNode = XmlNode.lastTextChild(newWordTextNode);
+            firstXmlTextNode = xml.query.lastTextChild(newWordTextNode);
             secondXmlTextNode = textNode;
 
         } else {
 
             // insert new node after existing one
             const curIndex = wordTextNode.parentNode.childNodes.indexOf(wordTextNode);
-            XmlNode.insertChild(wordTextNode.parentNode, newWordTextNode, curIndex + 1);
+            xml.modify.insertChild(wordTextNode.parentNode, newWordTextNode, curIndex + 1);
 
             firstXmlTextNode = textNode;
-            secondXmlTextNode = XmlNode.lastTextChild(newWordTextNode);
+            secondXmlTextNode = xml.query.lastTextChild(newWordTextNode);
         }
 
         // edit text
@@ -125,57 +125,57 @@ class Modify {
         const wordTextNode = wml.query.containingTextNode(textNode);
 
         // create run clone
-        const leftRun = XmlNode.cloneNode(runNode, false);
+        const leftRun = xml.create.cloneNode(runNode, false);
         const rightRun = runNode;
-        XmlNode.insertBefore(leftRun, rightRun);
+        xml.modify.insertBefore(leftRun, rightRun);
 
         // copy props from original run node (preserve style)
         const runProps = rightRun.childNodes.find(node => node.nodeName === WmlNode.RUN_PROPERTIES_NODE);
         if (runProps) {
-            const leftRunProps = XmlNode.cloneNode(runProps, true);
-            XmlNode.appendChild(leftRun, leftRunProps);
+            const leftRunProps = xml.create.cloneNode(runProps, true);
+            xml.modify.appendChild(leftRun, leftRunProps);
         }
 
         // move nodes from 'right' to 'left'
         const firstRunChildIndex = (runProps ? 1 : 0);
         let curChild = rightRun.childNodes[firstRunChildIndex];
         while (curChild != wordTextNode) {
-            XmlNode.remove(curChild);
-            XmlNode.appendChild(leftRun, curChild);
+            xml.modify.remove(curChild);
+            xml.modify.appendChild(leftRun, curChild);
             curChild = rightRun.childNodes[firstRunChildIndex];
         }
 
         // remove text node
         if (removeTextNode) {
-            XmlNode.removeChild(rightRun, firstRunChildIndex);
+            xml.modify.removeChild(rightRun, firstRunChildIndex);
         }
 
         // create paragraph clone
-        const leftPara = XmlNode.cloneNode(containingParagraph, false);
+        const leftPara = xml.create.cloneNode(containingParagraph, false);
         const rightPara = containingParagraph;
-        XmlNode.insertBefore(leftPara, rightPara);
+        xml.modify.insertBefore(leftPara, rightPara);
 
         // copy props from original paragraph (preserve style)
         const paragraphProps = rightPara.childNodes.find(node => node.nodeName === WmlNode.PARAGRAPH_PROPERTIES_NODE);
         if (paragraphProps) {
-            const leftParagraphProps = XmlNode.cloneNode(paragraphProps, true);
-            XmlNode.appendChild(leftPara, leftParagraphProps);
+            const leftParagraphProps = xml.create.cloneNode(paragraphProps, true);
+            xml.modify.appendChild(leftPara, leftParagraphProps);
         }
 
         // move nodes from 'right' to 'left'
         const firstParaChildIndex = (paragraphProps ? 1 : 0);
         curChild = rightPara.childNodes[firstParaChildIndex];
         while (curChild != rightRun) {
-            XmlNode.remove(curChild);
-            XmlNode.appendChild(leftPara, curChild);
+            xml.modify.remove(curChild);
+            xml.modify.appendChild(leftPara, curChild);
             curChild = rightPara.childNodes[firstParaChildIndex];
         }
 
         // clean paragraphs - remove empty runs
         if (wml.query.isEmptyRun(leftRun))
-            XmlNode.remove(leftRun);
+            xml.modify.remove(leftRun);
         if (wml.query.isEmptyRun(rightRun))
-            XmlNode.remove(rightRun);
+            xml.modify.remove(rightRun);
 
         return [leftPara, rightPara];
     }
@@ -217,7 +217,7 @@ class Modify {
                 }
 
                 // move text to first node
-                const curXmlTextNode = XmlNode.lastTextChild(curWordTextNode);
+                const curXmlTextNode = xml.query.lastTextChild(curWordTextNode);
                 totalText.push(curXmlTextNode.textContent);
 
                 // next text node
@@ -230,7 +230,7 @@ class Modify {
 
                 // remove current text node
                 if (textToRemove !== firstWordTextNode) {
-                    XmlNode.remove(textToRemove);
+                    xml.modify.remove(textToRemove);
                 }
             }
 
@@ -244,12 +244,12 @@ class Modify {
 
             // remove current run
             if (!runToRemove.childNodes || !runToRemove.childNodes.length) {
-                XmlNode.remove(runToRemove);
+                xml.modify.remove(runToRemove);
             }
         }
 
         // set the text content
-        const firstXmlTextNode = XmlNode.lastTextChild(firstWordTextNode);
+        const firstXmlTextNode = xml.query.lastTextChild(firstWordTextNode);
         firstXmlTextNode.textContent = totalText.join('');
     }
 
@@ -264,8 +264,8 @@ class Modify {
         while (second.childNodes && childIndex < second.childNodes.length) {
             const curChild = second.childNodes[childIndex];
             if (curChild.nodeName === WmlNode.RUN_NODE) {
-                XmlNode.removeChild(second, childIndex);
-                XmlNode.appendChild(first, curChild);
+                xml.modify.removeChild(second, childIndex);
+                xml.modify.appendChild(first, curChild);
             } else {
                 childIndex++;
             }
@@ -309,7 +309,7 @@ class Query {
 
     public isListParagraph(paragraphNode: XmlNode): boolean {
         const paragraphProperties = wml.query.paragraphPropertiesNode(paragraphNode);
-        const listNumberProperties = XmlNode.findChildByName(paragraphProperties, WmlNode.NUMBER_PROPERTIES_NODE);
+        const listNumberProperties = xml.query.findChildByName(paragraphProperties, WmlNode.NUMBER_PROPERTIES_NODE);
         return !!listNumberProperties;
     }
 
@@ -317,7 +317,7 @@ class Query {
         if (!wml.query.isParagraphNode(paragraphNode))
             throw new Error(`Expected paragraph node but received a '${paragraphNode.nodeName}' node.`);
 
-        return XmlNode.findChildByName(paragraphNode, WmlNode.PARAGRAPH_PROPERTIES_NODE);
+        return xml.query.findChildByName(paragraphNode, WmlNode.PARAGRAPH_PROPERTIES_NODE);
     }
 
     /**
@@ -350,45 +350,45 @@ class Query {
         if (!node)
             return null;
 
-        if (!XmlNode.isTextNode(node))
+        if (!xml.query.isTextNode(node))
             throw new Error(`'Invalid argument ${nameof(node)}. Expected a XmlTextNode.`);
 
-        return XmlNode.findParentByName(node, WmlNode.TEXT_NODE) as XmlGeneralNode;
+        return xml.query.findParentByName(node, WmlNode.TEXT_NODE) as XmlGeneralNode;
     }
 
     /**
      * Search **upwards** for the first run node.
      */
     public containingRunNode(node: XmlNode): XmlNode {
-        return XmlNode.findParentByName(node, WmlNode.RUN_NODE);
+        return xml.query.findParentByName(node, WmlNode.RUN_NODE);
     }
 
     /**
      * Search **upwards** for the first paragraph node.
      */
     public containingParagraphNode(node: XmlNode): XmlNode {
-        return XmlNode.findParentByName(node, WmlNode.PARAGRAPH_NODE);
+        return xml.query.findParentByName(node, WmlNode.PARAGRAPH_NODE);
     }
 
     /**
      * Search **upwards** for the first "table row" node.
      */
     public containingTableRowNode(node: XmlNode): XmlNode {
-        return XmlNode.findParentByName(node, WmlNode.TABLE_ROW_NODE);
+        return xml.query.findParentByName(node, WmlNode.TABLE_ROW_NODE);
     }
 
     /**
      * Search **upwards** for the first "table cell" node.
      */
     public containingTableCellNode(node: XmlNode): XmlNode {
-        return XmlNode.findParentByName(node, WmlNode.TABLE_CELL_NODE);
+        return xml.query.findParentByName(node, WmlNode.TABLE_CELL_NODE);
     }
 
     /**
      * Search **upwards** for the first "table" node.
      */
     public containingTableNode(node: XmlNode): XmlNode {
-        return XmlNode.findParentByName(node, WmlNode.TABLE_NODE);
+        return xml.query.findParentByName(node, WmlNode.TABLE_NODE);
     }
 
     //
@@ -403,7 +403,7 @@ class Query {
             return true;
 
         const xmlTextNode = node.childNodes[0];
-        if (!XmlNode.isTextNode(xmlTextNode))
+        if (!xml.query.isTextNode(xmlTextNode))
             throw new Error("Invalid XML structure. 'w:t' node should contain a single text node only.");
 
         if (!xmlTextNode.textContent)

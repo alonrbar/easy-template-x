@@ -1,6 +1,7 @@
-import { DOMParser } from '@xmldom/xmldom';
-import { MissingArgumentError } from '../errors';
-import { XmlNode } from './xmlNode';
+import { DOMParser } from "@xmldom/xmldom";
+import { MissingArgumentError } from "../errors";
+import { xml } from "./xml";
+import { XmlNode } from "./xmlNode";
 
 export class XmlParser {
 
@@ -14,7 +15,7 @@ export class XmlParser {
 
     public parse(str: string): XmlNode {
         const doc = this.domParse(str);
-        return XmlNode.fromDomNode(doc.documentElement);
+        return xml.create.fromDomNode(doc.documentElement);
     }
 
     public domParse(str: string): Document {
@@ -25,7 +26,7 @@ export class XmlParser {
     }
 
     public serialize(xmlNode: XmlNode): string {
-        return XmlParser.xmlHeader + XmlNode.serialize(xmlNode);
+        return XmlParser.xmlHeader + xml.serialize.serialize(xmlNode);
     }
 }
 

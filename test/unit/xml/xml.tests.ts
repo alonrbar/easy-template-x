@@ -1,50 +1,51 @@
 import { COMMENT_NODE_NAME, TEXT_NODE_NAME, XmlCommentNode, XmlNode, XmlNodeType, xmlParser, XmlTextNode } from "src/xml";
 import { parseXml } from "../../testUtils";
+import { xml, XmlUtils } from "src/xml/xml";
 
-describe(nameof(XmlNode), () => {
+describe(XmlUtils, () => {
 
-    describe(nameof(XmlNode.serialize), () => {
+    describe(xml.serialize.serialize, () => {
 
         it('serializes a simple text node', () => {
-            const node = XmlNode.createTextNode('hello');
-            const str = XmlNode.serialize(node);
+            const node = xml.create.createTextNode('hello');
+            const str = xml.serialize.serialize(node);
             expect(str).toEqual('hello');
         });
 
         it('serializes a text node with null value as an empty string', () => {
-            const node = XmlNode.createTextNode(null);
-            const str = XmlNode.serialize(node);
+            const node = xml.create.createTextNode(null);
+            const str = xml.serialize.serialize(node);
             expect(str).toEqual('');
         });
 
         it('serializes a text node with undefined value as an empty string', () => {
-            const node = XmlNode.createTextNode(undefined);
-            const str = XmlNode.serialize(node);
+            const node = xml.create.createTextNode(undefined);
+            const str = xml.serialize.serialize(node);
             expect(str).toEqual('');
         });
 
         it('serializes an attribute with quotes', () => {
-            const node = XmlNode.createGeneralNode('node');
+            const node = xml.create.createGeneralNode('node');
             node.attributes = {
                 att: 'Some "quoted" value.'
             };
-            const str = XmlNode.serialize(node);
+            const str = xml.serialize.serialize(node);
             expect(str).toEqual('<node att="Some &quot;quoted&quot; value."/>');
         });
 
         it('serializes a comment node', () => {
-            const node = XmlNode.createCommentNode('comment');
-            const str = XmlNode.serialize(node);
+            const node = xml.create.createCommentNode('comment');
+            const str = xml.serialize.serialize(node);
             expect(str).toEqual('<!-- comment -->');
         });
     });
 
-    describe(nameof(XmlNode.fromDomNode), () => {
+    describe(xml.create.fromDomNode, () => {
 
         it('creates a valid xml node from a single dom node', () => {
 
             const domNode = createDomNode('<my-node/>');
-            const xmlNode = XmlNode.fromDomNode(domNode);
+            const xmlNode = xml.create.fromDomNode(domNode);
 
             expect(xmlNode.nodeName).toEqual('my-node');
             expect(xmlNode.nodeType).toEqual(XmlNodeType.General);
@@ -59,7 +60,7 @@ describe(nameof(XmlNode), () => {
                     <child></child>
                 </root>
             `, true);
-            const xmlNode = XmlNode.fromDomNode(domNode);
+            const xmlNode = xml.create.fromDomNode(domNode);
 
             // root
             const root = xmlNode;
@@ -87,7 +88,7 @@ describe(nameof(XmlNode), () => {
                     <other-child>hi</other-child>
                 </root>
             `, true);
-            const xmlNode = XmlNode.fromDomNode(domNode);
+            const xmlNode = xml.create.fromDomNode(domNode);
 
             // root
             const root = xmlNode;
@@ -143,7 +144,7 @@ describe(nameof(XmlNode), () => {
 
     });
 
-    describe(nameof(XmlNode.insertBefore), () => {
+    describe(xml.modify.insertBefore, () => {
 
         it('inserts before an only child', () => {
 
@@ -159,7 +160,7 @@ describe(nameof(XmlNode), () => {
                 nodeType: XmlNodeType.General
             };
 
-            XmlNode.insertBefore(newChild, child);
+            xml.modify.insertBefore(newChild, child);
 
             // parent
             expect(parent.parentNode).toBeFalsy();
@@ -181,7 +182,7 @@ describe(nameof(XmlNode), () => {
 
     });
 
-    describe(nameof(XmlNode.insertChild), () => {
+    describe(xml.modify.insertChild, () => {
 
         it('inserts into an empty child collection', () => {
 
@@ -192,7 +193,7 @@ describe(nameof(XmlNode), () => {
                 nodeType: XmlNodeType.General
             };
 
-            XmlNode.insertChild(parent, child, 0);
+            xml.modify.insertChild(parent, child, 0);
 
             // parent
             expect(parent.parentNode).toBeFalsy();
@@ -209,7 +210,7 @@ describe(nameof(XmlNode), () => {
 
     });
 
-    describe(nameof(XmlNode.appendChild), () => {
+    describe(xml.modify.appendChild, () => {
 
         it('appends a child', () => {
 
@@ -225,7 +226,7 @@ describe(nameof(XmlNode), () => {
                 nodeType: XmlNodeType.General
             };
 
-            XmlNode.appendChild(parent, newChild);
+            xml.modify.appendChild(parent, newChild);
 
             // parent
             expect(parent.parentNode).toBeFalsy();

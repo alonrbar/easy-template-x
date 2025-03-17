@@ -1,6 +1,6 @@
 import { wml } from "src/office";
 import { first, last } from "src/utils";
-import { XmlDepthTracker, XmlNode, XmlTextNode } from "src/xml";
+import { xml, XmlDepthTracker, XmlNode, XmlTextNode } from "src/xml";
 import { DelimiterMark } from "./delimiterMark";
 
 class MatchState {
@@ -160,7 +160,7 @@ export class DelimiterSearcher {
 
     private shouldSearchNode(node: XmlNode): node is XmlTextNode {
 
-        if (!XmlNode.isTextNode(node))
+        if (!xml.query.isTextNode(node))
             return false;
         if (!node.textContent)
             return false;

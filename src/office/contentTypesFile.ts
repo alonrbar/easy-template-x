@@ -1,7 +1,7 @@
-import { MimeType, MimeTypeHelper } from "../mimeType";
-import { IMap } from "../types";
-import { XmlGeneralNode, XmlNode, xmlParser } from "../xml";
-import { Zip } from "../zip";
+import { MimeType, MimeTypeHelper } from "src/mimeType";
+import { IMap } from "src/types";
+import { xml, XmlGeneralNode, XmlNode, xmlParser } from "src/xml";
+import { Zip } from "src/zip";
 
 /**
  * http://officeopenxml.com/anatomyofOOXML.php
@@ -33,7 +33,7 @@ export class ContentTypesFile {
 
         // add new
         const extension = MimeTypeHelper.getDefaultExtension(mime);
-        const typeNode = XmlNode.createGeneralNode('Default');
+        const typeNode = xml.create.createGeneralNode('Default');
         typeNode.attributes = {
             "Extension": extension,
             "ContentType": mime
@@ -47,7 +47,7 @@ export class ContentTypesFile {
 
     public async count(): Promise<number> {
         await this.parseContentTypesFile();
-        return this.root.childNodes.filter(node => !XmlNode.isTextNode(node)).length;
+        return this.root.childNodes.filter(node => !xml.query.isTextNode(node)).length;
     }
 
     /**

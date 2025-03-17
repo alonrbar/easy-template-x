@@ -1,8 +1,8 @@
 import { ScopeData, Tag } from "src/compilation";
-import { WmlNode, wml } from "src/office";
+import { wml, WmlNode } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { stringValue } from "src/utils";
-import { XmlNode, XmlTextNode } from "src/xml";
+import { xml, XmlNode, XmlTextNode } from "src/xml";
 
 export const TEXT_CONTENT_TYPE = 'text';
 
@@ -47,26 +47,26 @@ export class TextPlugin extends TemplatePlugin {
 
             // add line break
             const lineBreak = this.getLineBreak();
-            XmlNode.appendChild(runNode, lineBreak);
+            xml.modify.appendChild(runNode, lineBreak);
 
             // add text
             const lineNode = this.createWordTextNode(lines[i]);
-            XmlNode.appendChild(runNode, lineNode);
+            xml.modify.appendChild(runNode, lineNode);
         }
     }
 
     private getLineBreak(): XmlNode {
-        return XmlNode.createGeneralNode('w:br');
+        return xml.create.createGeneralNode('w:br');
     }
 
     private createWordTextNode(text: string): XmlNode {
-        const wordTextNode = XmlNode.createGeneralNode(WmlNode.TEXT_NODE);
+        const wordTextNode = xml.create.createGeneralNode(WmlNode.TEXT_NODE);
 
         wordTextNode.attributes = {};
         wml.modify.setSpacePreserveAttribute(wordTextNode);
 
         wordTextNode.childNodes = [
-            XmlNode.createTextNode(text)
+            xml.create.createTextNode(text)
         ];
 
         return wordTextNode;

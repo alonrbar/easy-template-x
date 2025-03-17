@@ -1,7 +1,7 @@
 import { ScopeData, Tag } from "src/compilation";
 import { wml } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
-import { XmlNode, xmlParser } from "src/xml";
+import { xml, xmlParser } from "src/xml";
 import { RawXmlContent } from "./rawXmlContent";
 
 export class RawXmlPlugin extends TemplatePlugin {
@@ -18,9 +18,9 @@ export class RawXmlPlugin extends TemplatePlugin {
 
         if (typeof value?.xml === 'string') {
             const newNode = xmlParser.parse(value.xml);
-            XmlNode.insertBefore(newNode, replaceNode);
+            xml.modify.insertBefore(newNode, replaceNode);
         }
 
-        XmlNode.remove(replaceNode);
+        xml.modify.remove(replaceNode);
     }
 }

@@ -3,7 +3,7 @@ import { ArgumentError } from "src/errors";
 import { MimeTypeHelper } from "src/mimeType";
 import { wml } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
-import { XmlGeneralNode, XmlNode, xmlParser } from "src/xml";
+import { xml, XmlGeneralNode, XmlNode, xmlParser } from "src/xml";
 import { ImageContent } from "./imageContent";
 
 /**
@@ -28,7 +28,7 @@ export class ImagePlugin extends TemplatePlugin {
 
         const content = data.getScopeData<ImageContent>();
         if (!content || !content.source) {
-            XmlNode.remove(wordTextNode);
+            xml.modify.remove(wordTextNode);
             return;
         }
 
@@ -42,8 +42,8 @@ export class ImagePlugin extends TemplatePlugin {
         const imageId = nextImageId++;
         const imageXml = this.createMarkup(imageId, relId, content);
 
-        XmlNode.insertAfter(imageXml, wordTextNode);
-        XmlNode.remove(wordTextNode);
+        xml.modify.insertAfter(imageXml, wordTextNode);
+        xml.modify.remove(wordTextNode);
     }
 
     private createMarkup(imageId: number, relId: string, content: ImageContent): XmlNode {
@@ -80,7 +80,7 @@ export class ImagePlugin extends TemplatePlugin {
         `;
 
         const markupXml = xmlParser.parse(markupText) as XmlGeneralNode;
-        XmlNode.removeEmptyTextNodes(markupXml); // remove whitespace
+        xml.modify.removeEmptyTextNodes(markupXml); // remove whitespace
 
         return markupXml;
     }
