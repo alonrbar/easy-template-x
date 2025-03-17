@@ -238,12 +238,12 @@ class Query {
      * The function also makes sure the returned text node has a valid string
      * value.
      */
-    public lastTextChild(node: XmlNode): XmlTextNode {
+    public lastTextChild(node: XmlNode, createIfMissing: boolean = true): XmlTextNode {
         if (xml.query.isTextNode(node)) {
             return node;
         }
 
-        // existing text nodes
+        // Existing text nodes
         if (node.childNodes) {
             const allTextNodes = node.childNodes.filter(child => xml.query.isTextNode(child)) as XmlTextNode[];
             if (allTextNodes.length) {
@@ -254,7 +254,11 @@ class Query {
             }
         }
 
-        // create new text node
+        if (!createIfMissing) {
+            return null;
+        }
+
+        // Create new text node
         const newTextNode: XmlTextNode = {
             nodeType: XmlNodeType.Text,
             nodeName: TEXT_NODE_NAME,
