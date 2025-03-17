@@ -60,6 +60,9 @@ class Parser {
     }
 
     public serializeNode(node: XmlNode): string {
+        if (!node)
+            return '';
+
         if (xml.query.isTextNode(node))
             return xml.parser.encodeValue(node.textContent || '');
 
