@@ -104,12 +104,17 @@ function updateSeries(chartPart: XmlPart, chartNode: XmlNode, chartData: ChartDa
     // TODO: Update embedded workbook
 
     // Remove all old series
-    chartNode.childNodes = chartNode.childNodes?.filter(child => child.nodeName === "c:ser");
+    const seriesNodes = chartNode.childNodes?.filter(child => child.nodeName === "c:ser");
+    for (const seriesNode of seriesNodes) {
+        xml.modify.removeChild(chartNode, seriesNode);
+    }
 
     // Create new series
     const firstSeries = readFirstSeries(chartNode);
     const newSeries = chartData.seriesNames.map((name, index) => createSeries(name, index, firstSeries, chartData));
-    chartNode.childNodes = [...chartNode.childNodes, ...newSeries];
+    for (const series of newSeries) {
+        xml.modify.appendChild(chartNode, series);
+    }
 }
 
 //
