@@ -122,7 +122,7 @@ export class Docx {
     }
 
     public async export<T extends Binary>(outputType?: Constructor<T>): Promise<T> {
-        await this.saveChanges();
+        await this.saveXmlChanges();
         return await this.zip.export(outputType);
     }
 
@@ -203,14 +203,14 @@ export class Docx {
         }
     }
 
-    private async saveChanges() {
+    private async saveXmlChanges() {
 
         const parts = [
             this.mainDocument,
             ...Object.values(this._parts)
         ];
         for (const part of parts) {
-            await part.saveChanges();
+            await part.saveXmlChanges();
         }
 
         await this.contentTypes.save();

@@ -53,6 +53,10 @@ export class WmlNode {
     public static readonly NumberProperties = 'w:numPr';
 }
 
+export class WmlAttribute {
+    public static readonly SpacePreserve = 'xml:space';
+}
+
 /**
  * Wordprocessing Markup Language (WML) modify utilities.
  */
@@ -276,8 +280,8 @@ class Modify {
         if (!node.attributes) {
             node.attributes = {};
         }
-        if (!node.attributes['xml:space']) {
-            node.attributes['xml:space'] = 'preserve';
+        if (!node.attributes[WmlAttribute.SpacePreserve]) {
+            node.attributes[WmlAttribute.SpacePreserve] = 'preserve';
         }
     }
 }

@@ -1,3 +1,5 @@
+import { Constructor } from "src/types";
+import { Binary } from "src/utils";
 import { xml, XmlNode } from "src/xml";
 import { Zip } from "src/zip";
 import { RelsFile } from "./relsFile";
@@ -54,16 +56,48 @@ export class OpenXmlPart {
         return domDocument.documentElement.textContent;
     }
 
-    public async saveChanges(): Promise<void> {
+    /**
+     * Get the binary content of the part.
+     */
+    public async getContentBinary<T extends Binary>(outputType?: Constructor<T>): Promise<T> {
+        const file = this.zip.getFile(this.path);
+        return await file.getContentBinary(outputType);
+    }
 
-        // save xml
+    /**
+     * Get a related OpenXmlPart by the relationship ID.
+     */
+    public async getPartById(relId: string): Promise<OpenXmlPart> {
+        const rels = await this.rels.list();
+        const rel = rels.find(r => r.id === relId);
+        if (!rel) {
+            return null;
+        }
+
+        // TODO: Need to handle the relative path...
+        const part = new OpenXmlPart(rel.target, this.zip);
+        return part;
+    }
+
+    public async saveXmlChanges(): Promise<void> {
+
+        // Save xml
         if (this.root) {
             const xmlRoot = await this.xmlRoot();
             const xmlContent = xml.parser.serializeFile(xmlRoot);
             this.zip.setFile(this.path, xmlContent);
         }
 
-        // save rels
+        // Save rels
+        await this.rels.save();
+    }
+
+    public async saveBinaryChanges(newContent: Binary): Promise<void> {
+
+        // Save binary
+        this.zip.setFile(this.path, newContent);
+
+        // Save rels
         await this.rels.save();
     }
 }
