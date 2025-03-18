@@ -32,6 +32,7 @@ const chartTypes = Object.freeze({
     surfaceChart: "c:surfaceChart",
 } as const);
 
+// TODO: Reverse the format codes
 // https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.numberingformat?view=openxml-3.0.1
 // https://support.microsoft.com/en-us/office/number-format-codes-in-excel-for-mac-5026bbd6-04bc-48cd-bf33-80f18b4eae68
 export const formatCodes = Object.freeze({
@@ -110,7 +111,7 @@ export async function updateChart(chartPart: OpenXmlPart, chartData: ChartData) 
 
     // Update inline series
     updateInlineSeries(chartNode, firstSeries, chartData);
-    await chartPart.saveXmlChanges();
+    await chartPart.save();
 }
 
 //
@@ -445,11 +446,11 @@ async function updateEmbeddedExcelFile(chartPart: OpenXmlPart, sheetName: string
     if (sheetPart) {
         await updateTablePart(sheetPart, chartData);
     }
-    await workbookPart.saveXmlChanges();
+    await workbookPart.save();
 
     // Save the Excel file
     const newXlsxBinary = await xlsx.export();
-    await xlsxPart.saveBinaryChanges(newXlsxBinary);
+    await xlsxPart.save(newXlsxBinary);
 }
 
 async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, chartData: ChartData): Promise<OpenXmlPart> {
@@ -516,7 +517,7 @@ async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, cha
     }
 
     // Save the sheet part
-    await sheetPart.saveXmlChanges();
+    await sheetPart.save();
     return sheetPart;
 }
 
@@ -557,7 +558,7 @@ async function updateTablePart(sheetPart: OpenXmlPart, chartData: ChartData) {
     xml.modify.appendChild(tablePartRoot, parseXmlNode(tableColumns));
 
     // Save the table part
-    await tablePart.saveXmlChanges();
+    await tablePart.save();
 }
 
 /**
@@ -574,7 +575,7 @@ async function addDxfToDxfs(workbookPart: OpenXmlPart, sheetRoot: XmlNode, forma
         return 0;
     }
 
-    const stylesPart = await workbookPart.getPartByPath(RelType.Styles);
+    const stylesPart = (await workbookPart.getPartsByType(RelType.Styles))[0];
     const stylesRoot = await stylesPart.xmlRoot();
 
     // Find or create cellXfs
@@ -603,7 +604,7 @@ async function addDxfToDxfs(workbookPart: OpenXmlPart, sheetRoot: XmlNode, forma
     `));
 
     // Save the styles part
-    await stylesPart.saveXmlChanges();
+    await stylesPart.save();
 
     return count;
 }

@@ -1,9 +1,9 @@
-import { MimeType } from 'src/mimeType';
-import { ContentPartType } from 'src/office';
-import { TemplateHandler } from 'src/templateHandler';
-import { Zip } from 'src/zip';
-import { readResource } from '../testUtils';
-import { readFixture } from './fixtureUtils';
+import { MimeType } from "src/mimeType";
+import { RelType } from "src/office";
+import { TemplateHandler } from "src/templateHandler";
+import { Zip } from "src/zip";
+import { readResource } from "../testUtils";
+import { readFixture } from "./fixtureUtils";
 
 describe('header and footer fixtures', () => {
 
@@ -23,10 +23,10 @@ describe('header and footer fixtures', () => {
         const docText = await handler.getText(doc);
         expect(docText.trim()).toEqual("hello world");
 
-        const headerText = await handler.getText(doc, ContentPartType.DefaultHeader);
+        const headerText = await handler.getText(doc, RelType.Header);
         expect(headerText.trim()).toEqual("I'm in the header!");
 
-        const footerText = await handler.getText(doc, ContentPartType.DefaultFooter);
+        const footerText = await handler.getText(doc, RelType.Footer);
         expect(footerText.trim()).toEqual("Hello from down below");
     });
 
@@ -55,10 +55,10 @@ describe('header and footer fixtures', () => {
         const docText = await handler.getText(doc);
         expect(docText.trim()).toEqual("hello world1hello world2");
 
-        const headerText = await handler.getText(doc, ContentPartType.DefaultHeader);
+        const headerText = await handler.getText(doc, RelType.Header);
         expect(headerText.trim()).toEqual("I'm in the header!Me too!");
 
-        const footerText = await handler.getText(doc, ContentPartType.DefaultFooter);
+        const footerText = await handler.getText(doc, RelType.Footer);
         expect(footerText.trim()).toEqual("Hello from down below.How do you do?");
 
         // writeTempFile('header and footer - loop - output.docx', doc);
@@ -97,10 +97,10 @@ describe('header and footer fixtures', () => {
         const docText = await handler.getText(doc);
         expect(docText.trim()).toEqual("hello world");
 
-        const headerXml = await handler.getXml(doc, ContentPartType.DefaultHeader);
+        const headerXml = await handler.getXml(doc, RelType.Header);
         expect(headerXml).toMatchSnapshot();
 
-        const footerXml = await handler.getText(doc, ContentPartType.DefaultFooter);
+        const footerXml = await handler.getXml(doc, RelType.Footer);
         expect(footerXml).toMatchSnapshot();
 
         // assert image binary added
@@ -122,7 +122,7 @@ describe('header and footer fixtures', () => {
 
         const template: Buffer = readFixture("header and footer - middle reference.docx");
 
-        const headerTextBefore = await handler.getText(template, ContentPartType.DefaultHeader);
+        const headerTextBefore = await handler.getText(template, RelType.Header);
         expect(headerTextBefore.trim()).toContain("client.court.courtFile");
         expect(headerTextBefore.trim()).not.toContain("TEST");
 
@@ -132,7 +132,7 @@ describe('header and footer fixtures', () => {
 
         const doc = await handler.process(template, data);
 
-        const headerTextAfter = await handler.getText(doc, ContentPartType.DefaultHeader);
+        const headerTextAfter = await handler.getText(doc, RelType.Header);
         expect(headerTextAfter.trim()).toContain("TEST");
         expect(headerTextAfter.trim()).not.toContain("client.court.courtFile");
 

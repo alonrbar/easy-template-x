@@ -1,7 +1,8 @@
-import { Constructor } from "src/types";
+import { Constructor, IMap } from "src/types";
 import { Binary } from "src/utils";
 import { xml, XmlNode } from "src/xml";
 import { Zip } from "src/zip";
+import { Relationship } from "./relationship";
 import { RelsFile } from "./relsFile";
 
 /**
@@ -17,7 +18,7 @@ export class OpenXmlPart {
     public readonly path: string;
 
     private root: XmlNode;
-
+    private readonly openedParts: IMap<OpenXmlPart> = {};
     private readonly zip: Zip;
 
     constructor(path: string, zip: Zip) {
@@ -73,43 +74,58 @@ export class OpenXmlPart {
         if (!rel) {
             return null;
         }
-
-        const relTargetPath = this.rels.absoluteTargetPath(rel.target);
-        const part = new OpenXmlPart(relTargetPath, this.zip);
-        return part;
+        return this.openPart(rel);
     }
 
-    public async getPartByPath(type: string): Promise<OpenXmlPart> {
+    /**
+     * Get all related OpenXmlParts by the relationship type.
+     */
+    public async getPartsByType(type: string): Promise<OpenXmlPart[]> {
         const rels = await this.rels.list();
-        const rel = rels.find(r => r.type === type);
-        if (!rel) {
-            return null;
+        const relsByType = rels.filter(r => r.type === type);
+        if (!relsByType?.length) {
+            return [];
         }
 
-        const relTargetPath = this.rels.absoluteTargetPath(rel.target);
-        const part = new OpenXmlPart(relTargetPath, this.zip);
-        return part;
+        const parts: OpenXmlPart[] = [];
+        for (const rel of relsByType) {
+            const part = this.openPart(rel);
+            parts.push(part);
+        }
+        return parts;
     }
 
-    public async saveXmlChanges(): Promise<void> {
+    /**
+     * Save the part and all related parts.
+     *
+     * **Notice:**
+     * - Saving binary changes requires binary content to be explicitly provided.
+     * - Binary changes of related parts are not automatically saved.
+     */
+    public async save(binaryContent?: Binary): Promise<void> {
 
-        // Save xml
-        if (this.root) {
+        // Save self
+        if (binaryContent) {
+            this.zip.setFile(this.path, binaryContent);
+        } if (this.root) {
             const xmlRoot = await this.xmlRoot();
             const xmlContent = xml.parser.serializeFile(xmlRoot);
             this.zip.setFile(this.path, xmlContent);
         }
 
+        // Save opened parts
+        for (const part of Object.values(this.openedParts)) {
+            await part.save();
+        }
+
         // Save rels
         await this.rels.save();
     }
 
-    public async saveBinaryChanges(newContent: Binary): Promise<void> {
-
-        // Save binary
-        this.zip.setFile(this.path, newContent);
-
-        // Save rels
-        await this.rels.save();
+    private openPart(rel: Relationship): OpenXmlPart {
+        const relTargetPath = this.rels.absoluteTargetPath(rel.target);
+        const part = new OpenXmlPart(relTargetPath, this.zip);
+        this.openedParts[relTargetPath] = part;
+        return part;
     }
 }

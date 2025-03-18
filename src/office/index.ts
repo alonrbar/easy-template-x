@@ -1,4 +1,3 @@
-export * from './contentPartType';
 export * from './docx';
 export * from './openXmlPart';
 export * from './relationship';

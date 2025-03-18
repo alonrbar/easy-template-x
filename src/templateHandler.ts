@@ -1,7 +1,7 @@
 import { DelimiterSearcher, ScopeData, Tag, TagParser, TemplateCompiler, TemplateContext } from "./compilation";
 import { Delimiters } from "./delimiters";
 import { TemplateExtension } from "./extensions";
-import { ContentPartType, Docx } from "./office";
+import { Docx, RelType } from "./office";
 import { TemplateData } from "./templateData";
 import { TemplateHandlerOptions } from "./templateHandlerOptions";
 import { Binary } from "./utils";
@@ -100,51 +100,65 @@ export class TemplateHandler {
         return docx.export();
     }
 
-    /**
-     * Get the text content of a single part of the document.
-     * If the part does not exists returns null.
-     *
-     * @param contentPart
-     * The content part of which to get it's text content.
-     * Defaults to `ContentPartType.MainDocument`.
-     */
-    public async parseTags(templateFile: Binary, contentPart: ContentPartType = ContentPartType.MainDocument): Promise<Tag[]> {
+    public async parseTags(templateFile: Binary): Promise<Tag[]> {
         const docx = await Docx.load(templateFile);
-        const part = await docx.getContentPart(contentPart);
-        if (!part) {
-            return null;
+
+        const tags: Tag[] = [];
+        const parts = await docx.getContentParts();
+        for (const part of parts) {
+
+            const xmlRoot = await part.xmlRoot();
+            const partTags = this.compiler.parseTags(xmlRoot);
+            for (const tag of partTags) {
+                tag.openXmlPart = part;
+                tags.push(tag);
+            }
         }
-        const xmlRoot = await part.xmlRoot();
-        return this.compiler.parseTags(xmlRoot);
+
+        return tags;
     }
 
     /**
      * Get the text content of a single part of the document.
      * If the part does not exists returns null.
      *
-     * @param contentPart
-     * The content part of which to get it's text content.
-     * Defaults to `ContentPartType.MainDocument`.
+     * @param relType
+     * The relationship type of the parts whose text content you want to retrieve.
+     * Defaults to `RelType.MainDocument`.
      */
-    public async getText(docxFile: Binary, contentPart: ContentPartType = ContentPartType.MainDocument): Promise<string> {
+    public async getText(docxFile: Binary, relType: string = RelType.MainDocument): Promise<string> {
         const docx = await Docx.load(docxFile);
-        const part = await docx.getContentPart(contentPart);
-        const text = await part.getText();
-        return text;
+
+        if (relType === RelType.MainDocument) {
+            return await docx.mainDocument.getText();
+        }
+
+        const parts = await docx.mainDocument.getPartsByType(relType);
+        const partsText = await Promise.all(parts.map(p => p.getText()));
+        return partsText.join('\n\n');
     }
 
     /**
      * Get the xml root of a single part of the document.
      * If the part does not exists returns null.
      *
-     * @param contentPart
-     * The content part of which to get it's text content.
-     * Defaults to `ContentPartType.MainDocument`.
+     * @param relType
+     * The relationship type of the parts whose xml root you want to retrieve.
+     * If more than one part exists, the first one is returned.
+     * Defaults to `RelType.MainDocument`.
      */
-    public async getXml(docxFile: Binary, contentPart: ContentPartType = ContentPartType.MainDocument): Promise<XmlNode> {
+    public async getXml(docxFile: Binary, relType: string = RelType.MainDocument): Promise<XmlNode> {
         const docx = await Docx.load(docxFile);
-        const part = await docx.getContentPart(contentPart);
-        const xmlRoot = await part.xmlRoot();
+
+        if (relType === RelType.MainDocument) {
+            return await docx.mainDocument.xmlRoot();
+        }
+
+        const parts = await docx.mainDocument.getPartsByType(relType);
+        if (!parts?.length) {
+            return null;
+        }
+        const xmlRoot = await parts[0].xmlRoot();
         return xmlRoot;
     }
 

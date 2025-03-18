@@ -97,7 +97,7 @@ export class Xlsx {
             ...Object.values(this._parts)
         ];
         for (const part of parts) {
-            await part.saveXmlChanges();
+            await part.save();
         }
     }
 }

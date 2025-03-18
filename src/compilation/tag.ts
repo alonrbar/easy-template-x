@@ -1,5 +1,6 @@
-import { IMap } from '../types';
-import { XmlTextNode } from '../xml';
+import { OpenXmlPart } from "src/office";
+import { IMap } from "src/types";
+import { XmlTextNode } from "src/xml";
 
 export const TagDisposition = Object.freeze({
     Open: "Open",
@@ -18,4 +19,5 @@ export interface Tag {
     rawText: string;
     disposition: TagDisposition;
     xmlTextNode: XmlTextNode;
+    openXmlPart?: OpenXmlPart;
 }
