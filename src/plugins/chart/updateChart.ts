@@ -1,5 +1,5 @@
 import { ArgumentError } from "src/errors";
-import { OpenXmlPart, WmlAttribute, Xlsx } from "src/office";
+import { OpenXmlPart, RelType, WmlAttribute, Xlsx } from "src/office";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 
 // Based on: https://github.com/OpenXmlDev/Open-Xml-PowerTools/blob/vNext/OpenXmlPowerTools/ChartUpdater.cs
@@ -471,8 +471,7 @@ async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, cha
     }
     const sheetRoot = await sheetPart.xmlRoot();
 
-    // TODO: AddDxfToDxfs
-
+    // Create first row
     const firstRow = `
         <row>
             <c r="1" spans="1:${chartData.seriesNames.length + 1}">
@@ -488,12 +487,14 @@ async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, cha
         </row>
     `;
 
-    // TODO: Add style for category
-    const categoryStyleId = "";
-    const categoryDataType = chartData.categoryDataType === "string" ? `t="str"` : "";
+    // Create other rows
+    const categoryDataTypeAttribute = chartData.categoryDataType === "string" ? ` t="str"` : "";
+    const categoryStyleId = await addDxfToDxfs(workbookPart, sheetRoot, chartData.categoryFormatCode);
+    const categoryStyleIdAttribute = categoryStyleId ? ` s="${categoryStyleId}"` : "";
+
     const otherRows = chartData.categoryNames.map((name, rowIndex) => `
         <row r="${rowIndex + 2}" spans="1:${chartData.seriesNames.length + 1}">
-            <c r="${excelRowAndColumnId(rowIndex + 1, 0)}" ${categoryDataType} ${categoryStyleId}>
+            <c r="${excelRowAndColumnId(rowIndex + 1, 0)}"${categoryDataTypeAttribute}${categoryStyleIdAttribute}>
                 <v>${name}</v>
             </c>
             ${chartData.values.map((columnValues, columnIndex) => `
@@ -557,6 +558,54 @@ async function updateTablePart(sheetPart: OpenXmlPart, chartData: ChartData) {
 
     // Save the table part
     await tablePart.saveXmlChanges();
+}
+
+/**
+ * From the OOXML standard:
+ * DXF are differential formatting records which define formatting for all non-cell
+ * formatting in a workbook.The dxf formatting is to be applied on
+ * top of or in addition to any formatting already present on the object using the dxf record
+ */
+async function addDxfToDxfs(workbookPart: OpenXmlPart, sheetRoot: XmlNode, formatCodeToAdd: FormatCode): Promise<number> {
+
+    // https://github.com/OpenXmlDev/Open-Xml-PowerTools/blob/vNext/OpenXmlPowerTools/ChartUpdater.cs#L507
+
+    if (formatCodeToAdd == 0) {
+        return 0;
+    }
+
+    const stylesPart = await workbookPart.getPartByPath(RelType.Styles);
+    const stylesRoot = await stylesPart.xmlRoot();
+
+    // Find or create cellXfs
+    let cellXfs = stylesRoot.childNodes?.find(child => child.nodeName === "cellXfs") as XmlGeneralNode;
+    if (!cellXfs) {
+        const cellStyleXfs = stylesRoot.childNodes?.find(child => child.nodeName === "cellStyleXfs");
+        const borders = stylesRoot.childNodes?.find(child => child.nodeName === "borders");
+        if (!cellStyleXfs && !borders) {
+            throw new Error("Internal error. CellXfs, CellStyleXfs and Borders not found.");
+        }
+
+        const stylesCellXfs = xml.create.generalNode("cellXfs", {
+            attributes: { count: "0" }
+        });
+        xml.modify.insertAfter(stylesCellXfs, cellStyleXfs ?? borders);
+
+        // Use the cellXfs node from the sheet part
+        cellXfs = sheetRoot.childNodes?.find(child => child.nodeName === "cellXfs") as XmlGeneralNode;
+    }
+
+    // Add xf to cellXfs
+    const count = parseInt(cellXfs.attributes["count"]);
+    cellXfs.attributes["count"] = (count + 1).toString();
+    xml.modify.appendChild(cellXfs, parseXmlNode(`
+        <xf numFmtId="${formatCodeToAdd}" fontId="0" fillId="0" borderId="0" applyNumberFormat="1"/>
+    `));
+
+    // Save the styles part
+    await stylesPart.saveXmlChanges();
+
+    return count;
 }
 
 //

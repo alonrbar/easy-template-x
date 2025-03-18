@@ -67,6 +67,13 @@ export class RelsFile {
         return Object.values(this.rels);
     }
 
+    public absoluteTargetPath(relTarget: string): string {
+        if (this.partDir && relTarget.startsWith(this.partDir)) {
+            return relTarget;
+        }
+        return Path.combine(this.partDir, relTarget);
+    }
+
     /**
      * Save the rels file back to the zip.
      * Called automatically by the holding `Docx` before exporting.

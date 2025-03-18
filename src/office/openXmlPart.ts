@@ -74,8 +74,20 @@ export class OpenXmlPart {
             return null;
         }
 
-        // TODO: Need to handle the relative path...
-        const part = new OpenXmlPart(rel.target, this.zip);
+        const relTargetPath = this.rels.absoluteTargetPath(rel.target);
+        const part = new OpenXmlPart(relTargetPath, this.zip);
+        return part;
+    }
+
+    public async getPartByPath(type: string): Promise<OpenXmlPart> {
+        const rels = await this.rels.list();
+        const rel = rels.find(r => r.type === type);
+        if (!rel) {
+            return null;
+        }
+
+        const relTargetPath = this.rels.absoluteTargetPath(rel.target);
+        const part = new OpenXmlPart(relTargetPath, this.zip);
         return part;
     }
 

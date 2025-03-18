@@ -11,6 +11,24 @@ export class Path {
     }
 
     public static combine(...parts: string[]): string {
-        return parts.filter(part => part?.trim()).join('/');
+        const normalizedParts = parts.map(part => part?.trim()).filter(Boolean);
+
+        // Handle . and .. parts
+        const resolvedParts: string[] = [];
+        for (const part of normalizedParts) {
+
+            if (part === '.') {
+                continue; // Ignore . parts
+            }
+
+            if (part === '..') {
+                resolvedParts.pop(); // Go up one directory
+                continue;
+            }
+
+            resolvedParts.push(part);
+        }
+
+        return resolvedParts.join('/');
     }
 }

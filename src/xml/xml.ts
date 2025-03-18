@@ -4,6 +4,7 @@ import { last } from "src/utils";
 import { COMMENT_NODE_NAME, XmlGeneralNode, XmlNode, XmlNodeType } from "./xmlNode";
 import { TEXT_NODE_NAME, XmlCommentNode } from "./xmlNode";
 import { XmlTextNode } from "./xmlNode";
+import type { IMap } from "src/types";
 
 export class XmlUtils {
 
@@ -111,6 +112,11 @@ class Parser {
     }
 }
 
+interface XmlGeneralNodeInit {
+    attributes?: IMap<string>;
+    childNodes?: XmlNode[];
+}
+
 class Create {
 
     public textNode(text?: string): XmlTextNode {
@@ -121,10 +127,11 @@ class Create {
         };
     }
 
-    public generalNode(name: string): XmlGeneralNode {
+    public generalNode(name: string, init?: XmlGeneralNodeInit): XmlGeneralNode {
         return {
+            ...(init ?? {}),
             nodeType: XmlNodeType.General,
-            nodeName: name
+            nodeName: name,
         };
     }
 
