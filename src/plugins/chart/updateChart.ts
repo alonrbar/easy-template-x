@@ -32,39 +32,40 @@ const chartTypes = Object.freeze({
     surfaceChart: "c:surfaceChart",
 } as const);
 
+// https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.numberingformat?view=openxml-3.0.1
 // https://support.microsoft.com/en-us/office/number-format-codes-in-excel-for-mac-5026bbd6-04bc-48cd-bf33-80f18b4eae68
-export const formatCodes = Object.freeze([
-    "General",
-    "0",
-    "0.00",
-    "#,##0",
-    "#,##0.00",
-    "0%",
-    "0.00%",
-    "0.00E+00",
-    "# ?/?",
-    "# ??/?",
-    "mm-dd-yy",
-    "d-mmm-yy",
-    "d-mmm",
-    "mmm-yy",
-    "h:mm AM/PM",
-    "h:mm:ss AM/PM",
-    "h:mm",
-    "h:mm:ss",
-    "m/d/yy h:mm",
-    "#,##0 ;(#,##0)",
-    "#,##0 ;[Red](#,##0)",
-    "#,##0.00;(#,##0.00)",
-    "#,##0.00;[Red](#,##0.00)",
-    "mm:ss",
-    "[h]:mm:ss",
-    "mmss.0",
-    "##0.0E+0",
-    "@"
-] as const);
+export const formatCodes = Object.freeze({
+    0: "General",
+    1: "0",
+    2: "0.00",
+    3: "#,##0",
+    4: "#,##0.00",
+    9: "0%",
+    10: "0.00%",
+    11: "0.00E+00",
+    12: "# ?/?",
+    13: "# ??/?",
+    14: "mm-dd-yy",
+    15: "d-mmm-yy",
+    16: "d-mmm",
+    17: "mmm-yy",
+    18: "h:mm AM/PM",
+    19: "h:mm:ss AM/PM",
+    20: "h:mm",
+    21: "h:mm:ss",
+    22: "m/d/yy h:mm",
+    37: "#,##0 ;(#,##0)",
+    38: "#,##0 ;[Red](#,##0)",
+    39: "#,##0.00;(#,##0.00)",
+    40: "#,##0.00;[Red](#,##0.00)",
+    45: "mm:ss",
+    46: "[h]:mm:ss",
+    47: "mmss.0",
+    48: "##0.0E+0",
+    49: "@"
+});
 
-export type FormatCode = typeof formatCodes[number];
+export type FormatCode = keyof typeof formatCodes;
 
 export async function updateChart(chartPart: OpenXmlPart, chartData: ChartData) {
 
@@ -102,13 +103,14 @@ export async function updateChart(chartPart: OpenXmlPart, chartData: ChartData) 
     }
 
     // Read the first series
-    const firstSeries = readFirstSeries(chartNode);
+    const firstSeries = readFirstSeries(chartNode, chartData);
 
     // Update embedded worksheet
     await updateEmbeddedExcelFile(chartPart, firstSeries.sheetName, chartData);
 
     // Update inline series
     updateInlineSeries(chartNode, firstSeries, chartData);
+    await chartPart.saveXmlChanges();
 }
 
 //
@@ -118,11 +120,12 @@ export async function updateChart(chartPart: OpenXmlPart, chartData: ChartData) 
 interface FirstSeriesData {
     sheetName: string;
     shapePropertiesMarkup: string;
-    chartExtensibilityMarkup: string;
     chartSpecificMarkup: string;
+    categoriesMarkup: string;
+    chartExtensibilityMarkup: string;
 }
 
-function readFirstSeries(chartNode: XmlNode): FirstSeriesData {
+function readFirstSeries(chartNode: XmlNode, chartData: ChartData): FirstSeriesData {
     const chartType = chartNode.nodeName;
 
     const firstSeries = chartNode.childNodes?.find(child => child.nodeName === "c:ser");
@@ -130,11 +133,14 @@ function readFirstSeries(chartNode: XmlNode): FirstSeriesData {
         throw new ArgumentError("First series not found. Please include at least one series in the placeholder chart.");
     }
 
+    const sheetName = getSheetName(firstSeries);
+
     return {
-        sheetName: getSheetName(firstSeries),
+        sheetName,
         shapePropertiesMarkup: xml.parser.serializeNode(firstSeries.childNodes?.find(child => child.nodeName === "c:spPr")),
-        chartExtensibilityMarkup: xml.parser.serializeNode(firstSeries.childNodes?.find(child => child.nodeName === "c:extLst")),
         chartSpecificMarkup: chartSpecificMarkup(chartType, firstSeries),
+        categoriesMarkup: categoriesMarkup(chartData, sheetName),
+        chartExtensibilityMarkup: xml.parser.serializeNode(firstSeries.childNodes?.find(child => child.nodeName === "c:extLst")),
     };
 }
 
@@ -149,6 +155,70 @@ function getSheetName(firstSeries: XmlNode): string {
     }
 
     return formula.textContent?.split('!')[0];
+}
+
+function categoriesMarkup(chartData: ChartData, sheetName: string): string {
+
+    const ptNodes = `
+        <c:ptCount val="${chartData.categoryNames.length}"/>
+        ${chartData.categoryNames.map((name, index) => `
+            <c:pt idx="${index}">
+                <c:v>${name}</c:v>
+            </c:pt>
+        `).join("\n")}
+    `;
+
+    if (!sheetName) {
+
+        // String literal
+        if (chartData.categoryDataType == "string") {
+            return `
+                <c:cat>
+                    <c:strLit>
+                        ${ptNodes}
+                    </c:strLit>
+                </c:cat>
+            `;
+        }
+
+        // Number literal
+        return `
+            <c:cat>
+                <c:numLit>
+                    ${ptNodes}
+                </c:numLit>
+            </c:cat>
+        `;
+    }
+
+    const formula = `${sheetName}!$A$2:$A$${chartData.categoryNames.length + 1}`;
+
+    // String reference
+    if (chartData.categoryDataType == "string") {
+        return `
+            <c:cat>
+                <c:strRef>
+                    <c:f>${formula}</c:f>
+                    <c:strCache>
+                        ${ptNodes}
+                    </c:strCache>
+                </c:strRef>
+            </c:cat>
+        `;
+    }
+
+    // Number reference
+    return `
+        <c:cat>
+            <c:numRef>
+                <c:f>${formula}</c:f>
+                <c:numCache>
+                    <c:formatCode>${formatCodes[chartData.categoryFormatCode]}</c:formatCode>
+                    ${ptNodes}
+                </c:numCache>
+            </c:numRef>
+        </c:cat>
+    `;
 }
 
 function chartSpecificMarkup(chartType: string, firstSeries: XmlNode): string {
@@ -247,7 +317,6 @@ function updateInlineSeries(chartNode: XmlNode, firstSeries: FirstSeriesData, ch
 function createSeries(seriesName: string, seriesIndex: number, firstSeries: FirstSeriesData, chartData: ChartData): XmlNode {
 
     const title = titleMarkup(seriesName, seriesIndex, firstSeries.sheetName);
-    const categories = categoriesMarkup(chartData, firstSeries.sheetName);
     const values = valuesMarkup(seriesIndex, chartData, firstSeries.sheetName);
 
     const series = parseXmlNode(`
@@ -257,7 +326,7 @@ function createSeries(seriesName: string, seriesIndex: number, firstSeries: Firs
             ${title}
             ${firstSeries.shapePropertiesMarkup}
             ${firstSeries.chartSpecificMarkup}
-            ${categories}
+            ${firstSeries.categoriesMarkup}
             ${values}
             ${firstSeries.chartExtensibilityMarkup}
         </c:ser>
@@ -294,72 +363,10 @@ function titleMarkup(seriesName: string, seriesIndex: number, sheetName: string)
     `;
 }
 
-function categoriesMarkup(chartData: ChartData, sheetName: string): string {
-
-    const ptNodes = `
-        <c:ptCount val="${chartData.categoryNames.length}"/>
-        ${chartData.categoryNames.map((name, index) => `
-            <c:pt idx="${index}">
-                <c:v>${name}</c:v>
-            </c:pt>
-        `).join("\n")}
-    `;
-
-    if (sheetName) {
-
-        const formula = `${sheetName}!$A$2:$A$${chartData.categoryNames.length + 1}`;
-
-        // String reference
-        if (chartData.categoryDataType == "string") {
-            return `
-                <c:cat>
-                    <c:strRef>
-                        <c:f>${formula}</c:f>
-                        <c:strCache>
-                            ${ptNodes}
-                        </c:strCache>
-                    </c:strRef>
-                </c:cat>
-            `;
-        }
-
-        // Number reference
-        return `
-            <c:cat>
-                <c:numRef>
-                    <c:f>${formula}</c:f>
-                    <c:numCache>
-                        <c:formatCode>${chartData.categoryFormatCode}</c:formatCode>
-                        ${ptNodes}
-                    </c:numCache>
-                </c:numRef>
-            </c:cat>
-        `;
-    }
-
-    // String literal
-    if (chartData.categoryDataType == "string") {
-        return `
-            <c:cat>
-                <c:strLit>
-                    ${ptNodes}
-                </c:strLit>
-            </c:cat>
-        `;
-    }
-
-    // Number literal
-    return `
-        <c:cat>
-            <c:numLit>
-                ${ptNodes}
-            </c:numLit>
-        </c:cat>
-    `;
-}
-
 function valuesMarkup(seriesIndex: number, chartData: ChartData, sheetName: string): string {
     if (!sheetName) {
+
+        // Number literal
         return `
             <c:val>
                 <c:numLit>
@@ -374,6 +381,7 @@ function valuesMarkup(seriesIndex: number, chartData: ChartData, sheetName: stri
         `;
     }
 
+    // Number reference
     const columnId = excelColumnId(seriesIndex + 1);
     const formula = `${sheetName}!$${columnId}$2:$${columnId}$${chartData.categoryNames.length + 1}`;
     return `
@@ -381,7 +389,7 @@ function valuesMarkup(seriesIndex: number, chartData: ChartData, sheetName: stri
             <c:numRef>
                 <c:f>${formula}</c:f>
                 <c:numCache>
-                    <c:formatCode>${chartData.categoryFormatCode}</c:formatCode>
+                    <c:formatCode>${formatCodes[chartData.categoryFormatCode]}</c:formatCode>
                     <c:ptCount val="${chartData.categoryNames.length}" />
                         ${chartData.categoryNames.map((name, catIndex) => `
                             <c:pt idx="${catIndex}">
@@ -407,12 +415,6 @@ function updateAccentNumber(node: XmlNode, accentNumber: number) {
     for (const child of node.childNodes) {
         updateAccentNumber(child, accentNumber);
     }
-}
-
-function parseXmlNode(xmlString: string): XmlNode {
-    const xmlNode = xml.parser.parse(xmlString);
-    xml.modify.removeEmptyTextNodes(xmlNode);
-    return xmlNode;
 }
 
 //
@@ -514,7 +516,6 @@ async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, cha
 
     // Save the sheet part
     await sheetPart.saveXmlChanges();
-
     return sheetPart;
 }
 
@@ -591,4 +592,10 @@ function excelColumnId(i: number): string {
 
 function excelRowAndColumnId(row: number, col: number): string {
     return excelColumnId(col) + (row + 1).toString();
+}
+
+function parseXmlNode(xmlString: string): XmlNode {
+    const xmlNode = xml.parser.parse(xmlString);
+    xml.modify.removeEmptyTextNodes(xmlNode);
+    return xmlNode;
 }
