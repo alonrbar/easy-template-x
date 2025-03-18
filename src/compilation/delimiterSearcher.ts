@@ -1,4 +1,4 @@
-import { wml } from "src/office";
+import { oml } from "src/office";
 import { first, last } from "src/utils";
 import { xml, XmlDepthTracker, XmlNode, XmlTextNode } from "src/xml";
 import { DelimiterMark } from "./delimiterMark";
@@ -60,7 +60,7 @@ export class DelimiterSearcher {
         while (node) {
 
             // Reset state on paragraph transition
-            if (wml.query.isParagraphNode(node)) {
+            if (oml.query.isParagraphNode(node)) {
                 match.reset();
             }
 
@@ -138,7 +138,7 @@ export class DelimiterSearcher {
 
             const firstNode = first(match.openNodes);
             const lastNode = last(match.openNodes);
-            wml.modify.joinTextNodesRange(firstNode, lastNode);
+            oml.modify.joinTextNodesRange(firstNode, lastNode);
 
             textIndex += (firstNode.textContent.length - node.textContent.length);
             node = firstNode;
@@ -166,7 +166,7 @@ export class DelimiterSearcher {
             return false;
         if (!node.parentNode)
             return false;
-        if (!wml.query.isTextNode(node.parentNode))
+        if (!oml.query.isTextNode(node.parentNode))
             return false;
 
         return true;

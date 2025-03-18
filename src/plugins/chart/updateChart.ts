@@ -1,5 +1,5 @@
 import { ArgumentError } from "src/errors";
-import { OpenXmlPart, RelType, WmlAttribute, Xlsx } from "src/office";
+import { OpenXmlPart, RelType, OmlAttribute, Xlsx } from "src/office";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 
 // Based on: https://github.com/OpenXmlDev/Open-Xml-PowerTools/blob/vNext/OpenXmlPowerTools/ChartUpdater.cs
@@ -476,7 +476,7 @@ async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, cha
     const firstRow = `
         <row>
             <c r="1" spans="1:${chartData.seriesNames.length + 1}">
-                <c r="A1" t="str" ${WmlAttribute.SpacePreserve}="preserve">
+                <c r="A1" t="str" ${OmlAttribute.SpacePreserve}="preserve">
                     <v> </v>
                 </c>
                 ${chartData.seriesNames.map((name, index) => `

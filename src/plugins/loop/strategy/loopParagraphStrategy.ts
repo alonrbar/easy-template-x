@@ -1,5 +1,5 @@
 import { Tag } from "src/compilation";
-import { wml } from "src/office";
+import { oml } from "src/office";
 import { xml, XmlNode } from "src/xml";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
@@ -12,19 +12,19 @@ export class LoopParagraphStrategy implements ILoopStrategy {
     public splitBefore(openTag: Tag, closeTag: Tag): SplitBeforeResult {
 
         // gather some info
-        let firstParagraph = wml.query.containingParagraphNode(openTag.xmlTextNode);
-        let lastParagraph = wml.query.containingParagraphNode(closeTag.xmlTextNode);
+        let firstParagraph = oml.query.containingParagraphNode(openTag.xmlTextNode);
+        let lastParagraph = oml.query.containingParagraphNode(closeTag.xmlTextNode);
         const areSame = (firstParagraph === lastParagraph);
 
         // split first paragraph
-        let splitResult = wml.modify.splitParagraphByTextNode(firstParagraph, openTag.xmlTextNode, true);
+        let splitResult = oml.modify.splitParagraphByTextNode(firstParagraph, openTag.xmlTextNode, true);
         firstParagraph = splitResult[0];
         let afterFirstParagraph = splitResult[1];
         if (areSame)
             lastParagraph = afterFirstParagraph;
 
         // split last paragraph
-        splitResult = wml.modify.splitParagraphByTextNode(lastParagraph, closeTag.xmlTextNode, true);
+        splitResult = oml.modify.splitParagraphByTextNode(lastParagraph, closeTag.xmlTextNode, true);
         const beforeLastParagraph = splitResult[0];
         lastParagraph = splitResult[1];
         if (areSame)
@@ -57,7 +57,7 @@ export class LoopParagraphStrategy implements ILoopStrategy {
         for (const curParagraphsGroup of middleParagraphs) {
 
             // merge first paragraphs
-            wml.modify.joinParagraphs(mergeTo, curParagraphsGroup[0]);
+            oml.modify.joinParagraphs(mergeTo, curParagraphsGroup[0]);
 
             // add middle and last paragraphs to the original document
             for (let i = 1; i < curParagraphsGroup.length; i++) {
@@ -67,7 +67,7 @@ export class LoopParagraphStrategy implements ILoopStrategy {
         }
 
         // merge last paragraph
-        wml.modify.joinParagraphs(mergeTo, lastParagraph);
+        oml.modify.joinParagraphs(mergeTo, lastParagraph);
 
         // remove the old last paragraph (was merged into the new one)
         xml.modify.remove(lastParagraph);

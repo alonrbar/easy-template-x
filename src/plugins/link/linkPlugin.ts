@@ -1,5 +1,5 @@
 import { ScopeData, Tag, TemplateContext } from "src/compilation";
-import { RelType, wml, WmlNode } from "src/office";
+import { RelType, oml, OmlNode } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { xml, XmlNode } from "src/xml";
 import { LinkContent } from "./linkContent";
@@ -10,7 +10,7 @@ export class LinkPlugin extends TemplatePlugin {
 
     public async simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): Promise<void> {
 
-        const wordTextNode = wml.query.containingTextNode(tag.xmlTextNode);
+        const wordTextNode = oml.query.containingTextNode(tag.xmlTextNode);
 
         const content = data.getScopeData<LinkContent>();
         if (!content || !content.target) {
@@ -22,7 +22,7 @@ export class LinkPlugin extends TemplatePlugin {
         const relId = await context.currentPart.rels.add(content.target, RelType.Link, 'External');
 
         // generate markup
-        const wordRunNode = wml.query.containingRunNode(wordTextNode);
+        const wordRunNode = oml.query.containingRunNode(wordTextNode);
         const linkMarkup = this.generateMarkup(content, relId, wordRunNode);
 
         // add to document
@@ -52,7 +52,7 @@ export class LinkPlugin extends TemplatePlugin {
         xml.modify.removeEmptyTextNodes(markupXml); // remove whitespace
 
         // copy props from original run node (preserve style)
-        const runProps = wordRunNode.childNodes.find(node => node.nodeName === WmlNode.RunProperties);
+        const runProps = wordRunNode.childNodes.find(node => node.nodeName === OmlNode.RunProperties);
         if (runProps) {
             const linkRunProps = xml.create.cloneNode(runProps, true);
             markupXml.childNodes[0].childNodes.unshift(linkRunProps);
@@ -67,11 +67,11 @@ export class LinkPlugin extends TemplatePlugin {
         // Therefor we isolate the link tag to it's own run (it is already
         // isolated to it's own text node), insert the link markup and remove
         // the run.
-        let textNodesInRun = tagRunNode.childNodes.filter(node => node.nodeName === WmlNode.Text);
+        let textNodesInRun = tagRunNode.childNodes.filter(node => node.nodeName === OmlNode.Text);
         if (textNodesInRun.length > 1) {
 
             const [runBeforeTag] = xml.modify.splitByChild(tagRunNode, tagTextNode, true);
-            textNodesInRun = runBeforeTag.childNodes.filter(node => node.nodeName === WmlNode.Text);
+            textNodesInRun = runBeforeTag.childNodes.filter(node => node.nodeName === OmlNode.Text);
 
             xml.modify.insertAfter(linkMarkup, runBeforeTag);
             if (textNodesInRun.length === 0) {

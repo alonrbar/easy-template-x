@@ -1,7 +1,7 @@
 import { ScopeData, Tag, TemplateContext } from "src/compilation";
 import { ArgumentError } from "src/errors";
 import { MimeTypeHelper } from "src/mimeType";
-import { wml } from "src/office";
+import { oml } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 import { ImageContent } from "./imageContent";
@@ -24,7 +24,7 @@ export class ImagePlugin extends TemplatePlugin {
 
     public async simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): Promise<void> {
 
-        const wordTextNode = wml.query.containingTextNode(tag.xmlTextNode);
+        const wordTextNode = oml.query.containingTextNode(tag.xmlTextNode);
 
         const content = data.getScopeData<ImageContent>();
         if (!content || !content.source) {

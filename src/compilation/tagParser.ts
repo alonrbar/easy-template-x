@@ -1,7 +1,7 @@
 import JSON5 from "json5";
 import { Delimiters } from "src/delimiters";
 import { MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, TagOptionsParseError } from "src/errors";
-import { wml } from "src/office";
+import { oml } from "src/office";
 import { normalizeDoubleQuotes, Regex } from "src/utils";
 import { DelimiterMark } from "./delimiterMark";
 import { Tag, TagDisposition } from "./tag";
@@ -86,8 +86,8 @@ export class TagParser {
         const sameNode = (startTextNode === endTextNode);
 
         if (!sameNode) {
-            const startParagraph = wml.query.containingParagraphNode(startTextNode);
-            const endParagraph = wml.query.containingParagraphNode(endTextNode);
+            const startParagraph = oml.query.containingParagraphNode(startTextNode);
+            const endParagraph = oml.query.containingParagraphNode(endTextNode);
             if (startParagraph !== endParagraph) {
                 throw new MissingCloseDelimiterError(startTextNode.textContent);
             }
@@ -95,7 +95,7 @@ export class TagParser {
 
         // trim start
         if (openDelimiter.index > 0) {
-            wml.modify.splitTextNode(startTextNode, openDelimiter.index, true);
+            oml.modify.splitTextNode(startTextNode, openDelimiter.index, true);
             if (sameNode) {
                 closeDelimiter.index -= openDelimiter.index;
             }
@@ -103,7 +103,7 @@ export class TagParser {
 
         // trim end
         if (closeDelimiter.index < endTextNode.textContent.length - 1) {
-            endTextNode = wml.modify.splitTextNode(endTextNode, closeDelimiter.index + this.delimiters.tagEnd.length, true);
+            endTextNode = oml.modify.splitTextNode(endTextNode, closeDelimiter.index + this.delimiters.tagEnd.length, true);
             if (sameNode) {
                 startTextNode = endTextNode;
             }
@@ -111,7 +111,7 @@ export class TagParser {
 
         // join nodes
         if (!sameNode) {
-            wml.modify.joinTextNodesRange(startTextNode, endTextNode);
+            oml.modify.joinTextNodesRange(startTextNode, endTextNode);
             endTextNode = startTextNode;
         }
 

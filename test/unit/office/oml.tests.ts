@@ -1,12 +1,12 @@
-import { wml, Wml } from 'src/office';
+import { oml, Oml } from 'src/office';
 import { XmlTextNode } from 'src/xml';
 import { parseXml } from '../../testUtils';
 
-describe(Wml, () => {
+describe(Oml, () => {
 
     describe("modify", () => {
 
-        describe(wml.modify.joinTextNodesRange, () => {
+        describe(oml.modify.joinTextNodesRange, () => {
 
             test('join a range of text nodes from the same run', () => {
                 const paragraphNode = parseXml(`
@@ -24,7 +24,7 @@ describe(Wml, () => {
                 const lastXmlTextNode = runNode.childNodes[2].childNodes[0] as XmlTextNode;
                 expect(lastXmlTextNode.textContent).toEqual('3');
 
-                wml.modify.joinTextNodesRange(firstXmlTextNode, lastXmlTextNode);
+                oml.modify.joinTextNodesRange(firstXmlTextNode, lastXmlTextNode);
 
                 expect(runNode.childNodes.length).toEqual(1);
                 expect(runNode.childNodes[0].childNodes.length).toEqual(1);
@@ -56,7 +56,7 @@ describe(Wml, () => {
                 const lastXmlTextNode = thirdRunNode.childNodes[1].childNodes[0] as XmlTextNode;
                 expect(lastXmlTextNode.textContent).toEqual('6');
 
-                wml.modify.joinTextNodesRange(firstXmlTextNode, lastXmlTextNode);
+                oml.modify.joinTextNodesRange(firstXmlTextNode, lastXmlTextNode);
 
                 expect(paragraphNode.childNodes.length).toEqual(1);
                 expect(firstRunNode.childNodes.length).toEqual(1);
@@ -96,7 +96,7 @@ describe(Wml, () => {
 
                 // modify
 
-                wml.modify.joinTextNodesRange(fromXmlTextNode, toXmlTextNode);
+                oml.modify.joinTextNodesRange(fromXmlTextNode, toXmlTextNode);
 
                 // assert
 

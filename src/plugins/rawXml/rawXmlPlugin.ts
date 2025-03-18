@@ -1,5 +1,5 @@
 import { ScopeData, Tag } from "src/compilation";
-import { wml } from "src/office";
+import { oml } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { xml } from "src/xml";
 import { RawXmlContent } from "./rawXmlContent";
@@ -13,8 +13,8 @@ export class RawXmlPlugin extends TemplatePlugin {
         const value = data.getScopeData<RawXmlContent>();
 
         const replaceNode = value?.replaceParagraph ?
-            wml.query.containingParagraphNode(tag.xmlTextNode) :
-            wml.query.containingTextNode(tag.xmlTextNode);
+            oml.query.containingParagraphNode(tag.xmlTextNode) :
+            oml.query.containingTextNode(tag.xmlTextNode);
 
         if (typeof value?.xml === 'string') {
             const newNode = xml.parser.parse(value.xml);

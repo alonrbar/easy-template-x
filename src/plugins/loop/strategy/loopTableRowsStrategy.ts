@@ -1,5 +1,5 @@
 import { Tag } from "src/compilation";
-import { wml } from "src/office";
+import { oml } from "src/office";
 import { xml, XmlNode } from "src/xml";
 import { LoopOver, LoopTagOptions } from "../loopTagOptions";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
@@ -7,11 +7,11 @@ import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 export class LoopTableRowsStrategy implements ILoopStrategy {
 
     public isApplicable(openTag: Tag, closeTag: Tag, isCondition: boolean): boolean {
-        const openCell = wml.query.containingTableCellNode(openTag.xmlTextNode);
+        const openCell = oml.query.containingTableCellNode(openTag.xmlTextNode);
         if (!openCell)
             return false;
 
-        const closeCell = wml.query.containingTableCellNode(closeTag.xmlTextNode);
+        const closeCell = oml.query.containingTableCellNode(closeTag.xmlTextNode);
         if (!closeCell)
             return false;
 
@@ -27,8 +27,8 @@ export class LoopTableRowsStrategy implements ILoopStrategy {
 
     public splitBefore(openTag: Tag, closeTag: Tag): SplitBeforeResult {
 
-        const firstRow = wml.query.containingTableRowNode(openTag.xmlTextNode);
-        const lastRow = wml.query.containingTableRowNode(closeTag.xmlTextNode);
+        const firstRow = oml.query.containingTableRowNode(openTag.xmlTextNode);
+        const lastRow = oml.query.containingTableRowNode(closeTag.xmlTextNode);
         const rowsToRepeat = xml.query.siblingsInRange(firstRow, lastRow);
 
         // remove the loop tags

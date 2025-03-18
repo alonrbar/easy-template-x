@@ -1,5 +1,5 @@
 import { ScopeData, Tag } from "src/compilation";
-import { wml, WmlNode } from "src/office";
+import { oml, OmlNode } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { stringValue } from "src/utils";
 import { xml, XmlNode, XmlTextNode } from "src/xml";
@@ -31,13 +31,13 @@ export class TextPlugin extends TemplatePlugin {
         textNode.textContent = text;
 
         // make sure leading and trailing whitespace are preserved
-        const wordTextNode = wml.query.containingTextNode(textNode);
-        wml.modify.setSpacePreserveAttribute(wordTextNode);
+        const wordTextNode = oml.query.containingTextNode(textNode);
+        oml.modify.setSpacePreserveAttribute(wordTextNode);
     }
 
     private replaceMultiLine(textNode: XmlTextNode, lines: string[]) {
 
-        const runNode = wml.query.containingRunNode(textNode);
+        const runNode = oml.query.containingRunNode(textNode);
 
         // first line
         textNode.textContent = lines[0];
@@ -60,10 +60,10 @@ export class TextPlugin extends TemplatePlugin {
     }
 
     private createWordTextNode(text: string): XmlNode {
-        const wordTextNode = xml.create.generalNode(WmlNode.Text);
+        const wordTextNode = xml.create.generalNode(OmlNode.Text);
 
         wordTextNode.attributes = {};
-        wml.modify.setSpacePreserveAttribute(wordTextNode);
+        oml.modify.setSpacePreserveAttribute(wordTextNode);
 
         wordTextNode.childNodes = [
             xml.create.textNode(text)

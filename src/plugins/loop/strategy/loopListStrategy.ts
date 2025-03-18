@@ -1,5 +1,5 @@
 import { Tag } from "src/compilation";
-import { wml } from "src/office";
+import { oml } from "src/office";
 import { xml, XmlNode } from "src/xml";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
@@ -10,14 +10,14 @@ export class LoopListStrategy implements ILoopStrategy {
             return false;
         }
 
-        const containingParagraph = wml.query.containingParagraphNode(openTag.xmlTextNode);
-        return wml.query.isListParagraph(containingParagraph);
+        const containingParagraph = oml.query.containingParagraphNode(openTag.xmlTextNode);
+        return oml.query.isListParagraph(containingParagraph);
     }
 
     public splitBefore(openTag: Tag, closeTag: Tag): SplitBeforeResult {
 
-        const firstParagraph = wml.query.containingParagraphNode(openTag.xmlTextNode);
-        const lastParagraph = wml.query.containingParagraphNode(closeTag.xmlTextNode);
+        const firstParagraph = oml.query.containingParagraphNode(openTag.xmlTextNode);
+        const lastParagraph = oml.query.containingParagraphNode(closeTag.xmlTextNode);
         const paragraphsToRepeat = xml.query.siblingsInRange(firstParagraph, lastParagraph);
 
         // remove the loop tags

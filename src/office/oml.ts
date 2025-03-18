@@ -22,9 +22,14 @@ import { xml, XmlGeneralNode, XmlNode, XmlTextNode } from "src/xml";
 //
 
 /**
- * Wordprocessing Markup Language (WML) utilities.
+ * Office Markup Language (OML) utilities.
+ *
+ * Office Markup Language (OML) is my generic term for the markup languages
+ * that are used in Office Open XML documents. Including but not limited to
+ * Wordprocessing Markup Language, Drawing Markup Language and Spreadsheet
+ * Markup Language.
  */
-export class Wml {
+export class Oml {
 
     /**
      * Wordprocessing Markup Language (WML) query utilities.
@@ -38,9 +43,9 @@ export class Wml {
 }
 
 /**
- * Wordprocessing Markup Language (WML) node names.
+ * Office Markup Language (OML) node names.
  */
-export class WmlNode {
+export class OmlNode {
 
     public static readonly Paragraph = 'w:p';
     public static readonly ParagraphProperties = 'w:pPr';
@@ -53,12 +58,12 @@ export class WmlNode {
     public static readonly NumberProperties = 'w:numPr';
 }
 
-export class WmlAttribute {
+export class OmlAttribute {
     public static readonly SpacePreserve = 'xml:space';
 }
 
 /**
- * Wordprocessing Markup Language (WML) modify utilities.
+ * Office Markup Language (OML) modify utilities.
  */
 class Modify {
 
@@ -76,14 +81,14 @@ class Modify {
         let secondXmlTextNode: XmlTextNode;
 
         // split nodes
-        const wordTextNode = wml.query.containingTextNode(textNode);
+        const wordTextNode = oml.query.containingTextNode(textNode);
         const newWordTextNode = xml.create.cloneNode(wordTextNode, true);
 
         // set space preserve to prevent display differences after splitting
         // (otherwise if there was a space in the middle of the text node and it
         // is now at the beginning or end of the text node it will be ignored)
-        wml.modify.setSpacePreserveAttribute(wordTextNode);
-        wml.modify.setSpacePreserveAttribute(newWordTextNode);
+        oml.modify.setSpacePreserveAttribute(wordTextNode);
+        oml.modify.setSpacePreserveAttribute(newWordTextNode);
 
         if (addBefore) {
 
@@ -121,12 +126,12 @@ class Modify {
     public splitParagraphByTextNode(paragraph: XmlNode, textNode: XmlTextNode, removeTextNode: boolean): [XmlNode, XmlNode] {
 
         // input validation
-        const containingParagraph = wml.query.containingParagraphNode(textNode);
+        const containingParagraph = oml.query.containingParagraphNode(textNode);
         if (containingParagraph != paragraph)
             throw new Error(`Node '${nameof(textNode)}' is not a descendant of '${nameof(paragraph)}'.`);
 
-        const runNode = wml.query.containingRunNode(textNode);
-        const wordTextNode = wml.query.containingTextNode(textNode);
+        const runNode = oml.query.containingRunNode(textNode);
+        const wordTextNode = oml.query.containingTextNode(textNode);
 
         // create run clone
         const leftRun = xml.create.cloneNode(runNode, false);
@@ -134,7 +139,7 @@ class Modify {
         xml.modify.insertBefore(leftRun, rightRun);
 
         // copy props from original run node (preserve style)
-        const runProps = rightRun.childNodes.find(node => node.nodeName === WmlNode.RunProperties);
+        const runProps = rightRun.childNodes.find(node => node.nodeName === OmlNode.RunProperties);
         if (runProps) {
             const leftRunProps = xml.create.cloneNode(runProps, true);
             xml.modify.appendChild(leftRun, leftRunProps);
@@ -160,7 +165,7 @@ class Modify {
         xml.modify.insertBefore(leftPara, rightPara);
 
         // copy props from original paragraph (preserve style)
-        const paragraphProps = rightPara.childNodes.find(node => node.nodeName === WmlNode.ParagraphProperties);
+        const paragraphProps = rightPara.childNodes.find(node => node.nodeName === OmlNode.ParagraphProperties);
         if (paragraphProps) {
             const leftParagraphProps = xml.create.cloneNode(paragraphProps, true);
             xml.modify.appendChild(leftPara, leftParagraphProps);
@@ -176,9 +181,9 @@ class Modify {
         }
 
         // clean paragraphs - remove empty runs
-        if (wml.query.isEmptyRun(leftRun))
+        if (oml.query.isEmptyRun(leftRun))
             xml.modify.remove(leftRun);
-        if (wml.query.isEmptyRun(rightRun))
+        if (oml.query.isEmptyRun(rightRun))
             xml.modify.remove(rightRun);
 
         return [leftPara, rightPara];
@@ -190,16 +195,16 @@ class Modify {
     public joinTextNodesRange(from: XmlTextNode, to: XmlTextNode): void {
 
         // find run nodes
-        const firstRunNode = wml.query.containingRunNode(from);
-        const secondRunNode = wml.query.containingRunNode(to);
+        const firstRunNode = oml.query.containingRunNode(from);
+        const secondRunNode = oml.query.containingRunNode(to);
 
         const paragraphNode = firstRunNode.parentNode;
         if (secondRunNode.parentNode !== paragraphNode)
             throw new Error('Can not join text nodes from separate paragraphs.');
 
         // find "word text nodes"
-        const firstWordTextNode = wml.query.containingTextNode(from);
-        const secondWordTextNode = wml.query.containingTextNode(to);
+        const firstWordTextNode = oml.query.containingTextNode(from);
+        const secondWordTextNode = oml.query.containingTextNode(to);
         const totalText: string[] = [];
 
         // iterate runs
@@ -211,11 +216,11 @@ class Modify {
             if (curRunNode === firstRunNode) {
                 curWordTextNode = firstWordTextNode;
             } else {
-                curWordTextNode = wml.query.firstTextNodeChild(curRunNode);
+                curWordTextNode = oml.query.firstTextNodeChild(curRunNode);
             }
             while (curWordTextNode) {
 
-                if (curWordTextNode.nodeName !== WmlNode.Text) {
+                if (curWordTextNode.nodeName !== OmlNode.Text) {
                     curWordTextNode = curWordTextNode.nextSibling;
                     continue;
                 }
@@ -267,7 +272,7 @@ class Modify {
         let childIndex = 0;
         while (second.childNodes && childIndex < second.childNodes.length) {
             const curChild = second.childNodes[childIndex];
-            if (curChild.nodeName === WmlNode.Run) {
+            if (curChild.nodeName === OmlNode.Run) {
                 xml.modify.removeChild(second, childIndex);
                 xml.modify.appendChild(first, curChild);
             } else {
@@ -280,8 +285,8 @@ class Modify {
         if (!node.attributes) {
             node.attributes = {};
         }
-        if (!node.attributes[WmlAttribute.SpacePreserve]) {
-            node.attributes[WmlAttribute.SpacePreserve] = 'preserve';
+        if (!node.attributes[OmlAttribute.SpacePreserve]) {
+            node.attributes[OmlAttribute.SpacePreserve] = 'preserve';
         }
     }
 }
@@ -292,36 +297,36 @@ class Modify {
 class Query {
 
     public isTextNode(node: XmlNode): boolean {
-        return node.nodeName === WmlNode.Text;
+        return node.nodeName === OmlNode.Text;
     }
 
     public isRunNode(node: XmlNode): boolean {
-        return node.nodeName === WmlNode.Run;
+        return node.nodeName === OmlNode.Run;
     }
 
     public isRunPropertiesNode(node: XmlNode): boolean {
-        return node.nodeName === WmlNode.RunProperties;
+        return node.nodeName === OmlNode.RunProperties;
     }
 
     public isTableCellNode(node: XmlNode): boolean {
-        return node.nodeName === WmlNode.TableCell;
+        return node.nodeName === OmlNode.TableCell;
     }
 
     public isParagraphNode(node: XmlNode): boolean {
-        return node.nodeName === WmlNode.Paragraph;
+        return node.nodeName === OmlNode.Paragraph;
     }
 
     public isListParagraph(paragraphNode: XmlNode): boolean {
-        const paragraphProperties = wml.query.findParagraphPropertiesNode(paragraphNode);
-        const listNumberProperties = xml.query.findChildByName(paragraphProperties, WmlNode.NumberProperties);
+        const paragraphProperties = oml.query.findParagraphPropertiesNode(paragraphNode);
+        const listNumberProperties = xml.query.findChildByName(paragraphProperties, OmlNode.NumberProperties);
         return !!listNumberProperties;
     }
 
     public findParagraphPropertiesNode(paragraphNode: XmlNode): XmlNode {
-        if (!wml.query.isParagraphNode(paragraphNode))
+        if (!oml.query.isParagraphNode(paragraphNode))
             throw new Error(`Expected paragraph node but received a '${paragraphNode.nodeName}' node.`);
 
-        return xml.query.findChildByName(paragraphNode, WmlNode.ParagraphProperties);
+        return xml.query.findChildByName(paragraphNode, OmlNode.ParagraphProperties);
     }
 
     /**
@@ -332,14 +337,14 @@ class Query {
         if (!node)
             return null;
 
-        if (node.nodeName !== WmlNode.Run)
+        if (node.nodeName !== OmlNode.Run)
             return null;
 
         if (!node.childNodes)
             return null;
 
         for (const child of node.childNodes) {
-            if (child.nodeName === WmlNode.Text)
+            if (child.nodeName === OmlNode.Text)
                 return child;
         }
 
@@ -357,42 +362,42 @@ class Query {
         if (!xml.query.isTextNode(node))
             throw new Error(`'Invalid argument ${nameof(node)}. Expected a XmlTextNode.`);
 
-        return xml.query.findParentByName(node, WmlNode.Text) as XmlGeneralNode;
+        return xml.query.findParentByName(node, OmlNode.Text) as XmlGeneralNode;
     }
 
     /**
      * Search **upwards** for the first run node.
      */
     public containingRunNode(node: XmlNode): XmlNode {
-        return xml.query.findParentByName(node, WmlNode.Run);
+        return xml.query.findParentByName(node, OmlNode.Run);
     }
 
     /**
      * Search **upwards** for the first paragraph node.
      */
     public containingParagraphNode(node: XmlNode): XmlNode {
-        return xml.query.findParentByName(node, WmlNode.Paragraph);
+        return xml.query.findParentByName(node, OmlNode.Paragraph);
     }
 
     /**
      * Search **upwards** for the first "table row" node.
      */
     public containingTableRowNode(node: XmlNode): XmlNode {
-        return xml.query.findParentByName(node, WmlNode.TableRow);
+        return xml.query.findParentByName(node, OmlNode.TableRow);
     }
 
     /**
      * Search **upwards** for the first "table cell" node.
      */
     public containingTableCellNode(node: XmlNode): XmlNode {
-        return xml.query.findParentByName(node, WmlNode.TableCell);
+        return xml.query.findParentByName(node, OmlNode.TableCell);
     }
 
     /**
      * Search **upwards** for the first "table" node.
      */
     public containingTableNode(node: XmlNode): XmlNode {
-        return xml.query.findParentByName(node, WmlNode.Table);
+        return xml.query.findParentByName(node, OmlNode.Table);
     }
 
     //
@@ -400,7 +405,7 @@ class Query {
     //
 
     public isEmptyTextNode(node: XmlNode): boolean {
-        if (!wml.query.isTextNode(node))
+        if (!oml.query.isTextNode(node))
             throw new Error(`Text node expected but '${node.nodeName}' received.`);
 
         if (!node.childNodes?.length)
@@ -417,15 +422,15 @@ class Query {
     }
 
     public isEmptyRun(node: XmlNode): boolean {
-        if (!wml.query.isRunNode(node))
+        if (!oml.query.isRunNode(node))
             throw new Error(`Run node expected but '${node.nodeName}' received.`);
 
         for (const child of (node.childNodes ?? [])) {
 
-            if (wml.query.isRunPropertiesNode(child))
+            if (oml.query.isRunPropertiesNode(child))
                 continue;
 
-            if (wml.query.isTextNode(child) && wml.query.isEmptyTextNode(child))
+            if (oml.query.isTextNode(child) && oml.query.isEmptyTextNode(child))
                 continue;
 
             return false;
@@ -436,6 +441,6 @@ class Query {
 }
 
 /**
- * Wordprocessing Markup Language (WML) utilities.
+ * Office Markup Language (OML) utilities.
  */
-export const wml = new Wml();
+export const oml = new Oml();
