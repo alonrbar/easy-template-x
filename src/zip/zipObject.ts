@@ -18,9 +18,11 @@ export class ZipObject {
     }
 
     private readonly zipObject: JSZip.JSZipObject;
+    private readonly binaryFormat: Constructor<Binary>;
 
-    constructor(zipObject: JSZip.JSZipObject) {
+    constructor(zipObject: JSZip.JSZipObject, binaryFormat: Constructor<Binary>) {
         this.zipObject = zipObject;
+        this.binaryFormat = binaryFormat;
     }
 
     public getContentText(): Promise<string> {
@@ -31,8 +33,8 @@ export class ZipObject {
         return this.zipObject.async('binarystring');
     }
 
-    public getContentBinary<T extends Binary>(outputType: Constructor<T>): Promise<T> {
-        const zipOutputType: JSZip.OutputType = JsZipHelper.toJsZipOutputType(outputType);
+    public getContentBinary<T extends Binary>(outputType?: Constructor<T>): Promise<T> {
+        const zipOutputType: JSZip.OutputType = JsZipHelper.toJsZipOutputType(outputType ?? this.binaryFormat);
         return this.zipObject.async(zipOutputType) as any;
     }
 }

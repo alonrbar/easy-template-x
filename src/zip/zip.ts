@@ -8,20 +8,21 @@ export class Zip {
 
     public static async load(file: Binary): Promise<Zip> {
         const zip = await JSZip.loadAsync(file);
-        return new Zip(zip);
+        return new Zip(zip, file.constructor as Constructor<Binary>);
     }
 
     private readonly zip: JSZip;
-
-    private constructor(zip: JSZip) {
+    private readonly binaryFormat: Constructor<Binary>;
+    private constructor(zip: JSZip, binaryFormat: Constructor<Binary>) {
         this.zip = zip;
+        this.binaryFormat = binaryFormat;
     }
 
     public getFile(path: string): ZipObject {
         const internalZipObject = this.zip.files[path];
         if (!internalZipObject)
             return null;
-        return new ZipObject(internalZipObject);
+        return new ZipObject(internalZipObject, this.binaryFormat);
     }
 
     public setFile(path: string, content: string | Binary): void {
@@ -36,8 +37,8 @@ export class Zip {
         return Object.keys(this.zip.files);
     }
 
-    public async export<T extends Binary>(outputType: Constructor<T>): Promise<T> {
-        const zipOutputType: JSZip.OutputType = JsZipHelper.toJsZipOutputType(outputType);
+    public async export<T extends Binary>(outputType?: Constructor<T>): Promise<T> {
+        const zipOutputType: JSZip.OutputType = JsZipHelper.toJsZipOutputType(outputType ?? this.binaryFormat);
         const output = await this.zip.generateAsync({
             type: zipOutputType,
             compression: "DEFLATE",

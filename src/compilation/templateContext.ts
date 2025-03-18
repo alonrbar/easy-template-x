@@ -1,6 +1,6 @@
-import { Docx, XmlPart } from '../office';
+import { Docx, OpenXmlPart } from '../office';
 
 export interface TemplateContext {
     docx: Docx;
-    currentPart: XmlPart;
+    currentPart: OpenXmlPart;
 }

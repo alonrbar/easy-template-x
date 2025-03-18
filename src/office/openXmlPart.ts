@@ -3,11 +3,13 @@ import { Zip } from "src/zip";
 import { RelsFile } from "./relsFile";
 
 /**
- * Represents an xml file that is part of an OPC package.
+ * Represents an OpenXml package part.
+ *
+ * Most common parts are xml files, but it can also be any other arbitrary file.
  *
  * See: https://en.wikipedia.org/wiki/Open_Packaging_Conventions
  */
-export class XmlPart {
+export class OpenXmlPart {
 
     public readonly rels: RelsFile;
     public readonly path: string;

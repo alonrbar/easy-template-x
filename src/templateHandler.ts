@@ -1,14 +1,11 @@
 import { DelimiterSearcher, ScopeData, Tag, TagParser, TemplateCompiler, TemplateContext } from "./compilation";
 import { Delimiters } from "./delimiters";
-import { MalformedFileError } from "./errors";
 import { TemplateExtension } from "./extensions";
 import { ContentPartType, Docx } from "./office";
 import { TemplateData } from "./templateData";
 import { TemplateHandlerOptions } from "./templateHandlerOptions";
-import { Constructor } from "./types";
 import { Binary } from "./utils";
 import { XmlNode } from "./xml";
-import { Zip } from "./zip";
 
 export class TemplateHandler {
 
@@ -73,7 +70,7 @@ export class TemplateHandler {
     public async process<T extends Binary>(templateFile: T, data: TemplateData): Promise<T> {
 
         // load the docx file
-        const docx = await this.loadDocx(templateFile);
+        const docx = await Docx.load(templateFile);
 
         // prepare context
         const scopeData = new ScopeData(data);
@@ -100,7 +97,7 @@ export class TemplateHandler {
         }
 
         // export the result
-        return docx.export(templateFile.constructor as Constructor<T>);
+        return docx.export();
     }
 
     /**
@@ -112,7 +109,7 @@ export class TemplateHandler {
      * Defaults to `ContentPartType.MainDocument`.
      */
     public async parseTags(templateFile: Binary, contentPart: ContentPartType = ContentPartType.MainDocument): Promise<Tag[]> {
-        const docx = await this.loadDocx(templateFile);
+        const docx = await Docx.load(templateFile);
         const part = await docx.getContentPart(contentPart);
         if (!part) {
             return null;
@@ -130,7 +127,7 @@ export class TemplateHandler {
      * Defaults to `ContentPartType.MainDocument`.
      */
     public async getText(docxFile: Binary, contentPart: ContentPartType = ContentPartType.MainDocument): Promise<string> {
-        const docx = await this.loadDocx(docxFile);
+        const docx = await Docx.load(docxFile);
         const part = await docx.getContentPart(contentPart);
         const text = await part.getText();
         return text;
@@ -145,7 +142,7 @@ export class TemplateHandler {
      * Defaults to `ContentPartType.MainDocument`.
      */
     public async getXml(docxFile: Binary, contentPart: ContentPartType = ContentPartType.MainDocument): Promise<XmlNode> {
-        const docx = await this.loadDocx(docxFile);
+        const docx = await Docx.load(docxFile);
         const part = await docx.getContentPart(contentPart);
         const xmlRoot = await part.xmlRoot();
         return xmlRoot;
@@ -162,20 +159,5 @@ export class TemplateHandler {
         for (const extension of extensions) {
             await extension.execute(scopeData, context);
         }
-    }
-
-    private async loadDocx(file: Binary): Promise<Docx> {
-
-        // load the zip file
-        let zip: Zip;
-        try {
-            zip = await Zip.load(file);
-        } catch {
-            throw new MalformedFileError('docx');
-        }
-
-        // load the docx file
-        const docx = await Docx.open(zip);
-        return docx;
     }
 }

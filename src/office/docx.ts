@@ -1,20 +1,41 @@
-import { MalformedFileError } from '../errors';
-import { Constructor, IMap } from '../types';
-import { Binary, last } from '../utils';
-import { XmlGeneralNode, XmlNodeType } from '../xml';
-import { Zip } from '../zip';
-import { ContentPartType } from './contentPartType';
-import { ContentTypesFile } from './contentTypesFile';
-import { MediaFiles } from './mediaFiles';
+import { MalformedFileError } from "../errors";
+import { Constructor, IMap } from "../types";
+import { Binary, last } from "../utils";
+import { XmlGeneralNode, XmlNodeType } from "../xml";
+import { Zip } from "../zip";
+import { ContentPartType } from "./contentPartType";
+import { ContentTypesFile } from "./contentTypesFile";
+import { MediaFiles } from "./mediaFiles";
+import { OpenXmlPart } from "./openXmlPart";
 import { RelType } from "./relationship";
-import { RelsFile } from './relsFile';
-import { XmlPart } from './xmlPart';
+import { RelsFile } from "./relsFile";
 
 /**
  * Represents a single docx file.
  */
 export class Docx {
 
+    /**
+     * Load a docx file from a binary zip file.
+     */
+    public static async load(file: Binary): Promise<Docx> {
+
+        // Load the zip file
+        let zip: Zip;
+        try {
+            zip = await Zip.load(file);
+        } catch {
+            throw new MalformedFileError('docx');
+        }
+
+        // Load the docx file
+        const docx = await Docx.open(zip);
+        return docx;
+    }
+
+    /**
+     * Open a docx file from an instantiated zip file.
+     */
     public static async open(zip: Zip): Promise<Docx> {
         const mainDocumentPath = await Docx.getMainDocumentPath(zip);
         if (!mainDocumentPath)
@@ -34,11 +55,11 @@ export class Docx {
     // fields
     //
 
-    public readonly mainDocument: XmlPart;
+    public readonly mainDocument: OpenXmlPart;
     public readonly mediaFiles: MediaFiles;
     public readonly contentTypes: ContentTypesFile;
 
-    private readonly _parts: IMap<XmlPart> = {};
+    private readonly _parts: IMap<OpenXmlPart> = {};
 
     private readonly zip: Zip;
 
@@ -59,7 +80,7 @@ export class Docx {
         zip: Zip,
     ) {
         this.zip = zip;
-        this.mainDocument = new XmlPart(mainDocumentPath, zip);
+        this.mainDocument = new OpenXmlPart(mainDocumentPath, zip);
         this.mediaFiles = new MediaFiles(zip);
         this.contentTypes = new ContentTypesFile(zip);
     }
@@ -68,7 +89,7 @@ export class Docx {
     // public methods
     //
 
-    public async getContentPart(type: ContentPartType): Promise<XmlPart> {
+    public async getContentPart(type: ContentPartType): Promise<OpenXmlPart> {
         switch (type) {
             case ContentPartType.MainDocument:
                 return this.mainDocument;
@@ -80,7 +101,7 @@ export class Docx {
     /**
      * Returns the xml parts of the main document, headers and footers.
      */
-    public async getContentParts(): Promise<XmlPart[]> {
+    public async getContentParts(): Promise<OpenXmlPart[]> {
         const partTypes = [
             ContentPartType.MainDocument,
             ContentPartType.DefaultHeader,
@@ -90,7 +111,7 @@ export class Docx {
             ContentPartType.FirstFooter,
             ContentPartType.EvenPagesFooter
         ];
-        const parts: XmlPart[] = [];
+        const parts: OpenXmlPart[] = [];
         for (const partType of partTypes) {
             const part = await this.getContentPart(partType);
             if (part) {
@@ -100,7 +121,7 @@ export class Docx {
         return parts;
     }
 
-    public async export<T extends Binary>(outputType: Constructor<T>): Promise<T> {
+    public async export<T extends Binary>(outputType?: Constructor<T>): Promise<T> {
         await this.saveChanges();
         return await this.zip.export(outputType);
     }
@@ -109,7 +130,7 @@ export class Docx {
     // private methods
     //
 
-    private async getHeaderOrFooter(type: ContentPartType): Promise<XmlPart> {
+    private async getHeaderOrFooter(type: ContentPartType): Promise<OpenXmlPart> {
 
         // Find all section properties (http://officeopenxml.com/WPsection.php)
         const docRoot = await this.mainDocument.xmlRoot();
@@ -135,7 +156,7 @@ export class Docx {
         const relTarget = rels.find(r => r.id === relId).target;
         if (!this._parts[relTarget]) {
             const partPath = relTarget.startsWith('word/') ? relTarget : "word/" + relTarget;
-            const part = new XmlPart(partPath, this.zip);
+            const part = new OpenXmlPart(partPath, this.zip);
             this._parts[relTarget] = part;
         }
         return this._parts[relTarget];
