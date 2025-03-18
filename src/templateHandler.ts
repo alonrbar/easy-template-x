@@ -109,9 +109,8 @@ export class TemplateHandler {
 
             const xmlRoot = await part.xmlRoot();
             const partTags = this.compiler.parseTags(xmlRoot);
-            for (const tag of partTags) {
-                tag.openXmlPart = part;
-                tags.push(tag);
+            if (partTags?.length) {
+                tags.push(...partTags);
             }
         }
 

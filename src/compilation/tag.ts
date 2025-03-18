@@ -1,4 +1,3 @@
-import { OpenXmlPart } from "src/office";
 import { IMap } from "src/types";
 import { XmlTextNode } from "src/xml";
 
@@ -19,5 +18,4 @@ export interface Tag {
     rawText: string;
     disposition: TagDisposition;
     xmlTextNode: XmlTextNode;
-    openXmlPart?: OpenXmlPart;
 }

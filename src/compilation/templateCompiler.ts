@@ -50,9 +50,6 @@ export class TemplateCompiler {
      */
     public async compile(node: XmlNode, data: ScopeData, context: TemplateContext): Promise<void> {
         const tags = this.parseTags(node);
-        for (const tag of tags) {
-            tag.openXmlPart = context.currentPart;
-        }
         await this.doTagReplacements(tags, data, context);
     }
 
