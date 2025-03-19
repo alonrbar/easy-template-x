@@ -205,12 +205,74 @@ describe("chart fixtures", () => {
             await verifySnapshot("chart - area", doc);
         });
     });
+
+    describe("column chart", () => {
+
+        test("no chart data", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - column.docx");
+            const doc = await handler.process(template, {});
+
+            await verifySnapshot("chart - column - no data", doc);
+        });
+
+        test("data matches placeholder (categories and series count)", async () => {
+
+            const chartData1: ChartContent = {
+                _type: "chart",
+                categories: {
+                    names: ["Q1", "Q2", "Q3", "Q4"]
+                },
+                series: [
+                    { name: "Car", values: [100, 310, 220, 450], color: "#ebfa46" },
+                    { name: "Truck", values: [200, 300, 350, 411] },
+                    { name: "Van", values: [80, 120, 140, 600] },
+                ],
+            };
+
+            const chartData2: ChartContent = {
+                _type: "chart",
+                categories: {
+                    names: ["Grass Green", "Sky Blue", "Sunset Orange"]
+                },
+                series: [
+                    {
+                        name: "Red",
+                        color: "#FF0000",
+                        values: [50, 89, 255]
+                    },
+                    {
+                        name: "Green",
+                        color: "00FF00",
+                        values: [168, 210, 100]
+                    },
+                    {
+                        name: "Blue",
+                        color: "#0000FF",
+                        values: [82, 235, 70]
+                    },
+                ],
+            };
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - column.docx");
+            const doc = await handler.process(template, {
+                chart1: chartData1,
+                chart2: chartData2,
+            });
+
+            await verifySnapshot("chart - column", doc);
+        });
+    });
 });
 
 async function verifySnapshot(testCaseName: string, doc: Buffer) {
 
     // eslint-disable-next-line no-constant-condition
-    if (false) {
+    if (true) {
         writeTempFile(`${testCaseName} - output.docx`, doc);
         return;
     }

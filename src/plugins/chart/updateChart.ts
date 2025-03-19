@@ -27,6 +27,11 @@ export interface DateCategories {
 
 export interface Series {
     name: string; // TODO: Make name optional
+    /**
+     * Color of the series, in hex format (e.g. "#FF0000" for red).
+     * If not specified, the color will be auto-selected by the system.
+     */
+    color?: string;
     values: number[]; // TODO: Scatter chart values
 }
 
@@ -342,8 +347,8 @@ function createSeries(seriesName: string, seriesIndex: number, firstSeries: Firs
         </c:ser>
     `);
 
-    const accentNumber = (seriesIndex % 6) + 1;
-    updateAccentNumber(series, accentNumber);
+    const color = selectSeriesColor(seriesIndex, chartData);
+    setColor(series, color);
 
     return series;
 }
@@ -412,18 +417,48 @@ function valuesMarkup(seriesIndex: number, chartData: ChartData, sheetName: stri
     `;
 }
 
-function updateAccentNumber(node: XmlNode, accentNumber: number) {
+function selectSeriesColor(seriesIndex: number, chartData: ChartData): string | number {
+
+    // User-defined color
+    const color = chartData.series[seriesIndex].color?.trim();
+    if (color) {
+        const hex = color.startsWith("#") ? color.slice(1) : color;
+        return hex.toUpperCase();
+    }
+
+    // Auto-selected accent color
+    const seriesWithoutColor = chartData.series.slice(0, seriesIndex).filter(s => !s.color);
+    const accentNumber = (seriesWithoutColor.length % 6) + 1;
+    return accentNumber;
+}
+
+function setColor(node: XmlNode, color: string | number) {
     if (!node) {
         return;
     }
 
+    // Was accent color (auto-selected color)
     if (node.nodeName == "a:schemeClr" && node.attributes?.["val"] == "accent1") {
-        node.attributes["val"] = `accent${accentNumber}`;
+
+        if (typeof color === "number") {
+            node.attributes["val"] = `accent${color}`;
+        } else if (typeof color === "string") {
+            node.nodeName = "a:srgbClr";
+            node.attributes["val"] = color;
+        }
+        return;
+    }
+
+    // Was srgb color (user-defined color)
+    if (node.nodeName == "a:srgbClr") {
+        if (typeof color === "string") {
+            node.attributes["val"] = color;
+        }
         return;
     }
 
     for (const child of (node.childNodes ?? [])) {
-        updateAccentNumber(child, accentNumber);
+        setColor(child, color);
     }
 }
 
