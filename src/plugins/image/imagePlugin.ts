@@ -24,11 +24,9 @@ export class ImagePlugin extends TemplatePlugin {
 
     public async simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): Promise<void> {
 
-        const wordTextNode = officeMarkup.query.containingTextNode(tag.xmlTextNode);
-
         const content = data.getScopeData<ImageContent>();
         if (!content || !content.source) {
-            xml.modify.remove(wordTextNode);
+            officeMarkup.modify.removeTag(tag.xmlTextNode);
             return;
         }
 
@@ -42,8 +40,9 @@ export class ImagePlugin extends TemplatePlugin {
         const imageId = nextImageId++;
         const imageXml = this.createMarkup(imageId, relId, content);
 
+        const wordTextNode = officeMarkup.query.containingTextNode(tag.xmlTextNode);
         xml.modify.insertAfter(imageXml, wordTextNode);
-        xml.modify.remove(wordTextNode);
+        officeMarkup.modify.removeTag(tag.xmlTextNode);
     }
 
     private createMarkup(imageId: number, relId: string, content: ImageContent): XmlNode {

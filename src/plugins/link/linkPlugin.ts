@@ -10,22 +10,21 @@ export class LinkPlugin extends TemplatePlugin {
 
     public async simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): Promise<void> {
 
-        const wordTextNode = officeMarkup.query.containingTextNode(tag.xmlTextNode);
-
         const content = data.getScopeData<LinkContent>();
         if (!content || !content.target) {
-            xml.modify.remove(wordTextNode);
+            officeMarkup.modify.removeTag(tag.xmlTextNode);
             return;
         }
 
-        // add rel
+        // Add rel
         const relId = await context.currentPart.rels.add(content.target, RelType.Link, 'External');
 
-        // generate markup
+        // Generate markup
+        const wordTextNode = officeMarkup.query.containingTextNode(tag.xmlTextNode);
         const wordRunNode = officeMarkup.query.containingRunNode(wordTextNode);
         const linkMarkup = this.generateMarkup(content, relId, wordRunNode);
 
-        // add to document
+        // Add to document
         this.insertHyperlinkNode(linkMarkup, wordRunNode, wordTextNode);
     }
 
@@ -51,7 +50,7 @@ export class LinkPlugin extends TemplatePlugin {
         const markupXml = xml.parser.parse(markupText);
         xml.modify.removeEmptyTextNodes(markupXml); // remove whitespace
 
-        // copy props from original run node (preserve style)
+        // Copy props from original run node (preserve style)
         const runProps = xml.query.findChild(wordRunNode, officeMarkup.query.isRunPropertiesNode);
         if (runProps) {
             const linkRunProps = xml.create.cloneNode(runProps, true);
@@ -79,7 +78,7 @@ export class LinkPlugin extends TemplatePlugin {
             }
         }
 
-        // already isolated
+        // Already isolated
         else {
             xml.modify.insertAfter(linkMarkup, tagRunNode);
             xml.modify.remove(tagRunNode);

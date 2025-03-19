@@ -21,6 +21,10 @@ export class RawXmlPlugin extends TemplatePlugin {
             xml.modify.insertBefore(newNode, replaceNode);
         }
 
-        xml.modify.remove(replaceNode);
+        if (value?.replaceParagraph) {
+            xml.modify.remove(replaceNode);
+        } else {
+            officeMarkup.modify.removeTag(tag.xmlTextNode);
+        }
     }
 }
