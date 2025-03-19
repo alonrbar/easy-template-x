@@ -168,6 +168,43 @@ describe("chart fixtures", () => {
         });
     });
 
+    describe("area chart", () => {
+
+        test("no chart data", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - area.docx");
+            const doc = await handler.process(template, {});
+
+            await verifySnapshot("chart - area - no data", doc);
+        });
+
+        test("data matches placeholder (categories and series count)", async () => {
+
+            const chartData: ChartContent = {
+                _type: "chart",
+                title: "My Area Chart",
+                categories: {
+                    names: ["Q1", "Q2", "Q3", "Q4"]
+                },
+                series: [
+                    { name: "Car", values: [100, 310, 220, 450] },
+                    { name: "Truck", values: [200, 300, 350, 411] },
+                    { name: "Van", values: [80, 120, 140, 600] },
+                ],
+            };
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - area.docx");
+            const doc = await handler.process(template, {
+                MyChart: chartData,
+            });
+
+            await verifySnapshot("chart - area", doc);
+        });
+    });
 });
 
 async function verifySnapshot(testCaseName: string, doc: Buffer) {
