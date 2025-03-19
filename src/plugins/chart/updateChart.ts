@@ -6,16 +6,30 @@ import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 // Based on: https://github.com/OpenXmlDev/Open-Xml-PowerTools/blob/vNext/OpenXmlPowerTools/ChartUpdater.cs
 
 export interface ChartData {
-    seriesNames: string[];
-
-    categoryDataType: ChartDataType;
-    categoryFormatCode: FormatCode;
-    categoryNames: string[];
-
-    values: number[][];
+    categories: Categories;
+    series: Series[];
 }
 
-export type ChartDataType = 'number' | 'string' | 'dateTime';
+export type Categories = NumericCategories | StringCategories | DateCategories;
+
+export interface NumericCategories {
+    formatCode: FormatCode;
+    names: number[];
+}
+
+export interface StringCategories {
+    names: string[];
+}
+
+export interface DateCategories {
+    formatCode: FormatCode;
+    names: Date[];
+}
+
+export interface Series {
+    name: string;
+    values: number[];
+}
 
 const chartTypes = Object.freeze({
     area3DChart: "c:area3DChart",
@@ -74,11 +88,8 @@ const space = " ";
 export async function updateChart(chartPart: OpenXmlPart, chartData: ChartData) {
 
     // Input validation
-    if (chartData.values.length != chartData.seriesNames.length) {
-        throw new Error("Invalid chart data. Values and series names must have the same length.");
-    }
-    for (const ser of chartData.values) {
-        if (ser.length != chartData.categoryNames.length) {
+    for (const ser of chartData.series) {
+        if (ser.values.length != chartData.categories.names.length) {
             throw new Error("Invalid chart data. Series values and category names must have the same length.");
         }
     }
@@ -163,8 +174,8 @@ function getSheetName(firstSeries: XmlNode): string {
 function categoriesMarkup(chartData: ChartData, sheetName: string): string {
 
     const ptNodes = `
-        <c:ptCount val="${chartData.categoryNames.length}"/>
-        ${chartData.categoryNames.map((name, index) => `
+        <c:ptCount val="${chartData.categories.names.length}"/>
+        ${chartData.categories.names.map((name, index) => `
             <c:pt idx="${index}">
                 <c:v>${name}</c:v>
             </c:pt>
@@ -174,7 +185,7 @@ function categoriesMarkup(chartData: ChartData, sheetName: string): string {
     if (!sheetName) {
 
         // String literal
-        if (chartData.categoryDataType == "string") {
+        if (isStringCategories(chartData.categories)) {
             return `
                 <c:cat>
                     <c:strLit>
@@ -194,10 +205,10 @@ function categoriesMarkup(chartData: ChartData, sheetName: string): string {
         `;
     }
 
-    const formula = `${sheetName}!$A$2:$A$${chartData.categoryNames.length + 1}`;
+    const formula = `${sheetName}!$A$2:$A$${chartData.categories.names.length + 1}`;
 
     // String reference
-    if (chartData.categoryDataType == "string") {
+    if (isStringCategories(chartData.categories)) {
         return `
             <c:cat>
                 <c:strRef>
@@ -216,7 +227,7 @@ function categoriesMarkup(chartData: ChartData, sheetName: string): string {
             <c:numRef>
                 <c:f>${formula}</c:f>
                 <c:numCache>
-                    <c:formatCode>${formatCodes[chartData.categoryFormatCode]}</c:formatCode>
+                    <c:formatCode>${formatCodes[chartData.categories.formatCode]}</c:formatCode>
                     ${ptNodes}
                 </c:numCache>
             </c:numRef>
@@ -308,7 +319,7 @@ function updateInlineSeries(chartNode: XmlNode, firstSeries: FirstSeriesData, ch
     xml.modify.removeChildren(chartNode, child => child.nodeName === "c:ser");
 
     // Create new series
-    const newSeries = chartData.seriesNames.map((name, index) => createSeries(name, index, firstSeries, chartData));
+    const newSeries = chartData.series.map((s, index) => createSeries(s.name, index, firstSeries, chartData));
     for (const series of newSeries) {
         xml.modify.appendChild(chartNode, series);
     }
@@ -370,10 +381,10 @@ function valuesMarkup(seriesIndex: number, chartData: ChartData, sheetName: stri
         return `
             <c:val>
                 <c:numLit>
-                    <c:ptCount val="${chartData.categoryNames.length}" />
-                    ${chartData.categoryNames.map((name, catIndex) => `
+                    <c:ptCount val="${chartData.categories.names.length}" />
+                    ${chartData.categories.names.map((name, catIndex) => `
                         <c:pt idx="${catIndex}">
-                            <c:v>${chartData.values[seriesIndex][catIndex]}</c:v>
+                            <c:v>${chartData.series[seriesIndex].values[catIndex]}</c:v>
                         </c:pt>
                     `).join("\n")}
                 </c:numLit>
@@ -383,17 +394,17 @@ function valuesMarkup(seriesIndex: number, chartData: ChartData, sheetName: stri
 
     // Number reference
     const columnId = excelColumnId(seriesIndex + 1);
-    const formula = `${sheetName}!$${columnId}$2:$${columnId}$${chartData.categoryNames.length + 1}`;
+    const formula = `${sheetName}!$${columnId}$2:$${columnId}$${chartData.categories.names.length + 1}`;
     return `
         <c:val>
             <c:numRef>
                 <c:f>${formula}</c:f>
                 <c:numCache>
-                    <c:formatCode>${formatCodes[chartData.categoryFormatCode]}</c:formatCode>
-                    <c:ptCount val="${chartData.categoryNames.length}" />
-                        ${chartData.categoryNames.map((name, catIndex) => `
+                    <c:formatCode>${formatCodes[formatCode(chartData.categories)]}</c:formatCode>
+                    <c:ptCount val="${chartData.categories.names.length}" />
+                        ${chartData.categories.names.map((name, catIndex) => `
                             <c:pt idx="${catIndex}">
-                                <c:v>${chartData.values[seriesIndex][catIndex]}</c:v>
+                                <c:v>${chartData.series[seriesIndex].values[catIndex]}</c:v>
                         </c:pt>
                     `).join("\n")}
                 </c:numCache>
@@ -487,10 +498,12 @@ async function updateSharedStringsPart(workbookPart: OpenXmlPart, chartData: Cha
 
     // Add strings
     addString(space);
-    for (const name of chartData.categoryNames) {
-        addString(name);
+    if (isStringCategories(chartData.categories)) {
+        for (const name of chartData.categories.names) {
+            addString(name);
+        }
     }
-    for (const name of chartData.seriesNames) {
+    for (const name of chartData.series.map(s => s.name)) {
         addString(name);
     }
 
@@ -522,31 +535,30 @@ async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, sha
 
     // Create first row
     const firstRow = `
-        <row r="1" spans="1:${chartData.seriesNames.length + 1}">
+        <row r="1" spans="1:${chartData.series.length + 1}">
             <c r="A1" t="s">
                 <v>${sharedStrings[space]}</v>
             </c>
-            ${chartData.seriesNames.map((name, index) => `
+            ${chartData.series.map((s, index) => `
                 <c r="${excelRowAndColumnId(0, index + 1)}" t="s">
-                    <v>${sharedStrings[name]}</v>
+                    <v>${sharedStrings[s.name]}</v>
                 </c>
             `).join("\n")}
         </row>
     `;
 
     // Create other rows
-    const categoryDataTypeAttribute = chartData.categoryDataType === "string" ? ` t="s"` : "";
-    const categoryStyleId = await updateStylesPart(workbookPart, sheetRoot, chartData.categoryFormatCode);
-    const categoryStyleIdAttribute = categoryStyleId ? ` s="${categoryStyleId}"` : "";
+    const categoryDataTypeAttribute = isStringCategories(chartData.categories) ? ` t="s"` : "";
+    const categoryStyleIdAttribute = await updateStylesPart(workbookPart, sheetRoot, chartData.categories);
 
-    const otherRows = chartData.categoryNames.map((name, rowIndex) => `
-        <row r="${rowIndex + 2}" spans="1:${chartData.seriesNames.length + 1}">
+    const otherRows = chartData.categories.names.map((name, rowIndex) => `
+        <row r="${rowIndex + 2}" spans="1:${chartData.series.length + 1}">
             <c r="${excelRowAndColumnId(rowIndex + 1, 0)}"${categoryDataTypeAttribute}${categoryStyleIdAttribute}>
-                <v>${chartData.categoryDataType === "string" ? sharedStrings[name] : name}</v>
+                <v>${isStringCategories(chartData.categories) ? sharedStrings[name as string] : name}</v>
             </c>
-            ${chartData.values.map((columnValues, columnIndex) => `
+            ${chartData.series.map((s, columnIndex) => `
                 <c r="${excelRowAndColumnId(rowIndex + 1, columnIndex + 1)}">
-                    <v>${columnValues[rowIndex]}</v>
+                    <v>${s.values[rowIndex]}</v>
                 </c>
             `).join("\n")}
         </row>
@@ -571,17 +583,17 @@ async function updateTablePart(sheetPart: OpenXmlPart, chartData: ChartData) {
 
     // Update ref attribute
     const tablePartRoot = await tablePart.xmlRoot() as XmlGeneralNode;
-    tablePartRoot.attributes["ref"] = `A1:${excelRowAndColumnId(chartData.categoryNames.length, chartData.seriesNames.length)}`;
+    tablePartRoot.attributes["ref"] = `A1:${excelRowAndColumnId(chartData.categories.names.length, chartData.series.length)}`;
 
     // Find old table columns
     const tableColumnsNode = tablePartRoot.childNodes?.find(child => child.nodeName === "tableColumns");
 
     // Add new table columns
     const tableColumns = `
-        <tableColumns count="${chartData.seriesNames.length + 1}">
+        <tableColumns count="${chartData.series.length + 1}">
             <tableColumn id="1" name=" "/>
-            ${chartData.seriesNames.map((name, index) => `
-                <tableColumn id="${index + 2}" name="${name}"/>
+            ${chartData.series.map((s, index) => `
+                <tableColumn id="${index + 2}" name="${s.name}"/>
             `).join("\n")}
         </tableColumns>
     `;
@@ -591,12 +603,12 @@ async function updateTablePart(sheetPart: OpenXmlPart, chartData: ChartData) {
     xml.modify.removeChild(tablePartRoot, tableColumnsNode);
 }
 
-async function updateStylesPart(workbookPart: OpenXmlPart, sheetRoot: XmlNode, formatCodeToAdd: FormatCode): Promise<number> {
+async function updateStylesPart(workbookPart: OpenXmlPart, sheetRoot: XmlNode, categories: Categories): Promise<string> {
 
     // https://github.com/OpenXmlDev/Open-Xml-PowerTools/blob/vNext/OpenXmlPowerTools/ChartUpdater.cs#L507
 
-    if (formatCodeToAdd == 0) {
-        return 0;
+    if (isStringCategories(categories)) {
+        return "";
     }
 
     const stylesPart = await workbookPart.getFirstPartByType(RelType.Styles);
@@ -624,15 +636,36 @@ async function updateStylesPart(workbookPart: OpenXmlPart, sheetRoot: XmlNode, f
     const count = parseInt(cellXfs.attributes["count"]);
     cellXfs.attributes["count"] = (count + 1).toString();
     xml.modify.appendChild(cellXfs, parseXmlNode(`
-        <xf numFmtId="${formatCodeToAdd}" fontId="0" fillId="0" borderId="0" applyNumberFormat="1"/>
+        <xf numFmtId="${categories.formatCode}" fontId="0" fillId="0" borderId="0" applyNumberFormat="1"/>
     `));
 
-    return count;
+    return `s="${count}"`;
 }
 
 //
 // Helper functions
 //
+
+function isStringCategories(categories: Categories): categories is StringCategories {
+    const first = categories.names[0];
+    if (typeof first === "string") {
+        return true;
+    }
+    if (typeof first === "number") {
+        return false;
+    }
+    if (first instanceof Date) {
+        return false;
+    }
+    throw new Error(`Invalid categories data type. First category name: ${first}`);
+}
+
+function formatCode(categories: Categories): FormatCode {
+    if (isStringCategories(categories)) {
+        return 0;
+    }
+    return categories.formatCode;
+}
 
 function excelColumnId(i: number): string {
 

@@ -7,15 +7,14 @@ describe("chart fixtures", () => {
     test("simple line chart", async () => {
 
         const chartData = {
-            seriesNames: ["Car", "Truck", "Van"],
-            categoryDataType: "string",
-            categoryFormatCode: 0,
-            categoryNames: ["Q1", "Q2", "Q3", "Q4"],
-            values: [
-                [100, 310, 220, 450],
-                [200, 300, 350, 411],
-                [80, 120, 140, 600],
-            ]
+            categories: {
+                names: ["Q1", "Q2", "Q3", "Q4"]
+            },
+            series: [
+                { name: "Car", values: [100, 310, 220, 450] },
+                { name: "Truck", values: [200, 300, 350, 411] },
+                { name: "Van", values: [80, 120, 140, 600] },
+            ],
         };
 
         const handler = new TemplateHandler();
