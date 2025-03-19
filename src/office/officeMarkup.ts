@@ -44,6 +44,159 @@ export class OfficeMarkup {
 }
 
 /**
+ * Wordprocessing Markup Language (WML) query utilities.
+ */
+class Query {
+
+    public isTextNode(node: XmlNode): boolean {
+        return node.nodeName === OmlNode.W.Text || node.nodeName === OmlNode.A.Text;
+    }
+
+    public isRunNode(node: XmlNode): boolean {
+        return node.nodeName === OmlNode.W.Run || node.nodeName === OmlNode.A.Run;
+    }
+
+    public isRunPropertiesNode(node: XmlNode): boolean {
+        return node.nodeName === OmlNode.W.RunProperties || node.nodeName === OmlNode.A.RunProperties;
+    }
+
+    public isTableCellNode(node: XmlNode): boolean {
+        return node.nodeName === OmlNode.W.TableCell;
+    }
+
+    public isParagraphNode(node: XmlNode): boolean {
+        return node.nodeName === OmlNode.W.Paragraph || node.nodeName === OmlNode.A.Paragraph;
+    }
+
+    public isParagraphPropertiesNode(node: XmlNode): boolean {
+        return node.nodeName === OmlNode.W.ParagraphProperties || node.nodeName === OmlNode.A.ParagraphProperties;
+    }
+
+    public isListParagraph(paragraphNode: XmlNode): boolean {
+        const paragraphProperties = officeMarkup.query.findParagraphPropertiesNode(paragraphNode);
+        const listNumberProperties = xml.query.findChildByName(paragraphProperties, OmlNode.W.NumberProperties);
+        return !!listNumberProperties;
+    }
+
+    public findParagraphPropertiesNode(paragraphNode: XmlNode): XmlNode {
+        if (!officeMarkup.query.isParagraphNode(paragraphNode))
+            throw new Error(`Expected paragraph node but received a '${paragraphNode.nodeName}' node.`);
+
+        return xml.query.findChild(paragraphNode, officeMarkup.query.isParagraphPropertiesNode);
+    }
+
+    /**
+     * Search for the first direct child **Word** text node (i.e. a <w:t> node).
+     */
+    public firstTextNodeChild(node: XmlNode): XmlNode {
+
+        if (!node)
+            return null;
+
+        if (!officeMarkup.query.isRunNode(node))
+            return null;
+
+        if (!node.childNodes)
+            return null;
+
+        for (const child of node.childNodes) {
+            if (officeMarkup.query.isTextNode(child))
+                return child;
+        }
+
+        return null;
+    }
+
+    /**
+     * Search **upwards** for the first **Office** text node (i.e. a <w:t> or <a:t> node).
+     */
+    public containingTextNode(node: XmlTextNode): XmlGeneralNode {
+
+        if (!node)
+            return null;
+
+        if (!xml.query.isTextNode(node))
+            throw new Error(`'Invalid argument ${nameof(node)}. Expected a XmlTextNode.`);
+
+        return xml.query.findParent(node, officeMarkup.query.isTextNode) as XmlGeneralNode;
+    }
+
+    /**
+     * Search **upwards** for the first run node.
+     */
+    public containingRunNode(node: XmlNode): XmlNode {
+        return xml.query.findParent(node, officeMarkup.query.isRunNode);
+    }
+
+    /**
+     * Search **upwards** for the first paragraph node.
+     */
+    public containingParagraphNode(node: XmlNode): XmlNode {
+        return xml.query.findParent(node, officeMarkup.query.isParagraphNode);
+    }
+
+    /**
+     * Search **upwards** for the first "table row" node.
+     */
+    public containingTableRowNode(node: XmlNode): XmlNode {
+        return xml.query.findParentByName(node, OmlNode.W.TableRow);
+    }
+
+    /**
+     * Search **upwards** for the first "table cell" node.
+     */
+    public containingTableCellNode(node: XmlNode): XmlNode {
+        return xml.query.findParent(node, officeMarkup.query.isTableCellNode);
+    }
+
+    /**
+     * Search **upwards** for the first "table" node.
+     */
+    public containingTableNode(node: XmlNode): XmlNode {
+        return xml.query.findParentByName(node, OmlNode.W.Table);
+    }
+
+    //
+    // Advanced queries
+    //
+
+    public isEmptyTextNode(node: XmlNode): boolean {
+        if (!officeMarkup.query.isTextNode(node))
+            throw new Error(`Text node expected but '${node.nodeName}' received.`);
+
+        if (!node.childNodes?.length)
+            return true;
+
+        const xmlTextNode = node.childNodes[0];
+        if (!xml.query.isTextNode(xmlTextNode))
+            throw new Error("Invalid XML structure. 'w:t' node should contain a single text node only.");
+
+        if (!xmlTextNode.textContent)
+            return true;
+
+        return false;
+    }
+
+    public isEmptyRun(node: XmlNode): boolean {
+        if (!officeMarkup.query.isRunNode(node))
+            throw new Error(`Run node expected but '${node.nodeName}' received.`);
+
+        for (const child of (node.childNodes ?? [])) {
+
+            if (officeMarkup.query.isRunPropertiesNode(child))
+                continue;
+
+            if (officeMarkup.query.isTextNode(child) && officeMarkup.query.isEmptyTextNode(child))
+                continue;
+
+            return false;
+        }
+
+        return true;
+    }
+}
+
+/**
  * Office Markup Language (OML) modify utilities.
  */
 class Modify {
@@ -283,159 +436,6 @@ class Modify {
         if (officeMarkup.query.isEmptyRun(runNode)) {
             xml.modify.remove(runNode);
         }
-    }
-}
-
-/**
- * Wordprocessing Markup Language (WML) query utilities.
- */
-class Query {
-
-    public isTextNode(node: XmlNode): boolean {
-        return node.nodeName === OmlNode.W.Text || node.nodeName === OmlNode.A.Text;
-    }
-
-    public isRunNode(node: XmlNode): boolean {
-        return node.nodeName === OmlNode.W.Run || node.nodeName === OmlNode.A.Run;
-    }
-
-    public isRunPropertiesNode(node: XmlNode): boolean {
-        return node.nodeName === OmlNode.W.RunProperties || node.nodeName === OmlNode.A.RunProperties;
-    }
-
-    public isTableCellNode(node: XmlNode): boolean {
-        return node.nodeName === OmlNode.W.TableCell;
-    }
-
-    public isParagraphNode(node: XmlNode): boolean {
-        return node.nodeName === OmlNode.W.Paragraph || node.nodeName === OmlNode.A.Paragraph;
-    }
-
-    public isParagraphPropertiesNode(node: XmlNode): boolean {
-        return node.nodeName === OmlNode.W.ParagraphProperties || node.nodeName === OmlNode.A.ParagraphProperties;
-    }
-
-    public isListParagraph(paragraphNode: XmlNode): boolean {
-        const paragraphProperties = officeMarkup.query.findParagraphPropertiesNode(paragraphNode);
-        const listNumberProperties = xml.query.findChildByName(paragraphProperties, OmlNode.W.NumberProperties);
-        return !!listNumberProperties;
-    }
-
-    public findParagraphPropertiesNode(paragraphNode: XmlNode): XmlNode {
-        if (!officeMarkup.query.isParagraphNode(paragraphNode))
-            throw new Error(`Expected paragraph node but received a '${paragraphNode.nodeName}' node.`);
-
-        return xml.query.findChild(paragraphNode, officeMarkup.query.isParagraphPropertiesNode);
-    }
-
-    /**
-     * Search for the first direct child **Word** text node (i.e. a <w:t> node).
-     */
-    public firstTextNodeChild(node: XmlNode): XmlNode {
-
-        if (!node)
-            return null;
-
-        if (!officeMarkup.query.isRunNode(node))
-            return null;
-
-        if (!node.childNodes)
-            return null;
-
-        for (const child of node.childNodes) {
-            if (officeMarkup.query.isTextNode(child))
-                return child;
-        }
-
-        return null;
-    }
-
-    /**
-     * Search **upwards** for the first **Office** text node (i.e. a <w:t> or <a:t> node).
-     */
-    public containingTextNode(node: XmlTextNode): XmlGeneralNode {
-
-        if (!node)
-            return null;
-
-        if (!xml.query.isTextNode(node))
-            throw new Error(`'Invalid argument ${nameof(node)}. Expected a XmlTextNode.`);
-
-        return xml.query.findParent(node, officeMarkup.query.isTextNode) as XmlGeneralNode;
-    }
-
-    /**
-     * Search **upwards** for the first run node.
-     */
-    public containingRunNode(node: XmlNode): XmlNode {
-        return xml.query.findParent(node, officeMarkup.query.isRunNode);
-    }
-
-    /**
-     * Search **upwards** for the first paragraph node.
-     */
-    public containingParagraphNode(node: XmlNode): XmlNode {
-        return xml.query.findParent(node, officeMarkup.query.isParagraphNode);
-    }
-
-    /**
-     * Search **upwards** for the first "table row" node.
-     */
-    public containingTableRowNode(node: XmlNode): XmlNode {
-        return xml.query.findParentByName(node, OmlNode.W.TableRow);
-    }
-
-    /**
-     * Search **upwards** for the first "table cell" node.
-     */
-    public containingTableCellNode(node: XmlNode): XmlNode {
-        return xml.query.findParent(node, officeMarkup.query.isTableCellNode);
-    }
-
-    /**
-     * Search **upwards** for the first "table" node.
-     */
-    public containingTableNode(node: XmlNode): XmlNode {
-        return xml.query.findParentByName(node, OmlNode.W.Table);
-    }
-
-    //
-    // Advanced queries
-    //
-
-    public isEmptyTextNode(node: XmlNode): boolean {
-        if (!officeMarkup.query.isTextNode(node))
-            throw new Error(`Text node expected but '${node.nodeName}' received.`);
-
-        if (!node.childNodes?.length)
-            return true;
-
-        const xmlTextNode = node.childNodes[0];
-        if (!xml.query.isTextNode(xmlTextNode))
-            throw new Error("Invalid XML structure. 'w:t' node should contain a single text node only.");
-
-        if (!xmlTextNode.textContent)
-            return true;
-
-        return false;
-    }
-
-    public isEmptyRun(node: XmlNode): boolean {
-        if (!officeMarkup.query.isRunNode(node))
-            throw new Error(`Run node expected but '${node.nodeName}' received.`);
-
-        for (const child of (node.childNodes ?? [])) {
-
-            if (officeMarkup.query.isRunPropertiesNode(child))
-                continue;
-
-            if (officeMarkup.query.isTextNode(child) && officeMarkup.query.isEmptyTextNode(child))
-                continue;
-
-            return false;
-        }
-
-        return true;
     }
 }
 
