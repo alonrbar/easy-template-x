@@ -272,7 +272,7 @@ describe("chart fixtures", () => {
 async function verifySnapshot(testCaseName: string, doc: Buffer) {
 
     // eslint-disable-next-line no-constant-condition
-    if (true) {
+    if (false) {
         writeTempFile(`${testCaseName} - output.docx`, doc);
         return;
     }
