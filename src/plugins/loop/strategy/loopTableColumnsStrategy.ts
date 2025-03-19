@@ -1,5 +1,5 @@
 import { Tag } from "src/compilation";
-import { oml } from "src/office";
+import { officeMarkup } from "src/office";
 import { LoopOver, LoopTagOptions } from "src/plugins/loop/loopTagOptions";
 import { xml, XmlNode } from "src/xml";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
@@ -7,11 +7,11 @@ import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 export class LoopTableColumnsStrategy implements ILoopStrategy {
 
     public isApplicable(openTag: Tag, closeTag: Tag, isCondition: boolean): boolean {
-        const openCell = oml.query.containingTableCellNode(openTag.xmlTextNode);
+        const openCell = officeMarkup.query.containingTableCellNode(openTag.xmlTextNode);
         if (!openCell)
             return false;
 
-        const closeCell = oml.query.containingTableCellNode(closeTag.xmlTextNode);
+        const closeCell = officeMarkup.query.containingTableCellNode(closeTag.xmlTextNode);
         if (!closeCell)
             return false;
 
@@ -22,11 +22,11 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
         if (!forceColumnLoop && openCell === closeCell)
             return false;
 
-        const openTable = oml.query.containingTableNode(openCell);
+        const openTable = officeMarkup.query.containingTableNode(openCell);
         if (!openTable)
             return false;
 
-        const closeTable = oml.query.containingTableNode(closeCell);
+        const closeTable = officeMarkup.query.containingTableNode(closeCell);
         if (!closeTable)
             return false;
 
@@ -34,11 +34,11 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
         if (openTable !== closeTable)
             return false;
 
-        const openRow = oml.query.containingTableRowNode(openCell);
+        const openRow = officeMarkup.query.containingTableRowNode(openCell);
         if (!openRow)
             return false;
 
-        const closeRow = oml.query.containingTableRowNode(closeCell);
+        const closeRow = officeMarkup.query.containingTableRowNode(closeCell);
         if (!closeRow)
             return false;
 
@@ -59,16 +59,16 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
 
     public splitBefore(openTag: Tag, closeTag: Tag): SplitBeforeResult {
 
-        const firstCell = oml.query.containingTableCellNode(openTag.xmlTextNode);
-        const lastCell = oml.query.containingTableCellNode(closeTag.xmlTextNode);
+        const firstCell = officeMarkup.query.containingTableCellNode(openTag.xmlTextNode);
+        const lastCell = officeMarkup.query.containingTableCellNode(closeTag.xmlTextNode);
 
-        const firstRow = oml.query.containingTableRowNode(firstCell);
-        const lastRow = oml.query.containingTableRowNode(lastCell);
+        const firstRow = officeMarkup.query.containingTableRowNode(firstCell);
+        const lastRow = officeMarkup.query.containingTableRowNode(lastCell);
 
         const firstColumnIndex = firstRow.childNodes?.findIndex(child => child === firstCell);
         const lastColumnIndex = lastRow.childNodes?.findIndex(child => child === lastCell);
 
-        const table = oml.query.containingTableNode(firstCell);
+        const table = officeMarkup.query.containingTableNode(firstCell);
 
         // Remove the loop tags
         xml.modify.remove(openTag.xmlTextNode);
@@ -87,11 +87,11 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
 
     public mergeBack(columnsWrapperGroups: XmlNode[][], firstCell: XmlNode, lastCell: XmlNode): void {
 
-        const table = oml.query.containingTableNode(firstCell);
-        const firstRow = oml.query.containingTableRowNode(firstCell);
+        const table = officeMarkup.query.containingTableNode(firstCell);
+        const firstRow = officeMarkup.query.containingTableRowNode(firstCell);
         const firstColumnIndex = firstRow.childNodes?.findIndex(child => child === firstCell);
 
-        const lastRow = oml.query.containingTableRowNode(lastCell);
+        const lastRow = officeMarkup.query.containingTableRowNode(lastCell);
         const lastColumnIndex = lastRow.childNodes?.findIndex(child => child === lastCell);
 
         let index = firstColumnIndex + 1;

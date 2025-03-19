@@ -22,14 +22,14 @@ import { xml, XmlGeneralNode, XmlNode, XmlTextNode } from "src/xml";
 //
 
 /**
- * Office Markup Language (OML) utilities.
+ * Office Markup Language utilities.
  *
- * Office Markup Language (OML) is my generic term for the markup languages
- * that are used in Office Open XML documents. Including but not limited to
+ * Office Markup Language is my generic term for the markup languages that are
+ * used in Office Open XML documents. Including but not limited to
  * Wordprocessing Markup Language, Drawing Markup Language and Spreadsheet
  * Markup Language.
  */
-export class Oml {
+export class OfficeMarkup {
 
     /**
      * Wordprocessing Markup Language (WML) query utilities.
@@ -110,14 +110,14 @@ class Modify {
         let secondXmlTextNode: XmlTextNode;
 
         // split nodes
-        const wordTextNode = oml.query.containingTextNode(textNode);
+        const wordTextNode = officeMarkup.query.containingTextNode(textNode);
         const newWordTextNode = xml.create.cloneNode(wordTextNode, true);
 
         // set space preserve to prevent display differences after splitting
         // (otherwise if there was a space in the middle of the text node and it
         // is now at the beginning or end of the text node it will be ignored)
-        oml.modify.setSpacePreserveAttribute(wordTextNode);
-        oml.modify.setSpacePreserveAttribute(newWordTextNode);
+        officeMarkup.modify.setSpacePreserveAttribute(wordTextNode);
+        officeMarkup.modify.setSpacePreserveAttribute(newWordTextNode);
 
         if (addBefore) {
 
@@ -155,12 +155,12 @@ class Modify {
     public splitParagraphByTextNode(paragraph: XmlNode, textNode: XmlTextNode, removeTextNode: boolean): [XmlNode, XmlNode] {
 
         // input validation
-        const containingParagraph = oml.query.containingParagraphNode(textNode);
+        const containingParagraph = officeMarkup.query.containingParagraphNode(textNode);
         if (containingParagraph != paragraph)
             throw new Error(`Node '${nameof(textNode)}' is not a descendant of '${nameof(paragraph)}'.`);
 
-        const runNode = oml.query.containingRunNode(textNode);
-        const wordTextNode = oml.query.containingTextNode(textNode);
+        const runNode = officeMarkup.query.containingRunNode(textNode);
+        const wordTextNode = officeMarkup.query.containingTextNode(textNode);
 
         // create run clone
         const leftRun = xml.create.cloneNode(runNode, false);
@@ -168,7 +168,7 @@ class Modify {
         xml.modify.insertBefore(leftRun, rightRun);
 
         // copy props from original run node (preserve style)
-        const runProps = rightRun.childNodes.find(node => oml.query.isRunPropertiesNode(node));
+        const runProps = rightRun.childNodes.find(node => officeMarkup.query.isRunPropertiesNode(node));
         if (runProps) {
             const leftRunProps = xml.create.cloneNode(runProps, true);
             xml.modify.appendChild(leftRun, leftRunProps);
@@ -194,7 +194,7 @@ class Modify {
         xml.modify.insertBefore(leftPara, rightPara);
 
         // copy props from original paragraph (preserve style)
-        const paragraphProps = rightPara.childNodes.find(node => oml.query.isParagraphPropertiesNode(node));
+        const paragraphProps = rightPara.childNodes.find(node => officeMarkup.query.isParagraphPropertiesNode(node));
         if (paragraphProps) {
             const leftParagraphProps = xml.create.cloneNode(paragraphProps, true);
             xml.modify.appendChild(leftPara, leftParagraphProps);
@@ -210,9 +210,9 @@ class Modify {
         }
 
         // clean paragraphs - remove empty runs
-        if (oml.query.isEmptyRun(leftRun))
+        if (officeMarkup.query.isEmptyRun(leftRun))
             xml.modify.remove(leftRun);
-        if (oml.query.isEmptyRun(rightRun))
+        if (officeMarkup.query.isEmptyRun(rightRun))
             xml.modify.remove(rightRun);
 
         return [leftPara, rightPara];
@@ -224,16 +224,16 @@ class Modify {
     public joinTextNodesRange(from: XmlTextNode, to: XmlTextNode): void {
 
         // find run nodes
-        const firstRunNode = oml.query.containingRunNode(from);
-        const secondRunNode = oml.query.containingRunNode(to);
+        const firstRunNode = officeMarkup.query.containingRunNode(from);
+        const secondRunNode = officeMarkup.query.containingRunNode(to);
 
         const paragraphNode = firstRunNode.parentNode;
         if (secondRunNode.parentNode !== paragraphNode)
             throw new Error('Can not join text nodes from separate paragraphs.');
 
         // find "word text nodes"
-        const firstWordTextNode = oml.query.containingTextNode(from);
-        const secondWordTextNode = oml.query.containingTextNode(to);
+        const firstWordTextNode = officeMarkup.query.containingTextNode(from);
+        const secondWordTextNode = officeMarkup.query.containingTextNode(to);
         const totalText: string[] = [];
 
         // iterate runs
@@ -245,11 +245,11 @@ class Modify {
             if (curRunNode === firstRunNode) {
                 curWordTextNode = firstWordTextNode;
             } else {
-                curWordTextNode = oml.query.firstTextNodeChild(curRunNode);
+                curWordTextNode = officeMarkup.query.firstTextNodeChild(curRunNode);
             }
             while (curWordTextNode) {
 
-                if (!oml.query.isTextNode(curWordTextNode)) {
+                if (!officeMarkup.query.isTextNode(curWordTextNode)) {
                     curWordTextNode = curWordTextNode.nextSibling;
                     continue;
                 }
@@ -301,7 +301,7 @@ class Modify {
         let childIndex = 0;
         while (second.childNodes && childIndex < second.childNodes.length) {
             const curChild = second.childNodes[childIndex];
-            if (oml.query.isRunNode(curChild)) {
+            if (officeMarkup.query.isRunNode(curChild)) {
                 xml.modify.removeChild(second, childIndex);
                 xml.modify.appendChild(first, curChild);
             } else {
@@ -321,14 +321,14 @@ class Modify {
 
     public removeTag(textNode: XmlTextNode): void {
 
-        const wordTextNode = oml.query.containingTextNode(textNode);
-        const runNode = oml.query.containingRunNode(textNode);
+        const wordTextNode = officeMarkup.query.containingTextNode(textNode);
+        const runNode = officeMarkup.query.containingRunNode(textNode);
 
         // Remove the word text node
         xml.modify.remove(wordTextNode);
 
         // Remove the run node if it's empty
-        if (oml.query.isEmptyRun(runNode)) {
+        if (officeMarkup.query.isEmptyRun(runNode)) {
             xml.modify.remove(runNode);
         }
     }
@@ -364,16 +364,16 @@ class Query {
     }
 
     public isListParagraph(paragraphNode: XmlNode): boolean {
-        const paragraphProperties = oml.query.findParagraphPropertiesNode(paragraphNode);
+        const paragraphProperties = officeMarkup.query.findParagraphPropertiesNode(paragraphNode);
         const listNumberProperties = xml.query.findChildByName(paragraphProperties, OmlNode.W.NumberProperties);
         return !!listNumberProperties;
     }
 
     public findParagraphPropertiesNode(paragraphNode: XmlNode): XmlNode {
-        if (!oml.query.isParagraphNode(paragraphNode))
+        if (!officeMarkup.query.isParagraphNode(paragraphNode))
             throw new Error(`Expected paragraph node but received a '${paragraphNode.nodeName}' node.`);
 
-        return xml.query.findChild(paragraphNode, oml.query.isParagraphPropertiesNode);
+        return xml.query.findChild(paragraphNode, officeMarkup.query.isParagraphPropertiesNode);
     }
 
     /**
@@ -384,14 +384,14 @@ class Query {
         if (!node)
             return null;
 
-        if (!oml.query.isRunNode(node))
+        if (!officeMarkup.query.isRunNode(node))
             return null;
 
         if (!node.childNodes)
             return null;
 
         for (const child of node.childNodes) {
-            if (oml.query.isTextNode(child))
+            if (officeMarkup.query.isTextNode(child))
                 return child;
         }
 
@@ -409,21 +409,21 @@ class Query {
         if (!xml.query.isTextNode(node))
             throw new Error(`'Invalid argument ${nameof(node)}. Expected a XmlTextNode.`);
 
-        return xml.query.findParent(node, oml.query.isTextNode) as XmlGeneralNode;
+        return xml.query.findParent(node, officeMarkup.query.isTextNode) as XmlGeneralNode;
     }
 
     /**
      * Search **upwards** for the first run node.
      */
     public containingRunNode(node: XmlNode): XmlNode {
-        return xml.query.findParent(node, oml.query.isRunNode);
+        return xml.query.findParent(node, officeMarkup.query.isRunNode);
     }
 
     /**
      * Search **upwards** for the first paragraph node.
      */
     public containingParagraphNode(node: XmlNode): XmlNode {
-        return xml.query.findParent(node, oml.query.isParagraphNode);
+        return xml.query.findParent(node, officeMarkup.query.isParagraphNode);
     }
 
     /**
@@ -437,7 +437,7 @@ class Query {
      * Search **upwards** for the first "table cell" node.
      */
     public containingTableCellNode(node: XmlNode): XmlNode {
-        return xml.query.findParent(node, oml.query.isTableCellNode);
+        return xml.query.findParent(node, officeMarkup.query.isTableCellNode);
     }
 
     /**
@@ -452,7 +452,7 @@ class Query {
     //
 
     public isEmptyTextNode(node: XmlNode): boolean {
-        if (!oml.query.isTextNode(node))
+        if (!officeMarkup.query.isTextNode(node))
             throw new Error(`Text node expected but '${node.nodeName}' received.`);
 
         if (!node.childNodes?.length)
@@ -469,15 +469,15 @@ class Query {
     }
 
     public isEmptyRun(node: XmlNode): boolean {
-        if (!oml.query.isRunNode(node))
+        if (!officeMarkup.query.isRunNode(node))
             throw new Error(`Run node expected but '${node.nodeName}' received.`);
 
         for (const child of (node.childNodes ?? [])) {
 
-            if (oml.query.isRunPropertiesNode(child))
+            if (officeMarkup.query.isRunPropertiesNode(child))
                 continue;
 
-            if (oml.query.isTextNode(child) && oml.query.isEmptyTextNode(child))
+            if (officeMarkup.query.isTextNode(child) && officeMarkup.query.isEmptyTextNode(child))
                 continue;
 
             return false;
@@ -488,6 +488,6 @@ class Query {
 }
 
 /**
- * Office Markup Language (OML) utilities.
+ * Office Markup Language utilities.
  */
-export const oml = new Oml();
+export const officeMarkup = new OfficeMarkup();

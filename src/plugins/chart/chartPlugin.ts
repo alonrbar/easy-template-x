@@ -1,6 +1,6 @@
 import { ScopeData, Tag, TemplateContext } from "src/compilation";
 import { ArgumentError } from "src/errors";
-import { oml } from "src/office";
+import { officeMarkup } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { xml } from "src/xml";
 import { ChartContent } from "./chartContent";
@@ -18,7 +18,7 @@ export class ChartPlugin extends TemplatePlugin {
         }
 
         // Remove the tag
-        oml.modify.removeTag(tag.xmlTextNode);
+        officeMarkup.modify.removeTag(tag.xmlTextNode);
 
         const content = data.getScopeData<ChartContent>();
         if (!content) {
