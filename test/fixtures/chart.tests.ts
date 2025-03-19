@@ -113,6 +113,21 @@ describe("chart fixtures", () => {
 
             await verifySnapshot("chart - line - empty", doc);
         });
+
+        test("update title", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - line.docx");
+            const doc = await handler.process(template, {
+                MyChart: {
+                    _type: "chart",
+                    title: "My Amazing Chart"
+                }
+            });
+
+            await verifySnapshot("chart - line - title", doc);
+        });
     });
 
     describe("bar chart", () => {
