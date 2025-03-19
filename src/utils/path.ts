@@ -11,7 +11,7 @@ export class Path {
     }
 
     public static combine(...parts: string[]): string {
-        const normalizedParts = parts.map(part => part?.trim()).filter(Boolean);
+        const normalizedParts = parts.flatMap(part => part?.split('/')?.map(p => p.trim()).filter(Boolean));
 
         // Handle . and .. parts
         const resolvedParts: string[] = [];

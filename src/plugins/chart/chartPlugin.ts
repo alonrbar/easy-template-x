@@ -1,8 +1,9 @@
 import { ScopeData, Tag, TemplateContext } from "src/compilation";
-import { wml } from "src/office";
+import { ArgumentError } from "src/errors";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { xml } from "src/xml";
 import { ChartContent } from "./chartContent";
+import { updateChart } from "./updateChart";
 
 export class ChartPlugin extends TemplatePlugin {
 
@@ -10,14 +11,20 @@ export class ChartPlugin extends TemplatePlugin {
 
     public async simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): Promise<void> {
 
-        const wordTextNode = wml.query.containingTextNode(tag.xmlTextNode);
+        const chartNode = xml.query.findParentByName(tag.xmlTextNode, "c:chart");
+        if (!chartNode) {
+            throw new ArgumentError("Chart tag not placed on a chart");
+        }
+
+        // Remove the tag text
+        tag.xmlTextNode.textContent = tag.xmlTextNode.textContent.replace(tag.rawText, '');
 
         const content = data.getScopeData<ChartContent>();
         if (!content) {
-            xml.modify.remove(wordTextNode);
             return;
         }
 
-        xml.modify.remove(wordTextNode);
+        // Update the chart
+        await updateChart(context.currentPart, content);
     }
 }

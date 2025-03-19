@@ -96,10 +96,10 @@ export async function updateChart(chartPart: OpenXmlPart, chartData: ChartData) 
         throw new Error("Plot area node not found");
     }
 
-    const chartNode = plotAreaNode.childNodes?.find(child => chartTypes[child.nodeName as keyof typeof chartTypes]) as XmlGeneralNode;
+    const chartNode = plotAreaNode.childNodes?.find(child => Object.values(chartTypes).includes(child.nodeName as any)) as XmlGeneralNode;
     if (!chartNode) {
         const plotAreaChildren = plotAreaNode.childNodes?.map(child => `<${child.nodeName}>`);
-        const supportedChartTypes = Object.keys(chartTypes).join(", ");
+        const supportedChartTypes = Object.values(chartTypes).join(", ");
         throw new Error(`Unsupported chart type. Plot area children: ${plotAreaChildren?.join(", ")}. Supported chart types: ${supportedChartTypes}`);
     }
 
