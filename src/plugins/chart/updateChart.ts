@@ -303,10 +303,7 @@ function chartSpecificMarkup(chartType: string, firstSeries: XmlNode): string {
 function updateInlineSeries(chartNode: XmlNode, firstSeries: FirstSeriesData, chartData: ChartData) {
 
     // Remove all old series
-    const seriesNodes = chartNode.childNodes?.filter(child => child.nodeName === "c:ser");
-    for (const seriesNode of seriesNodes) {
-        xml.modify.removeChild(chartNode, seriesNode);
-    }
+    xml.modify.removeChildren(chartNode, child => child.nodeName === "c:ser");
 
     // Create new series
     const newSeries = chartData.seriesNames.map((name, index) => createSeries(name, index, firstSeries, chartData));
@@ -413,7 +410,7 @@ function updateAccentNumber(node: XmlNode, accentNumber: number) {
         return;
     }
 
-    for (const child of node.childNodes) {
+    for (const child of (node.childNodes ?? [])) {
         updateAccentNumber(child, accentNumber);
     }
 }
@@ -508,10 +505,7 @@ async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, cha
 
     // Replace sheet data
     const sheetDataNode = sheetRoot.childNodes?.find(child => child.nodeName === "sheetData");
-    for (const child of sheetDataNode.childNodes) {
-        xml.modify.removeChild(sheetDataNode, child);
-    }
-    xml.modify.appendChild(sheetDataNode, parseXmlNode(firstRow));
+    sheetDataNode.childNodes = [parseXmlNode(firstRow)];
     for (const row of otherRows) {
         xml.modify.appendChild(sheetDataNode, parseXmlNode(row));
     }
@@ -542,9 +536,8 @@ async function updateTablePart(sheetPart: OpenXmlPart, chartData: ChartData) {
     const tablePartRoot = await tablePart.xmlRoot() as XmlGeneralNode;
     tablePartRoot.attributes["ref"] = `A1:${excelRowAndColumnId(chartData.categoryNames.length - 1, chartData.seriesNames.length)}`;
 
-    // Remove old table columns
+    // Find old table columns
     const tableColumnsNode = tablePartRoot.childNodes?.find(child => child.nodeName === "tableColumns");
-    xml.modify.removeChild(tablePartRoot, tableColumnsNode);
 
     // Add new table columns
     const tableColumns = `
@@ -555,7 +548,10 @@ async function updateTablePart(sheetPart: OpenXmlPart, chartData: ChartData) {
             `).join("\n")}
         </tableColumns>
     `;
-    xml.modify.appendChild(tablePartRoot, parseXmlNode(tableColumns));
+    xml.modify.insertAfter(parseXmlNode(tableColumns), tableColumnsNode);
+
+    // Remove old table columns
+    xml.modify.removeChild(tablePartRoot, tableColumnsNode);
 
     // Save the table part
     await tablePart.save();

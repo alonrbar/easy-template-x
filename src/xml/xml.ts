@@ -490,6 +490,16 @@ class Modify {
         return parent.childNodes.splice(childIndex, 1)[0];
     }
 
+    public removeChildren(parent: XmlNode, predicate: (child: XmlNode) => boolean): void {
+        while (parent.childNodes?.length) {
+            const index = parent.childNodes.findIndex(predicate);
+            if (index === -1) {
+                break;
+            }
+            xml.modify.removeChild(parent, index);
+        }
+    }
+
     /**
      * Remove sibling nodes between 'from' and 'to' excluding both.
      * Return the removed nodes.
