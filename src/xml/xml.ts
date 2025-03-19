@@ -249,6 +249,10 @@ class Query {
      * value.
      */
     public lastTextChild(node: XmlNode, createIfMissing: boolean = true): XmlTextNode {
+        if (!node) {
+            return null;
+        }
+
         if (xml.query.isTextNode(node)) {
             return node;
         }

@@ -1,4 +1,3 @@
-import { ArgumentError } from "src/errors";
 import { OmlAttribute, OpenXmlPart, RelType, Xlsx } from "src/office";
 import { IMap } from "src/types";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
@@ -27,8 +26,8 @@ export interface DateCategories {
 }
 
 export interface Series {
-    name: string;
-    values: number[];
+    name: string; // TODO: Make name optional
+    values: number[]; // TODO: Scatter chart values
 }
 
 const chartTypes = Object.freeze({
@@ -143,25 +142,21 @@ function readFirstSeries(chartNode: XmlNode, chartData: ChartData): FirstSeriesD
     const chartType = chartNode.nodeName;
 
     const firstSeries = chartNode.childNodes?.find(child => child.nodeName === "c:ser");
-    if (!firstSeries) {
-        throw new ArgumentError("First series not found. Please include at least one series in the placeholder chart.");
-    }
-
     const sheetName = getSheetName(firstSeries);
 
     return {
         sheetName,
-        shapePropertiesMarkup: xml.parser.serializeNode(firstSeries.childNodes?.find(child => child.nodeName === "c:spPr")),
+        shapePropertiesMarkup: xml.parser.serializeNode(firstSeries?.childNodes?.find(child => child.nodeName === "c:spPr")),
         chartSpecificMarkup: chartSpecificMarkup(chartType, firstSeries),
         categoriesMarkup: categoriesMarkup(chartData, sheetName),
-        chartExtensibilityMarkup: xml.parser.serializeNode(firstSeries.childNodes?.find(child => child.nodeName === "c:extLst")),
+        chartExtensibilityMarkup: xml.parser.serializeNode(firstSeries?.childNodes?.find(child => child.nodeName === "c:extLst")),
     };
 }
 
 function getSheetName(firstSeries: XmlNode): string {
     const formulaNode = firstSeries?.
-        childNodes?.find(child => child.nodeName === "c:tx").
-        childNodes?.find(child => child.nodeName === "c:strRef").
+        childNodes?.find(child => child.nodeName === "c:tx")?.
+        childNodes?.find(child => child.nodeName === "c:strRef")?.
         childNodes?.find(child => child.nodeName === "c:f");
     const formula = xml.query.lastTextChild(formulaNode, false);
     if (!formula) {
@@ -236,6 +231,10 @@ function categoriesMarkup(chartData: ChartData, sheetName: string): string {
 }
 
 function chartSpecificMarkup(chartType: string, firstSeries: XmlNode): string {
+    if (!firstSeries) {
+        return "";
+    }
+
     if (chartType == chartTypes.area3DChart || chartType == chartTypes.areaChart) {
 
         const pictureOptions = firstSeries.childNodes?.find(child => child.nodeName === "c:pictureOptions");
