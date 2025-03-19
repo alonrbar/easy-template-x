@@ -1,5 +1,5 @@
+import { RelType, Xlsx } from "src/office";
 import { TemplateHandler } from "src/templateHandler";
-import { writeTempFile } from "test/testUtils";
 import { readFixture } from "./fixtureUtils";
 
 describe("chart fixtures", () => {
@@ -28,7 +28,36 @@ describe("chart fixtures", () => {
             }
         });
 
-        writeTempFile('chart - line - output.docx', doc);
+        // Check the charts
+        const parts = await handler.getParts(doc, RelType.Chart);
+        for (const chartPart of parts) {
+
+            // Check the chart markup
+            const chartXml = await chartPart.xmlRoot();
+            expect(chartXml).toMatchSnapshot();
+
+            // Open the embedded Excel file
+            const xlsxPart = await chartPart.getFirstPartByType(RelType.Package);
+            const xlsxBinary = await xlsxPart.getContentBinary();
+            const xlsx = await Xlsx.load(xlsxBinary);
+
+            // Check the Excel shared strings file
+            const sharedStringsPart = await xlsx.mainDocument.getFirstPartByType(RelType.SharedStrings);
+            const sharedStringsXml = await sharedStringsPart.xmlRoot();
+            expect(sharedStringsXml).toMatchSnapshot();
+
+            // Check the Excel sheet
+            const sheetPart = await xlsx.mainDocument.getFirstPartByType(RelType.Worksheet);
+            const sheetXml = await sheetPart.xmlRoot();
+            expect(sheetXml).toMatchSnapshot();
+
+            // Check the Excel table
+            const tablePart = await sheetPart.getFirstPartByType(RelType.Table);
+            const tableXml = await tablePart.xmlRoot();
+            expect(tableXml).toMatchSnapshot();
+        }
+
+        // writeTempFile('chart - line - output.docx', doc);
     });
 
 });

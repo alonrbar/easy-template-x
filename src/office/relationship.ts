@@ -5,6 +5,7 @@ import { xml, XmlGeneralNode } from "src/xml";
  * A non-comprehensive list.
  */
 export const RelType = Object.freeze({
+    Package: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/package',
     MainDocument: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument',
     Header: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/header',
     Footer: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer',

@@ -1,7 +1,7 @@
 import { DelimiterSearcher, ScopeData, Tag, TagParser, TemplateCompiler, TemplateContext } from "./compilation";
 import { Delimiters } from "./delimiters";
 import { TemplateExtension } from "./extensions";
-import { Docx, RelType } from "./office";
+import { Docx, OpenXmlPart, RelType } from "./office";
 import { TemplateData } from "./templateData";
 import { TemplateHandlerOptions } from "./templateHandlerOptions";
 import { Binary } from "./utils";
@@ -127,13 +127,7 @@ export class TemplateHandler {
      * Defaults to `RelType.MainDocument`.
      */
     public async getText(docxFile: Binary, relType: string = RelType.MainDocument): Promise<string> {
-        const docx = await Docx.load(docxFile);
-
-        if (relType === RelType.MainDocument) {
-            return await docx.mainDocument.getText();
-        }
-
-        const parts = await docx.mainDocument.getPartsByType(relType);
+        const parts = await this.getParts(docxFile, relType);
         const partsText = await Promise.all(parts.map(p => p.getText()));
         return partsText.join('\n\n');
     }
@@ -159,6 +153,17 @@ export class TemplateHandler {
             return null;
         }
         return await part.xmlRoot();
+    }
+
+    public async getParts(docxFile: Binary, relType: string): Promise<OpenXmlPart[]> {
+        const docx = await Docx.load(docxFile);
+
+        if (relType === RelType.MainDocument) {
+            return [docx.mainDocument];
+        }
+
+        const parts = await docx.mainDocument.getPartsByType(relType);
+        return parts;
     }
 
     //
