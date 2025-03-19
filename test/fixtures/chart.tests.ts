@@ -137,6 +137,33 @@ describe("chart fixtures", () => {
 
             // writeTempFile('chart - bar - output.docx', doc);
         });
+
+        test("data matches placeholder (categories and series count)", async () => {
+
+            const chartData: ChartContent = {
+                _type: "chart",
+                categories: {
+                    names: ["Q1", "Q2", "Q3", "Q4"]
+                },
+                series: [
+                    { name: "Car", values: [100, 310, 220, 450] },
+                    { name: "Truck", values: [200, 300, 350, 411] },
+                    { name: "Van", values: [80, 120, 140, 600] },
+                ],
+            };
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - bar.docx");
+            const doc = await handler.process(template, {
+                chart1: chartData,
+                chart2: chartData,
+            });
+
+            await verifySnapshot(doc);
+
+            // writeTempFile('chart - bar - output.docx', doc);
+        });
     });
 
 });
