@@ -114,7 +114,6 @@ export async function updateChart(chartPart: OpenXmlPart, chartData: ChartData) 
 
     // Update inline series
     updateInlineSeries(chartNode, firstSeries, chartData);
-    await chartPart.save();
 }
 
 //
@@ -499,9 +498,6 @@ async function updateSharedStringsPart(workbookPart: OpenXmlPart, chartData: Cha
     root.attributes["count"] = count.toString();
     root.attributes["uniqueCount"] = count.toString();
 
-    // Save the shared strings part
-    await sharedStringsPart.save();
-
     return sharedStrings;
 }
 
@@ -563,8 +559,6 @@ async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, sha
         xml.modify.appendChild(sheetDataNode, parseXmlNode(row));
     }
 
-    // Save the sheet part
-    await sheetPart.save();
     return sheetPart;
 }
 
@@ -595,9 +589,6 @@ async function updateTablePart(sheetPart: OpenXmlPart, chartData: ChartData) {
 
     // Remove old table columns
     xml.modify.removeChild(tablePartRoot, tableColumnsNode);
-
-    // Save the table part
-    await tablePart.save();
 }
 
 /**
@@ -641,9 +632,6 @@ async function addDxfToDxfs(workbookPart: OpenXmlPart, sheetRoot: XmlNode, forma
     xml.modify.appendChild(cellXfs, parseXmlNode(`
         <xf numFmtId="${formatCodeToAdd}" fontId="0" fillId="0" borderId="0" applyNumberFormat="1"/>
     `));
-
-    // Save the styles part
-    await stylesPart.save();
 
     return count;
 }
