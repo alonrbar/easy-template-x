@@ -7,6 +7,18 @@ describe("chart fixtures", () => {
 
     describe("line chart", () => {
 
+        test("no chart data", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - line.docx");
+            const doc = await handler.process(template, {});
+
+            await verifySnapshot(doc);
+
+            // writeTempFile('chart - line - no data - output.docx', doc);
+        });
+
         test("data matches placeholder (categories and series count)", async () => {
 
             const chartData: ChartContent = {
@@ -109,6 +121,21 @@ describe("chart fixtures", () => {
             await verifySnapshot(doc);
 
             // writeTempFile('chart - line - empty - output.docx', doc);
+        });
+    });
+
+    describe("bar chart", () => {
+
+        test("no chart data", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - bar.docx");
+            const doc = await handler.process(template, {});
+
+            await verifySnapshot(doc);
+
+            // writeTempFile('chart - bar - output.docx', doc);
         });
     });
 

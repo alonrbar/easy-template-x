@@ -26,12 +26,22 @@ export class TextPlugin extends TemplatePlugin {
     }
 
     private replaceSingleLine(textNode: XmlTextNode, text: string) {
+        const wordTextNode = oml.query.containingTextNode(textNode);
+        const runNode = oml.query.containingRunNode(textNode);
 
-        // set text
+        // Set text
         textNode.textContent = text;
 
-        // make sure leading and trailing whitespace are preserved
-        const wordTextNode = oml.query.containingTextNode(textNode);
+        // Clean up if the text node is now empty
+        if (!text) {
+            xml.modify.remove(wordTextNode);
+            if (oml.query.isEmptyRun(runNode)) {
+                xml.modify.remove(runNode);
+            }
+            return;
+        }
+
+        // Make sure leading and trailing whitespace are preserved
         oml.modify.setSpacePreserveAttribute(wordTextNode);
     }
 
@@ -40,19 +50,23 @@ export class TextPlugin extends TemplatePlugin {
         const runNode = oml.query.containingRunNode(textNode);
         const namespace = runNode.nodeName.split(':')[0];
 
-        // first line
-        textNode.textContent = lines[0];
+        // First line
+        if (lines[0]) {
+            textNode.textContent = lines[0];
+        }
 
-        // other lines
+        // Other lines
         for (let i = 1; i < lines.length; i++) {
 
-            // add line break
+            // Add line break
             const lineBreak = this.getLineBreak(namespace);
             xml.modify.appendChild(runNode, lineBreak);
 
-            // add text
-            const lineNode = this.createOfficeTextNode(namespace, lines[i]);
-            xml.modify.appendChild(runNode, lineNode);
+            // Add text
+            if (lines[i]) {
+                const lineNode = this.createOfficeTextNode(namespace, lines[i]);
+                xml.modify.appendChild(runNode, lineNode);
+            }
         }
     }
 
