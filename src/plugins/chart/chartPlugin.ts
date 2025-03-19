@@ -1,5 +1,6 @@
 import { ScopeData, Tag, TemplateContext } from "src/compilation";
 import { ArgumentError } from "src/errors";
+import { oml } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { xml } from "src/xml";
 import { ChartContent } from "./chartContent";
@@ -17,7 +18,8 @@ export class ChartPlugin extends TemplatePlugin {
         }
 
         // Remove the tag text
-        tag.xmlTextNode.textContent = tag.xmlTextNode.textContent.replace(tag.rawText, '');
+        const wordTextNode = oml.query.containingTextNode(tag.xmlTextNode);
+        xml.modify.remove(wordTextNode);
 
         const content = data.getScopeData<ChartContent>();
         if (!content) {
