@@ -17,9 +17,8 @@ export class ChartPlugin extends TemplatePlugin {
             throw new ArgumentError("Chart tag not placed on a chart");
         }
 
-        // Remove the tag text
-        const wordTextNode = oml.query.containingTextNode(tag.xmlTextNode);
-        xml.modify.remove(wordTextNode);
+        // Remove the tag
+        oml.modify.removeTag(tag.xmlTextNode);
 
         const content = data.getScopeData<ChartContent>();
         if (!content) {

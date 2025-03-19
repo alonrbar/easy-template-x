@@ -318,6 +318,20 @@ class Modify {
             node.attributes[OmlAttribute.SpacePreserve] = 'preserve';
         }
     }
+
+    public removeTag(textNode: XmlTextNode): void {
+
+        const wordTextNode = oml.query.containingTextNode(textNode);
+        const runNode = oml.query.containingRunNode(textNode);
+
+        // Remove the word text node
+        xml.modify.remove(wordTextNode);
+
+        // Remove the run node if it's empty
+        if (oml.query.isEmptyRun(runNode)) {
+            xml.modify.remove(runNode);
+        }
+    }
 }
 
 /**

@@ -26,22 +26,18 @@ export class TextPlugin extends TemplatePlugin {
     }
 
     private replaceSingleLine(textNode: XmlTextNode, text: string) {
-        const wordTextNode = oml.query.containingTextNode(textNode);
-        const runNode = oml.query.containingRunNode(textNode);
 
         // Set text
         textNode.textContent = text;
 
         // Clean up if the text node is now empty
         if (!text) {
-            xml.modify.remove(wordTextNode);
-            if (oml.query.isEmptyRun(runNode)) {
-                xml.modify.remove(runNode);
-            }
+            oml.modify.removeTag(textNode);
             return;
         }
 
         // Make sure leading and trailing whitespace are preserved
+        const wordTextNode = oml.query.containingTextNode(textNode);
         oml.modify.setSpacePreserveAttribute(wordTextNode);
     }
 
