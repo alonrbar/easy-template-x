@@ -46,6 +46,11 @@ describe("chart fixtures", () => {
             const sharedStringsXml = await sharedStringsPart.xmlRoot();
             expect(sharedStringsXml).toMatchSnapshot();
 
+            // Check the Excel styles part
+            const stylesPart = await xlsx.mainDocument.getFirstPartByType(RelType.Styles);
+            const stylesXml = await stylesPart.xmlRoot();
+            expect(stylesXml).toMatchSnapshot();
+
             // Check the Excel sheet
             const sheetPart = await xlsx.mainDocument.getFirstPartByType(RelType.Worksheet);
             const sheetXml = await sheetPart.xmlRoot();

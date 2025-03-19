@@ -536,7 +536,7 @@ async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, sha
 
     // Create other rows
     const categoryDataTypeAttribute = chartData.categoryDataType === "string" ? ` t="s"` : "";
-    const categoryStyleId = await addDxfToDxfs(workbookPart, sheetRoot, chartData.categoryFormatCode);
+    const categoryStyleId = await updateStylesPart(workbookPart, sheetRoot, chartData.categoryFormatCode);
     const categoryStyleIdAttribute = categoryStyleId ? ` s="${categoryStyleId}"` : "";
 
     const otherRows = chartData.categoryNames.map((name, rowIndex) => `
@@ -591,13 +591,7 @@ async function updateTablePart(sheetPart: OpenXmlPart, chartData: ChartData) {
     xml.modify.removeChild(tablePartRoot, tableColumnsNode);
 }
 
-/**
- * From the OOXML standard:
- * DXF are differential formatting records which define formatting for all non-cell
- * formatting in a workbook.The dxf formatting is to be applied on
- * top of or in addition to any formatting already present on the object using the dxf record
- */
-async function addDxfToDxfs(workbookPart: OpenXmlPart, sheetRoot: XmlNode, formatCodeToAdd: FormatCode): Promise<number> {
+async function updateStylesPart(workbookPart: OpenXmlPart, sheetRoot: XmlNode, formatCodeToAdd: FormatCode): Promise<number> {
 
     // https://github.com/OpenXmlDev/Open-Xml-PowerTools/blob/vNext/OpenXmlPowerTools/ChartUpdater.cs#L507
 
