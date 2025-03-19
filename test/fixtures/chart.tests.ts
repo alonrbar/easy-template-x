@@ -1,6 +1,7 @@
 import { RelType, Xlsx } from "src/office";
 import { ChartContent } from "src/plugins/chart/chartContent";
 import { TemplateHandler } from "src/templateHandler";
+import { writeTempFile } from "test/testUtils";
 import { readFixture } from "./fixtureUtils";
 
 describe("chart fixtures", () => {
@@ -14,9 +15,7 @@ describe("chart fixtures", () => {
             const template = readFixture("chart - line.docx");
             const doc = await handler.process(template, {});
 
-            await verifySnapshot(doc);
-
-            // writeTempFile('chart - line - no data - output.docx', doc);
+            await verifySnapshot("chart - line - no data", doc);
         });
 
         test("data matches placeholder (categories and series count)", async () => {
@@ -40,9 +39,7 @@ describe("chart fixtures", () => {
                 MyChart: chartData
             });
 
-            await verifySnapshot(doc);
-
-            // writeTempFile('chart - line - output.docx', doc);
+            await verifySnapshot("chart - line - data matches placeholder", doc);
         });
 
         test("more data than the placeholder", async () => {
@@ -67,9 +64,7 @@ describe("chart fixtures", () => {
                 MyChart: chartData
             });
 
-            await verifySnapshot(doc);
-
-            // writeTempFile('chart - line - more data - output.docx', doc);
+            await verifySnapshot("chart - line - more data", doc);
         });
 
         test("less data than the placeholder", async () => {
@@ -92,9 +87,7 @@ describe("chart fixtures", () => {
                 MyChart: chartData
             });
 
-            await verifySnapshot(doc);
-
-            // writeTempFile('chart - line - less data - output.docx', doc);
+            await verifySnapshot("chart - line - less data", doc);
         });
 
         test("empty placeholder", async () => {
@@ -118,9 +111,7 @@ describe("chart fixtures", () => {
                 MyChart: chartData
             });
 
-            await verifySnapshot(doc);
-
-            // writeTempFile('chart - line - empty - output.docx', doc);
+            await verifySnapshot("chart - line - empty", doc);
         });
     });
 
@@ -133,9 +124,7 @@ describe("chart fixtures", () => {
             const template = readFixture("chart - bar.docx");
             const doc = await handler.process(template, {});
 
-            await verifySnapshot(doc);
-
-            // writeTempFile('chart - bar - output.docx', doc);
+            await verifySnapshot("chart - bar - no data", doc);
         });
 
         test("data matches placeholder (categories and series count)", async () => {
@@ -160,15 +149,19 @@ describe("chart fixtures", () => {
                 chart2: chartData,
             });
 
-            await verifySnapshot(doc);
-
-            // writeTempFile('chart - bar - output.docx', doc);
+            await verifySnapshot("chart - bar", doc);
         });
     });
 
 });
 
-async function verifySnapshot(doc: Buffer) {
+async function verifySnapshot(testCaseName: string, doc: Buffer) {
+
+    // eslint-disable-next-line no-constant-condition
+    if (false) {
+        writeTempFile(`${testCaseName} - output.docx`, doc);
+        return;
+    }
 
     const handler = new TemplateHandler();
 
