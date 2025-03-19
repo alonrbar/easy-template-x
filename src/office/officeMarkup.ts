@@ -1,4 +1,5 @@
 import { xml, XmlGeneralNode, XmlNode, XmlTextNode } from "src/xml";
+import { OmlAttribute, OmlNode } from "./omlNode";
 
 //
 // Wordprocessing Markup Language (WML) intro:
@@ -22,7 +23,7 @@ import { xml, XmlGeneralNode, XmlNode, XmlTextNode } from "src/xml";
 //
 
 /**
- * Office Markup Language utilities.
+ * Office Markup Language (OML) utilities.
  *
  * Office Markup Language is my generic term for the markup languages that are
  * used in Office Open XML documents. Including but not limited to
@@ -32,63 +33,14 @@ import { xml, XmlGeneralNode, XmlNode, XmlTextNode } from "src/xml";
 export class OfficeMarkup {
 
     /**
-     * Wordprocessing Markup Language (WML) query utilities.
+     * Office Markup query utilities.
      */
     public readonly query = new Query();
 
     /**
-     * Wordprocessing Markup Language (WML) modify utilities.
+     * Office Markup modify utilities.
      */
     public readonly modify = new Modify();
-}
-
-/**
- * Wordprocessing Markup Language node names.
- */
-class W {
-    public readonly Paragraph = 'w:p';
-    public readonly ParagraphProperties = 'w:pPr';
-    public readonly Run = 'w:r';
-    public readonly RunProperties = 'w:rPr';
-    public readonly Text = 'w:t';
-    public readonly Table = 'w:tbl';
-    public readonly TableRow = 'w:tr';
-    public readonly TableCell = 'w:tc';
-    public readonly NumberProperties = 'w:numPr';
-}
-
-/**
- * Drawing Markup Language node names.
- *
- * These elements are part of the main drawingML namespace:
- * xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main".
- */
-class A {
-    public readonly Paragraph = 'a:p';
-    public readonly ParagraphProperties = 'a:pPr';
-    public readonly Run = 'a:r';
-    public readonly RunProperties = 'a:rPr';
-    public readonly Text = 'a:t';
-}
-
-/**
- * Office Markup Language (OML) node names.
- */
-export class OmlNode {
-
-    /**
-     * Wordprocessing Markup Language node names.
-     */
-    public static readonly W = new W();
-
-    /**
-     * Drawing Markup Language node names.
-     */
-    public static readonly A = new A();
-}
-
-export class OmlAttribute {
-    public static readonly SpacePreserve = 'xml:space';
 }
 
 /**
