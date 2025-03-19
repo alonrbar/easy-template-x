@@ -267,6 +267,41 @@ describe("chart fixtures", () => {
             await verifySnapshot("chart - column", doc);
         });
     });
+
+    describe("pie chart", () => {
+
+        test("no chart data", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - pie.docx");
+            const doc = await handler.process(template, {});
+
+            await verifySnapshot("chart - pie - no data", doc);
+        });
+
+        test("data matches placeholder (categories and series count)", async () => {
+
+            const chartData: ChartContent = {
+                _type: "chart",
+                categories: {
+                    names: ["Q1", "Q2", "Q3", "Q4"]
+                },
+                series: [
+                    { name: "Expenses", values: [100, 310, 220, 450] },
+                ],
+            };
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - pie.docx");
+            const doc = await handler.process(template, {
+                MyChart: chartData,
+            });
+
+            await verifySnapshot("chart - pie", doc);
+        });
+    });
 });
 
 async function verifySnapshot(testCaseName: string, doc: Buffer) {

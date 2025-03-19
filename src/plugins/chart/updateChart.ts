@@ -144,7 +144,6 @@ interface FirstSeriesData {
 }
 
 function readFirstSeries(chartNode: XmlNode, chartData: ChartData): FirstSeriesData {
-    const chartType = chartNode.nodeName;
 
     const firstSeries = chartNode.childNodes?.find(child => child.nodeName === "c:ser");
     const sheetName = getSheetName(firstSeries);
@@ -152,7 +151,7 @@ function readFirstSeries(chartNode: XmlNode, chartData: ChartData): FirstSeriesD
     return {
         sheetName,
         shapePropertiesMarkup: xml.parser.serializeNode(firstSeries?.childNodes?.find(child => child.nodeName === "c:spPr")),
-        chartSpecificMarkup: chartSpecificMarkup(chartType, firstSeries),
+        chartSpecificMarkup: chartSpecificMarkup(firstSeries),
         categoriesMarkup: categoriesMarkup(chartData, sheetName),
         chartExtensibilityMarkup: xml.parser.serializeNode(firstSeries?.childNodes?.find(child => child.nodeName === "c:extLst")),
     };
@@ -235,82 +234,38 @@ function categoriesMarkup(chartData: ChartData, sheetName: string): string {
     `;
 }
 
-function chartSpecificMarkup(chartType: string, firstSeries: XmlNode): string {
+function chartSpecificMarkup(firstSeries: XmlNode): string {
     if (!firstSeries) {
         return "";
     }
 
-    if (chartType == chartTypes.area3DChart || chartType == chartTypes.areaChart) {
+    const pictureOptions = firstSeries.childNodes?.find(child => child.nodeName === "c:pictureOptions");
+    const dLbls = firstSeries.childNodes?.find(child => child.nodeName === "c:dLbls");
+    const trendline = firstSeries.childNodes?.find(child => child.nodeName === "c:trendline");
+    const errBars = firstSeries.childNodes?.find(child => child.nodeName === "c:errBars");
+    const invertIfNegative = firstSeries.childNodes?.find(child => child.nodeName === "c:invertIfNegative");
+    const marker = firstSeries.childNodes?.find(child => child.nodeName === "c:marker");
+    const smooth = firstSeries.childNodes?.find(child => child.nodeName === "c:smooth");
+    const explosion = firstSeries.childNodes?.find(child => child.nodeName === "c:explosion");
+    const dPt = firstSeries.childNodes?.filter(child => child.nodeName === "c:dPt");
+    const firstSliceAngle = firstSeries.childNodes?.find(child => child.nodeName === "c:firstSliceAngle");
+    const holeSize = firstSeries.childNodes?.find(child => child.nodeName === "c:holeSize");
+    const serTx = firstSeries.childNodes?.find(child => child.nodeName === "c:serTx");
 
-        const pictureOptions = firstSeries.childNodes?.find(child => child.nodeName === "c:pictureOptions");
-        const dPt = firstSeries.childNodes?.find(child => child.nodeName === "c:dPt");
-        const dLbls = firstSeries.childNodes?.find(child => child.nodeName === "c:dLbls");
-        const trendline = firstSeries.childNodes?.find(child => child.nodeName === "c:trendline");
-        const errBars = firstSeries.childNodes?.find(child => child.nodeName === "c:errBars");
-
-        return `
-            ${xml.parser.serializeNode(pictureOptions)}
-            ${xml.parser.serializeNode(dPt)}
-            ${xml.parser.serializeNode(dLbls)}
-            ${xml.parser.serializeNode(trendline)}
-            ${xml.parser.serializeNode(errBars)}
-        `;
-    }
-
-    if (chartType == chartTypes.bar3DChart || chartType == chartTypes.barChart) {
-
-        const invertIfNegative = firstSeries.childNodes?.find(child => child.nodeName === "c:invertIfNegative");
-        const pictureOptions = firstSeries.childNodes?.find(child => child.nodeName === "c:pictureOptions");
-        const dPt = firstSeries.childNodes?.find(child => child.nodeName === "c:dPt");
-        const dLbls = firstSeries.childNodes?.find(child => child.nodeName === "c:dLbls");
-        const trendline = firstSeries.childNodes?.find(child => child.nodeName === "c:trendline");
-        const errBars = firstSeries.childNodes?.find(child => child.nodeName === "c:errBars");
-
-        return `
-            ${xml.parser.serializeNode(invertIfNegative)}
-            ${xml.parser.serializeNode(pictureOptions)}
-            ${xml.parser.serializeNode(dPt)}
-            ${xml.parser.serializeNode(dLbls)}
-            ${xml.parser.serializeNode(trendline)}
-            ${xml.parser.serializeNode(errBars)}
-        `;
-    }
-
-    if (chartType == chartTypes.line3DChart || chartType == chartTypes.lineChart || chartType == chartTypes.stockChart) {
-        const marker = firstSeries.childNodes?.find(child => child.nodeName === "c:marker");
-        const dPt = firstSeries.childNodes?.find(child => child.nodeName === "c:dPt");
-        const dLbls = firstSeries.childNodes?.find(child => child.nodeName === "c:dLbls");
-        const trendline = firstSeries.childNodes?.find(child => child.nodeName === "c:trendline");
-        const errBars = firstSeries.childNodes?.find(child => child.nodeName === "c:errBars");
-        const smooth = firstSeries.childNodes?.find(child => child.nodeName === "c:smooth");
-
-        return `
-            ${xml.parser.serializeNode(marker)}
-            ${xml.parser.serializeNode(dPt)}
-            ${xml.parser.serializeNode(dLbls)}
-            ${xml.parser.serializeNode(trendline)}
-            ${xml.parser.serializeNode(errBars)}
-            ${xml.parser.serializeNode(smooth)}
-        `;
-    }
-
-    if (chartType == chartTypes.doughnutChart || chartType == chartTypes.ofPieChart || chartType == chartTypes.pie3DChart || chartType == chartTypes.pieChart) {
-        const explosion = firstSeries.childNodes?.find(child => child.nodeName === "c:explosion");
-        const dPt = firstSeries.childNodes?.find(child => child.nodeName === "c:dPt");
-        const dLbls = firstSeries.childNodes?.find(child => child.nodeName === "c:dLbls");
-
-        return `
-            ${xml.parser.serializeNode(explosion)}
-            ${xml.parser.serializeNode(dPt)}
-            ${xml.parser.serializeNode(dLbls)}
-        `;
-    }
-
-    if (chartType == chartTypes.surface3DChart || chartType == chartTypes.surfaceChart) {
-        return "";
-    }
-
-    throw new Error(`Unsupported chart type: ${chartType}`);
+    return `
+        ${xml.parser.serializeNode(pictureOptions)}
+        ${xml.parser.serializeNode(dLbls)}
+        ${xml.parser.serializeNode(trendline)}
+        ${xml.parser.serializeNode(errBars)}
+        ${xml.parser.serializeNode(invertIfNegative)}
+        ${xml.parser.serializeNode(marker)}
+        ${xml.parser.serializeNode(smooth)}
+        ${xml.parser.serializeNode(explosion)}
+        ${dPt.map(dPt => xml.parser.serializeNode(dPt)).join("\n")}
+        ${xml.parser.serializeNode(firstSliceAngle)}
+        ${xml.parser.serializeNode(holeSize)}
+        ${xml.parser.serializeNode(serTx)}
+    `;
 }
 
 //
