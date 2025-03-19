@@ -128,11 +128,22 @@ class Create {
     }
 
     public generalNode(name: string, init?: XmlGeneralNodeInit): XmlGeneralNode {
-        return {
-            ...(init ?? {}),
+        const node: XmlGeneralNode = {
             nodeType: XmlNodeType.General,
             nodeName: name,
         };
+
+        if (init?.attributes) {
+            node.attributes = init.attributes;
+        }
+
+        if (init?.childNodes) {
+            for (const child of init.childNodes) {
+                xml.modify.appendChild(node, child);
+            }
+        }
+
+        return node;
     }
 
     public commentNode(text?: string): XmlCommentNode {
