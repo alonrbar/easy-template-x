@@ -1,5 +1,6 @@
 import { ArgumentError } from "src/errors";
-import { OpenXmlPart, RelType, OmlAttribute, Xlsx } from "src/office";
+import { OmlAttribute, OpenXmlPart, RelType, Xlsx } from "src/office";
+import { IMap } from "src/types";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 
 // Based on: https://github.com/OpenXmlDev/Open-Xml-PowerTools/blob/vNext/OpenXmlPowerTools/ChartUpdater.cs
@@ -67,6 +68,8 @@ export const formatCodes = Object.freeze({
 });
 
 export type FormatCode = keyof typeof formatCodes;
+
+const space = " ";
 
 export async function updateChart(chartPart: OpenXmlPart, chartData: ChartData) {
 
@@ -439,7 +442,8 @@ async function updateEmbeddedExcelFile(chartPart: OpenXmlPart, sheetName: string
 
     // Update the workbook
     const workbookPart = xlsx.mainDocument;
-    const sheetPart = await updateSheetPart(workbookPart, sheetName, chartData);
+    const sharedStrings = await updateSharedStringsPart(workbookPart, chartData);
+    const sheetPart = await updateSheetPart(workbookPart, sheetName, sharedStrings, chartData);
     if (sheetPart) {
         await updateTablePart(sheetPart, chartData);
     }
@@ -450,7 +454,58 @@ async function updateEmbeddedExcelFile(chartPart: OpenXmlPart, sheetName: string
     await xlsxPart.save(newXlsxBinary);
 }
 
-async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, chartData: ChartData): Promise<OpenXmlPart> {
+async function updateSharedStringsPart(workbookPart: OpenXmlPart, chartData: ChartData): Promise<IMap<number>> {
+
+    // Get the shared strings part
+    const sharedStringsPart = await workbookPart.getFirstPartByType(RelType.SharedStrings);
+    if (!sharedStringsPart) {
+        return {};
+    }
+
+    // Get the shared strings part root
+    const root = await sharedStringsPart.xmlRoot() as XmlGeneralNode;
+
+    // Remove all existing strings
+    root.childNodes = [];
+
+    let count = 0;
+    const sharedStrings: IMap<number> = {};
+
+    function addString(str: string) {
+        xml.modify.appendChild(root, xml.create.generalNode("si", {
+            childNodes: [
+                xml.create.generalNode("t", {
+                    attributes: {
+                        [OmlAttribute.SpacePreserve]: "preserve"
+                    },
+                    childNodes: [xml.create.textNode(str)]
+                })
+            ]
+        }));
+        sharedStrings[str] = count;
+        count++;
+    }
+
+    // Add strings
+    addString(space);
+    for (const name of chartData.categoryNames) {
+        addString(name);
+    }
+    for (const name of chartData.seriesNames) {
+        addString(name);
+    }
+
+    // Update attributes
+    root.attributes["count"] = count.toString();
+    root.attributes["uniqueCount"] = count.toString();
+
+    // Save the shared strings part
+    await sharedStringsPart.save();
+
+    return sharedStrings;
+}
+
+async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, sharedStrings: IMap<number>, chartData: ChartData): Promise<OpenXmlPart> {
 
     // Get the sheet rel ID
     const root = await workbookPart.xmlRoot();
@@ -471,29 +526,27 @@ async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, cha
 
     // Create first row
     const firstRow = `
-        <row>
-            <c r="1" spans="1:${chartData.seriesNames.length + 1}">
-                <c r="A1" t="str" ${OmlAttribute.SpacePreserve}="preserve">
-                    <v> </v>
-                </c>
-                ${chartData.seriesNames.map((name, index) => `
-                    <c r="${excelRowAndColumnId(0, index + 1)}" t="str">
-                        <v>${name}</v>
-                    </c>
-                `).join("\n")}
+        <row r="1" spans="1:${chartData.seriesNames.length + 1}">
+            <c r="A1" t="s">
+                <v>${sharedStrings[space]}</v>
             </c>
+            ${chartData.seriesNames.map((name, index) => `
+                <c r="${excelRowAndColumnId(0, index + 1)}" t="s">
+                    <v>${sharedStrings[name]}</v>
+                </c>
+            `).join("\n")}
         </row>
     `;
 
     // Create other rows
-    const categoryDataTypeAttribute = chartData.categoryDataType === "string" ? ` t="str"` : "";
+    const categoryDataTypeAttribute = chartData.categoryDataType === "string" ? ` t="s"` : "";
     const categoryStyleId = await addDxfToDxfs(workbookPart, sheetRoot, chartData.categoryFormatCode);
     const categoryStyleIdAttribute = categoryStyleId ? ` s="${categoryStyleId}"` : "";
 
     const otherRows = chartData.categoryNames.map((name, rowIndex) => `
         <row r="${rowIndex + 2}" spans="1:${chartData.seriesNames.length + 1}">
             <c r="${excelRowAndColumnId(rowIndex + 1, 0)}"${categoryDataTypeAttribute}${categoryStyleIdAttribute}>
-                <v>${name}</v>
+                <v>${chartData.categoryDataType === "string" ? sharedStrings[name] : name}</v>
             </c>
             ${chartData.values.map((columnValues, columnIndex) => `
                 <c r="${excelRowAndColumnId(rowIndex + 1, columnIndex + 1)}">
@@ -522,9 +575,9 @@ async function updateTablePart(sheetPart: OpenXmlPart, chartData: ChartData) {
         return;
     }
 
-    // Update the table part
+    // Update ref attribute
     const tablePartRoot = await tablePart.xmlRoot() as XmlGeneralNode;
-    tablePartRoot.attributes["ref"] = `A1:${excelRowAndColumnId(chartData.categoryNames.length - 1, chartData.seriesNames.length)}`;
+    tablePartRoot.attributes["ref"] = `A1:${excelRowAndColumnId(chartData.categoryNames.length, chartData.seriesNames.length)}`;
 
     // Find old table columns
     const tableColumnsNode = tablePartRoot.childNodes?.find(child => child.nodeName === "tableColumns");
