@@ -296,10 +296,14 @@ class Query {
         return xml.query.findParent(node, n => n.nodeName === nodeName);
     }
 
-    public findChildByName(node: XmlNode, childName: string): XmlNode {
+    public findChild(node: XmlNode, predicate: (node: XmlNode) => boolean): XmlNode {
         if (!node)
             return null;
-        return (node.childNodes || []).find(child => child.nodeName === childName);
+        return (node.childNodes || []).find(child => predicate(child));
+    }
+
+    public findChildByName(node: XmlNode, childName: string): XmlNode {
+        return xml.query.findChild(node, n => n.nodeName === childName);
     }
 
     /**

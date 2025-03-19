@@ -43,19 +43,48 @@ export class Oml {
 }
 
 /**
+ * Wordprocessing Markup Language node names.
+ */
+class W {
+    public readonly Paragraph = 'w:p';
+    public readonly ParagraphProperties = 'w:pPr';
+    public readonly Run = 'w:r';
+    public readonly RunProperties = 'w:rPr';
+    public readonly Text = 'w:t';
+    public readonly Table = 'w:tbl';
+    public readonly TableRow = 'w:tr';
+    public readonly TableCell = 'w:tc';
+    public readonly NumberProperties = 'w:numPr';
+}
+
+/**
+ * Drawing Markup Language node names.
+ *
+ * These elements are part of the main drawingML namespace:
+ * xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main".
+ */
+class A {
+    public readonly Paragraph = 'a:p';
+    public readonly ParagraphProperties = 'a:pPr';
+    public readonly Run = 'a:r';
+    public readonly RunProperties = 'a:rPr';
+    public readonly Text = 'a:t';
+}
+
+/**
  * Office Markup Language (OML) node names.
  */
 export class OmlNode {
 
-    public static readonly Paragraph = 'w:p';
-    public static readonly ParagraphProperties = 'w:pPr';
-    public static readonly Run = 'w:r';
-    public static readonly RunProperties = 'w:rPr';
-    public static readonly Text = 'w:t';
-    public static readonly Table = 'w:tbl';
-    public static readonly TableRow = 'w:tr';
-    public static readonly TableCell = 'w:tc';
-    public static readonly NumberProperties = 'w:numPr';
+    /**
+     * Wordprocessing Markup Language node names.
+     */
+    public static readonly W = new W();
+
+    /**
+     * Drawing Markup Language node names.
+     */
+    public static readonly A = new A();
 }
 
 export class OmlAttribute {
@@ -139,7 +168,7 @@ class Modify {
         xml.modify.insertBefore(leftRun, rightRun);
 
         // copy props from original run node (preserve style)
-        const runProps = rightRun.childNodes.find(node => node.nodeName === OmlNode.RunProperties);
+        const runProps = rightRun.childNodes.find(node => oml.query.isRunPropertiesNode(node));
         if (runProps) {
             const leftRunProps = xml.create.cloneNode(runProps, true);
             xml.modify.appendChild(leftRun, leftRunProps);
@@ -165,7 +194,7 @@ class Modify {
         xml.modify.insertBefore(leftPara, rightPara);
 
         // copy props from original paragraph (preserve style)
-        const paragraphProps = rightPara.childNodes.find(node => node.nodeName === OmlNode.ParagraphProperties);
+        const paragraphProps = rightPara.childNodes.find(node => oml.query.isParagraphPropertiesNode(node));
         if (paragraphProps) {
             const leftParagraphProps = xml.create.cloneNode(paragraphProps, true);
             xml.modify.appendChild(leftPara, leftParagraphProps);
@@ -220,7 +249,7 @@ class Modify {
             }
             while (curWordTextNode) {
 
-                if (curWordTextNode.nodeName !== OmlNode.Text) {
+                if (!oml.query.isTextNode(curWordTextNode)) {
                     curWordTextNode = curWordTextNode.nextSibling;
                     continue;
                 }
@@ -272,7 +301,7 @@ class Modify {
         let childIndex = 0;
         while (second.childNodes && childIndex < second.childNodes.length) {
             const curChild = second.childNodes[childIndex];
-            if (curChild.nodeName === OmlNode.Run) {
+            if (oml.query.isRunNode(curChild)) {
                 xml.modify.removeChild(second, childIndex);
                 xml.modify.appendChild(first, curChild);
             } else {
@@ -297,28 +326,32 @@ class Modify {
 class Query {
 
     public isTextNode(node: XmlNode): boolean {
-        return node.nodeName === OmlNode.Text;
+        return node.nodeName === OmlNode.W.Text || node.nodeName === OmlNode.A.Text;
     }
 
     public isRunNode(node: XmlNode): boolean {
-        return node.nodeName === OmlNode.Run;
+        return node.nodeName === OmlNode.W.Run || node.nodeName === OmlNode.A.Run;
     }
 
     public isRunPropertiesNode(node: XmlNode): boolean {
-        return node.nodeName === OmlNode.RunProperties;
+        return node.nodeName === OmlNode.W.RunProperties || node.nodeName === OmlNode.A.RunProperties;
     }
 
     public isTableCellNode(node: XmlNode): boolean {
-        return node.nodeName === OmlNode.TableCell;
+        return node.nodeName === OmlNode.W.TableCell;
     }
 
     public isParagraphNode(node: XmlNode): boolean {
-        return node.nodeName === OmlNode.Paragraph;
+        return node.nodeName === OmlNode.W.Paragraph || node.nodeName === OmlNode.A.Paragraph;
+    }
+
+    public isParagraphPropertiesNode(node: XmlNode): boolean {
+        return node.nodeName === OmlNode.W.ParagraphProperties || node.nodeName === OmlNode.A.ParagraphProperties;
     }
 
     public isListParagraph(paragraphNode: XmlNode): boolean {
         const paragraphProperties = oml.query.findParagraphPropertiesNode(paragraphNode);
-        const listNumberProperties = xml.query.findChildByName(paragraphProperties, OmlNode.NumberProperties);
+        const listNumberProperties = xml.query.findChildByName(paragraphProperties, OmlNode.W.NumberProperties);
         return !!listNumberProperties;
     }
 
@@ -326,7 +359,7 @@ class Query {
         if (!oml.query.isParagraphNode(paragraphNode))
             throw new Error(`Expected paragraph node but received a '${paragraphNode.nodeName}' node.`);
 
-        return xml.query.findChildByName(paragraphNode, OmlNode.ParagraphProperties);
+        return xml.query.findChild(paragraphNode, oml.query.isParagraphPropertiesNode);
     }
 
     /**
@@ -337,14 +370,14 @@ class Query {
         if (!node)
             return null;
 
-        if (node.nodeName !== OmlNode.Run)
+        if (!oml.query.isRunNode(node))
             return null;
 
         if (!node.childNodes)
             return null;
 
         for (const child of node.childNodes) {
-            if (child.nodeName === OmlNode.Text)
+            if (oml.query.isTextNode(child))
                 return child;
         }
 
@@ -352,7 +385,7 @@ class Query {
     }
 
     /**
-     * Search **upwards** for the first **Word** text node (i.e. a <w:t> node).
+     * Search **upwards** for the first **Office** text node (i.e. a <w:t> or <a:t> node).
      */
     public containingTextNode(node: XmlTextNode): XmlGeneralNode {
 
@@ -362,42 +395,42 @@ class Query {
         if (!xml.query.isTextNode(node))
             throw new Error(`'Invalid argument ${nameof(node)}. Expected a XmlTextNode.`);
 
-        return xml.query.findParentByName(node, OmlNode.Text) as XmlGeneralNode;
+        return xml.query.findParent(node, oml.query.isTextNode) as XmlGeneralNode;
     }
 
     /**
      * Search **upwards** for the first run node.
      */
     public containingRunNode(node: XmlNode): XmlNode {
-        return xml.query.findParentByName(node, OmlNode.Run);
+        return xml.query.findParent(node, oml.query.isRunNode);
     }
 
     /**
      * Search **upwards** for the first paragraph node.
      */
     public containingParagraphNode(node: XmlNode): XmlNode {
-        return xml.query.findParentByName(node, OmlNode.Paragraph);
+        return xml.query.findParent(node, oml.query.isParagraphNode);
     }
 
     /**
      * Search **upwards** for the first "table row" node.
      */
     public containingTableRowNode(node: XmlNode): XmlNode {
-        return xml.query.findParentByName(node, OmlNode.TableRow);
+        return xml.query.findParentByName(node, OmlNode.W.TableRow);
     }
 
     /**
      * Search **upwards** for the first "table cell" node.
      */
     public containingTableCellNode(node: XmlNode): XmlNode {
-        return xml.query.findParentByName(node, OmlNode.TableCell);
+        return xml.query.findParent(node, oml.query.isTableCellNode);
     }
 
     /**
      * Search **upwards** for the first "table" node.
      */
     public containingTableNode(node: XmlNode): XmlNode {
-        return xml.query.findParentByName(node, OmlNode.Table);
+        return xml.query.findParentByName(node, OmlNode.W.Table);
     }
 
     //

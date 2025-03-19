@@ -11,6 +11,7 @@ export const RelType = Object.freeze({
     Link: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink',
     Image: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
     Styles: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles',
+    Chart: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart',
 } as const);
 
 export type RelTargetMode = 'Internal' | 'External';

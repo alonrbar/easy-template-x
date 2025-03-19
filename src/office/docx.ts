@@ -93,7 +93,8 @@ export class Docx {
 
         const relTypes = [
             RelType.Header,
-            RelType.Footer
+            RelType.Footer,
+            RelType.Chart
         ];
         for (const relType of relTypes) {
             const typeParts = await this.mainDocument.getPartsByType(relType);
