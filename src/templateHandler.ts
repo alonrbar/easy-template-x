@@ -118,8 +118,9 @@ export class TemplateHandler {
     }
 
     /**
-     * Get the text content of a single part of the document.
-     * If the part does not exists returns null.
+     * Get the text content of one or more parts of the document.
+     * If more than one part exists, the concatenated text content of all parts is returned.
+     * If no matching parts are found, returns an empty string.
      *
      * @param relType
      * The relationship type of the parts whose text content you want to retrieve.
@@ -139,7 +140,7 @@ export class TemplateHandler {
 
     /**
      * Get the xml root of a single part of the document.
-     * If the part does not exists returns null.
+     * If no matching part is found, returns null.
      *
      * @param relType
      * The relationship type of the parts whose xml root you want to retrieve.
@@ -153,12 +154,11 @@ export class TemplateHandler {
             return await docx.mainDocument.xmlRoot();
         }
 
-        const parts = await docx.mainDocument.getPartsByType(relType);
-        if (!parts?.length) {
+        const part = await docx.mainDocument.getFirstPartByType(relType);
+        if (!part) {
             return null;
         }
-        const xmlRoot = await parts[0].xmlRoot();
-        return xmlRoot;
+        return await part.xmlRoot();
     }
 
     //

@@ -8,10 +8,13 @@ export const RelType = Object.freeze({
     MainDocument: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument',
     Header: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/header',
     Footer: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer',
+    Styles: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles',
+    SharedStrings: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings',
     Link: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink',
     Image: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
-    Styles: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles',
     Chart: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart',
+    Worksheet: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet',
+    Table: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/table',
 } as const);
 
 export type RelTargetMode = 'Internal' | 'External';

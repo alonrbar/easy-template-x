@@ -80,6 +80,18 @@ export class OpenXmlPart {
     /**
      * Get all related OpenXmlParts by the relationship type.
      */
+    public async getFirstPartByType(type: string): Promise<OpenXmlPart> {
+        const rels = await this.rels.list();
+        const rel = rels.find(r => r.type === type);
+        if (!rel) {
+            return null;
+        }
+        return this.openPart(rel);
+    }
+
+    /**
+     * Get all related OpenXmlParts by the relationship type.
+     */
     public async getPartsByType(type: string): Promise<OpenXmlPart[]> {
         const rels = await this.rels.list();
         const relsByType = rels.filter(r => r.type === type);
@@ -104,10 +116,13 @@ export class OpenXmlPart {
      */
     public async save(binaryContent?: Binary): Promise<void> {
 
-        // Save self
+        // Save self - binary
         if (binaryContent) {
             this.zip.setFile(this.path, binaryContent);
-        } if (this.root) {
+        }
+
+        // Save self - xml
+        else if (this.root) {
             const xmlRoot = await this.xmlRoot();
             const xmlContent = xml.parser.serializeFile(xmlRoot);
             this.zip.setFile(this.path, xmlContent);

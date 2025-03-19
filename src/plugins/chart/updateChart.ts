@@ -517,17 +517,7 @@ async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, cha
 
 async function updateTablePart(sheetPart: OpenXmlPart, chartData: ChartData) {
 
-    const sheetRoot = await sheetPart.xmlRoot();
-
-    // Get the table part
-    const tablePartNode = sheetRoot.
-        childNodes?.find(child => child.nodeName === "tableParts")?.
-        childNodes?.find(child => child.nodeName === "tablePart") as XmlGeneralNode;
-    const tablePartId = tablePartNode?.attributes["r:id"];
-    if (!tablePartId) {
-        return;
-    }
-    const tablePart = await sheetPart.getPartById(tablePartId);
+    const tablePart = await sheetPart.getFirstPartByType(RelType.Table);
     if (!tablePart) {
         return;
     }
@@ -571,7 +561,7 @@ async function addDxfToDxfs(workbookPart: OpenXmlPart, sheetRoot: XmlNode, forma
         return 0;
     }
 
-    const stylesPart = (await workbookPart.getPartsByType(RelType.Styles))[0];
+    const stylesPart = await workbookPart.getFirstPartByType(RelType.Styles);
     const stylesRoot = await stylesPart.xmlRoot();
 
     // Find or create cellXfs
