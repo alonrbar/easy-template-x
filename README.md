@@ -388,7 +388,18 @@ To use charts in templates, put a placeholder chart and place a tag in its title
 
 ![chart placeholder](./docs/assets/chart-placeholder.png?raw=true)
 
-The expected input data depends on the chart type.
+Generally speaking, the charts preserve their original settings and style with
+some configurations also available through the input json data.
+
+`easy-template-x` try to keep the same terminology used by MS Word. Therefore,
+while the exact expected input data depends on the chart type, the main terms
+are common to most:
+
+- **Categories** are the values of the X axis.
+- **Series** are the values of the Y axis.
+
+Take a look at the examples below to get a better understanding of how charts
+tags behave.
 
 #### Line, bar & column charts
 
@@ -431,7 +442,7 @@ Output document:
 #### Pie & doughnut charts
 
 Pie & doughnut uses the same input data format as line, bar and column chart,
-expect they expect a single series.
+except they expect a single series.
 
 Input template:
 
@@ -460,7 +471,7 @@ Output document:
 
 #### Scatter chart
 
-Scatter chart do not have a `categories` property. Instead, each of their values requires an `x` and `y` properties.
+Scatter chart do not have a `categories` property. Instead, each of their values requires an `x` and a `y` properties.
 
 Input template:
 
