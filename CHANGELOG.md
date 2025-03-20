@@ -4,7 +4,13 @@
 
 ## Added
 
-- Table columns loop support ([#41](https://github.com/alonrbar/easy-template-x/issues/41)).
+- **BREAKING** - Table columns loop support
+  ([#41](https://github.com/alonrbar/easy-template-x/issues/41)). This change
+  makes loops that are wrapping a single column (i.e. loop tags in the same
+  column but different rows) to behave like a column loop, instead of row loop
+  as it was until now. This can be resolved by either changing the placement of
+  the opening and closing tags or using the `loopOver` option with a `column`
+  value.
 
 ## [5.0.1 - 2025-01-31](https://github.com/alonrbar/easy-template-x/tree/v5.0.1)
 
