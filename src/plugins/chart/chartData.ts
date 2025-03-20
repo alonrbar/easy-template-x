@@ -1,5 +1,5 @@
 
-export type ChartData = StandardChartData | ScatterChartData;
+export type ChartData = StandardChartData | ScatterChartData | BubbleChartData;
 
 export interface StandardChartData {
     categories: Categories;
@@ -8,6 +8,10 @@ export interface StandardChartData {
 
 export interface ScatterChartData {
     series: ScatterSeries[];
+}
+
+export interface BubbleChartData {
+    series: BubbleSeries[];
 }
 
 export type Categories = NumericCategories | StringCategories | DateCategories;
@@ -49,12 +53,20 @@ export interface ScatterSeries {
 export interface ScatterValue {
     x: number;
     y: number;
-    size?: number;
+}
+
+export interface BubbleSeries {
+    name: string; // TODO: Make name optional
     /**
-     * Color of the point, in hex format (e.g. "#FF0000" for red).
-     * If not specified, the color will match the series color.
+     * Color of the series, in hex format (e.g. "#FF0000" for red).
+     * If not specified, the color will be auto-selected by the system.
      */
     color?: string;
+    values: BubbleValue[];
+}
+
+export interface BubbleValue extends ScatterValue {
+    size: number;
 }
 
 export const chartTypes = Object.freeze({
@@ -124,6 +136,13 @@ export function isScatterChartData(chartData: ChartData): chartData is ScatterCh
     return !isStandardChartData(chartData) && "series" in chartData;
 }
 
+export function isBubbleChartData(chartData: ChartData): chartData is BubbleChartData {
+    if (!isScatterChartData(chartData)) {
+        return false;
+    }
+    return chartData.series.some(ser => ser.values.some(val => "size" in val));
+}
+
 export function isStringCategories(categories: Categories): categories is StringCategories {
     const first = categories.names[0];
     if (typeof first === "string") {
@@ -143,4 +162,30 @@ export function formatCode(categories: Categories): FormatCode {
         return 0;
     }
     return categories.formatCode;
+}
+
+export function scatterXValues(series: ScatterSeries[]): number[] {
+    const uniqueXValues = new Set<number>();
+    for (const ser of series) {
+        for (const val of ser.values) {
+            uniqueXValues.add(val.x);
+        }
+    }
+    return Array.from(uniqueXValues).sort((a, b) => a - b);
+}
+
+export function scatterYValues(xValues: number[], series: ScatterSeries): number[] {
+    const yValuesMap: Record<number, number> = {};
+    for (const val of series.values) {
+        yValuesMap[val.x] = val.y;
+    }
+    return xValues.map(x => yValuesMap[x]);
+}
+
+export function bubbleSizeValues(xValues: number[], series: BubbleSeries): number[] {
+    const sizeValuesMap: Record<number, number> = {};
+    for (const val of series.values) {
+        sizeValuesMap[val.x] = val.size;
+    }
+    return xValues.map(x => sizeValuesMap[x]);
 }

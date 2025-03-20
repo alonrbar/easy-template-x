@@ -3,21 +3,26 @@ import { OmlAttribute, OpenXmlPart, RelType, Xlsx } from "src/office";
 import { IMap } from "src/types";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 import {
+    bubbleSizeValues,
     Categories,
     ChartData,
     chartTypes,
     formatCode,
     formatCodes,
+    isBubbleChartData,
     isScatterChartData,
     isStandardChartData,
     isStringCategories,
     ScatterChartData,
+    scatterXValues,
+    scatterYValues,
     StandardChartData
 } from "./chartData";
 
 // Based on: https://github.com/OpenXmlDev/Open-Xml-PowerTools/blob/vNext/OpenXmlPowerTools/ChartUpdater.cs
 
 const space = " ";
+const xValuesTitle = "X-Values";
 
 export async function updateChart(chartPart: OpenXmlPart, chartData: ChartData) {
 
@@ -144,9 +149,14 @@ function getSheetName(firstSeries: XmlNode): string {
 }
 
 function categoriesMarkup(chartData: ChartData, sheetName: string): string {
-    if (!isStandardChartData(chartData)) {
-        return "";
+    if (isScatterChartData(chartData)) {
+        return scatterXValuesMarkup(chartData, sheetName);
     }
+
+    return standardCategoriesMarkup(chartData, sheetName);
+}
+
+function standardCategoriesMarkup(chartData: StandardChartData, sheetName: string): string {
 
     const ptNodes = `
         <c:ptCount val="${chartData.categories.names.length}"/>
@@ -207,6 +217,46 @@ function categoriesMarkup(chartData: ChartData, sheetName: string): string {
                 </c:numCache>
             </c:numRef>
         </c:cat>
+    `;
+}
+
+function scatterXValuesMarkup(chartData: ScatterChartData, sheetName: string): string {
+
+    const xValues = scatterXValues(chartData.series);
+
+    const ptNodes = `
+        <c:ptCount val="${xValues.length}"/>
+        ${xValues.map((x, index) => `
+            <c:pt idx="${index}">
+                <c:v>${x}</c:v>
+            </c:pt>
+        `).join("\n")}
+    `;
+
+    // Number literal
+    if (!sheetName) {
+        return `
+            <c:xVal>
+                <c:numLit>
+                    ${ptNodes}
+                </c:numLit>
+            </c:xVal>
+        `;
+    }
+
+    const formula = `${sheetName}!$A$2:$A$${xValues.length + 1}`;
+
+    // Number reference
+    return `
+        <c:xVal>
+            <c:numRef>
+                <c:f>${formula}</c:f>
+                <c:numCache>
+                    <c:formatCode>General</c:formatCode>
+                    ${ptNodes}
+                </c:numCache>
+            </c:numRef>
+        </c:xVal>
     `;
 }
 
@@ -279,7 +329,7 @@ function createSeries(seriesName: string, seriesIndex: number, firstSeries: Firs
     `);
 
     const color = selectSeriesColor(seriesIndex, chartData);
-    setColor(series, color);
+    setSeriesColor(series, color);
 
     return series;
 }
@@ -312,7 +362,7 @@ function titleMarkup(seriesName: string, seriesIndex: number, sheetName: string)
 function valuesMarkup(seriesIndex: number, chartData: ChartData, sheetName: string): string {
 
     if (isScatterChartData(chartData)) {
-        return scatterValuesMarkup(seriesIndex, chartData);
+        return scatterValuesMarkup(seriesIndex, chartData, sheetName);
     }
 
     return standardValuesMarkup(seriesIndex, chartData, sheetName);
@@ -357,9 +407,110 @@ function standardValuesMarkup(seriesIndex: number, chartData: StandardChartData,
     `;
 }
 
-function scatterValuesMarkup(seriesIndex: number, chartData: ScatterChartData): string {
-    // TODO: Implement
-    return null;
+function scatterValuesMarkup(seriesIndex: number, chartData: ScatterChartData, sheetName: string): string {
+
+    const xValues = scatterXValues(chartData.series);
+    const yValues = scatterYValues(xValues, chartData.series[seriesIndex]);
+
+    const ptCountNode = `
+        <c:ptCount val="${yValues.length}"/>
+    `;
+
+    // Y values
+    const yValueNodes = yValues.map((y, index) => {
+        if (y === null || y === undefined) {
+            return "";
+        }
+        return `
+            <c:pt idx="${index}">
+                <c:v>${y}</c:v>
+            </c:pt>
+        `;
+    });
+
+    // Bubble size values
+    const bubbleSizeNodes = isBubbleChartData(chartData) ? chartData.series[seriesIndex].values.map((v, index) => {
+        if (v.size === null || v.size === undefined) {
+            return "";
+        }
+        return `
+            <c:pt idx="${index}">
+                <c:v>${v.size}</c:v>
+            </c:pt>
+        `;
+    }) : [];
+
+    // Number literal
+    if (!sheetName) {
+
+        const yVal = `
+            <c:yVal>
+                <c:numLit>
+                    ${ptCountNode}
+                    ${yValueNodes.join("\n")}
+                </c:numLit>
+            </c:yVal>
+        `;
+
+        if (!isBubbleChartData(chartData)) {
+            return yVal;
+        }
+
+        const bubbleSize = `
+            <c:bubbleSize>
+                <c:numLit>
+                    ${ptCountNode}
+                    ${bubbleSizeNodes.join("\n")}
+                </c:numLit>
+            </c:bubbleSize>
+        `;
+
+        return `
+            ${yVal}
+            ${bubbleSize}
+        `;
+    }
+
+    // Number reference
+
+    const yValColumnId = excelColumnId(seriesIndex + 1);
+    const yValFormula = `${sheetName}!$${yValColumnId}$2:$${yValColumnId}$${yValues.length + 1}`;
+    const yVal = `
+        <c:yVal>
+            <c:numRef>
+                <c:f>${yValFormula}</c:f>
+                <c:numCache>
+                    <c:formatCode>General</c:formatCode>
+                    ${ptCountNode}
+                    ${yValueNodes.join("\n")}
+                </c:numCache>
+            </c:numRef>
+        </c:yVal>
+    `;
+
+    if (!isBubbleChartData(chartData)) {
+        return yVal;
+    }
+
+    const bubbleSizeColumnId = excelColumnId(seriesIndex + 2);
+    const bubbleSizeFormula = `${sheetName}!$${bubbleSizeColumnId}$2:$${bubbleSizeColumnId}$${yValues.length + 1}`;
+    const bubbleSize = `
+        <c:bubbleSize>
+            <c:numRef>
+                <c:f>${bubbleSizeFormula}</c:f>
+                <c:numCache>
+                    <c:formatCode>General</c:formatCode>
+                    ${ptCountNode}
+                    ${bubbleSizeNodes.join("\n")}
+                </c:numCache>
+            </c:numRef>
+        </c:bubbleSize>
+    `;
+
+    return `
+        ${yVal}
+        ${bubbleSize}
+    `;
 }
 
 function selectSeriesColor(seriesIndex: number, chartData: ChartData): string | number {
@@ -377,7 +528,7 @@ function selectSeriesColor(seriesIndex: number, chartData: ChartData): string | 
     return accentNumber;
 }
 
-function setColor(node: XmlNode, color: string | number) {
+function setSeriesColor(node: XmlNode, color: string | number) {
     if (!node) {
         return;
     }
@@ -403,7 +554,7 @@ function setColor(node: XmlNode, color: string | number) {
     }
 
     for (const child of (node.childNodes ?? [])) {
-        setColor(child, color);
+        setSeriesColor(child, color);
     }
 }
 
@@ -480,7 +631,7 @@ async function updateSharedStringsPart(workbookPart: OpenXmlPart, chartData: Cha
         addString(space);
     }
     if (isScatterChartData(chartData)) {
-        addString("X-Values");
+        addString(xValuesTitle);
     }
 
     // Category strings
@@ -493,6 +644,10 @@ async function updateSharedStringsPart(workbookPart: OpenXmlPart, chartData: Cha
     // Series strings
     for (const name of chartData.series.map(s => s.name)) {
         addString(name);
+
+        if (isBubbleChartData(chartData)) {
+            addString(name + " Size");
+        }
     }
 
     // Update attributes
@@ -521,16 +676,24 @@ async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, sha
     }
     const sheetRoot = await sheetPart.xmlRoot();
 
+    let newRows: XmlNode[] = [];
     if (isStandardChartData(chartData)) {
-        await updateSheetRootStandard(workbookPart, sheetRoot, chartData, sharedStrings);
+        newRows = await updateSheetRootStandard(workbookPart, sheetRoot, chartData, sharedStrings);
     } else if (isScatterChartData(chartData)) {
-        await updateSheetRootScatter(workbookPart, sheetRoot, chartData, sharedStrings);
+        newRows = await updateSheetRootScatter(workbookPart, sheetRoot, chartData, sharedStrings);
+    }
+
+    // Replace sheet data
+    const sheetDataNode = sheetRoot.childNodes?.find(child => child.nodeName === "sheetData");
+    sheetDataNode.childNodes = [];
+    for (const row of newRows) {
+        xml.modify.appendChild(sheetDataNode, row);
     }
 
     return sheetPart;
 }
 
-async function updateSheetRootStandard(workbookPart: OpenXmlPart, sheetRoot: XmlNode, chartData: StandardChartData, sharedStrings: IMap<number>) {
+async function updateSheetRootStandard(workbookPart: OpenXmlPart, sheetRoot: XmlNode, chartData: StandardChartData, sharedStrings: IMap<number>): Promise<XmlNode[]> {
 
     // Create first row
     const firstRow = `
@@ -563,16 +726,90 @@ async function updateSheetRootStandard(workbookPart: OpenXmlPart, sheetRoot: Xml
         </row>
     `);
 
-    // Replace sheet data
-    const sheetDataNode = sheetRoot.childNodes?.find(child => child.nodeName === "sheetData");
-    sheetDataNode.childNodes = [parseXmlNode(firstRow)];
-    for (const row of otherRows) {
-        xml.modify.appendChild(sheetDataNode, parseXmlNode(row));
-    }
+    return [
+        parseXmlNode(firstRow),
+        ...otherRows.map(row => parseXmlNode(row))
+    ];
 }
 
-async function updateSheetRootScatter(workbookPart: OpenXmlPart, sheetRoot: XmlNode, chartData: ScatterChartData, sharedStrings: IMap<number>) {
-    // TODO: Implement
+async function updateSheetRootScatter(workbookPart: OpenXmlPart, sheetRoot: XmlNode, chartData: ScatterChartData, sharedStrings: IMap<number>): Promise<XmlNode[]> {
+
+    const isBubbleChart = isBubbleChartData(chartData);
+
+    // Create first row
+    const firstRowColumns = chartData.series.map((s, index) => {
+        const baseIndex = isBubbleChart ? index * 2 : index;
+
+        const seriesNameColumn = `
+            <c r="${excelRowAndColumnId(0, baseIndex + 1)}" t="s">
+                <v>${sharedStrings[s.name]}</v>
+            </c>
+        `;
+        if (!isBubbleChart) {
+            return seriesNameColumn;
+        }
+
+        const bubbleSizeColumn = `
+            <c r="${excelRowAndColumnId(0, baseIndex + 2)}" t="s">
+                <v>${sharedStrings[s.name + " Size"]}</v>
+            </c>
+        `;
+        return `
+            ${seriesNameColumn}
+            ${bubbleSizeColumn}
+        `;
+    });
+    const firstRow = `
+        <row r="1" spans="1:${chartData.series.length + 1}">
+            <c r="A1" t="s">
+                <v>${sharedStrings[xValuesTitle]}</v>
+            </c>
+            ${firstRowColumns.join("\n")}
+        </row>
+    `;
+
+    const xValues = scatterXValues(chartData.series);
+
+    // Create other rows
+    const yValues = chartData.series.map(s => scatterYValues(xValues, s));
+    const bubbleSizes = isBubbleChart ? chartData.series.map(s => bubbleSizeValues(xValues, s)) : [];
+    function otherRowColumns(rowIndex: number) {
+        return chartData.series.map((s, seriesIndex) => {
+            const baseIndex = isBubbleChart ? seriesIndex * 2 : seriesIndex;
+
+            const yValueColumn =  `
+                <c r="${excelRowAndColumnId(rowIndex + 1, baseIndex + 1)}">
+                    <v>${yValues[seriesIndex][rowIndex]}</v>
+                </c>
+            `;
+            if (!isBubbleChart) {
+                return yValueColumn;
+            }
+
+            const bubbleSizeColumn = `
+                <c r="${excelRowAndColumnId(rowIndex + 1, baseIndex + 2)}" t="s">
+                    <v>${bubbleSizes[seriesIndex][rowIndex]}</v>
+                </c>
+            `;
+            return `
+                ${yValueColumn}
+                ${bubbleSizeColumn}
+            `;
+        });
+    }
+    const otherRows = xValues.map((x, rowIndex) => `
+        <row r="${rowIndex + 2}" spans="1:${chartData.series.length + 1}">
+            <c r="${excelRowAndColumnId(rowIndex + 1, 0)}">
+                <v>${x}</v>
+            </c>
+            ${otherRowColumns(rowIndex).join("\n")}
+        </row>
+    `);
+
+    return [
+        parseXmlNode(firstRow),
+        ...otherRows.map(row => parseXmlNode(row))
+    ];
 }
 
 async function updateTablePart(sheetPart: OpenXmlPart, chartData: ChartData) {
@@ -590,13 +827,20 @@ async function updateTablePart(sheetPart: OpenXmlPart, chartData: ChartData) {
     const tableColumnsNode = tablePartRoot.childNodes?.find(child => child.nodeName === "tableColumns");
 
     // Add new table columns
-    const firstColumnName = isScatterChartData(chartData) ? "X-Values" : space;
+    const firstColumnName = isScatterChartData(chartData) ? xValuesTitle : space;
+    const otherColumns = chartData.series.map((s, index) => {
+        const baseIndex = isBubbleChartData(chartData) ? index * 2 : index;
+        return `
+            <tableColumn id="${baseIndex + 2}" name="${s.name}"/>
+            ${isBubbleChartData(chartData) ? `
+                <tableColumn id="${baseIndex + 3}" name="${s.name} Size"/>
+            ` : ""}
+        `;
+    });
     const tableColumns = `
         <tableColumns count="${chartData.series.length + 1}">
             <tableColumn id="1" name="${firstColumnName}"/>
-            ${chartData.series.map((s, index) => `
-                <tableColumn id="${index + 2}" name="${s.name}"/>
-            `).join("\n")}
+            ${otherColumns.join("\n")}
         </tableColumns>
     `;
     xml.modify.insertAfter(parseXmlNode(tableColumns), tableColumnsNode);
@@ -608,8 +852,7 @@ async function updateTablePart(sheetPart: OpenXmlPart, chartData: ChartData) {
 function tableRowsCount(chartData: ChartData): number {
 
     if (isScatterChartData(chartData)) {
-        const uniqueXValues = new Set(chartData.series.flatMap(s => s.values.map(v => v.x)));
-        return uniqueXValues.size;
+        return scatterXValues(chartData.series).length;
     }
 
     return chartData.categories.names.length;

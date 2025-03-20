@@ -302,6 +302,80 @@ describe("chart fixtures", () => {
             await verifySnapshot("chart - pie", doc);
         });
     });
+
+    describe("scatter chart", () => {
+
+        test("no chart data", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - scatter.docx");
+            const doc = await handler.process(template, {});
+
+            await verifySnapshot("chart - scatter - no data", doc);
+        });
+
+        test("data matches placeholder (categories and series count)", async () => {
+
+            const scatterChartData: ChartContent = {
+                _type: "chart",
+                series: [
+                    {
+                        name: "Expenses",
+                        values: [
+                            { x: 1, y: 310 },
+                            { x: 3, y: 450 },
+                            { x: 4, y: 200 },
+                            { x: 6, y: 200 },
+                        ],
+                    },
+                    {
+                        name: "Sales",
+                        color: "#9b32a8",
+                        values: [
+                            { x: 1, y: 410 },
+                            { x: 2, y: 450 },
+                            { x: 3, y: 200 },
+                            { x: 5, y: 350 },
+                        ],
+                    },
+                ],
+            };
+
+            const bubbleChartData: ChartContent = {
+                _type: "chart",
+                series: [
+                    {
+                        name: "Sales",
+                        values: [
+                            { x: 1, y: 10, size: 10 },
+                            { x: 2, y: 10, size: 20 },
+                            { x: 3, y: 8, size: 40 },
+                            { x: 4, y: 8, size: 30 },
+                        ],
+                    },
+                    {
+                        name: "Expenses",
+                        values: [
+                            { x: 1, y: 4, size: 40 },
+                            { x: 2, y: 4, size: 20 },
+                            { x: 3, y: 3, size: 30 },
+                        ],
+                    },
+                ],
+            };
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - scatter.docx");
+            const doc = await handler.process(template, {
+                chart1: scatterChartData,
+                chart2: bubbleChartData,
+            });
+
+            await verifySnapshot("chart - scatter", doc);
+        });
+    });
 });
 
 async function verifySnapshot(testCaseName: string, doc: Buffer) {
