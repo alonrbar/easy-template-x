@@ -15,7 +15,7 @@ export class ChartPlugin extends TemplatePlugin {
 
         const chartNode = xml.query.findParentByName(tag.xmlTextNode, "c:chart");
         if (!chartNode) {
-            throw new ArgumentError("Chart tag not placed on a chart");
+            throw new ArgumentError("Chart tag not placed in chart title");
         }
 
         const content = data.getScopeData<ChartContent>();
