@@ -265,7 +265,7 @@ describe("chart fixtures", () => {
             await verifySnapshot("chart - bar - no data", doc);
         });
 
-        test("data matches placeholder (categories and series count)", async () => {
+        test("with data", async () => {
 
             const chartData: ChartContent = {
                 _type: "chart",
@@ -303,7 +303,7 @@ describe("chart fixtures", () => {
             await verifySnapshot("chart - area - no data", doc);
         });
 
-        test("data matches placeholder (categories and series count)", async () => {
+        test("with data", async () => {
 
             const chartData: ChartContent = {
                 _type: "chart",
@@ -341,7 +341,7 @@ describe("chart fixtures", () => {
             await verifySnapshot("chart - column - no data", doc);
         });
 
-        test("data matches placeholder (categories and series count)", async () => {
+        test("with data", async () => {
 
             const chartData1: ChartContent = {
                 _type: "chart",
@@ -403,7 +403,7 @@ describe("chart fixtures", () => {
             await verifySnapshot("chart - pie - no data", doc);
         });
 
-        test("data matches placeholder (categories and series count)", async () => {
+        test("with data", async () => {
 
             const chartData: ChartContent = {
                 _type: "chart",
@@ -438,7 +438,7 @@ describe("chart fixtures", () => {
             await verifySnapshot("chart - scatter - no data", doc);
         });
 
-        test("data matches placeholder (categories and series count)", async () => {
+        test("with data", async () => {
 
             const scatterChartData: ChartContent = {
                 _type: "chart",
