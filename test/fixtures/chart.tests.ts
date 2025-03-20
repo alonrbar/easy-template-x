@@ -5,7 +5,6 @@ import { DateTimeFormatValues, NumberingFormatValues } from "src/plugins/chart/c
 import { TemplateHandler } from "src/templateHandler";
 import { writeTempFile } from "test/testUtils";
 import { readFixture } from "./fixtureUtils";
-import { TemplateData } from "src";
 
 describe("chart fixtures", () => {
 
