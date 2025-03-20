@@ -1,8 +1,8 @@
-import { Relationship, RelTargetMode } from "src/office";
 import { IMap } from "src/types";
 import { Path } from "src/utils";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 import { Zip } from "src/zip";
+import { Relationship, RelTargetMode } from "./relationship";
 
 /**
  * A rels file is an xml file that contains the relationship information of a single docx "part".
