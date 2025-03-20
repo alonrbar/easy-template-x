@@ -145,11 +145,11 @@ Checkout this [live demo](https://codesandbox.io/p/sandbox/easy-template-x-demo-
 
 These are the plugins that comes bundled with `easy-template-x`:
 
-- [Simple text replacement plugin.](#text-plugin)
-- [Loop plugin for iterating text, table rows and list rows and for simple conditions.](#loop-plugin)
-- [Image plugin for embedding images.](#image-plugin)
-- [Link plugin for hyperlinks creation.](#link-plugin)
-- [Raw xml plugin for custom xml insertion.](#raw-xml-plugin)
+- [Text plugin](#text-plugin) - For simple text replacement.
+- [Loop plugin](#loop-plugin) - For iterating text, table rows, table columns and list rows and for simple conditions.
+- [Image plugin](#image-plugin) - For embedding images.
+- [Link plugin](#link-plugin) - For hyperlinks creation.
+- [Raw xml plugin](#raw-xml-plugin) - For custom xml insertion.
 
 ### Text plugin
 
