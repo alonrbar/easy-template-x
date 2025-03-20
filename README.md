@@ -588,6 +588,8 @@ _To better understand the internal structure of Word documents check out [this e
 Example plugin implementation ([source](./src/plugins/rawXml/rawXmlPlugin.ts)):
 
 ```typescript
+import { officeMarkup, xml } from "easy-template-x";
+
 /**
  * A plugin that inserts raw xml to the document.
  */
@@ -598,24 +600,23 @@ export class RawXmlPlugin extends TemplatePlugin {
 
     // Plugin logic goes here:
     public simpleTagReplacements(tag: Tag, data: ScopeData): void {
-
-        // Tag.xmlTextNode always reference the actual xml text node.
-        // In MS Word each text node is wrapped by a <w:t> node so we retrieve that.
-        const wordTextNode = this.utilities.docxParser.containingTextNode(tag.xmlTextNode);
-
+        
         // Get the value to use from the input data.
-        const value = data.getScopeData() as RawXmlContent;
+        const value = data.getScopeData<RawXmlContent>();
         if (value && typeof value.xml === 'string') {
 
-            // If it contains a "xml" string property parse it and insert.
-            const newNode = this.utilities.xmlParser.parse(value.xml);
-            XmlNode.insertBefore(newNode, wordTextNode);
+            // Tag.xmlTextNode always reference the actual xml text node.
+            // In MS Word each text node is wrapped by a <w:t> node so we retrieve that.
+            const wordTextNode = officeMarkup.query.containingTextNode(tag.xmlTextNode);
+
+            // If it contains an "xml" string property, parse it and insert 
+            // the content next to the placeholder tag.
+            const newNode = xml.parser.parse(value.xml);
+            xml.modify.insertBefore(newNode, wordTextNode);
         }
 
-        // Remove the placeholder node.
-        // We can be sure that only the placeholder is removed since easy-template-x
-        // makes sure that each tag is isolated into it's own separate <w:t> node.
-        XmlNode.remove(wordTextNode);
+        // Remove the placeholder tag.
+        officeMarkup.modify.removeTag(tag.xmlTextNode);
     }
 }
 ```
