@@ -26,6 +26,15 @@ const xValuesTitle = "X-Values";
 
 export async function updateChart(chartPart: OpenXmlPart, chartData: ChartData) {
 
+    // Normalize the chart data:
+    // Shallow clone and make sure series names are set.
+    chartData = Object.assign({}, chartData);
+    for (let i = 0; i < chartData.series.length; i++) {
+        const ser = chartData.series[i];
+        chartData.series[i] = Object.assign({}, ser);
+        chartData.series[i].name = seriesName(ser.name, i);
+    }
+
     // Input validation
     validateChartData(chartData);
 
@@ -929,6 +938,10 @@ async function updateStylesPart(workbookPart: OpenXmlPart, sheetRoot: XmlNode, c
 //
 // Helper functions
 //
+
+function seriesName(name: string, index: number): string {
+    return name ?? `Series ${index + 1}`;
+}
 
 function excelColumnId(i: number): string {
 

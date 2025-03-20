@@ -31,7 +31,7 @@ export interface DateCategories {
 }
 
 export interface Series {
-    name: string; // TODO: Make name optional
+    name?: string;
     /**
      * Color of the series, in hex format (e.g. "#FF0000" for red).
      * If not specified, the color will be auto-selected by the system.
@@ -41,7 +41,7 @@ export interface Series {
 }
 
 export interface ScatterSeries {
-    name: string; // TODO: Make name optional
+    name?: string;
     /**
      * Color of the series, in hex format (e.g. "#FF0000" for red).
      * If not specified, the color will be auto-selected by the system.
@@ -56,7 +56,7 @@ export interface ScatterValue {
 }
 
 export interface BubbleSeries {
-    name: string; // TODO: Make name optional
+    name?: string;
     /**
      * Color of the series, in hex format (e.g. "#FF0000" for red).
      * If not specified, the color will be auto-selected by the system.

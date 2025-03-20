@@ -4,7 +4,6 @@ import { officeMarkup, OmlNode } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { xml } from "src/xml";
 import { ChartContent } from "./chartContent";
-import { isScatterChartData, isStandardChartData } from "./chartData";
 import { updateChart } from "./updateChart";
 
 export class ChartPlugin extends TemplatePlugin {
@@ -81,5 +80,5 @@ function updateTitle(tag: Tag, newTitle: string) {
 }
 
 function chartHasData(content: ChartContent) {
-    return isStandardChartData(content) || isScatterChartData(content);
+    return !!content?.series?.length;
 }

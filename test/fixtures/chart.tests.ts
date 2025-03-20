@@ -227,6 +227,30 @@ describe("chart fixtures", () => {
 
             await verifySnapshot("chart - line - date categories with format code", doc);
         });
+
+        test("no series names", async () => {
+
+            const chartData: ChartContent = {
+                _type: "chart",
+                categories: {
+                    names: ["Q1", "Q2", "Q3", "Q4"]
+                },
+                series: [
+                    { values: [100, 310, 220, 450] },
+                    { values: [200, 300, 350, 411] },
+                    { values: [80, 120, 140, 600] },
+                ],
+            };
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - line.docx");
+            const doc = await handler.process(template, {
+                MyChart: chartData
+            });
+
+            await verifySnapshot("chart - line - no series names", doc);
+        });
     });
 
     describe("bar chart", () => {
