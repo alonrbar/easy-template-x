@@ -87,45 +87,45 @@ export const chartTypes = Object.freeze({
     bubbleChart: "c:bubbleChart",
 } as const);
 
-export const numberingFormats = Object.freeze({
-    "General": "General",
-    "Integer": "0",
-    "Decimal (2 places)": "0.00",
-    "Thousands separator": "#,##0",
-    "Thousands separator (2 decimal places)": "#,##0.00",
-    "Thousands separator (with parentheses for negatives)": "#,##0 ;(#,##0)",
-    "Thousands separator (red negatives)": "#,##0 ;[Red](#,##0)",
-    "Thousands separator (2 decimals, parentheses for negatives)": "#,##0.00;(#,##0.00)",
-    "Thousands separator (2 decimals, red negatives)": "#,##0.00;[Red](#,##0.00)",
-    "Percentage": "0%",
-    "Percentage (2 decimal places)": "0.00%",
-    "Scientific": "0.00E+00",
-    "Scientific (1 decimal)": "##0.0E+0",
-    "Fraction (single digit)": "# ?/?",
-    "Fraction (double digit)": "# ??/?",
-    "Text": "@",
+export const NumberingFormatValues = Object.freeze({
+    General: "General",
+    Integer: "0",
+    Decimal_2Places: "0.00",
+    ThousandsSeparator: "#,##0",
+    ThousandsSeparator_2DecimalPlaces: "#,##0.00",
+    ThousandsSeparator_ParenthesesForNegatives: "#,##0 ;(#,##0)",
+    ThousandsSeparator_RedNegatives: "#,##0 ;[Red](#,##0)",
+    ThousandsSeparator_2DecimalPlaces_ParenthesesForNegatives: "#,##0.00;(#,##0.00)",
+    ThousandsSeparator_2DecimalPlaces_RedNegatives: "#,##0.00;[Red](#,##0.00)",
+    Percentage: "0%",
+    Percentage_2DecimalPlaces: "0.00%",
+    Scientific: "0.00E+00",
+    Scientific_1DecimalPlace: "##0.0E+0",
+    Fraction_SingleDigit: "# ?/?",
+    Fraction_DoubleDigit: "# ??/?",
+    Text: "@",
 } as const);
 
-export type NumberingFormat = typeof numberingFormats[keyof typeof numberingFormats];
+export type NumberingFormat = typeof NumberingFormatValues[keyof typeof NumberingFormatValues];
 
-export const dateTimeFormats = Object.freeze({
-    "General": "General",
-    "Short date (MM-DD-YY)": "mm-dd-yy",
-    "Date (Day-Month-Year)": "d-mmm-yy",
-    "Date (Day-Month)": "d-mmm",
-    "Date (Month-Year)": "mmm-yy",
-    "Time (12-hour)": "h:mm AM/PM",
-    "Time (12-hour with seconds)": "h:mm:ss AM/PM",
-    "Time (24-hour)": "h:mm",
-    "Time (24-hour with seconds)": "h:mm:ss",
-    "Date-Time (Short format)": "m/d/yy h:mm",
-    "Time (Minutes:Seconds)": "mm:ss",
-    "Time (Elapsed hours:minutes:seconds)": "[h]:mm:ss",
-    "Time (Compact minutes/seconds with decimal)": "mmss.0",
-    "Text": "@",
+export const DateTimeFormatValues = Object.freeze({
+    General: "General",
+    Date_Short: "mm-dd-yy",
+    Date_DayMonthYear: "d-mmm-yy",
+    Date_DayMonth: "d-mmm",
+    Date_MonthYear: "mmm-yy",
+    Time_12Hour: "h:mm AM/PM",
+    Time_12Hour_WithSeconds: "h:mm:ss AM/PM",
+    Time_24Hour: "h:mm",
+    Time_24Hour_WithSeconds: "h:mm:ss",
+    DateTime_Short: "m/d/yy h:mm",
+    Time_MinutesSeconds: "mm:ss",
+    Time_ElapsedHoursMinutesSeconds: "[h]:mm:ss",
+    Time_CompactMinutesSecondsWithDecimal: "mmss.0",
+    Text: "@",
 } as const);
 
-export type DateTimeFormat = typeof dateTimeFormats[keyof typeof dateTimeFormats];
+export type DateTimeFormat = typeof DateTimeFormatValues[keyof typeof DateTimeFormatValues];
 
 // Section 18.8.30 of the ECMA-376 standard
 // https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.numberingformat

@@ -1,5 +1,6 @@
 import { RelType, Xlsx } from "src/office";
 import { ChartContent } from "src/plugins/chart/chartContent";
+import { DateTimeFormatValues, NumberingFormatValues } from "src/plugins/chart/chartData";
 import { TemplateHandler } from "src/templateHandler";
 import { writeTempFile } from "test/testUtils";
 import { readFixture } from "./fixtureUtils";
@@ -158,7 +159,7 @@ describe("chart fixtures", () => {
             const chartData: ChartContent = {
                 _type: "chart",
                 categories: {
-                    formatCode: "0.00E+00",
+                    formatCode: NumberingFormatValues.Scientific,
                     names: [1, 2.5, 3.33, 4.2]
                 },
                 series: [
@@ -207,7 +208,7 @@ describe("chart fixtures", () => {
             const chartData: ChartContent = {
                 _type: "chart",
                 categories: {
-                    formatCode: "mmm-yy",
+                    formatCode: DateTimeFormatValues.Date_MonthYear,
                     names: [new Date("2020-01-11"), new Date("2020-02-12"), new Date("2020-03-13"), new Date("2020-04-14")]
                 },
                 series: [
