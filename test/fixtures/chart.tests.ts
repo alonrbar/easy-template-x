@@ -128,6 +128,104 @@ describe("chart fixtures", () => {
 
             await verifySnapshot("chart - line - title", doc);
         });
+
+        test("numeric categories - without format code", async () => {
+
+            const chartData: ChartContent = {
+                _type: "chart",
+                categories: {
+                    names: [1, 2, 3, 4]
+                },
+                series: [
+                    { name: "Car", values: [100, 310, 220, 450] },
+                    { name: "Truck", values: [200, 300, 350, 411] },
+                    { name: "Van", values: [80, 120, 140, 600] },
+                ],
+            };
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - line.docx");
+            const doc = await handler.process(template, {
+                MyChart: chartData
+            });
+
+            await verifySnapshot("chart - line - numeric categories", doc);
+        });
+
+        test("numeric categories - with format code", async () => {
+
+            const chartData: ChartContent = {
+                _type: "chart",
+                categories: {
+                    formatCode: "0.00E+00",
+                    names: [1, 2.5, 3.33, 4.2]
+                },
+                series: [
+                    { name: "Car", values: [100, 310, 220, 450] },
+                    { name: "Truck", values: [200, 300, 350, 411] },
+                    { name: "Van", values: [80, 120, 140, 600] },
+                ],
+            };
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - line.docx");
+            const doc = await handler.process(template, {
+                MyChart: chartData
+            });
+
+            await verifySnapshot("chart - line - numeric categories with format code", doc);
+        });
+
+        test("date categories - without format code", async () => {
+
+            const chartData: ChartContent = {
+                _type: "chart",
+                categories: {
+                    names: [new Date("2020-01-01"), new Date("2020-02-02"), new Date("2020-03-03"), new Date("2020-04-04")]
+                },
+                series: [
+                    { name: "Car", values: [100, 310, 220, 450] },
+                    { name: "Truck", values: [200, 300, 350, 411] },
+                    { name: "Van", values: [80, 120, 140, 600] },
+                ],
+            };
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - line.docx");
+            const doc = await handler.process(template, {
+                MyChart: chartData
+            });
+
+            await verifySnapshot("chart - line - date categories", doc);
+        });
+
+        test("date categories - with format code", async () => {
+
+            const chartData: ChartContent = {
+                _type: "chart",
+                categories: {
+                    formatCode: "mmm-yy",
+                    names: [new Date("2020-01-11"), new Date("2020-02-12"), new Date("2020-03-13"), new Date("2020-04-14")]
+                },
+                series: [
+                    { name: "Car", values: [100, 310, 220, 450] },
+                    { name: "Truck", values: [200, 300, 350, 411] },
+                    { name: "Van", values: [80, 120, 140, 600] },
+                ],
+            };
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - line.docx");
+            const doc = await handler.process(template, {
+                MyChart: chartData
+            });
+
+            await verifySnapshot("chart - line - date categories with format code", doc);
+        });
     });
 
     describe("bar chart", () => {

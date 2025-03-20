@@ -8,7 +8,7 @@ import {
     ChartData,
     chartTypes,
     formatCode,
-    formatCodes,
+    formatIds,
     isBubbleChartData,
     isScatterChartData,
     isStandardChartData,
@@ -122,11 +122,19 @@ function readFirstSeries(chartNode: XmlNode, chartData: ChartData): FirstSeriesD
     const shapeProperties = firstSeries?.childNodes?.find(child => child.nodeName === "c:spPr");
     const chartExtensibility = firstSeries?.childNodes?.find(child => child.nodeName === "c:extLst");
 
+    const formatCode = firstSeries?.
+        childNodes?.find(child => child.nodeName === "c:cat")?.
+        childNodes?.find(child => child.nodeName === "c:numRef")?.
+        childNodes?.find(child => child.nodeName === "c:numCache")?.
+        childNodes?.find(child => child.nodeName === "c:formatCode")?.
+        childNodes?.find(child => xml.query.isTextNode(child))?.
+        textContent;
+
     return {
         sheetName,
         shapePropertiesMarkup: xml.parser.serializeNode(shapeProperties),
         chartSpecificMarkup: chartSpecificMarkup(firstSeries),
-        categoriesMarkup: categoriesMarkup(chartData, sheetName),
+        categoriesMarkup: categoriesMarkup(chartData, sheetName, formatCode),
         chartExtensibilityMarkup: xml.parser.serializeNode(chartExtensibility),
     };
 }
@@ -148,21 +156,28 @@ function getSheetName(firstSeries: XmlNode): string {
     return formula.textContent?.split('!')[0];
 }
 
-function categoriesMarkup(chartData: ChartData, sheetName: string): string {
+function categoriesMarkup(chartData: ChartData, sheetName: string, firstSeriesFormatCode: string): string {
     if (isScatterChartData(chartData)) {
         return scatterXValuesMarkup(chartData, sheetName);
     }
 
-    return standardCategoriesMarkup(chartData, sheetName);
+    return standardCategoriesMarkup(chartData, sheetName, firstSeriesFormatCode);
 }
 
-function standardCategoriesMarkup(chartData: StandardChartData, sheetName: string): string {
+function standardCategoriesMarkup(chartData: StandardChartData, sheetName: string, firstSeriesFormatCode: string): string {
+
+    function getCategoryName(name: unknown): any {
+        if (name instanceof Date) {
+            return excelDateValue(name);
+        }
+        return name;
+    }
 
     const ptNodes = `
         <c:ptCount val="${chartData.categories.names.length}"/>
         ${chartData.categories.names.map((name, index) => `
             <c:pt idx="${index}">
-                <c:v>${name}</c:v>
+                <c:v>${getCategoryName(name)}</c:v>
             </c:pt>
         `).join("\n")}
     `;
@@ -207,12 +222,16 @@ function standardCategoriesMarkup(chartData: StandardChartData, sheetName: strin
     }
 
     // Number reference
+    const formatCodeValue = chartData.categories.formatCode ?
+        formatCode(chartData.categories) :
+        firstSeriesFormatCode ?? formatCode(chartData.categories);
+
     return `
         <c:cat>
             <c:numRef>
                 <c:f>${formula}</c:f>
                 <c:numCache>
-                    <c:formatCode>${formatCodes[chartData.categories.formatCode]}</c:formatCode>
+                    <c:formatCode>${formatCodeValue}</c:formatCode>
                     ${ptNodes}
                 </c:numCache>
             </c:numRef>
@@ -394,7 +413,7 @@ function standardValuesMarkup(seriesIndex: number, chartData: StandardChartData,
             <c:numRef>
                 <c:f>${formula}</c:f>
                 <c:numCache>
-                    <c:formatCode>${formatCodes[formatCode(chartData.categories)]}</c:formatCode>
+                    <c:formatCode>General</c:formatCode>
                     <c:ptCount val="${chartData.categories.names.length}" />
                         ${chartData.categories.names.map((name, catIndex) => `
                             <c:pt idx="${catIndex}">
@@ -713,10 +732,20 @@ async function updateSheetRootStandard(workbookPart: OpenXmlPart, sheetRoot: Xml
     const categoryDataTypeAttribute = isStringCategories(chartData.categories) ? ` t="s"` : "";
     const categoryStyleIdAttribute = await updateStylesPart(workbookPart, sheetRoot, chartData.categories);
 
+    function getCategoryName(name: unknown): any {
+        if (name instanceof Date) {
+            return excelDateValue(name);
+        }
+        if (typeof name === "string") {
+            return sharedStrings[name];
+        }
+        return name;
+    }
+
     const otherRows = chartData.categories.names.map((name, rowIndex) => `
         <row r="${rowIndex + 2}" spans="1:${chartData.series.length + 1}">
             <c r="${excelRowAndColumnId(rowIndex + 1, 0)}"${categoryDataTypeAttribute}${categoryStyleIdAttribute}>
-                <v>${isStringCategories(chartData.categories) ? sharedStrings[name as string] : name}</v>
+                <v>${getCategoryName(name)}</v>
             </c>
             ${chartData.series.map((s, columnIndex) => `
                 <c r="${excelRowAndColumnId(rowIndex + 1, columnIndex + 1)}">
@@ -777,7 +806,7 @@ async function updateSheetRootScatter(workbookPart: OpenXmlPart, sheetRoot: XmlN
         return chartData.series.map((s, seriesIndex) => {
             const baseIndex = isBubbleChart ? seriesIndex * 2 : seriesIndex;
 
-            const yValueColumn =  `
+            const yValueColumn = `
                 <c r="${excelRowAndColumnId(rowIndex + 1, baseIndex + 1)}">
                     <v>${yValues[seriesIndex][rowIndex]}</v>
                 </c>
@@ -891,7 +920,7 @@ async function updateStylesPart(workbookPart: OpenXmlPart, sheetRoot: XmlNode, c
     const count = parseInt(cellXfs.attributes["count"]);
     cellXfs.attributes["count"] = (count + 1).toString();
     xml.modify.appendChild(cellXfs, parseXmlNode(`
-        <xf numFmtId="${categories.formatCode}" fontId="0" fillId="0" borderId="0" applyNumberFormat="1"/>
+        <xf numFmtId="${formatIds[formatCode(categories)]}" fontId="0" fillId="0" borderId="0" applyNumberFormat="1"/>
     `));
 
     return `s="${count}"`;
@@ -930,6 +959,12 @@ function excelColumnId(i: number): string {
 
 function excelRowAndColumnId(row: number, col: number): string {
     return excelColumnId(col) + (row + 1).toString();
+}
+
+function excelDateValue(date: Date): number {
+    const millisPerDay = 86400000;
+    const excelEpoch = new Date("1899-12-30");
+    return (date.getTime() - excelEpoch.getTime()) / millisPerDay;
 }
 
 function parseXmlNode(xmlString: string): XmlNode {
