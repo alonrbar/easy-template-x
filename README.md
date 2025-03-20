@@ -33,6 +33,7 @@ Generate docx documents from templates, in Node or in the browser.
     - [Controlling loop behavior](#controlling-loop-behavior)
   - [Image plugin](#image-plugin)
   - [Link plugin](#link-plugin)
+  - [Chart plugin](#chart-plugin)
   - [Raw xml plugin](#raw-xml-plugin)
   - [Writing custom plugins](#writing-your-own-plugins)
 - [Listing tags](#listing-tags)
@@ -149,6 +150,7 @@ These are the plugins that comes bundled with `easy-template-x`:
 - [Loop plugin](#loop-plugin) - For iterating text, table rows, table columns and list rows and for simple conditions.
 - [Image plugin](#image-plugin) - For embedding images.
 - [Link plugin](#link-plugin) - For hyperlinks creation.
+- [Chart plugin](#chart-plugin) - For handling charts.
 - [Raw xml plugin](#raw-xml-plugin) - For custom xml insertion.
 
 ### Text plugin
@@ -379,6 +381,173 @@ Input data:
 Output document:
 
 ![output document](./docs/assets/link-plugin-out.png?raw=true)
+
+### Chart plugin
+
+To use charts in templates, put a placeholder chart and place a tag in its title, like so:
+
+![chart placeholder](./docs/assets/chart-placeholder.png?raw=true)
+
+The expected input data depends on the chart type.
+
+#### Line, bar & column charts
+
+Line, bar & column charts all uses the same input data format.
+
+Input template:
+
+![input template](./docs/assets/chart-plugin-line-in.png?raw=true)
+
+Input data:
+
+```javascript
+{
+    MyChart: {
+        _type: "chart",
+        title: "Easy Chart", // Optional
+        categories: {
+            names: ["Q1", "Q2", "Q3", "Q4"]
+        },
+        series: [
+            { 
+                name: "Earnings",  // Optional
+                color: "#34d399", // Optional
+                values: [100, 210, 150, 170] 
+            },
+            { 
+                name: "Expenses",
+                color: "#f87171",
+                values: [170, 165, 169, 155] 
+            },
+        ],
+    }
+}
+```
+
+Output document:
+
+![output document](./docs/assets/chart-plugin-line-out.png?raw=true)
+
+#### Pie & doughnut charts
+
+Pie & doughnut uses the same input data format as line, bar and column chart,
+expect they expect a single series.
+
+Input template:
+
+![input template](./docs/assets/chart-plugin-pie-in.png?raw=true)
+
+Input data:
+
+```javascript
+{
+    Chart1: {
+        _type: "chart",
+        title: "Easy Chart", // Optional
+        categories: {
+            names: ["Q1", "Q2", "Q3", "Q4"]
+        },
+        series: [
+            { values: [100, 210, 150, 170] },
+        ],
+    }
+}
+```
+
+Output document:
+
+![output document](./docs/assets/chart-plugin-pie-out.png?raw=true)
+
+#### Scatter chart
+
+Scatter chart do not have a `categories` property. Instead, each of their values requires an `x` and `y` properties.
+
+Input template:
+
+![input template](./docs/assets/chart-plugin-scatter-in.png?raw=true)
+
+Input data:
+
+```javascript
+{
+    scatter: {
+        _type: "chart",
+        title: "Easy Scatter Chart", // Optional
+        series: [
+            { 
+                name: "Earnings", // Optional
+                color: "#34d399", // Optional
+                values: [
+                    { x: 1, y: 310 },
+                    { x: 3, y: 450 },
+                    { x: 4, y: 200 },
+                    { x: 6, y: 200 },
+                ],
+            },
+            { 
+                name: "Expenses",
+                color: "#f87171",
+                values: [
+                    { x: 1, y: 410 },
+                    { x: 2, y: 450 },
+                    { x: 3, y: 200 },
+                    { x: 5, y: 350 },
+                ],
+            },
+        ],
+    }
+}
+```
+
+Output document:
+
+![output document](./docs/assets/chart-plugin-scatter-out.png?raw=true)
+
+#### Bubble chart
+
+Bubble charts are very similar to scatter charts but they have an additional
+`size` property (notice the placeholder chart should be a bubble chart, not a
+scatter chart).
+
+Input template:
+
+![input template](./docs/assets/chart-plugin-bubble-in.png?raw=true)
+
+Input data:
+
+```javascript
+{
+    bubble: {
+        _type: "chart",
+        title: "Bubble Chart", // Optional
+        series: [
+            { 
+                name: "Earnings", // Optional
+                color: "#34d399", // Optional
+                values: [
+                    { x: 1, y: 10, size: 10 },
+                    { x: 2, y: 10, size: 20 },
+                    { x: 3, y: 8, size: 40 },
+                    { x: 4, y: 8, size: 30 },
+                ],
+            },
+            { 
+                name: "Expenses",
+                color: "#f87171",
+                values: [
+                    { x: 1, y: 4, size: 40 },
+                    { x: 2, y: 4, size: 20 },
+                    { x: 3, y: 3, size: 30 },
+                ],
+            },
+        ],
+    }
+}
+```
+
+Output document:
+
+![output document](./docs/assets/chart-plugin-bubble-out.png?raw=true)
 
 ### Raw xml plugin
 

@@ -1,9 +1,11 @@
+import * as fs from "fs";
 import { RelType, Xlsx } from "src/office";
 import { ChartContent } from "src/plugins/chart/chartContent";
 import { DateTimeFormatValues, NumberingFormatValues } from "src/plugins/chart/chartData";
 import { TemplateHandler } from "src/templateHandler";
 import { writeTempFile } from "test/testUtils";
 import { readFixture } from "./fixtureUtils";
+import { TemplateData } from "src";
 
 describe("chart fixtures", () => {
 
@@ -267,27 +269,38 @@ describe("chart fixtures", () => {
 
         test("with data", async () => {
 
-            const chartData: ChartContent = {
-                _type: "chart",
-                categories: {
-                    names: ["Q1", "Q2", "Q3", "Q4"]
-                },
-                series: [
-                    { name: "Car", values: [100, 310, 220, 450] },
-                    { name: "Truck", values: [200, 300, 350, 411] },
-                    { name: "Van", values: [80, 120, 140, 600] },
-                ],
-            };
-
             const handler = new TemplateHandler();
 
-            const template = readFixture("chart - bar.docx");
+            const template = fs.readFileSync("/temp/bubble.docx");
             const doc = await handler.process(template, {
-                chart1: chartData,
-                chart2: chartData,
+                bubble: {
+                    _type: "chart",
+                    title: "Bubble Chart", // Optional
+                    series: [
+                        {
+                            name: "Earnings", // Optional
+                            color: "#34d399", // Optional
+                            values: [
+                                { x: 1, y: 10, size: 10 },
+                                { x: 2, y: 10, size: 20 },
+                                { x: 3, y: 8, size: 40 },
+                                { x: 4, y: 8, size: 30 },
+                            ],
+                        },
+                        {
+                            name: "Expenses",
+                            color: "#f87171",
+                            values: [
+                                { x: 1, y: 4, size: 40 },
+                                { x: 2, y: 4, size: 20 },
+                                { x: 3, y: 3, size: 30 },
+                            ],
+                        },
+                    ],
+                }
             });
 
-            await verifySnapshot("chart - bar", doc);
+            await verifySnapshot("res", doc);
         });
     });
 
@@ -504,7 +517,7 @@ describe("chart fixtures", () => {
 async function verifySnapshot(testCaseName: string, doc: Buffer) {
 
     // eslint-disable-next-line no-constant-condition
-    if (false) {
+    if (true) {
         writeTempFile(`${testCaseName} - output.docx`, doc);
         return;
     }
