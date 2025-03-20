@@ -1,6 +1,7 @@
 
 export interface PluginContent {
     _type: string;
+    [key: string]: unknown;
 }
 
 export const PluginContent = {
