@@ -1,7 +1,13 @@
 
-export interface ChartData {
+export type ChartData = StandardChartData | ScatterChartData;
+
+export interface StandardChartData {
     categories: Categories;
     series: Series[];
+}
+
+export interface ScatterChartData {
+    series: ScatterSeries[];
 }
 
 export type Categories = NumericCategories | StringCategories | DateCategories;
@@ -28,6 +34,27 @@ export interface Series {
      */
     color?: string;
     values: number[];
+}
+
+export interface ScatterSeries {
+    name: string; // TODO: Make name optional
+    /**
+     * Color of the series, in hex format (e.g. "#FF0000" for red).
+     * If not specified, the color will be auto-selected by the system.
+     */
+    color?: string;
+    values: ScatterValue[];
+}
+
+export interface ScatterValue {
+    x: number;
+    y: number;
+    size?: number;
+    /**
+     * Color of the point, in hex format (e.g. "#FF0000" for red).
+     * If not specified, the color will match the series color.
+     */
+    color?: string;
 }
 
 export const chartTypes = Object.freeze({
@@ -87,6 +114,15 @@ export type FormatCode = keyof typeof formatCodes;
 //
 // Functions
 //
+
+export function isStandardChartData(chartData: ChartData): chartData is StandardChartData {
+    return "categories" in chartData;
+}
+
+export function isScatterChartData(chartData: ChartData): chartData is ScatterChartData {
+    // Simple, but until we have additional ChartData types, it's enough
+    return !isStandardChartData(chartData) && "series" in chartData;
+}
 
 export function isStringCategories(categories: Categories): categories is StringCategories {
     const first = categories.names[0];

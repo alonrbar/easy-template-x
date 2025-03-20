@@ -1,7 +1,19 @@
+import { ArgumentError } from "src/errors";
 import { OmlAttribute, OpenXmlPart, RelType, Xlsx } from "src/office";
 import { IMap } from "src/types";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
-import { Categories, ChartData, chartTypes, formatCode, formatCodes, isStringCategories } from "./chartData";
+import {
+    Categories,
+    ChartData,
+    chartTypes,
+    formatCode,
+    formatCodes,
+    isScatterChartData,
+    isStandardChartData,
+    isStringCategories,
+    ScatterChartData,
+    StandardChartData
+} from "./chartData";
 
 // Based on: https://github.com/OpenXmlDev/Open-Xml-PowerTools/blob/vNext/OpenXmlPowerTools/ChartUpdater.cs
 
@@ -10,11 +22,7 @@ const space = " ";
 export async function updateChart(chartPart: OpenXmlPart, chartData: ChartData) {
 
     // Input validation
-    for (const ser of chartData.series) {
-        if (ser.values.length != chartData.categories.names.length) {
-            throw new Error("Invalid chart data. Series values and category names must have the same length.");
-        }
-    }
+    validateChartData(chartData);
 
     // Get the chart node
     const root = await chartPart.xmlRoot();
@@ -47,6 +55,46 @@ export async function updateChart(chartPart: OpenXmlPart, chartData: ChartData) 
 
     // Update inline series
     updateInlineSeries(chartNode, firstSeries, chartData);
+}
+
+function validateChartData(chartData: ChartData) {
+    if (isStandardChartData(chartData)) {
+        for (const ser of chartData.series) {
+
+            // Check if the series values and category names have the same length (same number of x and y values)
+            if (ser.values.length != chartData.categories.names.length) {
+                throw new ArgumentError("Invalid chart data. Series values and category names must have the same length.");
+            }
+
+            // Verify series values are numbers
+            for (const val of ser.values) {
+                if (val === null || val === undefined) {
+                    continue;
+                }
+                if (typeof val === "number") {
+                    continue;
+                }
+                throw new ArgumentError("Invalid chart data. Series values must be numbers.");
+            }
+        }
+        return;
+    }
+
+    if (isScatterChartData(chartData)) {
+        for (const ser of chartData.series) {
+            for (const val of ser.values) {
+
+                // Verify series values are valid point objects
+                if (typeof val === "object" && "x" in val && "y" in val) {
+                    continue;
+                }
+                throw new ArgumentError("Invalid scatter chart data. Series values must contain x and y properties.");
+            }
+        }
+        return;
+    }
+
+    throw new ArgumentError("Invalid chart data: " + JSON.stringify(chartData));
 }
 
 //
@@ -96,6 +144,9 @@ function getSheetName(firstSeries: XmlNode): string {
 }
 
 function categoriesMarkup(chartData: ChartData, sheetName: string): string {
+    if (!isStandardChartData(chartData)) {
+        return "";
+    }
 
     const ptNodes = `
         <c:ptCount val="${chartData.categories.names.length}"/>
@@ -161,7 +212,7 @@ function categoriesMarkup(chartData: ChartData, sheetName: string): string {
 
 function chartSpecificMarkup(firstSeries: XmlNode): string {
     if (!firstSeries) {
-        return null;
+        return "";
     }
 
     const pictureOptions = firstSeries.childNodes?.find(child => child.nodeName === "c:pictureOptions");
@@ -259,6 +310,15 @@ function titleMarkup(seriesName: string, seriesIndex: number, sheetName: string)
 }
 
 function valuesMarkup(seriesIndex: number, chartData: ChartData, sheetName: string): string {
+
+    if (isScatterChartData(chartData)) {
+        return scatterValuesMarkup(seriesIndex, chartData);
+    }
+
+    return standardValuesMarkup(seriesIndex, chartData, sheetName);
+}
+
+function standardValuesMarkup(seriesIndex: number, chartData: StandardChartData, sheetName: string): string {
     if (!sheetName) {
 
         // Number literal
@@ -295,6 +355,11 @@ function valuesMarkup(seriesIndex: number, chartData: ChartData, sheetName: stri
             </c:numRef>
         </c:val>
     `;
+}
+
+function scatterValuesMarkup(seriesIndex: number, chartData: ScatterChartData): string {
+    // TODO: Implement
+    return null;
 }
 
 function selectSeriesColor(seriesIndex: number, chartData: ChartData): string | number {
@@ -410,13 +475,22 @@ async function updateSharedStringsPart(workbookPart: OpenXmlPart, chartData: Cha
         count++;
     }
 
-    // Add strings
-    addString(space);
-    if (isStringCategories(chartData.categories)) {
+    // Default strings
+    if (isStandardChartData(chartData)) {
+        addString(space);
+    }
+    if (isScatterChartData(chartData)) {
+        addString("X-Values");
+    }
+
+    // Category strings
+    if (isStandardChartData(chartData) && isStringCategories(chartData.categories)) {
         for (const name of chartData.categories.names) {
             addString(name);
         }
     }
+
+    // Series strings
     for (const name of chartData.series.map(s => s.name)) {
         addString(name);
     }
@@ -446,6 +520,17 @@ async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, sha
         return null;
     }
     const sheetRoot = await sheetPart.xmlRoot();
+
+    if (isStandardChartData(chartData)) {
+        await updateSheetRootStandard(workbookPart, sheetRoot, chartData, sharedStrings);
+    } else if (isScatterChartData(chartData)) {
+        await updateSheetRootScatter(workbookPart, sheetRoot, chartData, sharedStrings);
+    }
+
+    return sheetPart;
+}
+
+async function updateSheetRootStandard(workbookPart: OpenXmlPart, sheetRoot: XmlNode, chartData: StandardChartData, sharedStrings: IMap<number>) {
 
     // Create first row
     const firstRow = `
@@ -484,8 +569,10 @@ async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, sha
     for (const row of otherRows) {
         xml.modify.appendChild(sheetDataNode, parseXmlNode(row));
     }
+}
 
-    return sheetPart;
+async function updateSheetRootScatter(workbookPart: OpenXmlPart, sheetRoot: XmlNode, chartData: ScatterChartData, sharedStrings: IMap<number>) {
+    // TODO: Implement
 }
 
 async function updateTablePart(sheetPart: OpenXmlPart, chartData: ChartData) {
@@ -497,15 +584,16 @@ async function updateTablePart(sheetPart: OpenXmlPart, chartData: ChartData) {
 
     // Update ref attribute
     const tablePartRoot = await tablePart.xmlRoot() as XmlGeneralNode;
-    tablePartRoot.attributes["ref"] = `A1:${excelRowAndColumnId(chartData.categories.names.length, chartData.series.length)}`;
+    tablePartRoot.attributes["ref"] = `A1:${excelRowAndColumnId(tableRowsCount(chartData), chartData.series.length)}`;
 
     // Find old table columns
     const tableColumnsNode = tablePartRoot.childNodes?.find(child => child.nodeName === "tableColumns");
 
     // Add new table columns
+    const firstColumnName = isScatterChartData(chartData) ? "X-Values" : space;
     const tableColumns = `
         <tableColumns count="${chartData.series.length + 1}">
-            <tableColumn id="1" name=" "/>
+            <tableColumn id="1" name="${firstColumnName}"/>
             ${chartData.series.map((s, index) => `
                 <tableColumn id="${index + 2}" name="${s.name}"/>
             `).join("\n")}
@@ -515,6 +603,16 @@ async function updateTablePart(sheetPart: OpenXmlPart, chartData: ChartData) {
 
     // Remove old table columns
     xml.modify.removeChild(tablePartRoot, tableColumnsNode);
+}
+
+function tableRowsCount(chartData: ChartData): number {
+
+    if (isScatterChartData(chartData)) {
+        const uniqueXValues = new Set(chartData.series.flatMap(s => s.values.map(v => v.x)));
+        return uniqueXValues.size;
+    }
+
+    return chartData.categories.names.length;
 }
 
 async function updateStylesPart(workbookPart: OpenXmlPart, sheetRoot: XmlNode, categories: Categories): Promise<string> {

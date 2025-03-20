@@ -4,6 +4,7 @@ import { officeMarkup, OmlNode } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { xml } from "src/xml";
 import { ChartContent } from "./chartContent";
+import { isScatterChartData, isStandardChartData } from "./chartData";
 import { updateChart } from "./updateChart";
 
 export class ChartPlugin extends TemplatePlugin {
@@ -30,14 +31,8 @@ export class ChartPlugin extends TemplatePlugin {
             officeMarkup.modify.removeTag(tag.xmlTextNode);
         }
 
-        if (!content.categories?.names?.length && !content?.series?.length) {
+        if (!chartHasData(content)) {
             return;
-        }
-        if (!content.categories?.names?.length || !content.series?.length) {
-            throw new ArgumentError(
-                `Chart must either specify both categories and series values or none of them. ` +
-                `Found ${content.categories?.names?.length ?? 0} categories and ${content.series?.length ?? 0} series.`
-            );
         }
 
         // Update the chart
@@ -83,4 +78,8 @@ function updateTitle(tag: Tag, newTitle: string) {
         // Add the text node to the new run
         xml.modify.appendChild(newRun, lastTextNode);
     }
+}
+
+function chartHasData(content: ChartContent) {
+    return isStandardChartData(content) || isScatterChartData(content);
 }
