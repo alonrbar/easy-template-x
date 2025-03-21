@@ -12,7 +12,7 @@
   commit](https://github.com/alonrbar/easy-template-x/commit/1d0fb0b5e64503bbb5105819f70edcfe2eba9fdd)
   for a demonstration of the changes. This change should not effect you if you
   do not develop or use third-party plugins.
-- **BREAKING** - There have been some changes to the `TemplateHandler.getText`
+- **BREAKING** - There have been some changes to the `TemplateHandler.parseTags`, `TemplateHandler.getText`
   and `TemplateHandler.getXml` method signatures. See the changes to
   TemplateHandler in [this
   commit](https://github.com/alonrbar/easy-template-x/commit/9fe1e3d9bb81c76cb55f6c10d476af16e4cc8a40)
