@@ -392,18 +392,24 @@ Generally speaking, the charts preserve their original settings and style with
 some configurations also available through the input json data.
 
 `easy-template-x` try to keep the same terminology used by MS Word. Therefore,
-while the exact expected input data depends on the chart type, the main terms
+while the exact input data schema depends on the chart type, the main terms
 are common to most:
 
 - **Categories** are the values of the X axis.
 - **Series** are the values of the Y axis.
 
-Take a look at the examples below to get a better understanding of how charts
+Take a look at the examples below to get a better understanding of how chart
 tags behave.
 
 #### Line, bar & column charts
 
 Line, bar & column charts all uses the same input data format.
+
+The example below shows 4 charts in the same template: Line chart, Column chart, Bar chart and Stacked Column chart. In this example all of the charts use the same input data (the `MyChart` tag data) but you can of course use a different tag for each chart.
+
+Notice how the end result ignores the placeholder data and matches our input data instead.
+
+Note that you are not limited to use the same number of categories or series as the placeholder chart. This specific example uses less series than the placeholder (2 instead of 3) but you can just as easily add more series or change the number of categories.
 
 Input template:
 
@@ -443,6 +449,8 @@ Output document:
 
 Pie & doughnut uses the same input data format as line, bar and column chart,
 except they expect a single series.
+
+The example below shows 4 charts in the same template: 2 pie charts and 2 doughnut charts, each with a different style.
 
 Input template:
 
@@ -620,7 +628,7 @@ export class RawXmlPlugin extends TemplatePlugin {
             // In MS Word each text node is wrapped by a <w:t> node so we retrieve that.
             const wordTextNode = officeMarkup.query.containingTextNode(tag.xmlTextNode);
 
-            // If it contains an "xml" string property, parse it and insert 
+            // If the input data contains an "xml" string property, parse it and insert 
             // the content next to the placeholder tag.
             const newNode = xml.parser.parse(value.xml);
             xml.modify.insertBefore(newNode, wordTextNode);

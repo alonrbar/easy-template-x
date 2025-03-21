@@ -1,16 +1,39 @@
 # Changelog
 
+## [6.0.0 - 2025-03-20](https://github.com/alonrbar/easy-template-x/tree/v6.0.0)
+
+## Added
+
+- Chart plugin ([#69](https://github.com/alonrbar/easy-template-x/issues/69)).
+
+### Changed
+
+- **BREAKING** - Changes to the plugin utilities. See [this
+  commit](https://github.com/alonrbar/easy-template-x/commit/1d0fb0b5e64503bbb5105819f70edcfe2eba9fdd)
+  for a demonstration of the changes. This change should not effect you if you
+  do not develop or use third-party plugins.
+- **BREAKING** - There have been some changes to the `TemplateHandler.getText`
+  and `TemplateHandler.getXml` method signatures. See the changes to
+  TemplateHandler in [this
+  commit](https://github.com/alonrbar/easy-template-x/commit/9fe1e3d9bb81c76cb55f6c10d476af16e4cc8a40)
+  for details.
+
+### Fixed
+
+- Fixed handling some cases of empty tag values.
+
 ## [5.1.0 - 2025-03-16](https://github.com/alonrbar/easy-template-x/tree/v5.1.0)
 
 ## Added
 
 - **BREAKING** - Table columns loop support
-  ([#41](https://github.com/alonrbar/easy-template-x/issues/41)). This change
-  makes loops that are wrapping a single column (i.e. loop tags in the same
-  column but different rows) to behave like a column loop, instead of row loop
-  as it was until now. This can be resolved by either changing the placement of
-  the opening and closing tags or using the `loopOver` option with a `column`
-  value.
+  ([#41](https://github.com/alonrbar/easy-template-x/issues/41)).  
+
+  This change makes loops that are wrapping a single column (i.e. loop tags in
+  the same column but different rows) to behave like a column loop, instead of
+  row loop as it was until now. If it breaks a template of yours, it can be
+  resolved by either changing the placement of the opening and closing tags or
+  using the `loopOver` option with a `column` value.
 
 ## [5.0.1 - 2025-01-31](https://github.com/alonrbar/easy-template-x/tree/v5.0.1)
 
@@ -23,7 +46,8 @@
 ### Fixed
 
 - **BREAKING** - Fix list conditions
-  ([#123](https://github.com/alonrbar/easy-template-x/issues/123)).  
+  ([#123](https://github.com/alonrbar/easy-template-x/issues/123)).
+
   It may break some templates that are using loops in lists but are sometimes
   passing empty values (e.g. null or undefined) to hide the list completely. In
   these cases they should pass an empty array instead, to make sure the list is
