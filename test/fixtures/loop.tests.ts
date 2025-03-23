@@ -516,5 +516,49 @@ describe('loop fixtures', () => {
             const docXml = await handler.getXml(doc);
             expect(docXml).toMatchSnapshot();
         });
+
+        test("styled table column loop", async () => {
+
+            const handler = new TemplateHandler({});
+
+            const template = readFixture("loop - table - columns with style.docx");
+            const templateText = await handler.getText(template);
+            expect(removeWhiteSpace(templateText)).toEqual(removeWhiteSpace(`
+                Student	{#Students}{Name}
+                Math	{MathGrade}
+                Science	{ScienceGrade}
+                History	{HistoryGrade}{/}
+            `));
+
+            const data = {
+                Students: [
+                    {
+                        Name: 'John Doe',
+                        MathGrade: 10,
+                        ScienceGrade: 11,
+                        HistoryGrade: 12,
+                    },
+                    {
+                        Name: 'Jane Smith',
+                        MathGrade: 20,
+                        ScienceGrade: 21,
+                        HistoryGrade: 22,
+                    },
+                ],
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docText = await handler.getText(doc);
+            expect(removeWhiteSpace(docText)).toEqual(removeWhiteSpace(`
+                Student    John Doe    Jane Smith
+                Math       10          20
+                Science    11          21
+                History    12          22
+            `));
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+        });
     });
 });

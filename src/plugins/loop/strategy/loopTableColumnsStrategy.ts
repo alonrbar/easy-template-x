@@ -42,11 +42,11 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
         if (!closeRow)
             return false;
 
-        const openColumnIndex = openRow.childNodes?.findIndex(child => child === openCell);
+        const openColumnIndex = this.getColumnIndex(openRow, openCell);
         if (openColumnIndex === -1)
             return false;
 
-        const closeColumnIndex = closeRow.childNodes?.findIndex(child => child === closeCell);
+        const closeColumnIndex = this.getColumnIndex(closeRow, closeCell);
         if (closeColumnIndex === -1)
             return false;
 
@@ -65,8 +65,8 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
         const firstRow = officeMarkup.query.containingTableRowNode(firstCell);
         const lastRow = officeMarkup.query.containingTableRowNode(lastCell);
 
-        const firstColumnIndex = firstRow.childNodes?.findIndex(child => child === firstCell);
-        const lastColumnIndex = lastRow.childNodes?.findIndex(child => child === lastCell);
+        const firstColumnIndex = this.getColumnIndex(firstRow, firstCell);
+        const lastColumnIndex = this.getColumnIndex(lastRow, lastCell);
 
         const table = officeMarkup.query.containingTableNode(firstCell);
 
@@ -89,19 +89,19 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
 
         const table = officeMarkup.query.containingTableNode(firstCell);
         const firstRow = officeMarkup.query.containingTableRowNode(firstCell);
-        const firstColumnIndex = firstRow.childNodes?.findIndex(child => child === firstCell);
+        const firstColumnIndex = this.getColumnIndex(firstRow, firstCell);
 
         const lastRow = officeMarkup.query.containingTableRowNode(lastCell);
-        const lastColumnIndex = lastRow.childNodes?.findIndex(child => child === lastCell);
+        const lastColumnIndex = this.getColumnIndex(lastRow, lastCell);
 
-        let index = firstColumnIndex + 1;
+        let index = firstColumnIndex;
         for (const colWrapperGroup of columnsWrapperGroups) {
             if (colWrapperGroup.length !== 1) {
                 throw new Error('Expected a single synthetic table as the columns wrapper.');
             }
 
             const colWrapper = colWrapperGroup[0];
-            this.insertColumnAtIndex(table, colWrapper, index);
+            this.insertColumnAfterIndex(table, colWrapper, index);
             index++;
         }
 
@@ -119,23 +119,23 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
         // For each row in the original table
         const rows = table.childNodes?.filter(node => node.nodeName === 'w:tr') || [];
         for (const row of rows) {
-            const newRow = xml.create.cloneNode(row, false);
+            const syntheticRow = xml.create.cloneNode(row, false);
             const cells = row.childNodes?.filter(node => node.nodeName === 'w:tc') || [];
 
             // Copy only the cells within our column range
             for (let i = firstColumnIndex; i <= lastColumnIndex; i++) {
                 if (cells[i]) {
-                    xml.modify.appendChild(newRow, xml.create.cloneNode(cells[i], true));
+                    xml.modify.appendChild(syntheticRow, xml.create.cloneNode(cells[i], true));
                 }
             }
 
-            xml.modify.appendChild(syntheticTable, newRow);
+            xml.modify.appendChild(syntheticTable, syntheticRow);
         }
 
         return syntheticTable;
     }
 
-    private insertColumnAtIndex(table: XmlNode, column: XmlNode, index: number): void {
+    private insertColumnAfterIndex(table: XmlNode, column: XmlNode, index: number): void {
         // Get all rows from both tables
         const sourceRows = column.childNodes?.filter(node => node.nodeName === 'w:tr') || [];
         const targetRows = table.childNodes?.filter(node => node.nodeName === 'w:tr') || [];
@@ -155,23 +155,35 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
                 throw new Error(`Cell not found in synthetic source table row ${i}.`);
             }
 
-            xml.modify.insertChild(targetRow, xml.create.cloneNode(sourceCell, true), index);
+            const targetCell = this.getColumnByIndex(targetRow, index);
+            const newCell = xml.create.cloneNode(sourceCell, true);
+            if (targetCell) {
+                xml.modify.insertAfter(newCell, targetCell);
+            } else {
+                xml.modify.appendChild(targetRow, newCell);
+            }
         }
     }
 
     private removeColumn(table: XmlNode, index: number): void {
         const rows = table.childNodes?.filter(node => node.nodeName === 'w:tr') || [];
         for (const row of rows) {
-            if (!row.childNodes) {
+
+            const cell = this.getColumnByIndex(row, index);
+            if (!cell) {
                 continue;
             }
 
-            if (row.childNodes.length <= index) {
-                continue;
-            }
-
-            xml.modify.remove(row.childNodes[index]);
+            xml.modify.remove(cell);
         }
+    }
+
+    private getColumnIndex(row: XmlNode, cell: XmlNode): number {
+        return row.childNodes?.filter(child => child.nodeName === 'w:tc')?.findIndex(child => child === cell);
+    }
+
+    private getColumnByIndex(row: XmlNode, index: number): XmlNode {
+        return row.childNodes?.filter(child => child.nodeName === 'w:tc')?.[index];
     }
 }
 
