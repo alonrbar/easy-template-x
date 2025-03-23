@@ -1,5 +1,11 @@
 # Changelog
 
+## [6.0.1 - 2025-03-23](https://github.com/alonrbar/easy-template-x/tree/v6.0.1)
+
+### Fixed
+
+- Table column loop when table has custom styles.
+
 ## [6.0.0 - 2025-03-20](https://github.com/alonrbar/easy-template-x/tree/v6.0.0)
 
 ## Added
