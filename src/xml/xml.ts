@@ -23,7 +23,13 @@ class Parser {
      * handles xml namespaces more forgivingly (required mainly by the
      * RawXmlPlugin).
      */
-    private static readonly parser = new DOMParser();
+    private static readonly parser = new DOMParser({
+        errorHandler: {
+            // Ignore xmldom warnings. They are often incorrect since we are
+            // parsing OOXML, not HTML.
+            warning: () => { },
+        }
+    });
 
     public parse(str: string): XmlNode {
         const doc = this.domParse(str);
