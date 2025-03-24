@@ -76,13 +76,10 @@ export const chartTypes = Object.freeze({
     barChart: "c:barChart",
     line3DChart: "c:line3DChart",
     lineChart: "c:lineChart",
-    stockChart: "c:stockChart",
     doughnutChart: "c:doughnutChart",
     ofPieChart: "c:ofPieChart",
     pie3DChart: "c:pie3DChart",
     pieChart: "c:pieChart",
-    surface3DChart: "c:surface3DChart",
-    surfaceChart: "c:surfaceChart",
     scatterChart: "c:scatterChart",
     bubbleChart: "c:bubbleChart",
 } as const);
