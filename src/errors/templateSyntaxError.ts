@@ -1,4 +1,4 @@
-export class ArgumentError extends Error {
+export class TemplateSyntaxError extends Error {
 
     constructor(message: string) {
         super(message);

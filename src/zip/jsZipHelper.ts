@@ -1,5 +1,5 @@
 import JSZip from 'jszip';
-import { MissingArgumentError } from '../errors';
+import { InternalArgumentMissingError } from '../errors';
 import { Constructor } from '../types';
 import { Binary } from '../utils';
 
@@ -10,7 +10,7 @@ export class JsZipHelper {
     public static toJsZipOutputType(binaryOrType: Binary | Constructor<Binary>): JSZip.OutputType {
 
         if (!binaryOrType)
-            throw new MissingArgumentError(nameof(binaryOrType));
+            throw new InternalArgumentMissingError(nameof(binaryOrType));
 
         let binaryType: Constructor<Binary>;
         if (typeof binaryOrType === 'function') {

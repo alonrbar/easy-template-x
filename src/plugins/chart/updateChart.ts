@@ -1,4 +1,4 @@
-import { ArgumentError } from "src/errors";
+import { TemplateDataError } from "src/errors";
 import { OmlAttribute, OpenXmlPart, RelType, Xlsx } from "src/office";
 import { IMap } from "src/types";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
@@ -77,7 +77,7 @@ function validateChartData(chartData: ChartData) {
 
             // Check if the series values and category names have the same length (same number of x and y values)
             if (ser.values.length != chartData.categories.names.length) {
-                throw new ArgumentError("Invalid chart data. Series values and category names must have the same length.");
+                throw new TemplateDataError("Invalid chart data. Series values and category names must have the same length.");
             }
 
             // Verify series values are numbers
@@ -88,7 +88,7 @@ function validateChartData(chartData: ChartData) {
                 if (typeof val === "number") {
                     continue;
                 }
-                throw new ArgumentError("Invalid chart data. Series values must be numbers.");
+                throw new TemplateDataError("Invalid chart data. Series values must be numbers.");
             }
         }
         return;
@@ -102,13 +102,13 @@ function validateChartData(chartData: ChartData) {
                 if (typeof val === "object" && "x" in val && "y" in val) {
                     continue;
                 }
-                throw new ArgumentError("Invalid scatter chart data. Series values must contain x and y properties.");
+                throw new TemplateDataError("Invalid scatter chart data. Series values must contain x and y properties.");
             }
         }
         return;
     }
 
-    throw new ArgumentError("Invalid chart data: " + JSON.stringify(chartData));
+    throw new TemplateDataError("Invalid chart data: " + JSON.stringify(chartData));
 }
 
 //

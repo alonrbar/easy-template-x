@@ -1,5 +1,5 @@
 import { ScopeData, Tag, TemplateContext } from "src/compilation";
-import { ArgumentError } from "src/errors";
+import { TemplateDataError } from "src/errors";
 import { MimeTypeHelper } from "src/mimeType";
 import { officeMarkup } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
@@ -153,7 +153,7 @@ export class ImagePlugin extends TemplatePlugin {
             return '';
         }
         if (transparencyPercent < 0 || transparencyPercent > 100) {
-            throw new ArgumentError(`Transparency percent must be between 0 and 100, but was ${transparencyPercent}.`);
+            throw new TemplateDataError(`Transparency percent must be between 0 and 100, but was ${transparencyPercent}.`);
         }
 
         const alpha = Math.round((100 - transparencyPercent) * 1000);

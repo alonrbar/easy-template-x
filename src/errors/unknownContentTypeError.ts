@@ -1,4 +1,6 @@
-export class UnknownContentTypeError extends Error {
+import { TemplateDataError } from "./templateDataError";
+
+export class UnknownContentTypeError extends TemplateDataError {
 
     public readonly tagRawText: string;
     public readonly contentType: string;

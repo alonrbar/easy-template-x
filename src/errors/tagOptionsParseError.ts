@@ -1,4 +1,6 @@
-export class TagOptionsParseError extends Error {
+import { TemplateSyntaxError } from "./templateSyntaxError";
+
+export class TagOptionsParseError extends TemplateSyntaxError {
 
     public readonly tagRawText: string;
     public readonly parseError: Error;

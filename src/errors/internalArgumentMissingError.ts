@@ -1,6 +1,6 @@
-import { ArgumentError } from './argumentError';
+import { InternalError } from "./internalError";
 
-export class MissingArgumentError extends ArgumentError {
+export class InternalArgumentMissingError extends InternalError {
 
     public readonly argName: string;
 

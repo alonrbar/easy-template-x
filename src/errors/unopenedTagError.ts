@@ -1,4 +1,6 @@
-export class UnopenedTagError extends Error {
+import { TemplateSyntaxError } from "./templateSyntaxError";
+
+export class UnopenedTagError extends TemplateSyntaxError {
 
     public readonly tagName: string;
 

@@ -1,4 +1,6 @@
-export class MissingCloseDelimiterError extends Error {
+import { TemplateSyntaxError } from "./templateSyntaxError";
+
+export class MissingCloseDelimiterError extends TemplateSyntaxError {
 
     public readonly openDelimiterText: string;
 

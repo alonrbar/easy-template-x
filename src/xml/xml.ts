@@ -1,5 +1,5 @@
 import { DOMParser } from "@xmldom/xmldom";
-import { MissingArgumentError } from "src/errors";
+import { InternalArgumentMissingError } from "src/errors";
 import { last } from "src/utils";
 import { COMMENT_NODE_NAME, XmlGeneralNode, XmlNode, XmlNodeType } from "./xmlNode";
 import { TEXT_NODE_NAME, XmlCommentNode } from "./xmlNode";
@@ -32,7 +32,7 @@ class Parser {
 
     public domParse(str: string): Document {
         if (str === null || str === undefined)
-            throw new MissingArgumentError(nameof(str));
+            throw new InternalArgumentMissingError(nameof(str));
 
         return Parser.parser.parseFromString(str, "text/xml");
     }
@@ -44,7 +44,7 @@ class Parser {
      */
     public encodeValue(str: string): string {
         if (str === null || str === undefined)
-            throw new MissingArgumentError(nameof(str));
+            throw new InternalArgumentMissingError(nameof(str));
         if (typeof str !== 'string')
             throw new TypeError(`Expected a string, got '${(str as any).constructor.name}'.`);
 
@@ -156,7 +156,7 @@ class Create {
 
     public cloneNode<T extends XmlNode>(node: T, deep: boolean): T {
         if (!node)
-            throw new MissingArgumentError(nameof(node));
+            throw new InternalArgumentMissingError(nameof(node));
 
         if (!deep) {
             const clone = Object.assign({}, node);
@@ -326,9 +326,9 @@ class Query {
      */
     public siblingsInRange(firstNode: XmlNode, lastNode: XmlNode): XmlNode[] {
         if (!firstNode)
-            throw new MissingArgumentError(nameof(firstNode));
+            throw new InternalArgumentMissingError(nameof(firstNode));
         if (!lastNode)
-            throw new MissingArgumentError(nameof(lastNode));
+            throw new InternalArgumentMissingError(nameof(lastNode));
 
         const range: XmlNode[] = [];
         let curNode = firstNode;
@@ -355,9 +355,9 @@ class Modify {
      */
     public insertBefore(newNode: XmlNode, referenceNode: XmlNode): void {
         if (!newNode)
-            throw new MissingArgumentError(nameof(newNode));
+            throw new InternalArgumentMissingError(nameof(newNode));
         if (!referenceNode)
-            throw new MissingArgumentError(nameof(referenceNode));
+            throw new InternalArgumentMissingError(nameof(referenceNode));
 
         if (!referenceNode.parentNode)
             throw new Error(`'${nameof(referenceNode)}' has no parent`);
@@ -375,9 +375,9 @@ class Modify {
      */
     public insertAfter(newNode: XmlNode, referenceNode: XmlNode): void {
         if (!newNode)
-            throw new MissingArgumentError(nameof(newNode));
+            throw new InternalArgumentMissingError(nameof(newNode));
         if (!referenceNode)
-            throw new MissingArgumentError(nameof(referenceNode));
+            throw new InternalArgumentMissingError(nameof(referenceNode));
 
         if (!referenceNode.parentNode)
             throw new Error(`'${nameof(referenceNode)}' has no parent`);
@@ -389,11 +389,11 @@ class Modify {
 
     public insertChild(parent: XmlNode, child: XmlNode, childIndex: number): void {
         if (!parent)
-            throw new MissingArgumentError(nameof(parent));
+            throw new InternalArgumentMissingError(nameof(parent));
         if (xml.query.isTextNode(parent))
             throw new Error('Appending children to text nodes is forbidden');
         if (!child)
-            throw new MissingArgumentError(nameof(child));
+            throw new InternalArgumentMissingError(nameof(child));
 
         if (!parent.childNodes)
             parent.childNodes = [];
@@ -424,11 +424,11 @@ class Modify {
 
     public appendChild(parent: XmlNode, child: XmlNode): void {
         if (!parent)
-            throw new MissingArgumentError(nameof(parent));
+            throw new InternalArgumentMissingError(nameof(parent));
         if (xml.query.isTextNode(parent))
             throw new Error('Appending children to text nodes is forbidden');
         if (!child)
-            throw new MissingArgumentError(nameof(child));
+            throw new InternalArgumentMissingError(nameof(child));
 
         if (!parent.childNodes)
             parent.childNodes = [];
@@ -452,7 +452,7 @@ class Modify {
      */
     public remove(node: XmlNode): void {
         if (!node)
-            throw new MissingArgumentError(nameof(node));
+            throw new InternalArgumentMissingError(nameof(node));
 
         if (!node.parentNode)
             throw new Error('Node has no parent');
@@ -472,9 +472,9 @@ class Modify {
     public removeChild(parent: XmlNode, childIndex: number): XmlNode;
     public removeChild(parent: XmlNode, childOrIndex: XmlNode | number): XmlNode {
         if (!parent)
-            throw new MissingArgumentError(nameof(parent));
+            throw new InternalArgumentMissingError(nameof(parent));
         if (childOrIndex === null || childOrIndex === undefined)
-            throw new MissingArgumentError(nameof(childOrIndex));
+            throw new InternalArgumentMissingError(nameof(childOrIndex));
 
         if (!parent.childNodes || !parent.childNodes.length)
             throw new Error('Parent node has node children');

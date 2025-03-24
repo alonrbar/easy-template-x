@@ -1,6 +1,6 @@
 import JSON5 from "json5";
 import { Delimiters } from "src/delimiters";
-import { MissingArgumentError, MissingCloseDelimiterError, MissingStartDelimiterError, TagOptionsParseError } from "src/errors";
+import { InternalArgumentMissingError, MissingCloseDelimiterError, MissingStartDelimiterError, TagOptionsParseError } from "src/errors";
 import { officeMarkup } from "src/office";
 import { normalizeDoubleQuotes, Regex } from "src/utils";
 import { DelimiterMark } from "./delimiterMark";
@@ -13,7 +13,7 @@ export class TagParser {
 
     constructor(delimiters: Delimiters) {
         if (!delimiters)
-            throw new MissingArgumentError(nameof(delimiters));
+            throw new InternalArgumentMissingError(nameof(delimiters));
 
         this.delimiters = delimiters;
 

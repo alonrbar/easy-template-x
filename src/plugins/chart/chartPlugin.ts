@@ -1,5 +1,5 @@
 import { ScopeData, Tag, TemplateContext } from "src/compilation";
-import { ArgumentError } from "src/errors";
+import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup, OmlNode } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { xml } from "src/xml";
@@ -14,7 +14,7 @@ export class ChartPlugin extends TemplatePlugin {
 
         const chartNode = xml.query.findParentByName(tag.xmlTextNode, "c:chart");
         if (!chartNode) {
-            throw new ArgumentError("Chart tag not placed in chart title");
+            throw new TemplateSyntaxError("Chart tag not placed in chart title");
         }
 
         const content = data.getScopeData<ChartContent>();
