@@ -84,6 +84,8 @@ export const chartTypes = Object.freeze({
     bubbleChart: "c:bubbleChart",
 } as const);
 
+export type ChartType = typeof chartTypes[keyof typeof chartTypes];
+
 export const NumberingFormatValues = Object.freeze({
     General: "General",
     Integer: "0",
@@ -163,6 +165,32 @@ export type FormatCode = NumberingFormat | DateTimeFormat;
 //
 // Functions
 //
+
+export function chartFriendlyName(chartType: ChartType): string {
+    const name = chartType.replace("c:", "").replace("Chart", "");
+    return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+export function isStandardChartType(chartType: ChartType): boolean {
+    return chartType === chartTypes.area3DChart ||
+        chartType === chartTypes.areaChart ||
+        chartType === chartTypes.bar3DChart ||
+        chartType === chartTypes.barChart ||
+        chartType === chartTypes.line3DChart ||
+        chartType === chartTypes.lineChart ||
+        chartType === chartTypes.doughnutChart ||
+        chartType === chartTypes.ofPieChart ||
+        chartType === chartTypes.pie3DChart ||
+        chartType === chartTypes.pieChart;
+}
+
+export function isScatterChartType(chartType: ChartType): boolean {
+    return chartType === chartTypes.scatterChart;
+}
+
+export function isBubbleChartType(chartType: ChartType): boolean {
+    return chartType === chartTypes.bubbleChart;
+}
 
 export function isStandardChartData(chartData: ChartData): chartData is StandardChartData {
     return "categories" in chartData;

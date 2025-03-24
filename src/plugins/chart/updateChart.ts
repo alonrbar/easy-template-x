@@ -1,4 +1,4 @@
-import { TemplateDataError } from "src/errors";
+import { TemplateSyntaxError } from "src/errors";
 import { OmlAttribute, OpenXmlPart, RelType, Xlsx } from "src/office";
 import { IMap } from "src/types";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
@@ -6,6 +6,7 @@ import {
     bubbleSizeValues,
     Categories,
     ChartData,
+    ChartType,
     chartTypes,
     formatCode,
     formatIds,
@@ -18,6 +19,7 @@ import {
     scatterYValues,
     StandardChartData
 } from "./chartData";
+import { validateChartData } from "./chartDataValidation";
 
 // Based on: https://github.com/OpenXmlDev/Open-Xml-PowerTools/blob/vNext/OpenXmlPowerTools/ChartUpdater.cs
 
@@ -34,9 +36,6 @@ export async function updateChart(chartPart: OpenXmlPart, chartData: ChartData) 
         chartData.series[i] = Object.assign({}, ser);
         chartData.series[i].name = seriesName(ser.name, i);
     }
-
-    // Input validation
-    validateChartData(chartData);
 
     // Get the chart node
     const root = await chartPart.xmlRoot();
@@ -58,8 +57,13 @@ export async function updateChart(chartPart: OpenXmlPart, chartData: ChartData) 
     if (!chartNode) {
         const plotAreaChildren = plotAreaNode.childNodes?.map(child => `<${child.nodeName}>`);
         const supportedChartTypes = Object.values(chartTypes).join(", ");
-        throw new Error(`Unsupported chart type. Plot area children: ${plotAreaChildren?.join(", ")}. Supported chart types: ${supportedChartTypes}`);
+        throw new TemplateSyntaxError(`Unsupported chart type. Plot area children: ${plotAreaChildren?.join(", ")}. Supported chart types: ${supportedChartTypes}`);
     }
+
+    const chartType = chartNode.nodeName as ChartType;
+
+    // Input validation
+    validateChartData(chartType, chartData);
 
     // Read the first series
     const firstSeries = readFirstSeries(chartNode, chartData);
@@ -69,46 +73,6 @@ export async function updateChart(chartPart: OpenXmlPart, chartData: ChartData) 
 
     // Update inline series
     updateInlineSeries(chartNode, firstSeries, chartData);
-}
-
-function validateChartData(chartData: ChartData) {
-    if (isStandardChartData(chartData)) {
-        for (const ser of chartData.series) {
-
-            // Check if the series values and category names have the same length (same number of x and y values)
-            if (ser.values.length != chartData.categories.names.length) {
-                throw new TemplateDataError("Invalid chart data. Series values and category names must have the same length.");
-            }
-
-            // Verify series values are numbers
-            for (const val of ser.values) {
-                if (val === null || val === undefined) {
-                    continue;
-                }
-                if (typeof val === "number") {
-                    continue;
-                }
-                throw new TemplateDataError("Invalid chart data. Series values must be numbers.");
-            }
-        }
-        return;
-    }
-
-    if (isScatterChartData(chartData)) {
-        for (const ser of chartData.series) {
-            for (const val of ser.values) {
-
-                // Verify series values are valid point objects
-                if (typeof val === "object" && "x" in val && "y" in val) {
-                    continue;
-                }
-                throw new TemplateDataError("Invalid scatter chart data. Series values must contain x and y properties.");
-            }
-        }
-        return;
-    }
-
-    throw new TemplateDataError("Invalid chart data: " + JSON.stringify(chartData));
 }
 
 //
