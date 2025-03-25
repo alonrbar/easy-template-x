@@ -1,5 +1,16 @@
 # Changelog
 
+## [6.1.0 - 2025-03-25](https://github.com/alonrbar/easy-template-x/tree/v6.1.0)
+
+### Changed
+
+- Improved error handling by adding differentiation between internal and user
+  errors with new root error types: `InternalError`, `TemplateSyntaxError` and
+  `TemplateDataError` (while the package may still throw errors of other types
+  this change should simplify error handling).
+- Better input validation for chart plugin (throws `TemplateDataError` with an
+  informative message on invalid input).
+
 ## [6.0.1 - 2025-03-23](https://github.com/alonrbar/easy-template-x/tree/v6.0.1)
 
 ### Fixed
