@@ -251,6 +251,54 @@ describe("chart fixtures", () => {
 
             await verifySnapshot("chart - line - no series names", doc);
         });
+
+        test("preserve series styles", async () => {
+
+            const chartData: ChartContent = {
+                _type: "chart",
+                categories: {
+                    names: ["Q1", "Q2", "Q3", "Q4"]
+                },
+                series: [
+                    { name: "Car", values: [100, 310, 220, 450] },
+                    { name: "Truck", values: [200, 300, 350, 411] },
+                    { name: "Van", values: [80, 120, 140, 600] },
+                ],
+            };
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - line - styled.docx");
+            const doc = await handler.process(template, {
+                MyChart: chartData
+            });
+
+            await verifySnapshot("chart - line - preserve series styles", doc);
+        });
+
+        test("override series styles", async () => {
+
+            const chartData: ChartContent = {
+                _type: "chart",
+                categories: {
+                    names: ["Q1", "Q2", "Q3", "Q4"]
+                },
+                series: [
+                    { name: "Car", values: [100, 310, 220, 450], color: "#ebde34" },
+                    { name: "Truck", values: [200, 300, 350, 411], color: "#34c9eb" },
+                    { name: "Van", values: [80, 120, 140, 600] },
+                ],
+            };
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - line - styled.docx");
+            const doc = await handler.process(template, {
+                MyChart: chartData
+            });
+
+            await verifySnapshot("chart - line - override series styles", doc);
+        });
     });
 
     describe("bar chart", () => {

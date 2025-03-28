@@ -65,21 +65,22 @@ export async function updateChart(chartPart: OpenXmlPart, chartData: ChartData) 
     // Input validation
     validateChartData(chartType, chartData);
 
-    // Read the first series
-    const firstSeries = readFirstSeries(chartNode, chartData);
+    // Read the existing series
+    const existingSeries = readExistingSeries(chartNode, chartData);
+    const sheetName = existingSeries.map(ser => ser.sheetName).filter(Boolean)?.[0];
 
     // Update embedded worksheet
-    await updateEmbeddedExcelFile(chartPart, firstSeries.sheetName, chartData);
+    await updateEmbeddedExcelFile(chartPart, sheetName, chartData);
 
     // Update inline series
-    updateInlineSeries(chartNode, firstSeries, chartData);
+    updateInlineSeries(chartNode, existingSeries, chartData);
 }
 
 //
 // Read the first series
 //
 
-interface FirstSeriesData {
+interface ExistingSeriesData {
     sheetName: string;
     shapePropertiesMarkup: string;
     chartSpecificMarkup: string;
@@ -87,15 +88,18 @@ interface FirstSeriesData {
     chartExtensibilityMarkup: string;
 }
 
-function readFirstSeries(chartNode: XmlNode, chartData: ChartData): FirstSeriesData {
+function readExistingSeries(chartNode: XmlNode, chartData: ChartData): ExistingSeriesData[] {
+    const series = chartNode.childNodes?.filter(child => child.nodeName === "c:ser");
+    return series.map(ser => readSingleSeries(ser, chartData));
+}
 
-    const firstSeries = chartNode.childNodes?.find(child => child.nodeName === "c:ser");
+function readSingleSeries(seriesNode: XmlNode, chartData: ChartData): ExistingSeriesData {
 
-    const sheetName = getSheetName(firstSeries);
-    const shapeProperties = firstSeries?.childNodes?.find(child => child.nodeName === "c:spPr");
-    const chartExtensibility = firstSeries?.childNodes?.find(child => child.nodeName === "c:extLst");
+    const sheetName = getSheetName(seriesNode);
+    const shapeProperties = seriesNode?.childNodes?.find(child => child.nodeName === "c:spPr");
+    const chartExtensibility = seriesNode?.childNodes?.find(child => child.nodeName === "c:extLst");
 
-    const formatCode = firstSeries?.
+    const formatCode = seriesNode?.
         childNodes?.find(child => child.nodeName === "c:cat")?.
         childNodes?.find(child => child.nodeName === "c:numRef")?.
         childNodes?.find(child => child.nodeName === "c:numCache")?.
@@ -106,7 +110,7 @@ function readFirstSeries(chartNode: XmlNode, chartData: ChartData): FirstSeriesD
     return {
         sheetName,
         shapePropertiesMarkup: xml.parser.serializeNode(shapeProperties),
-        chartSpecificMarkup: chartSpecificMarkup(firstSeries),
+        chartSpecificMarkup: chartSpecificMarkup(seriesNode),
         categoriesMarkup: categoriesMarkup(chartData, sheetName, formatCode),
         chartExtensibilityMarkup: xml.parser.serializeNode(chartExtensibility),
     };
@@ -290,33 +294,34 @@ function chartSpecificMarkup(firstSeries: XmlNode): string {
 // Update inline series
 //
 
-function updateInlineSeries(chartNode: XmlNode, firstSeries: FirstSeriesData, chartData: ChartData) {
+function updateInlineSeries(chartNode: XmlNode, existingSeries: ExistingSeriesData[], chartData: ChartData) {
 
     // Remove all old series
     xml.modify.removeChildren(chartNode, child => child.nodeName === "c:ser");
 
     // Create new series
-    const newSeries = chartData.series.map((s, index) => createSeries(s.name, index, firstSeries, chartData));
+    const firstSeries = existingSeries[0];
+    const newSeries = chartData.series.map((s, index) => createSeries(s.name, index, existingSeries[index] ?? firstSeries, chartData));
     for (const series of newSeries) {
         xml.modify.appendChild(chartNode, series);
     }
 }
 
-function createSeries(seriesName: string, seriesIndex: number, firstSeries: FirstSeriesData, chartData: ChartData): XmlNode {
+function createSeries(seriesName: string, seriesIndex: number, existingSeries: ExistingSeriesData, chartData: ChartData): XmlNode {
 
-    const title = titleMarkup(seriesName, seriesIndex, firstSeries.sheetName);
-    const values = valuesMarkup(seriesIndex, chartData, firstSeries.sheetName);
+    const title = titleMarkup(seriesName, seriesIndex, existingSeries?.sheetName);
+    const values = valuesMarkup(seriesIndex, chartData, existingSeries?.sheetName);
 
     const series = parseXmlNode(`
         <c:ser>
             <c:idx val="${seriesIndex}"/>
             <c:order val="${seriesIndex}"/>
             ${title}
-            ${firstSeries.shapePropertiesMarkup}
-            ${firstSeries.chartSpecificMarkup}
-            ${firstSeries.categoriesMarkup}
+            ${existingSeries?.shapePropertiesMarkup ?? ""}
+            ${existingSeries?.chartSpecificMarkup ?? ""}
+            ${existingSeries?.categoriesMarkup ?? ""}
             ${values}
-            ${firstSeries.chartExtensibilityMarkup}
+            ${existingSeries?.chartExtensibilityMarkup ?? ""}
         </c:ser>
     `);
 
@@ -526,7 +531,7 @@ function setSeriesColor(node: XmlNode, color: string | number) {
     }
 
     // Was accent color (auto-selected color)
-    if (node.nodeName == "a:schemeClr" && node.attributes?.["val"] == "accent1") {
+    if (node.nodeName == "a:schemeClr" && /accent\d+/.test(node.attributes?.["val"] ?? "")) {
 
         if (typeof color === "number") {
             node.attributes["val"] = `accent${color}`;
