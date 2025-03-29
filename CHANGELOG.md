@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.1.1 - 2025-03-29](https://github.com/alonrbar/easy-template-x/tree/v6.1.1)
+
+### Fixed
+
+- Fix preserving chart series style.
+- Fix chart series accent color handling.
+
 ## [6.1.0 - 2025-03-25](https://github.com/alonrbar/easy-template-x/tree/v6.1.0)
 
 ### Changed
