@@ -14,6 +14,7 @@ export const RelType = Object.freeze({
     Link: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink',
     Image: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
     Chart: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart',
+    ChartColors: 'http://schemas.microsoft.com/office/2011/relationships/chartColorStyle',
     Worksheet: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet',
     Table: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/table',
 } as const);

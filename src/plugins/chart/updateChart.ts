@@ -2,6 +2,7 @@ import { TemplateSyntaxError } from "src/errors";
 import { OmlAttribute, OpenXmlPart, RelType, Xlsx } from "src/office";
 import { IMap } from "src/types";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
+import { ChartColors } from "./chartColors";
 import {
     bubbleSizeValues,
     Categories,
@@ -65,22 +66,40 @@ export async function updateChart(chartPart: OpenXmlPart, chartData: ChartData) 
     // Input validation
     validateChartData(chartType, chartData);
 
-    // Read the existing series
+    // Assemble the existing chart information
     const existingSeries = readExistingSeries(chartNode, chartData);
     const sheetName = existingSeries.map(ser => ser.sheetName).filter(Boolean)?.[0];
+    const colors = await ChartColors.load(chartPart);
+    const existingChart: ExistingChart = {
+        chartPart,
+        chartNode,
+        chartType,
+        sheetName,
+        colors,
+        series: existingSeries,
+    };
 
     // Update embedded worksheet
-    await updateEmbeddedExcelFile(chartPart, sheetName, chartData);
+    await updateEmbeddedExcelFile(existingChart, chartData);
 
     // Update inline series
-    updateInlineSeries(chartNode, existingSeries, chartData);
+    updateInlineSeries(existingChart, chartData);
 }
 
 //
 // Read the first series
 //
 
-interface ExistingSeriesData {
+interface ExistingChart {
+    chartPart: OpenXmlPart;
+    chartNode: XmlNode;
+    chartType: ChartType;
+    sheetName: string;
+    colors: ChartColors;
+    series: ExistingSeries[];
+}
+
+interface ExistingSeries {
     sheetName: string;
     shapePropertiesMarkup: string;
     chartSpecificMarkup: string;
@@ -88,12 +107,12 @@ interface ExistingSeriesData {
     chartExtensibilityMarkup: string;
 }
 
-function readExistingSeries(chartNode: XmlNode, chartData: ChartData): ExistingSeriesData[] {
+function readExistingSeries(chartNode: XmlNode, chartData: ChartData): ExistingSeries[] {
     const series = chartNode.childNodes?.filter(child => child.nodeName === "c:ser");
     return series.map(ser => readSingleSeries(ser, chartData));
 }
 
-function readSingleSeries(seriesNode: XmlNode, chartData: ChartData): ExistingSeriesData {
+function readSingleSeries(seriesNode: XmlNode, chartData: ChartData): ExistingSeries {
 
     const sheetName = getSheetName(seriesNode);
     const shapeProperties = seriesNode?.childNodes?.find(child => child.nodeName === "c:spPr");
@@ -294,20 +313,22 @@ function chartSpecificMarkup(firstSeries: XmlNode): string {
 // Update inline series
 //
 
-function updateInlineSeries(chartNode: XmlNode, existingSeries: ExistingSeriesData[], chartData: ChartData) {
+function updateInlineSeries(existingChart: ExistingChart, chartData: ChartData) {
 
     // Remove all old series
-    xml.modify.removeChildren(chartNode, child => child.nodeName === "c:ser");
+    xml.modify.removeChildren(existingChart.chartNode, child => child.nodeName === "c:ser");
 
     // Create new series
-    const firstSeries = existingSeries[0];
-    const newSeries = chartData.series.map((s, index) => createSeries(s.name, index, existingSeries[index] ?? firstSeries, chartData));
+    const newSeries = chartData.series.map((s, index) => createSeries(existingChart, s.name, index, chartData));
     for (const series of newSeries) {
-        xml.modify.appendChild(chartNode, series);
+        xml.modify.appendChild(existingChart.chartNode, series);
     }
 }
 
-function createSeries(seriesName: string, seriesIndex: number, existingSeries: ExistingSeriesData, chartData: ChartData): XmlNode {
+function createSeries(existingChart: ExistingChart, seriesName: string, seriesIndex: number, chartData: ChartData): XmlNode {
+    const firstSeries = existingChart.series[0];
+    const isNewSeries = !existingChart.series[seriesIndex];
+    const existingSeries = existingChart.series[seriesIndex] ?? firstSeries;
 
     const title = titleMarkup(seriesName, seriesIndex, existingSeries?.sheetName);
     const values = valuesMarkup(seriesIndex, chartData, existingSeries?.sheetName);
@@ -326,7 +347,7 @@ function createSeries(seriesName: string, seriesIndex: number, existingSeries: E
     `);
 
     const color = selectSeriesColor(seriesIndex, chartData);
-    setSeriesColor(series, color);
+    existingChart.colors.setSeriesColor(existingChart.chartType, series, isNewSeries, color);
 
     return series;
 }
@@ -512,57 +533,25 @@ function scatterValuesMarkup(seriesIndex: number, chartData: ScatterChartData, s
 
 function selectSeriesColor(seriesIndex: number, chartData: ChartData): string | number {
 
-    // User-defined color
+    // Use manual hex color
     const color = chartData.series[seriesIndex].color?.trim();
     if (color) {
         const hex = color.startsWith("#") ? color.slice(1) : color;
         return hex.toUpperCase();
     }
 
-    // Auto-selected accent color
-    const seriesWithoutColor = chartData.series.slice(0, seriesIndex).filter(s => !s.color);
-    const accentNumber = (seriesWithoutColor.length % 6) + 1;
-    return accentNumber;
-}
-
-function setSeriesColor(node: XmlNode, color: string | number) {
-    if (!node) {
-        return;
-    }
-
-    // Was accent color (auto-selected color)
-    if (node.nodeName == "a:schemeClr" && /accent\d+/.test(node.attributes?.["val"] ?? "")) {
-
-        if (typeof color === "number") {
-            node.attributes["val"] = `accent${color}`;
-        } else if (typeof color === "string") {
-            node.nodeName = "a:srgbClr";
-            node.attributes["val"] = color;
-        }
-        return;
-    }
-
-    // Was srgb color (user-defined color)
-    if (node.nodeName == "a:srgbClr") {
-        if (typeof color === "string") {
-            node.attributes["val"] = color;
-        }
-        return;
-    }
-
-    for (const child of (node.childNodes ?? [])) {
-        setSeriesColor(child, color);
-    }
+    // Auto-select accent color
+    return seriesIndex;
 }
 
 //
 // Update the embedded Excel workbook file
 //
 
-async function updateEmbeddedExcelFile(chartPart: OpenXmlPart, sheetName: string, chartData: ChartData) {
+async function updateEmbeddedExcelFile(existingChart: ExistingChart, chartData: ChartData) {
 
     // Get the relation ID of the embedded Excel file
-    const rootNode = await chartPart.xmlRoot();
+    const rootNode = await existingChart.chartPart.xmlRoot();
     const externalDataNode = rootNode.childNodes?.find(child => child.nodeName === "c:externalData") as XmlGeneralNode;
     const workbookRelId = externalDataNode?.attributes["r:id"];
     if (!workbookRelId) {
@@ -570,7 +559,7 @@ async function updateEmbeddedExcelFile(chartPart: OpenXmlPart, sheetName: string
     }
 
     // Open the embedded Excel file
-    const xlsxPart = await chartPart.getPartById(workbookRelId);
+    const xlsxPart = await existingChart.chartPart.getPartById(workbookRelId);
     if (!xlsxPart) {
         return;
     }
@@ -580,7 +569,7 @@ async function updateEmbeddedExcelFile(chartPart: OpenXmlPart, sheetName: string
     // Update the workbook
     const workbookPart = xlsx.mainDocument;
     const sharedStrings = await updateSharedStringsPart(workbookPart, chartData);
-    const sheetPart = await updateSheetPart(workbookPart, sheetName, sharedStrings, chartData);
+    const sheetPart = await updateSheetPart(workbookPart, existingChart.sheetName, sharedStrings, chartData);
     if (sheetPart) {
         await updateTablePart(sheetPart, chartData);
     }
