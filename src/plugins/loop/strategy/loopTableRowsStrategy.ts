@@ -1,4 +1,5 @@
 import { Tag } from "src/compilation";
+import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup } from "src/office";
 import { xml, XmlNode } from "src/xml";
 import { LoopOver, LoopTagOptions } from "../loopTagOptions";
@@ -29,6 +30,13 @@ export class LoopTableRowsStrategy implements ILoopStrategy {
 
         const firstRow = officeMarkup.query.containingTableRowNode(openTag.xmlTextNode);
         const lastRow = officeMarkup.query.containingTableRowNode(closeTag.xmlTextNode);
+
+        const firstTable = officeMarkup.query.containingTableNode(firstRow);
+        const lastTable = officeMarkup.query.containingTableNode(lastRow);
+        if (firstTable !== lastTable) {
+            throw new TemplateSyntaxError(`Open and close tags are not in the same table: ${openTag.rawText} and ${closeTag.rawText}. Are you trying to repeat rows across adjacent or nested tables?`);
+        }
+
         const rowsToRepeat = xml.query.siblingsInRange(firstRow, lastRow);
 
         // remove the loop tags
