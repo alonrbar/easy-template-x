@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.2.0 - 2025-04-03](https://github.com/alonrbar/easy-template-x/tree/v6.2.0)
+
+### Added
+
+- Support iterating rows that includes merged cells ([#48](https://github.com/alonrbar/easy-template-x/issues/48) and [#87](https://github.com/alonrbar/easy-template-x/issues/87)).
+- Throw an informative `TemplateSyntaxError` when trying to repeat rows across tables (either adjacent or nested).
+
 ## [6.1.1 - 2025-03-29](https://github.com/alonrbar/easy-template-x/tree/v6.1.1)
 
 ### Fixed
@@ -9,7 +16,7 @@
 
 ## [6.1.0 - 2025-03-25](https://github.com/alonrbar/easy-template-x/tree/v6.1.0)
 
-### Changed
+### Added
 
 - Improved error handling by adding differentiation between internal and user
   errors with new root error types: `InternalError`, `TemplateSyntaxError` and
