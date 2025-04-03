@@ -4,7 +4,7 @@
 
 ### Added
 
-- Support iterating rows that includes merged cells ([#48](https://github.com/alonrbar/easy-template-x/issues/48) and [#87](https://github.com/alonrbar/easy-template-x/issues/87)).
+- Support iterating rows that include merged cells ([#48](https://github.com/alonrbar/easy-template-x/issues/48) and [#87](https://github.com/alonrbar/easy-template-x/issues/87)).
 - Throw an informative `TemplateSyntaxError` when trying to repeat rows across tables (either adjacent or nested).
 
 ## [6.1.1 - 2025-03-29](https://github.com/alonrbar/easy-template-x/tree/v6.1.1)
