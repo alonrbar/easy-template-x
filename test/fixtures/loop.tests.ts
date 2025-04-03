@@ -560,5 +560,42 @@ describe('loop fixtures', () => {
             const docXml = await handler.getXml(doc);
             expect(docXml).toMatchSnapshot();
         });
+
+        test("merged cells", async () => {
+
+            const handler = new TemplateHandler({});
+
+            const template = readFixture("loop - table - merged cells.docx");
+            const templateText = await handler.getText(template);
+            expect(removeWhiteSpace(templateText)).toEqual(removeWhiteSpace(`
+                {#list}{no}	Details
+                            Name:	    {name}
+                            Surname:	{surname}{/list}
+            `));
+
+            const data = {
+                list: [
+                    { no: 1, name: "First 1", surname: "Last 1" },
+                    { no: 2, name: "First 2", surname: "Last 2" },
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docText = await handler.getText(doc);
+            expect(removeWhiteSpace(docText)).toEqual(removeWhiteSpace(`
+                1	Details
+                	Name:	    First 1
+                	Surname:	Last 1
+                2	Details
+                	Name:	    First 2
+                	Surname:	Last 2
+            `));
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - table - merged cells - output.docx', doc);
+        });
     });
 });

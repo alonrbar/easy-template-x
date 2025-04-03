@@ -52,13 +52,18 @@ export class LoopTableRowsStrategy implements ILoopStrategy {
 
     public mergeBack(rowGroups: XmlNode[][], firstRow: XmlNode, lastRow: XmlNode): void {
 
+        let insertAfter = lastRow;
         for (const curRowsGroup of rowGroups) {
             for (const row of curRowsGroup) {
-                xml.modify.insertBefore(row, lastRow);
+                xml.modify.insertAfter(row, insertAfter);
+                insertAfter = row;
             }
         }
 
-        // remove the old rows
+        // Remove old rows - between first and last row
+        xml.modify.removeSiblings(firstRow, lastRow);
+
+        // Remove old rows - first and last rows
         xml.modify.remove(firstRow);
         if (firstRow !== lastRow) {
             xml.modify.remove(lastRow);
