@@ -2,7 +2,7 @@ import { DelimiterMark, DelimiterSearcher } from 'src/compilation';
 import { XmlTextNode } from 'src/xml';
 import { parseXml } from '../../testUtils';
 
-describe(nameof(DelimiterSearcher), () => {
+describe(DelimiterSearcher, () => {
 
     describe('single character delimiters', () => {
 

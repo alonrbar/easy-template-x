@@ -1,6 +1,6 @@
 import { officeMarkup } from "src/office";
 import { first, last } from "src/utils";
-import { xml, XmlDepthTracker, XmlNode, XmlTextNode } from "src/xml";
+import { xml, XmlNode, XmlTextNode, XmlTreeIterator } from "src/xml";
 import { DelimiterMark } from "./delimiterMark";
 
 class MatchState {
@@ -54,33 +54,33 @@ export class DelimiterSearcher {
 
         const delimiters: DelimiterMark[] = [];
         const match = new MatchState();
-        const depth = new XmlDepthTracker(this.maxXmlDepth);
+        const it = new XmlTreeIterator(node, this.maxXmlDepth);
         let lookForOpenDelimiter = true;
 
-        while (node) {
+        while (it.node) {
 
             // Reset state on paragraph transition
-            if (officeMarkup.query.isParagraphNode(node)) {
+            if (officeMarkup.query.isParagraphNode(it.node)) {
                 match.reset();
             }
 
             // Skip irrelevant nodes
-            if (!this.shouldSearchNode(node)) {
-                node = this.findNextNode(node, depth);
+            if (!this.shouldSearchNode(it)) {
+                it.next();
                 continue;
             }
 
             // Search delimiters in text nodes
-            match.openNodes.push(node);
+            match.openNodes.push(it.node);
             let textIndex = 0;
-            while (textIndex < node.textContent.length) {
+            while (textIndex < it.node.textContent.length) {
 
                 const delimiterPattern = lookForOpenDelimiter ? this.startDelimiter : this.endDelimiter;
-                const char = node.textContent[textIndex];
+                const char = it.node.textContent[textIndex];
 
                 // No match
                 if (char !== delimiterPattern[match.delimiterIndex]) {
-                    [node, textIndex] = this.noMatch(node, textIndex, match);
+                    textIndex = this.noMatch(it, textIndex, match);
                     textIndex++;
                     continue;
                 }
@@ -98,17 +98,17 @@ export class DelimiterSearcher {
                 }
 
                 // Full delimiter match
-                [node, textIndex, lookForOpenDelimiter] = this.fullMatch(node, textIndex, lookForOpenDelimiter, match, delimiters);
+                [textIndex, lookForOpenDelimiter] = this.fullMatch(it, textIndex, lookForOpenDelimiter, match, delimiters);
                 textIndex++;
             }
 
-            node = this.findNextNode(node, depth);
+            it.next();
         }
 
         return delimiters;
     }
 
-    private noMatch(node: XmlTextNode, textIndex: number, match: MatchState): [XmlTextNode, number] {
+    private noMatch(it: XmlTreeIterator<XmlTextNode>, textIndex: number, match: MatchState): number {
         //
         // Go back to first open node
         //
@@ -118,20 +118,21 @@ export class DelimiterSearcher {
         // Delimiter is '{!' and template text contains the string '{{!'
         //
         if (match.firstMatchIndex !== -1) {
-            node = first(match.openNodes);
+            const node = first(match.openNodes);
+            it.setCurrent(node);
             textIndex = match.firstMatchIndex;
         }
 
         // Update state
         match.reset();
-        if (textIndex < node.textContent.length - 1) {
-            match.openNodes.push(node);
+        if (textIndex < it.node.textContent.length - 1) {
+            match.openNodes.push(it.node);
         }
 
-        return [node, textIndex];
+        return textIndex;
     }
 
-    private fullMatch(node: XmlTextNode, textIndex: number, lookForOpenDelimiter: boolean, match: MatchState, delimiters: DelimiterMark[]): [XmlTextNode, number, boolean] {
+    private fullMatch(it: XmlTreeIterator<XmlTextNode>, textIndex: number, lookForOpenDelimiter: boolean, match: MatchState, delimiters: DelimiterMark[]): [number, boolean] {
 
         // Move all delimiters characters to the same text node
         if (match.openNodes.length > 1) {
@@ -140,8 +141,8 @@ export class DelimiterSearcher {
             const lastNode = last(match.openNodes);
             officeMarkup.modify.joinTextNodesRange(firstNode, lastNode);
 
-            textIndex += (firstNode.textContent.length - node.textContent.length);
-            node = firstNode;
+            textIndex += (firstNode.textContent.length - it.node.textContent.length);
+            it.setCurrent(firstNode);
         }
 
         // Store delimiter
@@ -151,53 +152,25 @@ export class DelimiterSearcher {
         // Update state
         lookForOpenDelimiter = !lookForOpenDelimiter;
         match.reset();
-        if (textIndex < node.textContent.length - 1) {
-            match.openNodes.push(node);
+        if (textIndex < it.node.textContent.length - 1) {
+            match.openNodes.push(it.node);
         }
 
-        return [node, textIndex, lookForOpenDelimiter];
+        return [textIndex, lookForOpenDelimiter];
     }
 
-    private shouldSearchNode(node: XmlNode): node is XmlTextNode {
+    private shouldSearchNode(it: XmlTreeIterator): it is XmlTreeIterator<XmlTextNode> {
 
-        if (!xml.query.isTextNode(node))
+        if (!xml.query.isTextNode(it.node))
             return false;
-        if (!node.textContent)
+        if (!it.node.textContent)
             return false;
-        if (!node.parentNode)
+        if (!it.node.parentNode)
             return false;
-        if (!officeMarkup.query.isTextNode(node.parentNode))
+        if (!officeMarkup.query.isTextNode(it.node.parentNode))
             return false;
 
         return true;
-    }
-
-    private findNextNode(node: XmlNode, depth: XmlDepthTracker): XmlNode {
-
-        // Children
-        if (node.childNodes && node.childNodes.length) {
-            depth.increment();
-            return node.childNodes[0];
-        }
-
-        // Siblings
-        if (node.nextSibling)
-            return node.nextSibling;
-
-        // Parent sibling
-        while (node.parentNode) {
-
-            if (node.parentNode.nextSibling) {
-                depth.decrement();
-                return node.parentNode.nextSibling;
-            }
-
-            // Go up
-            depth.decrement();
-            node = node.parentNode;
-        }
-
-        return null;
     }
 
     private createDelimiterMark(match: MatchState, isOpenDelimiter: boolean): DelimiterMark {
