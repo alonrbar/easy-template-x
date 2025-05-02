@@ -9,6 +9,11 @@ export default tseslint.config({
         eslint.configs.recommended,
         ...tseslint.configs.recommended,
     ],
+    languageOptions: {
+        parserOptions: {
+            project: true,
+        },
+    },
     rules: {
         "@typescript-eslint/camelcase": "off",
         "@typescript-eslint/class-name-casing": "off",
@@ -41,6 +46,7 @@ export default tseslint.config({
         ],
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-inferrable-types": "off",
+        "@typescript-eslint/no-floating-promises": "error",
         "@typescript-eslint/no-object-literal-type-assertion": "off",
         "@typescript-eslint/no-parameter-properties": "off",
         "@typescript-eslint/no-unused-vars": ["error", { "args": "none" }],
