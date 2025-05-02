@@ -6,17 +6,19 @@ import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 import { ImageContent } from "./imageContent";
 
-/**
- * Apparently it is not that important for the ID to be unique...
- * Word displays two images correctly even if they both have the same ID.
- * Further more, Word will assign each a unique ID upon saving (it assigns
- * consecutive integers starting with 1).
- *
- * Note: The same principal applies to image names.
- *
- * Tested in Word v1908
- */
-let nextImageId = 1;
+interface ImagePluginContext {
+    /**
+     * Apparently it is not that important for the ID to be unique...
+     * Word displays two images correctly even if they both have the same ID.
+     * Further more, Word will assign each a unique ID upon saving (it assigns
+     * consecutive integers starting with 1).
+     *
+     * Note: The same principal applies to image names.
+     *
+     * Tested in Word v1908
+     */
+    lastImageId: number;
+}
 
 export class ImagePlugin extends TemplatePlugin {
 
@@ -37,12 +39,31 @@ export class ImagePlugin extends TemplatePlugin {
         await context.docx.contentTypes.ensureContentType(content.format);
 
         // Create the xml markup
-        const imageId = nextImageId++;
+        const imageId = this.getNextImageId(context);
         const imageXml = this.createMarkup(imageId, relId, content);
 
         const wordTextNode = officeMarkup.query.containingTextNode(tag.xmlTextNode);
         xml.modify.insertAfter(imageXml, wordTextNode);
         officeMarkup.modify.removeTag(tag.xmlTextNode);
+    }
+
+    private getNextImageId(context: TemplateContext): number {
+
+        // Init plugin context.
+        if (!context.pluginContext[this.contentType]) {
+            context.pluginContext[this.contentType] = {};
+        }
+
+        // Get next image ID if already initialized.
+        const pluginContext: ImagePluginContext = context.pluginContext[this.contentType];
+        if (pluginContext.lastImageId) {
+            pluginContext.lastImageId++;
+            return pluginContext.lastImageId;
+        }
+
+        // Init next image ID.
+        pluginContext.lastImageId = 1;
+        return pluginContext.lastImageId;
     }
 
     private createMarkup(imageId: number, relId: string, content: ImageContent): XmlNode {

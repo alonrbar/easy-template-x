@@ -77,7 +77,8 @@ export class TemplateHandler {
         scopeData.scopeDataResolver = this.options.scopeDataResolver;
         const context: TemplateContext = {
             docx,
-            currentPart: null
+            currentPart: null,
+            pluginContext: {}
         };
 
         const contentParts = await docx.getContentParts();
