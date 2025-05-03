@@ -1,5 +1,4 @@
 import { MimeType, MimeTypeHelper } from "src/mimeType";
-import { IMap } from "src/types";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 import { Zip } from "src/zip";
 
@@ -14,7 +13,7 @@ export class ContentTypesFile {
 
     private root: XmlNode;
 
-    private contentTypes: IMap<boolean>;
+    private contentTypes: Partial<Record<MimeType, string>>;
 
     private readonly zip: Zip;
 
@@ -24,15 +23,20 @@ export class ContentTypesFile {
 
     public async ensureContentType(mime: MimeType): Promise<void> {
 
-        // parse the content types file
+        // Parse the content types file
         await this.parseContentTypesFile();
 
-        // already exists
+        // Mime type already exists
         if (this.contentTypes[mime])
             return;
 
-        // add new
+        // Extension already exists
+        // Unfortunately, this can happen in real life so we need to handle it.
         const extension = MimeTypeHelper.getDefaultExtension(mime);
+        if (Object.values(this.contentTypes).includes(extension))
+            return;
+
+        // Add new node
         const typeNode = xml.create.generalNode('Default');
         typeNode.attributes = {
             "Extension": extension,
@@ -40,9 +44,9 @@ export class ContentTypesFile {
         };
         this.root.childNodes.push(typeNode);
 
-        // update state
+        // Update state
         this.addedNew = true;
-        this.contentTypes[mime] = true;
+        this.contentTypes[mime] = extension;
     }
 
     public async count(): Promise<number> {
@@ -56,7 +60,7 @@ export class ContentTypesFile {
      */
     public async save(): Promise<void> {
 
-        // not change - no need to save
+        // Not change - no need to save
         if (!this.addedNew)
             return;
 
@@ -80,11 +84,15 @@ export class ContentTypesFile {
                 continue;
 
             const genNode = (node as XmlGeneralNode);
-            const contentTypeAttribute = genNode.attributes['ContentType'];
+            const contentTypeAttribute = genNode.attributes['ContentType'] as MimeType;
             if (!contentTypeAttribute)
                 continue;
 
-            this.contentTypes[contentTypeAttribute] = true;
+            const extensionAttribute = genNode.attributes['Extension'];
+            if (!extensionAttribute)
+                continue;
+
+            this.contentTypes[contentTypeAttribute] = extensionAttribute;
         }
     }
 }
