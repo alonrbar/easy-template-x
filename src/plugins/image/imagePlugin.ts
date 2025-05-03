@@ -48,20 +48,19 @@ export class ImagePlugin extends TemplatePlugin {
         if (!context.pluginContext[this.contentType]) {
             context.pluginContext[this.contentType] = {};
         }
-        if (!context.pluginContext[this.contentType]) {
-            context.pluginContext[this.contentType] = {};
-        }
 
         const pluginContext: ImagePluginContext = context.pluginContext[this.contentType];
         if (!pluginContext.lastDrawingObjectId) {
             pluginContext.lastDrawingObjectId = {};
         }
+
         const lastIdMap = pluginContext.lastDrawingObjectId;
+        const lastIdKey = context.currentPart.path;
 
         // Get next image ID if already initialized.
-        if (lastIdMap[context.currentPart.path]) {
-            lastIdMap[context.currentPart.path]++;
-            return lastIdMap[context.currentPart.path];
+        if (lastIdMap[lastIdKey]) {
+            lastIdMap[lastIdKey]++;
+            return lastIdMap[lastIdKey];
         }
 
         // Init next image ID.
@@ -79,8 +78,8 @@ export class ImagePlugin extends TemplatePlugin {
         const ids = docProps.map(prop => parseInt(prop.attributes.id)).filter(isNumber);
         const maxId = Math.max(...ids, 0);
 
-        lastIdMap[context.currentPart.path] = maxId + 1;
-        return lastIdMap[context.currentPart.path];
+        lastIdMap[lastIdKey] = maxId + 1;
+        return lastIdMap[lastIdKey];
     }
 
     private createMarkup(imageId: number, relId: string, content: ImageContent): XmlNode {
