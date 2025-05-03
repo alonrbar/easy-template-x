@@ -14,7 +14,7 @@ Generate docx documents from templates, in Node or in the browser.
 >
 > ✓ PDF support  
 > ✓ REST API integration  
-> ✓ Zapier integration  
+> ✓ Zapier and Make integration  
 > ✓ Live preview functionality  
 > ✓ Easy-to-use UI  
 >
