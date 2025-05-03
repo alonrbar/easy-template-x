@@ -1,10 +1,13 @@
 import { DOMParser } from "@xmldom/xmldom";
-import { InternalArgumentMissingError } from "src/errors";
+import { InternalArgumentMissingError, InternalError } from "src/errors";
 import { last } from "src/utils";
 import { COMMENT_NODE_NAME, XmlGeneralNode, XmlNode, XmlNodeType } from "./xmlNode";
 import { TEXT_NODE_NAME, XmlCommentNode } from "./xmlNode";
 import { XmlTextNode } from "./xmlNode";
+import { XmlTreeIterator } from "./xmlTreeIterator";
 import type { IMap } from "src/types";
+
+export type XmlNodePredicate = (node: XmlNode) => boolean;
 
 export class XmlUtils {
 
@@ -240,17 +243,21 @@ class Query {
     public isTextNode(node: XmlNode): node is XmlTextNode {
         if (node.nodeType === XmlNodeType.Text || node.nodeName === TEXT_NODE_NAME) {
             if (!(node.nodeType === XmlNodeType.Text && node.nodeName === TEXT_NODE_NAME)) {
-                throw new Error(`Invalid text node. Type: '${node.nodeType}', Name: '${node.nodeName}'.`);
+                throw new InternalError(`Invalid text node. Type: '${node.nodeType}', Name: '${node.nodeName}'.`);
             }
             return true;
         }
         return false;
     }
 
+    public isGeneralNode(node: XmlNode): node is XmlGeneralNode {
+        return node.nodeType === XmlNodeType.General;
+    }
+
     public isCommentNode(node: XmlNode): node is XmlCommentNode {
         if (node.nodeType === XmlNodeType.Comment || node.nodeName === COMMENT_NODE_NAME) {
             if (!(node.nodeType === XmlNodeType.Comment && node.nodeName === COMMENT_NODE_NAME)) {
-                throw new Error(`Invalid comment node. Type: '${node.nodeType}', Name: '${node.nodeName}'.`);
+                throw new InternalError(`Invalid comment node. Type: '${node.nodeType}', Name: '${node.nodeName}'.`);
             }
             return true;
         }
@@ -348,6 +355,18 @@ class Query {
 
         range.push(lastNode);
         return range;
+    }
+
+    public descendants(node: XmlNode, maxDepth: number, predicate: XmlNodePredicate): XmlNode[] {
+        const result: XmlNode[] = [];
+        const it = new XmlTreeIterator(node, maxDepth);
+        while (it.node) {
+            if (predicate(it.node)) {
+                result.push(it.node);
+            }
+            it.next();
+        }
+        return result;
     }
 }
 

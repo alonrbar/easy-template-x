@@ -2,8 +2,6 @@ import { InternalError } from "src/errors";
 import { XmlDepthTracker } from "./xmlDepthTracker";
 import { XmlNode } from "./xmlNode";
 
-export type XmlNodePredicate = (node: XmlNode) => boolean;
-
 export class XmlTreeIterator<T extends XmlNode = XmlNode> {
 
     public get node(): T {

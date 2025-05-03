@@ -3,21 +3,16 @@ import { TemplateDataError } from "src/errors";
 import { MimeTypeHelper } from "src/mimeType";
 import { officeMarkup } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
+import { isNumber } from "src/utils/number";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 import { ImageContent } from "./imageContent";
 
 interface ImagePluginContext {
     /**
-     * Apparently it is not that important for the ID to be unique...
-     * Word displays two images correctly even if they both have the same ID.
-     * Further more, Word will assign each a unique ID upon saving (it assigns
-     * consecutive integers starting with 1).
-     *
-     * Note: The same principal applies to image names.
-     *
-     * Tested in Word v1908
+     * Last drawing object ID for each OOXML part.
+     * Key is the OOXML part path.
      */
-    lastImageId: number;
+    lastDrawingObjectId: Record<string, number>;
 }
 
 export class ImagePlugin extends TemplatePlugin {
@@ -39,7 +34,7 @@ export class ImagePlugin extends TemplatePlugin {
         await context.docx.contentTypes.ensureContentType(content.format);
 
         // Create the xml markup
-        const imageId = this.getNextImageId(context);
+        const imageId = await this.getNextImageId(context);
         const imageXml = this.createMarkup(imageId, relId, content);
 
         const wordTextNode = officeMarkup.query.containingTextNode(tag.xmlTextNode);
@@ -47,23 +42,45 @@ export class ImagePlugin extends TemplatePlugin {
         officeMarkup.modify.removeTag(tag.xmlTextNode);
     }
 
-    private getNextImageId(context: TemplateContext): number {
+    private async getNextImageId(context: TemplateContext): Promise<number> {
 
         // Init plugin context.
         if (!context.pluginContext[this.contentType]) {
             context.pluginContext[this.contentType] = {};
         }
+        if (!context.pluginContext[this.contentType]) {
+            context.pluginContext[this.contentType] = {};
+        }
+
+        const pluginContext: ImagePluginContext = context.pluginContext[this.contentType];
+        if (!pluginContext.lastDrawingObjectId) {
+            pluginContext.lastDrawingObjectId = {};
+        }
+        const lastIdMap = pluginContext.lastDrawingObjectId;
 
         // Get next image ID if already initialized.
-        const pluginContext: ImagePluginContext = context.pluginContext[this.contentType];
-        if (pluginContext.lastImageId) {
-            pluginContext.lastImageId++;
-            return pluginContext.lastImageId;
+        if (lastIdMap[context.currentPart.path]) {
+            lastIdMap[context.currentPart.path]++;
+            return lastIdMap[context.currentPart.path];
         }
 
         // Init next image ID.
-        pluginContext.lastImageId = 1;
-        return pluginContext.lastImageId;
+        const partRoot = await context.currentPart.xmlRoot();
+        const maxDepth = context.options.maxXmlDepth;
+
+        // Get all existing doc props IDs
+        // (docPr stands for "Drawing Object Non-Visual Properties", which isn't
+        // exactly a good acronym but that's how it's called nevertheless)
+        const docProps = xml.query.descendants(partRoot, maxDepth, node => {
+            return xml.query.isGeneralNode(node) && node.nodeName === 'wp:docPr';
+        }) as XmlGeneralNode[];
+
+        // Start counting from the current max
+        const ids = docProps.map(prop => parseInt(prop.attributes.id)).filter(isNumber);
+        const maxId = Math.max(...ids, 0);
+
+        lastIdMap[context.currentPart.path] = maxId + 1;
+        return lastIdMap[context.currentPart.path];
     }
 
     private createMarkup(imageId: number, relId: string, content: ImageContent): XmlNode {

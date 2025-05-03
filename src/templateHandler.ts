@@ -78,7 +78,10 @@ export class TemplateHandler {
         const context: TemplateContext = {
             docx,
             currentPart: null,
-            pluginContext: {}
+            pluginContext: {},
+            options: {
+                maxXmlDepth: this.options.maxXmlDepth
+            }
         };
 
         const contentParts = await docx.getContentParts();

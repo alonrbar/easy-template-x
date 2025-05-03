@@ -87,6 +87,32 @@ describe('image fixtures', () => {
         // writeTempFile('image - transparency - output.docx', doc);
     });
 
+    test("add to an existing image", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template = readFixture("image - existing image.docx");
+        const imageFile = readResource("panda1.jpg");
+
+        const imageData = {
+            _type: 'image',
+            format: MimeType.Jpeg,
+            source: imageFile,
+            height: 325,
+            width: 600
+        };
+        const data = {
+            NewImage: imageData
+        };
+
+        const doc = await handler.process(template, data);
+
+        const docXml = await handler.getXml(doc);
+        expect(docXml).toMatchSnapshot();
+
+        // writeTempFile('image - existing image - output.docx', doc);
+    });
+
     test("two different images", async () => {
 
         //
