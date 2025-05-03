@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.2.1 - 2025-05-03](https://github.com/alonrbar/easy-template-x/tree/v6.2.1)
+
+### Fixed
+
+- Fix inserting images into a document with other existing images (used to create
+  invalid documents in some cases).
+
 ## [6.2.0 - 2025-04-03](https://github.com/alonrbar/easy-template-x/tree/v6.2.0)
 
 ### Added
