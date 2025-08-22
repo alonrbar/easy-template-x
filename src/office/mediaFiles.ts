@@ -48,8 +48,7 @@ export class MediaFiles {
         // generate unique media file name
         const extension = MimeTypeHelper.getDefaultExtension(mime);
         do {
-            this.nextFileId++;
-            path = `${MediaFiles.mediaDir}/media${this.nextFileId}.${extension}`;
+            path = `${MediaFiles.mediaDir}/image${++this.nextFileId}.${extension}`;
         } while (this.hashes[path]);
 
         // add media to zip
@@ -82,6 +81,8 @@ export class MediaFiles {
             if (!filename)
                 continue;
 
+            ++this.nextFileId
+            
             const fileData = await this.zip.getFile(path).getContentBase64();
             const fileHash = sha1(fileData);
             this.hashes[filename] = fileHash;
