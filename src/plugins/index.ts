@@ -3,6 +3,7 @@ export * from './link';
 export * from './loop';
 export * from './rawXml';
 export * from './text';
+export * from "./chart";
 export * from './defaultPlugins';
 export * from './pluginContent';
 export * from './templatePlugin';
