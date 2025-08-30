@@ -32,3 +32,8 @@ export function stringValue(val: unknown): string {
 export function normalizeDoubleQuotes(text: string): string {
     return text.replace(nonStandardDoubleQuotesRegex, standardDoubleQuotes);
 }
+
+export function countOccurrences(text: string, substring: string): number {
+    // https://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string
+    return (text.match(new RegExp(substring, 'g')) || []).length;
+}

@@ -13,7 +13,7 @@ export class ContentTypesFile {
 
     private root: XmlNode;
 
-    private contentTypes: Partial<Record<MimeType, string>>;
+    private contentTypes: Partial<Record<string, MimeType>>;
 
     private readonly zip: Zip;
 
@@ -26,14 +26,12 @@ export class ContentTypesFile {
         // Parse the content types file
         await this.parseContentTypesFile();
 
-        // Mime type already exists
-        if (this.contentTypes[mime])
-            return;
-
         // Extension already exists
-        // Unfortunately, this can happen in real life so we need to handle it.
+        //
+        // Multiple extensions may map to the same mime type, but a single
+        // extension must only map to one mime type.
         const extension = MimeTypeHelper.getDefaultExtension(mime);
-        if (Object.values(this.contentTypes).includes(extension))
+        if (this.contentTypes[extension])
             return;
 
         // Add new node
@@ -46,12 +44,12 @@ export class ContentTypesFile {
 
         // Update state
         this.addedNew = true;
-        this.contentTypes[mime] = extension;
+        this.contentTypes[extension] = mime;
     }
 
-    public async count(): Promise<number> {
+    public async xmlString(): Promise<string> {
         await this.parseContentTypesFile();
-        return this.root.childNodes.filter(node => !xml.query.isTextNode(node)).length;
+        return xml.parser.serializeFile(this.root);
     }
 
     /**
@@ -92,7 +90,7 @@ export class ContentTypesFile {
             if (!extensionAttribute)
                 continue;
 
-            this.contentTypes[contentTypeAttribute] = extensionAttribute;
+            this.contentTypes[extensionAttribute] = contentTypeAttribute;
         }
     }
 }
