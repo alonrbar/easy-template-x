@@ -2,7 +2,7 @@ import { MimeType } from 'src/mimeType';
 import { ImageContent } from 'src/plugins/image';
 import { TemplateHandler } from 'src/templateHandler';
 import { Zip } from 'src/zip';
-import { range, readResource } from '../testUtils';
+import { range, readResource, writeTempFile } from '../testUtils';
 import { readFixture } from './fixtureUtils';
 
 describe('image fixtures', () => {
@@ -157,6 +157,54 @@ describe('image fixtures', () => {
         expect(docXml).toMatchSnapshot();
 
         // writeTempFile(doc, 'image - two - output.docx');
+    });
+
+    test("start with an existing image and run twice the same template, each time with a different image", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template = readFixture("image - existing image 2.docx");
+        const imageFile1 = readResource("panda1.jpg");
+        const imageFile2 = readResource("panda2.png");
+
+        const imageData1: ImageContent = {
+            _type: 'image',
+            format: MimeType.Png,
+            source: imageFile1,
+            height: 325,
+            width: 600
+        };
+        const imageData2: ImageContent = {
+            _type: 'image',
+            format: MimeType.Png,
+            source: imageFile2,
+            height: 300,
+            width: 300
+        };
+
+        const data1: any = {
+            Tag1: imageData1,
+            Tag2: "{NewTag1} {NewTag2}"
+        };
+
+        const data2: any = {
+            NewTag1: imageData2,
+            NewTag2: "Done"
+        };
+
+        // Run the first time - should insert an image and two new tags
+        const doc1 = await handler.process(template, data1);
+        writeTempFile('image - run twice - output 1.docx', doc1);
+
+        // const docXml1 = await handler.getXml(doc1);
+        // expect(docXml1).toMatchSnapshot();
+
+        // Run the second time - should insert another image
+        const doc2 = await handler.process(doc1, data2);
+        writeTempFile('image - run twice - output 2.docx', doc2);
+
+        // const docXml2 = await handler.getXml(doc2);
+        // expect(docXml2).toMatchSnapshot();
     });
 
     test("insert the same image to the archive multiple times - stored only once", async () => {

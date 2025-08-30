@@ -84,7 +84,7 @@ export class MediaFiles {
 
             const fileData = await this.zip.getFile(path).getContentBase64();
             const fileHash = sha1(fileData);
-            this.hashes[filename] = fileHash;
+            this.hashes[path] = fileHash;
         }
     }
 }
