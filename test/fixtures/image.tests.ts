@@ -1,4 +1,5 @@
 import { MimeType } from "src/mimeType";
+import { MediaFiles } from "src/office/mediaFiles";
 import { ImageContent } from "src/plugins/image";
 import { TemplateHandler } from "src/templateHandler";
 import { Zip } from "src/zip";
@@ -192,14 +193,29 @@ describe('image fixtures', () => {
             NewTag2: "Done"
         };
 
+        const beforeZip = await Zip.load(template);
+        const beforeMediaFiles = new MediaFiles(beforeZip);
+        const beforeMediaFilesCount = await beforeMediaFiles.count();
+        expect(beforeMediaFilesCount).toEqual(1);
+
         // Run the first time - should insert an image and two new tags
         const doc1 = await handler.process(template, data1);
+
+        const zip1 = await Zip.load(doc1);
+        const mediaFiles1 = new MediaFiles(zip1);
+        const mediaFilesCount1 = await mediaFiles1.count();
+        expect(mediaFilesCount1).toEqual(2);
 
         const docXml1 = await handler.getXml(doc1);
         expect(docXml1).toMatchSnapshot();
 
         // Run the second time - should insert another image
         const doc2 = await handler.process(doc1, data2);
+
+        const zip2 = await Zip.load(doc2);
+        const mediaFiles2 = new MediaFiles(zip2);
+        const mediaFilesCount2 = await mediaFiles2.count();
+        expect(mediaFilesCount2).toEqual(3);
 
         const docXml2 = await handler.getXml(doc2);
         expect(docXml2).toMatchSnapshot();
