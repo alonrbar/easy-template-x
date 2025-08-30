@@ -46,10 +46,11 @@ export class MediaFiles {
             return path;
 
         // Generate unique media file name
+        const baseFilename = this.baseFilename(mime);
         const extension = MimeTypeHelper.getDefaultExtension(mime);
         do {
             this.nextFileId++;
-            path = `${MediaFiles.mediaDir}/media${this.nextFileId}.${extension}`;
+            path = `${MediaFiles.mediaDir}/${baseFilename}${this.nextFileId}.${extension}`;
         } while (this.hashes[path]);
 
         // Add media to zip
@@ -85,5 +86,12 @@ export class MediaFiles {
             const fileHash = sha1(fileData);
             this.hashes[path] = fileHash;
         }
+    }
+
+    private baseFilename(mime: MimeType): string {
+        // Naive heuristic.
+        // May need to be modified if we're going to support more mime types.
+        const parts = mime.split('/');
+        return parts[0];
     }
 }

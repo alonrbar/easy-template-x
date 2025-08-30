@@ -18,7 +18,7 @@ describe(MediaFiles, () => {
 
             const image = readResource("panda1.jpg");
             const addedFilePath = await mediaFiles.add(image, MimeType.Jpeg);
-            expect(addedFilePath).toEqual('word/media/media1.jpg');
+            expect(addedFilePath).toEqual('word/media/image1.jpg');
 
             filesCount = await mediaFiles.count();
             expect(filesCount).toEqual(3);
@@ -38,7 +38,7 @@ describe(MediaFiles, () => {
             // add #1
             const image1 = readResource(mediaToAdd);
             const addedFilePath1 = await mediaFiles.add(image1, MimeType.Jpeg);
-            expect(addedFilePath1).toEqual('word/media/media1.jpg');
+            expect(addedFilePath1).toEqual('word/media/image1.jpg');
 
             filesCount = await mediaFiles.count();
             expect(filesCount).toEqual(3);
@@ -46,7 +46,7 @@ describe(MediaFiles, () => {
             // add #2
             const image2 = readResource(mediaToAdd);
             const addedFilePath2 = await mediaFiles.add(image2, MimeType.Jpeg);
-            expect(addedFilePath2).toEqual('word/media/media1.jpg');
+            expect(addedFilePath2).toEqual('word/media/image1.jpg');
 
             filesCount = await mediaFiles.count();
             expect(filesCount).toEqual(3);
