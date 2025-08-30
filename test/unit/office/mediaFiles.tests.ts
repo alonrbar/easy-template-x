@@ -3,11 +3,11 @@ import { MediaFiles } from 'src/office/mediaFiles';
 import { Zip } from 'src/zip';
 import { readResource } from '../../testUtils';
 
-describe(nameof(MediaFiles), () => {
+describe(MediaFiles, () => {
 
-    describe(nameof(MediaFiles.prototype.add), () => {
+    describe(MediaFiles.prototype.add, () => {
 
-        it('adds a file', async () => {
+        test('adds a file', async () => {
 
             const docFile = readResource("two images.docx");
             const zip = await Zip.load(docFile);
@@ -24,7 +24,7 @@ describe(nameof(MediaFiles), () => {
             expect(filesCount).toEqual(3);
         });
 
-        it('adds the same file only once', async () => {
+        test('adds the same file only once', async () => {
 
             const docFile = readResource("two images.docx");
             const zip = await Zip.load(docFile);

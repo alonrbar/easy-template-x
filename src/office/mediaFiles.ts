@@ -25,41 +25,40 @@ export class MediaFiles {
      */
     public async add(mediaFile: Binary, mime: MimeType): Promise<string> {
 
-        // check if already added
+        // Check if already added
         if (this.files.has(mediaFile))
             return this.files.get(mediaFile);
 
-        // hash existing media files
+        // Hash existing media files
         await this.hashMediaFiles();
 
-        // hash the new file
+        // Hash the new file
         // Note: Even though hashing the base64 string may seem inefficient
         // (requires extra step in some cases) in practice it is significantly
         // faster than hashing a 'binarystring'.
         const base64 = await Binary.toBase64(mediaFile);
         const hash = sha1(base64);
 
-        // check if file already exists
-        // note: this can be optimized by keeping both mapping by filename as well as by hash
+        // Check if file already exists
+        // Note: this can be optimized by keeping both mapping by filename as well as by hash
         let path = Object.keys(this.hashes).find(p => this.hashes[p] === hash);
         if (path)
             return path;
 
-        // generate unique media file name
+        // Generate unique media file name
         const extension = MimeTypeHelper.getDefaultExtension(mime);
         do {
             this.nextFileId++;
             path = `${MediaFiles.mediaDir}/media${this.nextFileId}.${extension}`;
         } while (this.hashes[path]);
 
-        // add media to zip
-        await this.zip.setFile(path, mediaFile);
+        // Add media to zip
+        this.zip.setFile(path, mediaFile);
 
-        // add media to our lookups
+        // Add media to our lookups
         this.hashes[path] = hash;
         this.files.set(mediaFile, path);
 
-        // return
         return path;
     }
 
