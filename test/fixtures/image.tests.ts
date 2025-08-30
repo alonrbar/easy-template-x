@@ -1,9 +1,9 @@
-import { MimeType } from 'src/mimeType';
-import { ImageContent } from 'src/plugins/image';
-import { TemplateHandler } from 'src/templateHandler';
-import { Zip } from 'src/zip';
-import { range, readResource, writeTempFile } from '../testUtils';
-import { readFixture } from './fixtureUtils';
+import { MimeType } from "src/mimeType";
+import { ImageContent } from "src/plugins/image";
+import { TemplateHandler } from "src/templateHandler";
+import { Zip } from "src/zip";
+import { range, readResource } from "../testUtils";
+import { readFixture } from "./fixtureUtils";
 
 describe('image fixtures', () => {
 
@@ -194,17 +194,18 @@ describe('image fixtures', () => {
 
         // Run the first time - should insert an image and two new tags
         const doc1 = await handler.process(template, data1);
-        writeTempFile('image - run twice - output 1.docx', doc1);
 
-        // const docXml1 = await handler.getXml(doc1);
-        // expect(docXml1).toMatchSnapshot();
+        const docXml1 = await handler.getXml(doc1);
+        expect(docXml1).toMatchSnapshot();
 
         // Run the second time - should insert another image
         const doc2 = await handler.process(doc1, data2);
-        writeTempFile('image - run twice - output 2.docx', doc2);
 
-        // const docXml2 = await handler.getXml(doc2);
-        // expect(docXml2).toMatchSnapshot();
+        const docXml2 = await handler.getXml(doc2);
+        expect(docXml2).toMatchSnapshot();
+
+        // writeTempFile('image - run twice - output 1.docx', doc1);
+        // writeTempFile('image - run twice - output 2.docx', doc2);
     });
 
     test("insert the same image to the archive multiple times - stored only once", async () => {
