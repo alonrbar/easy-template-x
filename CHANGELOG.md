@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.2.2 - 2025-08-31](https://github.com/alonrbar/easy-template-x/tree/v6.2.2)
+
+### Fixed
+
+- Fix inserting images over multiple `process` calls ([#142](https://github.com/alonrbar/easy-template-x/issues/142)).
+- Improved previous fix for inserting images into a document with other existing images.
+
 ## [6.2.1 - 2025-05-03](https://github.com/alonrbar/easy-template-x/tree/v6.2.1)
 
 ### Fixed
