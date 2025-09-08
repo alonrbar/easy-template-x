@@ -1,6 +1,6 @@
 import { ScopeData, Tag } from 'src/compilation';
 
-describe(nameof(ScopeData), () => {
+describe(ScopeData, () => {
 
     it('uses custom scope data resolver (no path)', () => {
         const scopeData = new ScopeData({});

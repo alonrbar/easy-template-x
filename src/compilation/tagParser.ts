@@ -13,7 +13,7 @@ export class TagParser {
 
     constructor(delimiters: Delimiters) {
         if (!delimiters)
-            throw new InternalArgumentMissingError(nameof(delimiters));
+            throw new InternalArgumentMissingError("delimiters");
 
         this.delimiters = delimiters;
 

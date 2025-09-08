@@ -10,7 +10,7 @@ export class JsZipHelper {
     public static toJsZipOutputType(binaryOrType: Binary | Constructor<Binary>): JSZip.OutputType {
 
         if (!binaryOrType)
-            throw new InternalArgumentMissingError(nameof(binaryOrType));
+            throw new InternalArgumentMissingError("binaryOrType");
 
         let binaryType: Constructor<Binary>;
         if (typeof binaryOrType === 'function') {

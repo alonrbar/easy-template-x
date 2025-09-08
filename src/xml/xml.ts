@@ -41,7 +41,7 @@ class Parser {
 
     public domParse(str: string): Document {
         if (str === null || str === undefined)
-            throw new InternalArgumentMissingError(nameof(str));
+            throw new InternalArgumentMissingError("str");
 
         return Parser.parser.parseFromString(str, "text/xml");
     }
@@ -53,7 +53,7 @@ class Parser {
      */
     public encodeValue(str: string): string {
         if (str === null || str === undefined)
-            throw new InternalArgumentMissingError(nameof(str));
+            throw new InternalArgumentMissingError("str");
         if (typeof str !== 'string')
             throw new TypeError(`Expected a string, got '${(str as any).constructor.name}'.`);
 
@@ -165,7 +165,7 @@ class Create {
 
     public cloneNode<T extends XmlNode>(node: T, deep: boolean): T {
         if (!node)
-            throw new InternalArgumentMissingError(nameof(node));
+            throw new InternalArgumentMissingError("node");
 
         if (!deep) {
             const clone = Object.assign({}, node);
@@ -339,9 +339,9 @@ class Query {
      */
     public siblingsInRange(firstNode: XmlNode, lastNode: XmlNode): XmlNode[] {
         if (!firstNode)
-            throw new InternalArgumentMissingError(nameof(firstNode));
+            throw new InternalArgumentMissingError("firstNode");
         if (!lastNode)
-            throw new InternalArgumentMissingError(nameof(lastNode));
+            throw new InternalArgumentMissingError("lastNode");
 
         const range: XmlNode[] = [];
         let curNode = firstNode;
@@ -380,12 +380,12 @@ class Modify {
      */
     public insertBefore(newNode: XmlNode, referenceNode: XmlNode): void {
         if (!newNode)
-            throw new InternalArgumentMissingError(nameof(newNode));
+            throw new InternalArgumentMissingError("newNode");
         if (!referenceNode)
-            throw new InternalArgumentMissingError(nameof(referenceNode));
+            throw new InternalArgumentMissingError("referenceNode");
 
         if (!referenceNode.parentNode)
-            throw new Error(`'${nameof(referenceNode)}' has no parent`);
+            throw new Error(`'referenceNode' has no parent`);
 
         const childNodes = referenceNode.parentNode.childNodes;
         const beforeNodeIndex = childNodes.indexOf(referenceNode);
@@ -400,12 +400,12 @@ class Modify {
      */
     public insertAfter(newNode: XmlNode, referenceNode: XmlNode): void {
         if (!newNode)
-            throw new InternalArgumentMissingError(nameof(newNode));
+            throw new InternalArgumentMissingError("newNode");
         if (!referenceNode)
-            throw new InternalArgumentMissingError(nameof(referenceNode));
+            throw new InternalArgumentMissingError("referenceNode");
 
         if (!referenceNode.parentNode)
-            throw new Error(`'${nameof(referenceNode)}' has no parent`);
+            throw new Error(`'referenceNode' has no parent`);
 
         const childNodes = referenceNode.parentNode.childNodes;
         const referenceNodeIndex = childNodes.indexOf(referenceNode);
@@ -414,11 +414,11 @@ class Modify {
 
     public insertChild(parent: XmlNode, child: XmlNode, childIndex: number): void {
         if (!parent)
-            throw new InternalArgumentMissingError(nameof(parent));
+            throw new InternalArgumentMissingError("parent");
         if (xml.query.isTextNode(parent))
             throw new Error('Appending children to text nodes is forbidden');
         if (!child)
-            throw new InternalArgumentMissingError(nameof(child));
+            throw new InternalArgumentMissingError("child");
 
         if (!parent.childNodes)
             parent.childNodes = [];
@@ -449,11 +449,11 @@ class Modify {
 
     public appendChild(parent: XmlNode, child: XmlNode): void {
         if (!parent)
-            throw new InternalArgumentMissingError(nameof(parent));
+            throw new InternalArgumentMissingError("parent");
         if (xml.query.isTextNode(parent))
             throw new Error('Appending children to text nodes is forbidden');
         if (!child)
-            throw new InternalArgumentMissingError(nameof(child));
+            throw new InternalArgumentMissingError("child");
 
         if (!parent.childNodes)
             parent.childNodes = [];
@@ -477,7 +477,7 @@ class Modify {
      */
     public remove(node: XmlNode): void {
         if (!node)
-            throw new InternalArgumentMissingError(nameof(node));
+            throw new InternalArgumentMissingError("node");
 
         if (!node.parentNode)
             throw new Error('Node has no parent');
@@ -497,9 +497,9 @@ class Modify {
     public removeChild(parent: XmlNode, childIndex: number): XmlNode;
     public removeChild(parent: XmlNode, childOrIndex: XmlNode | number): XmlNode {
         if (!parent)
-            throw new InternalArgumentMissingError(nameof(parent));
+            throw new InternalArgumentMissingError("parent");
         if (childOrIndex === null || childOrIndex === undefined)
-            throw new InternalArgumentMissingError(nameof(childOrIndex));
+            throw new InternalArgumentMissingError("childOrIndex");
 
         if (!parent.childNodes || !parent.childNodes.length)
             throw new Error('Parent node has node children');
@@ -579,7 +579,7 @@ class Modify {
     public splitByChild(parent: XmlNode, child: XmlNode, removeChild: boolean): [XmlNode, XmlNode] {
 
         if (child.parentNode != parent)
-            throw new Error(`Node '${nameof(child)}' is not a direct child of '${nameof(parent)}'.`);
+            throw new Error(`Node 'child' is not a direct child of 'parent'.`);
 
         // create childless clone 'left'
         const left = xml.create.cloneNode(parent, false);

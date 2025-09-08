@@ -14,7 +14,7 @@ export class Delimiters {
         this.encodeAndValidate();
 
         if (this.containerTagOpen === this.containerTagClose)
-            throw new Error(`${nameof(this.containerTagOpen)} can not be equal to ${nameof(this.containerTagClose)}`);
+            throw new Error(`containerTagOpen can not be equal to containerTagClose`);
     }
 
     private encodeAndValidate() {

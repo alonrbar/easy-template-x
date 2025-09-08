@@ -2,9 +2,9 @@ import { Tag, TagDisposition, XmlTextNode } from "src";
 import { LoopParagraphStrategy } from "src/plugins/loop/strategy";
 import { parseXml } from "../../../testUtils";
 
-describe(nameof(LoopParagraphStrategy), () => {
+describe(LoopParagraphStrategy, () => {
 
-    describe(nameof(LoopParagraphStrategy.prototype.splitBefore), () => {
+    describe(LoopParagraphStrategy.prototype.splitBefore, () => {
 
         it("when the closing loop tag's run has additional content before the tag, the extra content is preserved (bug #36)", () => {
 

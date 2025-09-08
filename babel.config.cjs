@@ -6,8 +6,5 @@ module.exports = {
             }
         }],
         "@babel/typescript"
-    ],
-    "plugins": [
-        "ts-nameof"
     ]
 };

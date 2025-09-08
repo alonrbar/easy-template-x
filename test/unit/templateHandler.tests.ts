@@ -2,13 +2,13 @@ import { TagDisposition } from 'src/compilation/tag';
 import { TemplateHandler } from 'src/templateHandler';
 import { readFixture } from '../fixtures/fixtureUtils';
 
-describe(nameof(TemplateHandler), () => {
+describe(TemplateHandler, () => {
 
     it(`constructor doesn't throw`, () => {
         new TemplateHandler();
-    });    
+    });
 
-    describe(nameof(TemplateHandler.prototype.parseTags), () => {
+    describe(TemplateHandler.prototype.parseTags, () => {
 
         it("returns parsed tags", async () => {
 

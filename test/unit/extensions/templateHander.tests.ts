@@ -16,8 +16,8 @@ class AfterCompilationExtension extends TemplateExtension {
     public setUtilities = setUtilities;
 }
 
-describe(nameof(TemplateHandler), () => {
-    describe(nameof(TemplateHandler.prototype.process), () => {
+describe(TemplateHandler, () => {
+    describe(TemplateHandler.prototype.process, () => {
         it('calls each extension', async () => {
             const beforeCompilationExtension = new BeforeCompilationExtension();
             const afterCompilationExtension = new AfterCompilationExtension();

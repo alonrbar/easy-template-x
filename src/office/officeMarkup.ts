@@ -116,7 +116,7 @@ class Query {
             return null;
 
         if (!xml.query.isTextNode(node))
-            throw new Error(`'Invalid argument ${nameof(node)}. Expected a XmlTextNode.`);
+            throw new Error(`'Invalid argument node. Expected a XmlTextNode.`);
 
         return xml.query.findParent(node, officeMarkup.query.isTextNode) as XmlGeneralNode;
     }
@@ -262,7 +262,7 @@ class Modify {
         // input validation
         const containingParagraph = officeMarkup.query.containingParagraphNode(textNode);
         if (containingParagraph != paragraph)
-            throw new Error(`Node '${nameof(textNode)}' is not a descendant of '${nameof(paragraph)}'.`);
+            throw new Error(`Node 'textNode' is not a contained in the specified paragraph.`);
 
         const runNode = officeMarkup.query.containingRunNode(textNode);
         const wordTextNode = officeMarkup.query.containingTextNode(textNode);
