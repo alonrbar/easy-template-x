@@ -25,17 +25,10 @@ jobs:
 
       - run: yarn typecheck
       - run: yarn lint
-      - run: yarn test --ci --runInBand
+      - run: yarn test
 
       - name: Test Summary
         if: always()
         uses: test-summary/action@v2
         with:
           paths: "test-reports/junit.xml"
-
-      - name: Detailed test report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Test Report
-          path: test-reports/report.html
