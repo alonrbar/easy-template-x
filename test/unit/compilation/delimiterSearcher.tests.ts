@@ -1,6 +1,7 @@
-import { DelimiterMark, DelimiterSearcher } from 'src/compilation';
-import { XmlTextNode } from 'src/xml';
-import { parseXml } from '../../testUtils';
+import { DelimiterMark, DelimiterSearcher } from "src/compilation";
+import { XmlTextNode } from "src/xml";
+import { describe, expect, it } from "vitest";
+import { parseXml } from "../../testUtils";
 
 describe(DelimiterSearcher, () => {
 

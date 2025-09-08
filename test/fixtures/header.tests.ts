@@ -2,6 +2,7 @@ import { MimeType } from "src/mimeType";
 import { RelType } from "src/office";
 import { TemplateHandler } from "src/templateHandler";
 import { Zip } from "src/zip";
+import { describe, expect, it } from "vitest";
 import { readResource } from "../testUtils";
 import { readFixture } from "./fixtureUtils";
 

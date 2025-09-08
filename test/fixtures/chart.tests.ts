@@ -3,6 +3,7 @@ import { ChartContent } from "src/plugins/chart/chartContent";
 import { DateTimeFormatValues, NumberingFormatValues } from "src/plugins/chart/chartData";
 import { TemplateHandler } from "src/templateHandler";
 import { writeTempFile } from "test/testUtils";
+import { describe, expect, test } from "vitest";
 import { readFixture } from "./fixtureUtils";
 
 describe("chart fixtures", () => {

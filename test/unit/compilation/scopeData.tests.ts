@@ -1,4 +1,5 @@
-import { ScopeData, Tag } from 'src/compilation';
+import { ScopeData, Tag } from "src/compilation";
+import { describe, expect, it } from "vitest";
 
 describe(ScopeData, () => {
 

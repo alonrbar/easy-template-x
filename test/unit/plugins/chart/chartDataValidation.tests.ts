@@ -1,6 +1,7 @@
 import { TemplateDataError } from "src/errors";
-import { validateChartData } from "src/plugins/chart/chartDataValidation";
 import { chartTypes } from "src/plugins/chart/chartData";
+import { validateChartData } from "src/plugins/chart/chartDataValidation";
+import { describe, expect, test } from "vitest";
 
 describe(validateChartData, () => {
 

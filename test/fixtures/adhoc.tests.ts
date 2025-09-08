@@ -1,5 +1,6 @@
-import { TemplateHandler } from 'src/templateHandler';
-import * as fs from 'fs';
+import * as fs from "fs";
+import { TemplateHandler } from "src/templateHandler";
+import { describe, test } from "vitest";
 
 describe.skip('ad-hoc tests', () => {
 

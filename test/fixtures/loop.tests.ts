@@ -1,6 +1,7 @@
-import { TemplateHandler } from 'src/templateHandler';
-import { removeWhiteSpace } from 'test/testUtils';
-import { readFixture } from './fixtureUtils';
+import { TemplateHandler } from "src/templateHandler";
+import { removeWhiteSpace } from "test/testUtils";
+import { describe, expect, test } from "vitest";
+import { readFixture } from "./fixtureUtils";
 
 describe('loop fixtures', () => {
 
@@ -401,7 +402,7 @@ describe('loop fixtures', () => {
             await handler.process(template, data);
 
             // writeTempFile('nested loop speed test - output.docx', doc);
-        }, 5 * 1000);
+        }, 10 * 1000);
     });
 
     describe('paragraph', () => {

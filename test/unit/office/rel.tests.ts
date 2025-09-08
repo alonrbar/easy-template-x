@@ -1,5 +1,6 @@
-import { MimeType } from 'src/mimeType';
-import { RelsFile } from 'src/office/relsFile';
+import { MimeType } from "src/mimeType";
+import { RelsFile } from "src/office/relsFile";
+import { describe, expect, it } from "vitest";
 
 describe(RelsFile, () => {
 

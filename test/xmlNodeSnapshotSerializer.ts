@@ -1,8 +1,9 @@
 import { XmlNodeType, xml } from 'src/xml';
+import type { SnapshotSerializer } from 'vitest';
 
 // add XmlNode snapshot serializer
 // (otherwise simple image markup snapshot takes more than 100MB!)
-const serializer: jest.SnapshotSerializerPlugin = {
+const serializer: SnapshotSerializer = {
 
     test(value) {
         // check that 'value' is an XmlNode
@@ -17,4 +18,4 @@ const serializer: jest.SnapshotSerializerPlugin = {
     },
 };
 
-module.exports = serializer;
+export default serializer;

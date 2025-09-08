@@ -1,5 +1,6 @@
-import { TemplateHandler } from 'src/templateHandler';
-import { readFixture } from './fixtureUtils';
+import { TemplateHandler } from "src/templateHandler";
+import { describe, expect, it } from "vitest";
+import { readFixture } from "./fixtureUtils";
 
 describe('text tag fixtures', () => {
 

@@ -4,6 +4,7 @@ import { TagParser } from "src/compilation/tagParser";
 import { Delimiters } from "src/delimiters";
 import { MissingCloseDelimiterError, TagOptionsParseError } from "src/errors";
 import { XmlTextNode } from "src/xml";
+import { describe, expect, test } from "vitest";
 import { parseXml } from "../../testUtils";
 
 describe(TagParser, () => {

@@ -1,7 +1,8 @@
-import { MimeType } from 'src/mimeType';
-import { MediaFiles } from 'src/office/mediaFiles';
-import { Zip } from 'src/zip';
-import { readResource } from '../../testUtils';
+import { MimeType } from "src/mimeType";
+import { MediaFiles } from "src/office/mediaFiles";
+import { Zip } from "src/zip";
+import { describe, expect, test } from "vitest";
+import { readResource } from "../../testUtils";
 
 describe(MediaFiles, () => {
 

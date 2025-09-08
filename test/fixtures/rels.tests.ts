@@ -1,6 +1,7 @@
-import { TemplateHandler } from 'src/templateHandler';
+import { TemplateHandler } from "src/templateHandler";
+import { describe, expect, it } from "vitest";
 import { Zip } from 'src/zip';
-import { readFixture } from './fixtureUtils';
+import { readFixture } from "./fixtureUtils";
 
 describe('rels fixture', () => {
 

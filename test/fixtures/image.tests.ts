@@ -3,6 +3,7 @@ import { MediaFiles } from "src/office/mediaFiles";
 import { ImageContent } from "src/plugins/image";
 import { TemplateHandler } from "src/templateHandler";
 import { Zip } from "src/zip";
+import { describe, expect, test } from "vitest";
 import { range, readResource } from "../testUtils";
 import { readFixture } from "./fixtureUtils";
 

@@ -1,5 +1,6 @@
 import { Tag, TagDisposition, XmlTextNode } from "src";
 import { LoopParagraphStrategy } from "src/plugins/loop/strategy";
+import { describe, expect, it } from "vitest";
 import { parseXml } from "../../../testUtils";
 
 describe(LoopParagraphStrategy, () => {

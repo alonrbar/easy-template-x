@@ -1,6 +1,7 @@
 import { MimeType } from "src/mimeType";
 import { ContentTypesFile } from "src/office/contentTypesFile";
 import { countOccurrences } from "src/utils/txt";
+import { describe, expect, test } from "vitest";
 
 describe(ContentTypesFile, () => {
 

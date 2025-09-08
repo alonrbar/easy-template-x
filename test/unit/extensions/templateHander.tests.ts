@@ -1,10 +1,12 @@
-import { TemplateHandler, TemplateData } from "src";
-import { readResource } from "test/testUtils";
+import { TemplateData, TemplateHandler } from "src";
 import { TemplateExtension } from "src/extensions";
+import { readResource } from "test/testUtils";
+import { describe, expect, it } from "vitest";
+import { vi } from "vitest";
 
-const beforeCompilationExecute = jest.fn();
-const afterCompilationExecute = jest.fn();
-const setUtilities = jest.fn();
+const beforeCompilationExecute = vi.fn();
+const afterCompilationExecute = vi.fn();
+const setUtilities = vi.fn();
 
 class BeforeCompilationExtension extends TemplateExtension {
     public execute = beforeCompilationExecute;

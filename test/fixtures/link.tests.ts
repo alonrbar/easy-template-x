@@ -1,12 +1,13 @@
-import { TemplateHandler } from 'src/templateHandler';
-import { readFixture } from './fixtureUtils';
+import { TemplateHandler } from "src/templateHandler";
+import { describe, expect, it } from "vitest";
+import { readFixture } from "./fixtureUtils";
 
 describe('link fixture', () => {
 
     it("inserts hyper link", async () => {
 
         const template = readFixture("link.docx");
-        
+
         const data = {
             link: {
                 _type: 'link',
@@ -15,7 +16,7 @@ describe('link fixture', () => {
                 tooltip: 'Click to open link'
             }
         };
-        
+
         const handler = new TemplateHandler();
         const doc = await handler.process(template, data);
 

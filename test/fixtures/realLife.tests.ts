@@ -1,6 +1,7 @@
-import { TemplateHandler } from 'src/templateHandler';
-import { randomParagraphs, randomWords } from '../testUtils';
-import { readFixture } from './fixtureUtils';
+import { TemplateHandler } from "src/templateHandler";
+import { describe, it } from "vitest";
+import { randomParagraphs, randomWords } from "../testUtils";
+import { readFixture } from "./fixtureUtils";
 
 describe('real life fixtures', () => {
 
@@ -14,7 +15,7 @@ describe('real life fixtures', () => {
         //     'תלמידים': [
         //         {
         //             'שם_התלמיד': 'אלון בר',
-        //             'קבוצות': [                 
+        //             'קבוצות': [
         //                 {
         //                     'שם_הקבוצה': 'אנגלית',
         //                     'שם_המורה': 'משה משה',
