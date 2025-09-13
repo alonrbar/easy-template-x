@@ -1,5 +1,5 @@
-import { IMap } from "src/types";
-import { XmlGeneralNode, XmlTextNode } from "src/xml";
+import type { IMap } from "src/types";
+import type { XmlGeneralNode, XmlTextNode } from "src/xml";
 
 export const TagDisposition = Object.freeze({
     Open: "Open",
