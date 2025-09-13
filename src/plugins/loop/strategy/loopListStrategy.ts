@@ -1,11 +1,11 @@
-import { Tag } from "src/compilation";
+import { TextNodeTag } from "src/compilation";
 import { officeMarkup } from "src/office";
 import { xml, XmlNode } from "src/xml";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
 export class LoopListStrategy implements ILoopStrategy {
 
-    public isApplicable(openTag: Tag, closeTag: Tag, isCondition: boolean): boolean {
+    public isApplicable(openTag: TextNodeTag, closeTag: TextNodeTag, isCondition: boolean): boolean {
         if (isCondition) {
             return false;
         }
@@ -14,7 +14,7 @@ export class LoopListStrategy implements ILoopStrategy {
         return officeMarkup.query.isListParagraph(containingParagraph);
     }
 
-    public splitBefore(openTag: Tag, closeTag: Tag): SplitBeforeResult {
+    public splitBefore(openTag: TextNodeTag, closeTag: TextNodeTag): SplitBeforeResult {
 
         const firstParagraph = officeMarkup.query.containingParagraphNode(openTag.xmlTextNode);
         const lastParagraph = officeMarkup.query.containingParagraphNode(closeTag.xmlTextNode);

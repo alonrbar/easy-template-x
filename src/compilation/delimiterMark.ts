@@ -1,9 +1,10 @@
 import { OpenXmlPart } from "src/office";
-import { XmlTextNode } from "src/xml";
+import { XmlGeneralNode, XmlTextNode } from "src/xml";
+import { TagPlacement } from "./tag";
 
-export interface DelimiterMark {
+export type DelimiterMark = TextNodeDelimiterMark | AttributeDelimiterMark;
 
-    xmlTextNode: XmlTextNode;
+export interface BaseDelimiterMark {
     openXmlPart?: OpenXmlPart;
     /**
      * Index inside the text node
@@ -13,4 +14,15 @@ export interface DelimiterMark {
      * Is this an open delimiter or a close delimiter
      */
     isOpen: boolean;
+}
+
+export interface TextNodeDelimiterMark extends BaseDelimiterMark {
+    placement: typeof TagPlacement.TextNode;
+    xmlTextNode: XmlTextNode;
+}
+
+export interface AttributeDelimiterMark extends BaseDelimiterMark {
+    placement: typeof TagPlacement.Attribute;
+    xmlNode: XmlGeneralNode;
+    attributeName: string;
 }

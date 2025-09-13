@@ -1,11 +1,11 @@
-import { Tag } from "src/compilation";
+import { TextNodeTag } from "src/compilation";
 import { XmlNode } from "src/xml";
 
 export interface ILoopStrategy {
 
-    isApplicable(openTag: Tag, closeTag: Tag, isCondition: boolean): boolean;
+    isApplicable(openTag: TextNodeTag, closeTag: TextNodeTag, isCondition: boolean): boolean;
 
-    splitBefore(openTag: Tag, closeTag: Tag): SplitBeforeResult;
+    splitBefore(openTag: TextNodeTag, closeTag: TextNodeTag): SplitBeforeResult;
 
     mergeBack(compiledNodes: XmlNode[][], firstNode: XmlNode, lastNode: XmlNode): void;
 }

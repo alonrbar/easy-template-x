@@ -3,8 +3,8 @@ import { Delimiters } from "src/delimiters";
 import { InternalArgumentMissingError, MissingCloseDelimiterError, MissingStartDelimiterError, TagOptionsParseError } from "src/errors";
 import { officeMarkup } from "src/office";
 import { normalizeDoubleQuotes, Regex } from "src/utils";
-import { DelimiterMark } from "./delimiterMark";
-import { Tag, TagDisposition } from "./tag";
+import { TextNodeDelimiterMark } from "./delimiterMark";
+import { TextNodeTag, TagDisposition, TagPlacement } from "./tag";
 
 export class TagParser {
 
@@ -21,11 +21,11 @@ export class TagParser {
         this.tagRegex = new RegExp(`^${Regex.escape(delimiters.tagStart)}(?<tagName>.*?)(${tagOptionsRegex})?${Regex.escape(delimiters.tagEnd)}`, 'm');
     }
 
-    public parse(delimiters: DelimiterMark[]): Tag[] {
-        const tags: Tag[] = [];
+    public parse(delimiters: TextNodeDelimiterMark[]): TextNodeTag[] {
+        const tags: TextNodeTag[] = [];
 
-        let openedTag: Partial<Tag>;
-        let openedDelimiter: DelimiterMark;
+        let openedTag: Partial<TextNodeTag>;
+        let openedDelimiter: TextNodeDelimiterMark;
         for (let i = 0; i < delimiters.length; i++) {
             const delimiter = delimiters[i];
 
@@ -56,8 +56,8 @@ export class TagParser {
                 openedTag.xmlTextNode = openedDelimiter.xmlTextNode;
 
                 // extract tag info from tag's text
-                this.processTag(openedTag as Tag);
-                tags.push(openedTag as Tag);
+                this.processTag(openedTag as TextNodeTag);
+                tags.push(openedTag as TextNodeTag);
                 openedTag = null;
                 openedDelimiter = null;
             }
@@ -75,10 +75,10 @@ export class TagParser {
      * Text nodes after: [ "some text ", "{some tag}", " some more text" ]
      */
     private normalizeTagNodes(
-        openDelimiter: DelimiterMark,
-        closeDelimiter: DelimiterMark,
+        openDelimiter: TextNodeDelimiterMark,
+        closeDelimiter: TextNodeDelimiterMark,
         closeDelimiterIndex: number,
-        allDelimiters: DelimiterMark[]
+        allDelimiters: TextNodeDelimiterMark[]
     ): void {
 
         let startTextNode = openDelimiter.xmlTextNode;
@@ -140,7 +140,8 @@ export class TagParser {
         closeDelimiter.xmlTextNode = endTextNode;
     }
 
-    private processTag(tag: Tag): void {
+    private processTag(tag: TextNodeTag): void {
+        tag.placement = TagPlacement.TextNode;
         tag.rawText = tag.xmlTextNode.textContent;
 
         const tagParts = this.tagRegex.exec(tag.rawText);
@@ -152,7 +153,7 @@ export class TagParser {
             return;
         }
 
-        // Tag options.
+        // TextNodeTag options.
         const tagOptionsText = (tagParts.groups?.["tagOptions"] || '').trim();
         if (tagOptionsText) {
             try {

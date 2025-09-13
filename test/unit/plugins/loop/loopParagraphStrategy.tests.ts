@@ -1,4 +1,4 @@
-import { Tag, TagDisposition, XmlTextNode } from "src";
+import { TagDisposition, TagPlacement, TextNodeTag, XmlTextNode } from "src";
 import { LoopParagraphStrategy } from "src/plugins/loop/strategy";
 import { describe, expect, it } from "vitest";
 import { parseXml } from "../../../testUtils";
@@ -28,13 +28,15 @@ describe(LoopParagraphStrategy, () => {
                 </w:body>
             `);
 
-            const openTag: Tag = {
+            const openTag: TextNodeTag = {
                 name: 'loop',
+                placement: TagPlacement.TextNode,
                 disposition: TagDisposition.Open,
                 rawText: '{#loop}',
                 xmlTextNode: body.childNodes[0].childNodes[0].childNodes[0].childNodes[0] as XmlTextNode
             };
-            const closeTag: Tag = {
+            const closeTag: TextNodeTag = {
+                placement: TagPlacement.TextNode,
                 name: 'loop',
                 disposition: TagDisposition.Open,
                 rawText: '{/loop}',

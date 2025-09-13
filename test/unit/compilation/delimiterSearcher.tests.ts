@@ -1,4 +1,4 @@
-import { DelimiterMark, DelimiterSearcher } from "src/compilation";
+import { DelimiterMark, DelimiterSearcher, TagPlacement } from "src/compilation";
 import { XmlTextNode } from "src/xml";
 import { describe, expect, it } from "vitest";
 import { parseXml } from "../../testUtils";
@@ -20,21 +20,25 @@ describe(DelimiterSearcher, () => {
             const textNode = paragraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
             const expected: DelimiterMark[] = [
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: true,
                     index: 0,
                     xmlTextNode: textNode
                 },
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: false,
                     index: 6,
                     xmlTextNode: textNode
                 },
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: true,
                     index: 7,
                     xmlTextNode: textNode
                 },
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: false,
                     index: 13,
                     xmlTextNode: textNode
@@ -64,11 +68,13 @@ describe(DelimiterSearcher, () => {
             const secondTextNode = paragraph.childNodes[0].childNodes[1].childNodes[0] as XmlTextNode;
             const expected: DelimiterMark[] = [
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: true,
                     index: 0,
                     xmlTextNode: firstTextNode
                 },
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: false,
                     index: 2,
                     xmlTextNode: secondTextNode
@@ -103,11 +109,13 @@ describe(DelimiterSearcher, () => {
             const thirdTextNode = paragraph.childNodes[2].childNodes[0].childNodes[0] as XmlTextNode;
             const expected: DelimiterMark[] = [
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: true,
                     index: 0,
                     xmlTextNode: firstTextNode
                 },
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: false,
                     index: 0,
                     xmlTextNode: thirdTextNode
@@ -138,21 +146,25 @@ describe(DelimiterSearcher, () => {
             const textNode = paragraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
             const expected: DelimiterMark[] = [
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: true,
                     index: 0,
                     xmlTextNode: textNode
                 },
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: false,
                     index: 7,
                     xmlTextNode: textNode
                 },
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: true,
                     index: 9,
                     xmlTextNode: textNode
                 },
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: false,
                     index: 16,
                     xmlTextNode: textNode
@@ -182,11 +194,13 @@ describe(DelimiterSearcher, () => {
             const secondTextNode = paragraph.childNodes[0].childNodes[1].childNodes[0] as XmlTextNode;
             const expected: DelimiterMark[] = [
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: true,
                     index: 0,
                     xmlTextNode: firstTextNode
                 },
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: false,
                     index: 2,
                     xmlTextNode: secondTextNode
@@ -221,11 +235,13 @@ describe(DelimiterSearcher, () => {
             const thirdTextNode = paragraph.childNodes[2].childNodes[0].childNodes[0] as XmlTextNode;
             const expected: DelimiterMark[] = [
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: true,
                     index: 0,
                     xmlTextNode: firstTextNode
                 },
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: false,
                     index: 0,
                     xmlTextNode: thirdTextNode
@@ -262,11 +278,13 @@ describe(DelimiterSearcher, () => {
             const firstTextNode = paragraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
             const expected: DelimiterMark[] = [
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: true,
                     index: 0,
                     xmlTextNode: firstTextNode
                 },
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: false,
                     index: 6,
                     xmlTextNode: firstTextNode
@@ -297,21 +315,25 @@ describe(DelimiterSearcher, () => {
             const textNode = paragraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
             const expected: DelimiterMark[] = [
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: true,
                     index: 1,
                     xmlTextNode: textNode
                 },
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: false,
                     index: 8,
                     xmlTextNode: textNode
                 },
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: true,
                     index: 12,
                     xmlTextNode: textNode
                 },
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: false,
                     index: 19,
                     xmlTextNode: textNode
@@ -341,11 +363,13 @@ describe(DelimiterSearcher, () => {
             const secondTextNode = paragraph.childNodes[0].childNodes[1].childNodes[0] as XmlTextNode;
             const expected: DelimiterMark[] = [
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: true,
                     index: 0,
                     xmlTextNode: firstTextNode
                 },
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: false,
                     index: 2,
                     xmlTextNode: secondTextNode
@@ -380,11 +404,13 @@ describe(DelimiterSearcher, () => {
             const thirdTextNode = paragraph.childNodes[2].childNodes[0].childNodes[0] as XmlTextNode;
             const expected: DelimiterMark[] = [
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: true,
                     index: 0,
                     xmlTextNode: firstTextNode
                 },
                 {
+                    placement: TagPlacement.TextNode,
                     isOpen: false,
                     index: 0,
                     xmlTextNode: thirdTextNode

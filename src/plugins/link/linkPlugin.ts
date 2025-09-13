@@ -1,4 +1,5 @@
-import { ScopeData, Tag, TemplateContext } from "src/compilation";
+import { ScopeData, Tag, TagPlacement, TemplateContext } from "src/compilation";
+import { TemplateSyntaxError } from "src/errors";
 import { RelType, officeMarkup } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { xml, XmlNode } from "src/xml";
@@ -9,6 +10,10 @@ export class LinkPlugin extends TemplatePlugin {
     public readonly contentType = 'link';
 
     public async simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): Promise<void> {
+
+        if (tag.placement !== TagPlacement.TextNode) {
+            throw new TemplateSyntaxError("Link tag must be placed in a text node");
+        }
 
         const content = data.getScopeData<LinkContent>();
         if (!content || !content.target) {

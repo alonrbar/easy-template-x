@@ -1,4 +1,5 @@
-import { ScopeData, Tag } from "src/compilation";
+import { ScopeData, Tag, TagPlacement } from "src/compilation";
+import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { stringValue } from "src/utils";
@@ -14,6 +15,10 @@ export class TextPlugin extends TemplatePlugin {
      * Replace the node text content with the specified value.
      */
     public simpleTagReplacements(tag: Tag, data: ScopeData): void {
+
+        if (tag.placement !== TagPlacement.TextNode) {
+            throw new TemplateSyntaxError("Text tag must be placed in a text node");
+        }
 
         const value = data.getScopeData();
         const lines = stringValue(value).split('\n');

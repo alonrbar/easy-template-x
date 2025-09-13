@@ -1,4 +1,5 @@
-import { ScopeData, Tag } from "src/compilation";
+import { ScopeData, Tag, TagPlacement } from "src/compilation";
+import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { xml } from "src/xml";
@@ -9,6 +10,10 @@ export class RawXmlPlugin extends TemplatePlugin {
     public readonly contentType = 'rawXml';
 
     public simpleTagReplacements(tag: Tag, data: ScopeData): void {
+
+        if (tag.placement !== TagPlacement.TextNode) {
+            throw new TemplateSyntaxError("RawXml tag must be placed in a text node");
+        }
 
         const value = data.getScopeData<RawXmlContent>();
 

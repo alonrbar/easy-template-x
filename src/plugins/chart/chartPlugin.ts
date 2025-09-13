@@ -1,4 +1,4 @@
-import { ScopeData, Tag, TemplateContext } from "src/compilation";
+import { ScopeData, Tag, TagPlacement, TemplateContext, TextNodeTag } from "src/compilation";
 import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup, OmlNode } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
@@ -11,6 +11,10 @@ export class ChartPlugin extends TemplatePlugin {
     public readonly contentType = 'chart';
 
     public async simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): Promise<void> {
+
+        if (tag.placement !== TagPlacement.TextNode) {
+            throw new TemplateSyntaxError("Chart tag must be placed in a text node");
+        }
 
         const chartNode = xml.query.findParentByName(tag.xmlTextNode, "c:chart");
         if (!chartNode) {
@@ -39,7 +43,7 @@ export class ChartPlugin extends TemplatePlugin {
     }
 }
 
-function updateTitle(tag: Tag, newTitle: string) {
+function updateTitle(tag: TextNodeTag, newTitle: string) {
 
     const wordTextNode = officeMarkup.query.containingTextNode(tag.xmlTextNode);
 

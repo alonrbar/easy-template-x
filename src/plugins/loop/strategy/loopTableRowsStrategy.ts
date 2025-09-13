@@ -1,4 +1,4 @@
-import { Tag } from "src/compilation";
+import { TextNodeTag } from "src/compilation";
 import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup } from "src/office";
 import { xml, XmlNode } from "src/xml";
@@ -7,7 +7,7 @@ import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
 export class LoopTableRowsStrategy implements ILoopStrategy {
 
-    public isApplicable(openTag: Tag, closeTag: Tag, isCondition: boolean): boolean {
+    public isApplicable(openTag: TextNodeTag, closeTag: TextNodeTag, isCondition: boolean): boolean {
         const openCell = officeMarkup.query.containingTableCellNode(openTag.xmlTextNode);
         if (!openCell)
             return false;
@@ -26,7 +26,7 @@ export class LoopTableRowsStrategy implements ILoopStrategy {
         return true;
     }
 
-    public splitBefore(openTag: Tag, closeTag: Tag): SplitBeforeResult {
+    public splitBefore(openTag: TextNodeTag, closeTag: TextNodeTag): SplitBeforeResult {
 
         const firstRow = officeMarkup.query.containingTableRowNode(openTag.xmlTextNode);
         const lastRow = officeMarkup.query.containingTableRowNode(closeTag.xmlTextNode);

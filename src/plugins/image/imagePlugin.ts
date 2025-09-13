@@ -1,5 +1,5 @@
-import { ScopeData, Tag, TemplateContext } from "src/compilation";
-import { TemplateDataError } from "src/errors";
+import { ScopeData, Tag, TagPlacement, TemplateContext } from "src/compilation";
+import { TemplateDataError, TemplateSyntaxError } from "src/errors";
 import { MimeTypeHelper } from "src/mimeType";
 import { officeMarkup } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
@@ -20,6 +20,10 @@ export class ImagePlugin extends TemplatePlugin {
     public readonly contentType = 'image';
 
     public async simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): Promise<void> {
+
+        if (tag.placement !== TagPlacement.TextNode) {
+            throw new TemplateSyntaxError("Image tag must be placed in a text node");
+        }
 
         const content = data.getScopeData<ImageContent>();
         if (!content || !content.source) {

@@ -1,7 +1,8 @@
 import { officeMarkup } from "src/office";
 import { first, last } from "src/utils";
 import { xml, XmlNode, XmlTextNode, XmlTreeIterator } from "src/xml";
-import { DelimiterMark } from "./delimiterMark";
+import { TextNodeDelimiterMark } from "./delimiterMark";
+import { TagPlacement } from "./tag";
 
 class MatchState {
 
@@ -39,7 +40,7 @@ export class DelimiterSearcher {
     public startDelimiter = "{";
     public endDelimiter = "}";
 
-    public findDelimiters(node: XmlNode): DelimiterMark[] {
+    public findDelimiters(node: XmlNode): TextNodeDelimiterMark[] {
 
         //
         // Performance note:
@@ -52,7 +53,7 @@ export class DelimiterSearcher {
         // complexity and effort.
         //
 
-        const delimiters: DelimiterMark[] = [];
+        const delimiters: TextNodeDelimiterMark[] = [];
         const match = new MatchState();
         const it = new XmlTreeIterator(node, this.maxXmlDepth);
         let lookForOpenDelimiter = true;
@@ -132,7 +133,7 @@ export class DelimiterSearcher {
         return textIndex;
     }
 
-    private fullMatch(it: XmlTreeIterator<XmlTextNode>, textIndex: number, lookForOpenDelimiter: boolean, match: MatchState, delimiters: DelimiterMark[]): [number, boolean] {
+    private fullMatch(it: XmlTreeIterator<XmlTextNode>, textIndex: number, lookForOpenDelimiter: boolean, match: MatchState, delimiters: TextNodeDelimiterMark[]): [number, boolean] {
 
         // Move all delimiters characters to the same text node
         if (match.openNodes.length > 1) {
@@ -146,7 +147,7 @@ export class DelimiterSearcher {
         }
 
         // Store delimiter
-        const delimiterMark = this.createDelimiterMark(match, lookForOpenDelimiter);
+        const delimiterMark = this.createTextNodeDelimiterMark(match, lookForOpenDelimiter);
         delimiters.push(delimiterMark);
 
         // Update state
@@ -173,8 +174,9 @@ export class DelimiterSearcher {
         return true;
     }
 
-    private createDelimiterMark(match: MatchState, isOpenDelimiter: boolean): DelimiterMark {
+    private createTextNodeDelimiterMark(match: MatchState, isOpenDelimiter: boolean): TextNodeDelimiterMark {
         return {
+            placement: TagPlacement.TextNode,
             index: match.firstMatchIndex,
             isOpen: isOpenDelimiter,
             xmlTextNode: match.openNodes[0]

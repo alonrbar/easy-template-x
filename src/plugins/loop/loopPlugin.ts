@@ -1,4 +1,5 @@
-import { PathPart, ScopeData, Tag, TemplateContext } from "src/compilation";
+import { PathPart, ScopeData, Tag, TagPlacement, TemplateContext } from "src/compilation";
+import { TemplateSyntaxError } from "src/errors";
 import { PluginUtilities, TemplatePlugin } from "src/plugins/templatePlugin";
 import { TemplateData } from "src/templateData";
 import { last } from "src/utils";
@@ -39,6 +40,10 @@ export class LoopPlugin extends TemplatePlugin {
         // vars
         const openTag = tags[0];
         const closeTag = last(tags);
+
+        if (openTag.placement !== TagPlacement.TextNode || closeTag.placement !== TagPlacement.TextNode) {
+            throw new TemplateSyntaxError("Loop tags must be placed in text nodes");
+        }
 
         // select the suitable strategy
         const loopStrategy = this.loopStrategies.find(strategy => strategy.isApplicable(openTag, closeTag, isCondition));

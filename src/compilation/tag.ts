@@ -1,5 +1,5 @@
 import { IMap } from "src/types";
-import { XmlTextNode } from "src/xml";
+import { XmlGeneralNode, XmlTextNode } from "src/xml";
 
 export const TagDisposition = Object.freeze({
     Open: "Open",
@@ -9,7 +9,16 @@ export const TagDisposition = Object.freeze({
 
 export type TagDisposition = typeof TagDisposition[keyof typeof TagDisposition];
 
-export interface Tag {
+export const TagPlacement = Object.freeze({
+    TextNode: "TextNode",
+    Attribute: "Attribute",
+} as const);
+
+export type TagPlacement = typeof TagPlacement[keyof typeof TagPlacement];
+
+export type Tag = TextNodeTag | AttributeTag;
+
+export interface BaseTag {
     name: string;
     options?: IMap<any>;
     /**
@@ -17,5 +26,15 @@ export interface Tag {
      */
     rawText: string;
     disposition: TagDisposition;
+}
+
+export interface TextNodeTag extends BaseTag {
+    placement: typeof TagPlacement.TextNode;
     xmlTextNode: XmlTextNode;
+}
+
+export interface AttributeTag extends BaseTag {
+    placement: typeof TagPlacement.Attribute;
+    xmlNode: XmlGeneralNode;
+    attributeName: string;
 }
