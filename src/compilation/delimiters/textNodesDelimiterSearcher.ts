@@ -1,8 +1,8 @@
+import { TagPlacement } from "src/compilation/tag";
 import { officeMarkup } from "src/office";
 import { first, last } from "src/utils";
 import { xml, XmlTextNode, XmlTreeIterator } from "src/xml";
 import { TextNodeDelimiterMark } from "./delimiterMark";
-import { TagPlacement } from "src/compilation/tag";
 
 export class TextNodesDelimiterSearcher {    
 

@@ -11,11 +11,12 @@ class W {
     public readonly Table = 'w:tbl';
     public readonly TableRow = 'w:tr';
     public readonly TableCell = 'w:tc';
+    public readonly Drawing = 'w:drawing';
     public readonly NumberProperties = 'w:numPr';
 }
 
 /**
- * Drawing Markup Language node names.
+ * Drawing Markup Language main namespace node names.
  *
  * These elements are part of the main drawingML namespace:
  * xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main".
@@ -26,6 +27,20 @@ class A {
     public readonly Run = 'a:r';
     public readonly RunProperties = 'a:rPr';
     public readonly Text = 'a:t';
+}
+
+/**
+ * Drawing Markup Language "wordprocessing drawing" namespace node names.
+ * 
+ * These elements are part of the wordprocessingDrawing namespace:
+ * xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing".
+ */
+class Wp {
+    /**
+     * docPr stands for "Drawing Object Non-Visual Properties", which isn't
+     * exactly a good acronym but that's how it's called nevertheless.
+     */
+    public readonly DocPr = 'wp:docPr';
 }
 
 /**
@@ -44,9 +59,14 @@ export class OmlNode {
     public static readonly W = new W();
 
     /**
-     * Drawing Markup Language node names.
+     * Drawing Markup Language main namespace node names.
      */
     public static readonly A = new A();
+
+    /**
+     * Drawing Markup Language "wordprocessing drawing" namespace node names.
+     */
+    public static readonly Wp = new Wp();
 }
 
 export class OmlAttribute {

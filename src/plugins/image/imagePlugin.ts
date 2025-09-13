@@ -1,7 +1,7 @@
 import { ScopeData, Tag, TagPlacement, TemplateContext } from "src/compilation";
 import { TemplateDataError, TemplateSyntaxError } from "src/errors";
 import { MimeTypeHelper } from "src/mimeType";
-import { officeMarkup } from "src/office";
+import { officeMarkup, OmlNode } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { isNumber } from "src/utils/number";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
@@ -72,10 +72,8 @@ export class ImagePlugin extends TemplatePlugin {
         const maxDepth = context.options.maxXmlDepth;
 
         // Get all existing doc props IDs
-        // (docPr stands for "Drawing Object Non-Visual Properties", which isn't
-        // exactly a good acronym but that's how it's called nevertheless)
         const docProps = xml.query.descendants(partRoot, maxDepth, node => {
-            return xml.query.isGeneralNode(node) && node.nodeName === 'wp:docPr';
+            return xml.query.isGeneralNode(node) && node.nodeName === OmlNode.Wp.DocPr;
         }) as XmlGeneralNode[];
 
         // Start counting from the current max
