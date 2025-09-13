@@ -72,7 +72,7 @@ export class Relationship {
         const node = xml.create.generalNode('Relationship');
         node.attributes = {};
 
-        // set only non-empty attributes
+        // Set only non-empty attributes
         for (const propKey of Object.keys(this)) {
             const value = (this as any)[propKey];
             if (value && typeof value === 'string') {

@@ -50,7 +50,7 @@ export class OpenXmlPart {
     public async getText(): Promise<string> {
         const xmlDocument = await this.xmlRoot();
 
-        // ugly but good enough...
+        // Ugly but good enough...
         const xmlString = xml.parser.serializeFile(xmlDocument);
         const domDocument = xml.parser.domParse(xmlString);
 

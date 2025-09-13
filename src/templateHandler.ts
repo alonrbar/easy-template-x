@@ -22,7 +22,7 @@ export class TemplateHandler {
         this.options = new TemplateHandlerOptions(options);
 
         //
-        // this is the library's composition root
+        // This is the library's composition root
         //
 
         const delimiterSearcher = new DelimiterSearcher();
@@ -64,15 +64,15 @@ export class TemplateHandler {
     }
 
     //
-    // public methods
+    // Public methods
     //
 
     public async process<T extends Binary>(templateFile: T, data: TemplateData): Promise<T> {
 
-        // load the docx file
+        // Load the docx file
         const docx = await Docx.load(templateFile);
 
-        // prepare context
+        // Prepare context
         const scopeData = new ScopeData(data);
         scopeData.scopeDataResolver = this.options.scopeDataResolver;
         const context: TemplateContext = {
@@ -89,18 +89,18 @@ export class TemplateHandler {
 
             context.currentPart = part;
 
-            // extensions - before compilation
+            // Extensions - before compilation
             await this.callExtensions(this.options.extensions?.beforeCompilation, scopeData, context);
 
-            // compilation (do replacements)
+            // Compilation (do replacements)
             const xmlRoot = await part.xmlRoot();
             await this.compiler.compile(xmlRoot, scopeData, context);
 
-            // extensions - after compilation
+            // Extensions - after compilation
             await this.callExtensions(this.options.extensions?.afterCompilation, scopeData, context);
         }
 
-        // export the result
+        // Export the result
         return docx.export();
     }
 
@@ -171,7 +171,7 @@ export class TemplateHandler {
     }
 
     //
-    // private methods
+    // Private methods
     //
 
     private async callExtensions(extensions: TemplateExtension[], scopeData: ScopeData, context: TemplateContext): Promise<void> {

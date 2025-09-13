@@ -31,21 +31,21 @@ export class RelsFile {
      */
     public async add(relTarget: string, relType: string, relTargetMode?: RelTargetMode): Promise<string> {
 
-        // if relTarget is an internal file it should be relative to the part dir
+        // If relTarget is an internal file it should be relative to the part dir
         if (this.partDir && relTarget.startsWith(this.partDir)) {
             relTarget = relTarget.substr(this.partDir.length + 1);
         }
 
-        // parse rels file
+        // Parse rels file
         await this.parseRelsFile();
 
-        // already exists?
+        // Already exists?
         const relTargetKey = this.getRelTargetKey(relType, relTarget);
         let relId = this.relTargets[relTargetKey];
         if (relId)
             return relId;
 
-        // create rel node
+        // Create rel node
         relId = this.getNextRelId();
         const rel = new Relationship({
             id: relId,
@@ -54,11 +54,11 @@ export class RelsFile {
             targetMode: relTargetMode
         });
 
-        // update lookups
+        // Update lookups
         this.rels[relId] = rel;
         this.relTargets[relTargetKey] = relId;
 
-        // return
+        // Return
         return relId;
     }
 
@@ -80,21 +80,21 @@ export class RelsFile {
      */
     public async save(): Promise<void> {
 
-        // not change - no need to save
+        // Not change - no need to save
         if (!this.rels)
             return;
 
-        // create rels xml
+        // Create rels xml
         const root = this.createRootNode();
         root.childNodes = Object.values(this.rels).map(rel => rel.toXml());
 
-        // serialize and save
+        // Serialize and save
         const xmlContent = xml.parser.serializeFile(root);
         this.zip.setFile(this.relsFilePath, xmlContent);
     }
 
     //
-    // private methods
+    // Private methods
     //
 
     private getNextRelId(): string {
@@ -110,11 +110,11 @@ export class RelsFile {
 
     private async parseRelsFile(): Promise<void> {
 
-        // already parsed
+        // Already parsed
         if (this.rels)
             return;
 
-        // parse xml
+        // Parse xml
         let root: XmlNode;
         const relsFile = this.zip.getFile(this.relsFilePath);
         if (relsFile) {
@@ -124,7 +124,7 @@ export class RelsFile {
             root = this.createRootNode();
         }
 
-        // parse relationship nodes
+        // Parse relationship nodes
         this.rels = {};
         this.relTargets = {};
         for (const relNode of root.childNodes) {
@@ -138,11 +138,11 @@ export class RelsFile {
             if (!idAttr)
                 continue;
 
-            // store rel
+            // Store rel
             const rel = Relationship.fromXml(this.partDir, genRelNode);
             this.rels[idAttr] = rel;
 
-            // create rel target lookup
+            // Create rel target lookup
             if (rel.type && rel.target) {
                 const relTargetKey = this.getRelTargetKey(rel.type, rel.target);
                 this.relTargets[relTargetKey] = idAttr;
