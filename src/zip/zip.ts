@@ -19,6 +19,9 @@ export class Zip {
     }
 
     public getFile(path: string): ZipObject {
+        if (path && path.startsWith('/')) {
+            path = path.substring(1);
+        }
         const internalZipObject = this.zip.files[path];
         if (!internalZipObject)
             return null;
