@@ -11,7 +11,6 @@ export type XmlNodeType = typeof XmlNodeType[keyof typeof XmlNodeType];
 export type XmlNode = XmlTextNode | XmlGeneralNode | XmlCommentNode;
 
 export interface XmlNodeBase {
-    nodeType: XmlNodeType;
     nodeName: string;
     parentNode?: XmlNode;
     childNodes?: XmlNode[];
