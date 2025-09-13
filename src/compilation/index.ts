@@ -1,5 +1,4 @@
-export * from './delimiterMark';
-export * from './delimiterSearcher';
+export * from './delimiters';
 export * from './scopeData';
 export * from './tag';
 export * from './tagParser';

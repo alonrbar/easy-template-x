@@ -1,4 +1,4 @@
-import { TextNodeDelimiterMark } from "src/compilation/delimiterMark";
+import { TextNodeDelimiterMark } from "src/compilation/delimiters/delimiterMark";
 import { TagDisposition, TagPlacement } from "src/compilation/tag";
 import { TagParser } from "src/compilation/tagParser";
 import { Delimiters } from "src/delimiters";

@@ -2,7 +2,7 @@ import { officeMarkup } from "src/office";
 import { first, last } from "src/utils";
 import { xml, XmlNode, XmlTextNode, XmlTreeIterator } from "src/xml";
 import { TextNodeDelimiterMark } from "./delimiterMark";
-import { TagPlacement } from "./tag";
+import { TagPlacement } from "src/compilation/tag";
 
 class MatchState {
 
@@ -34,7 +34,7 @@ class MatchState {
     }
 }
 
-export class DelimiterSearcher {
+export class TextNodesDelimiterSearcher {
 
     public maxXmlDepth = 20;
     public startDelimiter = "{";

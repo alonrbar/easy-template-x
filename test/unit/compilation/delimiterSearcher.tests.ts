@@ -1,9 +1,9 @@
-import { DelimiterMark, DelimiterSearcher, TagPlacement } from "src/compilation";
+import { DelimiterMark, TextNodesDelimiterSearcher, TagPlacement } from "src/compilation";
 import { XmlTextNode } from "src/xml";
 import { describe, expect, it } from "vitest";
 import { parseXml } from "../../testUtils";
 
-describe(DelimiterSearcher, () => {
+describe(TextNodesDelimiterSearcher, () => {
 
     describe('single character delimiters', () => {
 
@@ -427,6 +427,6 @@ describe(DelimiterSearcher, () => {
     });
 });
 
-function createDelimiterSearcher(): DelimiterSearcher {
-    return new DelimiterSearcher();
+function createDelimiterSearcher(): TextNodesDelimiterSearcher {
+    return new TextNodesDelimiterSearcher();
 }

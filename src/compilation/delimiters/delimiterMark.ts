@@ -1,6 +1,6 @@
 import { OpenXmlPart } from "src/office";
 import { XmlGeneralNode, XmlTextNode } from "src/xml";
-import { TagPlacement } from "./tag";
+import { TagPlacement } from "src/compilation/tag";
 
 export type DelimiterMark = TextNodeDelimiterMark | AttributeDelimiterMark;
 

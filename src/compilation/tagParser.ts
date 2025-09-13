@@ -3,7 +3,7 @@ import { Delimiters } from "src/delimiters";
 import { InternalArgumentMissingError, MissingCloseDelimiterError, MissingStartDelimiterError, TagOptionsParseError } from "src/errors";
 import { officeMarkup } from "src/office";
 import { normalizeDoubleQuotes, Regex } from "src/utils";
-import { TextNodeDelimiterMark } from "./delimiterMark";
+import { TextNodeDelimiterMark } from "./delimiters";
 import { TextNodeTag, TagDisposition, TagPlacement } from "./tag";
 
 export class TagParser {
