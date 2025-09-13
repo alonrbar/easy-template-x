@@ -23,22 +23,38 @@ export type RelTargetMode = 'Internal' | 'External';
 
 export class Relationship {
 
-    public static fromXml(xml: XmlGeneralNode): Relationship {
+    public static fromXml(partDir: string, xml: XmlGeneralNode): Relationship {
         return new Relationship({
             id: xml.attributes?.['Id'],
             type: xml.attributes?.['Type'],
-            target: Relationship.normalizeRelTarget(xml.attributes?.['Target']),
+            target: Relationship.normalizeRelTarget(partDir, xml.attributes?.['Target']),
             targetMode: xml.attributes?.['TargetMode'] as RelTargetMode,
         });
     }
 
-    public static normalizeRelTarget(target: string): string {
+    public static normalizeRelTarget(partDir: string, target: string): string {
         if (!target) {
             return target;
         }
-        if (target.startsWith('/')) {
-            return target.substring(1);
+
+        // Remove leading slashes from input
+        if (partDir.startsWith('/')) {
+            partDir = partDir.substring(1);
         }
+        if (target.startsWith('/')) {
+            target = target.substring(1);
+        }
+
+        // Convert target to relative path
+        if (target.startsWith(partDir)) {
+            target = target.substring(partDir.length);
+        }
+
+        // Remove leading slashes from output
+        if (target.startsWith('/')) {
+            target = target.substring(1);
+        }
+
         return target;
     }
 

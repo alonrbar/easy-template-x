@@ -5,6 +5,13 @@ export class Path {
         return path.substr(lastSlashIndex + 1);
     }
 
+    /**
+     * Get the directory of a path. 
+     * Exclude the last slash.
+     * 
+     * Example:
+     * /folder/subfolder/file.txt -> /folder/subfolder
+     */
     public static getDirectory(path: string): string {
         const lastSlashIndex = path.lastIndexOf('/');
         return path.substring(0, lastSlashIndex);

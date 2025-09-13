@@ -128,8 +128,9 @@ export class RelsFile {
         this.rels = {};
         this.relTargets = {};
         for (const relNode of root.childNodes) {
+            const genRelNode = relNode as XmlGeneralNode;
 
-            const attributes = (relNode as XmlGeneralNode).attributes;
+            const attributes = genRelNode.attributes;
             if (!attributes)
                 continue;
 
@@ -138,25 +139,12 @@ export class RelsFile {
                 continue;
 
             // store rel
-            const rel = Relationship.fromXml(relNode as XmlGeneralNode);
-
-            // normalize target to be relative to the part directory
-            const typeAttr = attributes['Type'];
-            let targetAttr = Relationship.normalizeRelTarget(attributes['Target']);
-            if (targetAttr && this.partDir && targetAttr.startsWith(this.partDir + '/')) {
-                targetAttr = targetAttr.substring(this.partDir.length + 1);
-            }
-
-            // keep the normalized target on the relationship object
-            if (targetAttr) {
-                rel.target = targetAttr;
-            }
-
+            const rel = Relationship.fromXml(this.partDir, genRelNode);
             this.rels[idAttr] = rel;
 
             // create rel target lookup
-            if (typeAttr && targetAttr) {
-                const relTargetKey = this.getRelTargetKey(typeAttr, targetAttr);
+            if (rel.type && rel.target) {
+                const relTargetKey = this.getRelTargetKey(rel.type, rel.target);
                 this.relTargets[relTargetKey] = idAttr;
             }
         }
