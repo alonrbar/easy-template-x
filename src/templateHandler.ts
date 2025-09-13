@@ -1,4 +1,4 @@
-import { TextNodesDelimiterSearcher, ScopeData, Tag, TagParser, TemplateCompiler, TemplateContext } from "./compilation";
+import { DelimiterSearcher, ScopeData, Tag, TagParser, TemplateCompiler, TemplateContext } from "./compilation";
 import { Delimiters } from "./delimiters";
 import { TemplateExtension } from "./extensions";
 import { Docx, OpenXmlPart, RelType } from "./office";
@@ -25,7 +25,7 @@ export class TemplateHandler {
         // This is the library's composition root
         //
 
-        const delimiterSearcher = new TextNodesDelimiterSearcher();
+        const delimiterSearcher = new DelimiterSearcher();
         delimiterSearcher.startDelimiter = this.options.delimiters.tagStart;
         delimiterSearcher.endDelimiter = this.options.delimiters.tagEnd;
         delimiterSearcher.maxXmlDepth = this.options.maxXmlDepth;

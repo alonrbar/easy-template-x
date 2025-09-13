@@ -3,7 +3,7 @@ import { PluginContent, TemplatePlugin } from '../plugins';
 import { IMap } from '../types';
 import { isPromiseLike, stringValue, toDictionary } from '../utils';
 import { XmlNode } from '../xml';
-import { TextNodesDelimiterSearcher } from './delimiters';
+import { DelimiterSearcher } from './delimiters';
 import { ScopeData } from './scopeData';
 import { Tag, TagDisposition } from './tag';
 import { TagParser } from './tagParser';
@@ -28,12 +28,12 @@ export interface TemplateCompilerOptions {
 export class TemplateCompiler {
 
     private readonly pluginsLookup: IMap<TemplatePlugin>;
-    private readonly delimiterSearcher: TextNodesDelimiterSearcher;
+    private readonly delimiterSearcher: DelimiterSearcher;
     private readonly tagParser: TagParser;
     private readonly options: TemplateCompilerOptions;
 
     constructor(
-        delimiterSearcher: TextNodesDelimiterSearcher,
+        delimiterSearcher: DelimiterSearcher,
         tagParser: TagParser,
         plugins: TemplatePlugin[],
         options: TemplateCompilerOptions

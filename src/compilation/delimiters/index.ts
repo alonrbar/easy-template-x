@@ -1,2 +1,2 @@
 export * from './delimiterMark';
-export * from './textNodesDelimiterSearcher';
+export * from './delimiterSearcher';
