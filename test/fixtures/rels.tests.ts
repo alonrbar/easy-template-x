@@ -7,6 +7,9 @@ describe('rels fixture', () => {
 
     it("does not throw on a template with prefixed rels target paths", async () => {
 
+        // Note: The test file for this test case is from Microsoft's online template library and originates from:
+        // https://create.microsoft.com/en-us/template/invoice-(document)-f1603197-d3d8-44fc-95f7-0445aa29d9af
+
         const template = readFixture("rels variations.docx");
 
         const data = {};
