@@ -33,7 +33,7 @@ export class RelsFile {
 
         // If relTarget is an internal file it should be relative to the part dir
         if (this.partDir && relTarget.startsWith(this.partDir)) {
-            relTarget = relTarget.substr(this.partDir.length + 1);
+            relTarget = relTarget.substring(this.partDir.length + 1);
         }
 
         // Parse rels file

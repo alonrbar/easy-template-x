@@ -76,7 +76,7 @@ export class Relationship {
         for (const propKey of Object.keys(this)) {
             const value = (this as any)[propKey];
             if (value && typeof value === 'string') {
-                const attrName = propKey[0].toUpperCase() + propKey.substr(1);
+                const attrName = propKey[0].toUpperCase() + propKey.substring(1);
                 node.attributes[attrName] = value;
             }
         }

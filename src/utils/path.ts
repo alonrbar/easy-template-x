@@ -2,7 +2,7 @@ export class Path {
 
     public static getFilename(path: string): string {
         const lastSlashIndex = path.lastIndexOf('/');
-        return path.substr(lastSlashIndex + 1);
+        return path.substring(lastSlashIndex + 1);
     }
 
     /**
