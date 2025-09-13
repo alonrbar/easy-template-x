@@ -139,11 +139,22 @@ export class RelsFile {
 
             // store rel
             const rel = Relationship.fromXml(relNode as XmlGeneralNode);
+
+            // normalize target to be relative to the part directory
+            const typeAttr = attributes['Type'];
+            let targetAttr = Relationship.normalizeRelTarget(attributes['Target']);
+            if (targetAttr && this.partDir && targetAttr.startsWith(this.partDir + '/')) {
+                targetAttr = targetAttr.substring(this.partDir.length + 1);
+            }
+
+            // keep the normalized target on the relationship object
+            if (targetAttr) {
+                rel.target = targetAttr;
+            }
+
             this.rels[idAttr] = rel;
 
             // create rel target lookup
-            const typeAttr = attributes['Type'];
-            const targetAttr = Relationship.normalizeRelTarget(attributes['Target']);
             if (typeAttr && targetAttr) {
                 const relTargetKey = this.getRelTargetKey(typeAttr, targetAttr);
                 this.relTargets[relTargetKey] = idAttr;
