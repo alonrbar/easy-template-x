@@ -651,7 +651,7 @@ export interface RawXmlContent extends PluginContent {
 
 ## Listing tags
 
-You can get the list of [tags](https://github.com/alonrbar/easy-template-x/blob/8a88535ef090fc357cf3523411bef0d0729d10c8/src/compilation/tag.ts) in a template by calling the `parseTags` method as follows:
+You can get the list of [tags](https://github.com/alonrbar/easy-template-x/blob/master/src/compilation/tag.ts) in a template by calling the `parseTags` method as follows:
 
 ```typescript
 import { TemplateHandler } from 'easy-template-x';
