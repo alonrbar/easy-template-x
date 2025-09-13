@@ -1,5 +1,11 @@
 # Changelog
 
+## [6.2.3 - 2025-09-13](https://github.com/alonrbar/easy-template-x/tree/v6.2.3)
+
+### Fixed
+
+- Fix handling absolute rels target paths ([#145](https://github.com/alonrbar/easy-template-x/pull/145)).
+
 ## [6.2.2 - 2025-08-31](https://github.com/alonrbar/easy-template-x/tree/v6.2.2)
 
 ### Fixed
