@@ -1,4 +1,4 @@
-import { ScopeData, Tag, TagPlacement, TextNodeTag } from "src/compilation";
+import { AttributeTag, ScopeData, Tag, TagPlacement, TextNodeTag } from "src/compilation";
 import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
@@ -16,17 +16,42 @@ export class TextPlugin extends TemplatePlugin {
      */
     public simpleTagReplacements(tag: Tag, data: ScopeData): void {
 
-        if (tag.placement !== TagPlacement.TextNode) {
-            throw new TemplateSyntaxError(`Text tag "${tag.rawText}" must be placed in a text node but was placed in ${tag.placement}`);
+        const value = data.getScopeData();
+        const strValue = stringValue(value);
+
+        if (tag.placement === TagPlacement.TextNode) {
+            this.replaceInTextNode(tag, strValue);
+            return; 
         }
 
-        const value = data.getScopeData();
-        const lines = stringValue(value).split('\n');
+        if (tag.placement === TagPlacement.Attribute) {
+            this.replaceInAttribute(tag, strValue);
+            return;
+        }
+
+        const anyTag = tag as any;
+        throw new TemplateSyntaxError(`Unexpected tag placement "${anyTag.placement}" for tag "${anyTag.rawText}".`);
+    }
+
+    private replaceInTextNode(tag: TextNodeTag, text: string) {
+        const lines = text.split('\n');
 
         if (lines.length < 2) {
             this.replaceSingleLine(tag, lines.length ? lines[0] : '');
         } else {
             this.replaceMultiLine(tag.xmlTextNode, lines);
+        }
+    }
+
+    private replaceInAttribute(tag: AttributeTag, text: string) {
+
+        // Set text
+        tag.xmlNode.attributes[tag.attributeName] = tag.xmlNode.attributes[tag.attributeName].replace(tag.rawText, text);
+
+        // Remove the attribute if it's empty
+        if (!text) {
+            officeMarkup.modify.removeTag(tag);
+            return;
         }
     }
 

@@ -444,7 +444,7 @@ class Modify {
         }
 
         if (tag.placement === TagPlacement.Attribute) {
-            if (!tag.xmlNode.attributes?.[tag.attributeName]) {
+            if (!tag.xmlNode.attributes || !(tag.attributeName in tag.xmlNode.attributes)) {
                 return;
             }
 
