@@ -177,9 +177,9 @@ export class TextNodesDelimiterSearcher {
     private createCurrentDelimiterMark(): TextNodeDelimiterMark {
         return {
             placement: TagPlacement.TextNode,
-            index: this.firstMatchIndex,
             isOpen: this.lookForOpenDelimiter,
-            xmlTextNode: this.matchOpenNodes[0]
+            index: this.firstMatchIndex,
+            xmlTextNode: this.matchOpenNodes[0],
         };
     }
 }

@@ -366,6 +366,73 @@ describe(DelimiterSearcher, () => {
 
             expect(delimiters).toEqual(expected);
         });
+
+        test('delimiters splitted across several different run nodes - with attribute tags of a floating drawing in the middle', () => {
+
+            const paragraph = parseXml(`
+                <w:p>
+                    <w:r>
+                        <w:t>{</w:t>
+                    </w:r>
+                    <w:r>
+                        <w:t>{{Text Tag}</w:t>
+                    </w:r>
+                    <w:r>
+                        <w:drawing>
+                            <wp:anchor>
+                                <wp:docPr descr="{{{Attribute Tag}}}"/>
+                            </wp:anchor>
+                        </w:drawing>
+                    </w:r>
+                    <w:r>
+                        <w:t>}</w:t>
+                    </w:r>
+                    <w:r>
+                        <w:t>}</w:t>
+                    </w:r>
+                </w:p>
+            `, false);
+
+            const firstTextNode = getChildNode(paragraph, XmlNodeType.Text, 0, 0, 0);
+            const imagePropertiesNode = getChildNode(paragraph, XmlNodeType.General, 2, 0, 0, 0);
+            const expected: DelimiterMark[] = [
+                {
+                    placement: TagPlacement.TextNode,
+                    isOpen: true,
+                    index: 0,
+                    xmlTextNode: firstTextNode
+                },
+                {
+                    placement: TagPlacement.Attribute,
+                    isOpen: true,
+                    index: 0,
+                    xmlNode: imagePropertiesNode,
+                    attributeName: 'descr'
+                },
+                {
+                    placement: TagPlacement.Attribute,
+                    isOpen: false,
+                    index: 16,
+                    xmlNode: imagePropertiesNode,
+                    attributeName: 'descr'
+                },
+                {
+                    placement: TagPlacement.TextNode,
+                    isOpen: false,
+                    index: 11,
+                    xmlTextNode: firstTextNode
+                }
+            ];
+
+            const searcher = createDelimiterSearcher({
+                tagStart: '{{{',
+                tagEnd: '}}}'
+            });
+            const delimiters = searcher.findDelimiters(paragraph);
+
+            expect(delimiters.length).toEqual(expected.length);
+            expect(delimiters).toEqual(expected);
+        });
     });
 
     describe('text contains multiple delimiter prefixes', () => {

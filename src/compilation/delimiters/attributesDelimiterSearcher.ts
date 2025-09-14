@@ -3,12 +3,14 @@ import { tagRegex } from "src/compilation/tagUtils";
 import { Delimiters } from "src/delimiters";
 import { InternalArgumentMissingError } from "src/errors";
 import { OmlNode } from "src/office";
-import { xml, XmlGeneralNode, XmlTreeIterator } from "src/xml";
+import { xml, XmlGeneralNode, XmlNode, XmlTreeIterator } from "src/xml";
 import { AttributeDelimiterMark, DelimiterMark } from "./delimiterMark";
 
 const drawingDescriptionAttributeName = "descr";
 
 export class AttributesDelimiterSearcher {
+
+    private readonly visitedNodes: Set<XmlNode> = new Set();
 
     private readonly delimiters: Delimiters;
     private readonly tagRegex: RegExp;
@@ -33,6 +35,11 @@ export class AttributesDelimiterSearcher {
     }
 
     private shouldSearchNode(it: XmlTreeIterator): it is XmlTreeIterator<XmlGeneralNode> {
+
+        if (this.visitedNodes.has(it.node)) {
+            return false;
+        }
+        this.visitedNodes.add(it.node);
 
         if (!xml.query.isGeneralNode(it.node))
             return false;
@@ -92,11 +99,11 @@ export class AttributesDelimiterSearcher {
 
     private createCurrentDelimiterMark(index: number, isOpen: boolean, xmlNode: XmlGeneralNode, attributeName: string): AttributeDelimiterMark {
         return {
-            isOpen: isOpen,
             placement: TagPlacement.Attribute,
-            xmlNode: xmlNode,
-            attributeName: attributeName,
+            isOpen: isOpen,
             index: index,
+            attributeName: attributeName,
+            xmlNode: xmlNode,
         };
     }
 }
