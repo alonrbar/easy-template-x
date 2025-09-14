@@ -655,6 +655,53 @@ describe(TagParser, () => {
             const parser = createTagParser();
             expect(() => parser.parse(delimiters)).toThrow(MissingStartDelimiterError);
         });
+
+        test('open and close tags in different attributes throws MissingCloseDelimiterError', () => {
+            const paragraph = parseXml(`
+                <w:p>
+                    <w:r>
+                        <w:drawing>
+                            <wp:inline>
+                                <wp:docPr descr="{my_tag" />
+                            </wp:inline>
+                        </w:drawing>
+                    </w:r>
+                    <w:r>
+                        <w:drawing>
+                            <wp:inline>
+                                <wp:docPr descr="}" />
+                            </wp:inline>
+                        </w:drawing>
+                    </w:r>
+                </w:p>
+            `, false);
+
+            const docPrNode1 = getChildNode(paragraph, XmlNodeType.General, 0, 0, 0, 0);
+            expect(docPrNode1.attributes.descr).toEqual('{my_tag');
+
+            const docPrNode2 = getChildNode(paragraph, XmlNodeType.General, 1, 0, 0, 0);
+            expect(docPrNode2.attributes.descr).toEqual('}');
+
+            const delimiters: AttributeDelimiterMark[] = [
+                {
+                    placement: TagPlacement.Attribute,
+                    isOpen: true,
+                    index: 0,
+                    xmlNode: docPrNode1,
+                    attributeName: 'descr'
+                },
+                {
+                    placement: TagPlacement.Attribute,
+                    isOpen: false,
+                    index: 0,
+                    xmlNode: docPrNode2,
+                    attributeName: 'descr'
+                }
+            ];
+
+            const parser = createTagParser();
+            expect(() => parser.parse(delimiters)).toThrow(MissingCloseDelimiterError);
+        });
     });
 
     describe('tag options', () => {

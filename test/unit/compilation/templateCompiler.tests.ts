@@ -51,12 +51,12 @@ describe(TemplateCompiler, () => {
             `, false))).toThrow(MissingCloseDelimiterError);
         });
 
-        test.skip("floating drawing in the middle of a tag works", () => {
+        test("floating drawing in the middle of a tag is ignored", () => {
             const compiler = createTemplateCompiler();
             const tags = compiler.parseTags(parseXml(`
                 <w:p>
                     <w:r>
-                        <w:t>{Text</w:t>
+                        <w:t>{Text </w:t>
                     </w:r>
                     <w:r>
                         <w:drawing>
@@ -69,7 +69,7 @@ describe(TemplateCompiler, () => {
                         <w:t>Tag}</w:t>
                     </w:r>
                 </w:p>
-            `));
+            `, false));
             expect(tags.length).toEqual(2);
             expect(tags[0].name).toEqual('Attribute Tag');
             expect(tags[1].name).toEqual('Text Tag');

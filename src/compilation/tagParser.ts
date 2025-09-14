@@ -1,7 +1,7 @@
 import JSON5 from "json5";
 import { Delimiters } from "src/delimiters";
 import { InternalArgumentMissingError, InternalError, MissingCloseDelimiterError, MissingStartDelimiterError, TagOptionsParseError } from "src/errors";
-import { officeMarkup } from "src/office";
+import { officeMarkup, OmlNode } from "src/office";
 import { normalizeDoubleQuotes } from "src/utils";
 import { AttributeDelimiterMark, DelimiterMark, TextNodeDelimiterMark } from "./delimiters";
 import { AttributeTag, Tag, TagDisposition, TagPlacement, TextNodeTag } from "./tag";
@@ -23,39 +23,57 @@ export class TagParser {
     public parse(delimiters: DelimiterMark[]): Tag[] {
         const tags: Tag[] = [];
 
-        let openedDelimiter: DelimiterMark;
+        let openedTextDelimiter: DelimiterMark;
+        let openedAttributeDelimiter: DelimiterMark;
         for (let i = 0; i < delimiters.length; i++) {
-            const delimiter = delimiters[i];
 
-            // Close before open
-            if (!openedDelimiter && !delimiter.isOpen) {
-                const closeTagText = this.getPartialTagText(delimiter);
-                throw new MissingStartDelimiterError(closeTagText);
+            if (delimiters[i].placement === TagPlacement.TextNode) {
+                openedTextDelimiter = this.processDelimiter(delimiters, i, openedTextDelimiter, tags);
+                continue;
             }
-
-            // Open before close
-            if (openedDelimiter && delimiter.isOpen) {
-                const openTagText = this.getPartialTagText(openedDelimiter);
-                throw new MissingCloseDelimiterError(openTagText);
+            
+            if (delimiters[i].placement === TagPlacement.Attribute) {
+                openedAttributeDelimiter = this.processDelimiter(delimiters, i, openedAttributeDelimiter, tags);
+                continue;
             }
-
-            // Valid open
-            if (!openedDelimiter && delimiter.isOpen) {
-                openedDelimiter = delimiter;
-            }
-
-            // Valid close
-            if (openedDelimiter && !delimiter.isOpen) {
-
-                // Create the tag
-                const partialTag = this.processDelimiterPair(openedDelimiter, delimiter, i, delimiters);
-                const tag = this.populateTagFields(partialTag);
-                tags.push(tag);
-                openedDelimiter = null;
-            }
+            
+            throw new Error(`Unexpected delimiter placement value "${(delimiters[i] as any).placement}"`);
         }
 
         return tags;
+    }
+
+    private processDelimiter(delimiters: DelimiterMark[], i: number, openedDelimiter: DelimiterMark, tags: Tag[]): DelimiterMark {
+        const delimiter = delimiters[i];
+
+        // Close before open
+        if (!openedDelimiter && !delimiter.isOpen) {
+            const closeTagText = this.getPartialTagText(delimiter);
+            throw new MissingStartDelimiterError(closeTagText);
+        }
+
+        // Open before close
+        if (openedDelimiter && delimiter.isOpen) {
+            const openTagText = this.getPartialTagText(openedDelimiter);
+            throw new MissingCloseDelimiterError(openTagText);
+        }
+
+        // Valid open
+        if (!openedDelimiter && delimiter.isOpen) {
+            openedDelimiter = delimiter;
+        }
+
+        // Valid close
+        if (openedDelimiter && !delimiter.isOpen) {
+
+            // Create the tag
+            const partialTag = this.processDelimiterPair(openedDelimiter, delimiter, i, delimiters);
+            const tag = this.populateTagFields(partialTag);
+            tags.push(tag);
+            openedDelimiter = null;
+        }
+
+        return openedDelimiter;
     }
 
     private getPartialTagText(delimiter: DelimiterMark): string {
@@ -85,10 +103,43 @@ export class TagParser {
 
     private processTextNodeDelimiterPair(openDelimiter: TextNodeDelimiterMark, closeDelimiter: TextNodeDelimiterMark, closeDelimiterIndex: number, allDelimiters: DelimiterMark[]): Partial<TextNodeTag> {
 
+        // Verify tag delimiters are in the same paragraph
+        const openTextNode = openDelimiter.xmlTextNode;
+        const closeTextNode = closeDelimiter.xmlTextNode;
+        const sameNode = (openTextNode === closeTextNode);
+        if (!sameNode) {
+            const startParagraph = officeMarkup.query.containingParagraphNode(openTextNode);
+            const endParagraph = officeMarkup.query.containingParagraphNode(closeTextNode);
+            if (startParagraph !== endParagraph) {
+                throw new MissingCloseDelimiterError(openTextNode.textContent);
+            }
+        }
+
+        // Verify no inline drawing in the middle
+        const startRun = officeMarkup.query.containingRunNode(openTextNode);
+        const endRun = officeMarkup.query.containingRunNode(closeTextNode);
+        let currentRun = startRun;
+        while (currentRun && currentRun !== endRun) {
+            const drawing = currentRun.childNodes?.find(child => child.nodeName === OmlNode.W.Drawing);
+            if (!drawing) {
+                currentRun = currentRun.nextSibling;
+                continue;
+            }
+
+            const inline = drawing.childNodes?.find(child => child.nodeName === OmlNode.Wp.Inline);
+            if (!inline) {
+                currentRun = currentRun.nextSibling;
+                continue;
+            }
+
+            throw new MissingCloseDelimiterError(openTextNode.textContent);
+        }
+
         // Normalize the underlying xml structure
         // (make sure the tag's node only includes the tag's text)
         this.normalizeTextTagNodes(openDelimiter, closeDelimiter, closeDelimiterIndex, allDelimiters);
 
+        // Create the tag
         const tag: Partial<TextNodeTag> = {
             placement: TagPlacement.TextNode,
             xmlTextNode: openDelimiter.xmlTextNode,
@@ -98,12 +149,24 @@ export class TagParser {
     }
 
     private processAttributeDelimiterPair(openDelimiter: AttributeDelimiterMark, closeDelimiter: AttributeDelimiterMark): Partial<AttributeTag> {
-        const attrValue = openDelimiter.xmlNode.attributes[openDelimiter.attributeName];
+
+        // Verify tag delimiters are in the same attribute
+        const openNode = openDelimiter.xmlNode;
+        const closeNode = closeDelimiter.xmlNode;
+        if (openNode !== closeNode) {
+            throw new MissingCloseDelimiterError(openNode.attributes[openDelimiter.attributeName]);
+        }
+        if (openDelimiter.attributeName !== closeDelimiter.attributeName) {
+            throw new MissingCloseDelimiterError(openNode.attributes[openDelimiter.attributeName]);
+        }
+
+        // Create the tag
+        const attrValue = openNode.attributes[openDelimiter.attributeName];
         const tagText = attrValue.substring(openDelimiter.index, closeDelimiter.index + this.delimiters.tagEnd.length);
 
         const tag: Partial<AttributeTag> = {
             placement: TagPlacement.Attribute,
-            xmlNode: openDelimiter.xmlNode,
+            xmlNode: openNode,
             attributeName: openDelimiter.attributeName,
             rawText: tagText,
         };
@@ -128,14 +191,6 @@ export class TagParser {
         let startTextNode = openDelimiter.xmlTextNode;
         let endTextNode = closeDelimiter.xmlTextNode;
         const sameNode = (startTextNode === endTextNode);
-
-        if (!sameNode) {
-            const startParagraph = officeMarkup.query.containingParagraphNode(startTextNode);
-            const endParagraph = officeMarkup.query.containingParagraphNode(endTextNode);
-            if (startParagraph !== endParagraph) {
-                throw new MissingCloseDelimiterError(startTextNode.textContent);
-            }
-        }
 
         // Trim start
         if (openDelimiter.index > 0) {
