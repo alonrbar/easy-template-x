@@ -1,14 +1,14 @@
 import { DelimiterMark, DelimiterSearcher, TagPlacement } from "src/compilation";
 import { Delimiters } from "src/delimiters";
-import { XmlTextNode } from "src/xml";
-import { describe, expect, it } from "vitest";
-import { parseXml } from "../../testUtils";
+import { XmlNodeType } from "src/xml";
+import { describe, expect, test } from "vitest";
+import { getChildNode, parseXml } from "../../testUtils";
 
 describe(DelimiterSearcher, () => {
 
     describe('single character delimiters', () => {
 
-        it('finds all delimiters in a simple paragraph', () => {
+        test('simple paragraph', () => {
 
             const paragraph = parseXml(`
                 <w:p>
@@ -18,7 +18,7 @@ describe(DelimiterSearcher, () => {
                 </w:p>
             `);
 
-            const textNode = paragraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
+            const textNode = getChildNode(paragraph, XmlNodeType.Text, 0, 0, 0);
             const expected: DelimiterMark[] = [
                 {
                     placement: TagPlacement.TextNode,
@@ -55,7 +55,7 @@ describe(DelimiterSearcher, () => {
             expect(delimiters).toEqual(expected);
         });
 
-        it('finds all delimiters in two different text nodes', () => {
+        test('two different text nodes', () => {
 
             const paragraph = parseXml(`
                 <w:p>
@@ -66,8 +66,8 @@ describe(DelimiterSearcher, () => {
                 </w:p>
             `);
 
-            const firstTextNode = paragraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
-            const secondTextNode = paragraph.childNodes[0].childNodes[1].childNodes[0] as XmlTextNode;
+            const firstTextNode = getChildNode(paragraph, XmlNodeType.Text, 0, 0, 0);
+            const secondTextNode = getChildNode(paragraph, XmlNodeType.Text, 0, 1, 0);
             const expected: DelimiterMark[] = [
                 {
                     placement: TagPlacement.TextNode,
@@ -92,7 +92,7 @@ describe(DelimiterSearcher, () => {
             expect(delimiters).toEqual(expected);
         });
 
-        it('finds all delimiters in two different run nodes', () => {
+        test('two different run nodes', () => {
 
             const paragraph = parseXml(`
                 <w:p>
@@ -108,8 +108,8 @@ describe(DelimiterSearcher, () => {
                 </w:p>
             `);
 
-            const firstTextNode = paragraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
-            const thirdTextNode = paragraph.childNodes[2].childNodes[0].childNodes[0] as XmlTextNode;
+            const firstTextNode = getChildNode(paragraph, XmlNodeType.Text, 0, 0, 0);
+            const thirdTextNode = getChildNode(paragraph, XmlNodeType.Text, 2, 0, 0);
             const expected: DelimiterMark[] = [
                 {
                     placement: TagPlacement.TextNode,
@@ -133,11 +133,71 @@ describe(DelimiterSearcher, () => {
 
             expect(delimiters).toEqual(expected);
         });
+
+        test("inline drawing in the middle of a tag", () => {
+            const paragraph = parseXml(`
+                <w:p>
+                    <w:r>
+                        <w:t xml:space="preserve">{Text </w:t>
+                    </w:r>
+                    <w:r>
+                        <w:drawing>
+                            <wp:inline>
+                                <wp:docPr descr="{Attribute Tag}"/>
+                            </wp:inline>
+                        </w:drawing>
+                    </w:r>
+                    <w:r>
+                        <w:t>Tag}</w:t>
+                    </w:r>
+                </w:p>
+            `, false);
+
+            const openTextNode = getChildNode(paragraph, XmlNodeType.Text, 0, 0, 0);
+            const closeTextNode = getChildNode(paragraph, XmlNodeType.Text, 2, 0, 0);
+            const imagePropertiesNode = getChildNode(paragraph, XmlNodeType.General, 1, 0, 0, 0);
+            const expected: DelimiterMark[] = [
+                {
+                    placement: TagPlacement.TextNode,
+                    isOpen: true,
+                    index: 0,
+                    xmlTextNode: openTextNode
+                },
+                {
+                    placement: TagPlacement.Attribute,
+                    isOpen: true,
+                    index: 0,
+                    xmlNode: imagePropertiesNode,
+                    attributeName: 'descr'
+                },
+                {
+                    placement: TagPlacement.Attribute,
+                    isOpen: false,
+                    index: 14,
+                    xmlNode: imagePropertiesNode,
+                    attributeName: 'descr'
+                },
+                {
+                    placement: TagPlacement.TextNode,
+                    isOpen: false,
+                    index: 3,
+                    xmlTextNode: closeTextNode
+                },
+            ];
+
+            const searcher = createDelimiterSearcher({
+                tagStart: '{',
+                tagEnd: '}'
+            });
+
+            const delimiters = searcher.findDelimiters(paragraph);
+            expect(delimiters).toEqual(expected);
+        });
     });
 
     describe('multi character delimiters', () => {
 
-        it('finds all delimiters in a simple paragraph', () => {
+        test('simple paragraph', () => {
 
             const paragraph = parseXml(`
                 <w:p>
@@ -147,7 +207,7 @@ describe(DelimiterSearcher, () => {
                 </w:p>
             `);
 
-            const textNode = paragraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
+            const textNode = getChildNode(paragraph, XmlNodeType.Text, 0, 0, 0);
             const expected: DelimiterMark[] = [
                 {
                     placement: TagPlacement.TextNode,
@@ -184,7 +244,7 @@ describe(DelimiterSearcher, () => {
             expect(delimiters).toEqual(expected);
         });
 
-        it('finds all delimiters in two different text nodes', () => {
+        test('two different text nodes', () => {
 
             const paragraph = parseXml(`
                 <w:p>
@@ -195,8 +255,8 @@ describe(DelimiterSearcher, () => {
                 </w:p>
             `);
 
-            const firstTextNode = paragraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
-            const secondTextNode = paragraph.childNodes[0].childNodes[1].childNodes[0] as XmlTextNode;
+            const firstTextNode = getChildNode(paragraph, XmlNodeType.Text, 0, 0, 0);
+            const secondTextNode = getChildNode(paragraph, XmlNodeType.Text, 0, 1, 0);
             const expected: DelimiterMark[] = [
                 {
                     placement: TagPlacement.TextNode,
@@ -221,7 +281,7 @@ describe(DelimiterSearcher, () => {
             expect(delimiters).toEqual(expected);
         });
 
-        it('finds all delimiters in two different run nodes', () => {
+        test('two different run nodes', () => {
 
             const paragraph = parseXml(`
                 <w:p>
@@ -237,8 +297,8 @@ describe(DelimiterSearcher, () => {
                 </w:p>
             `);
 
-            const firstTextNode = paragraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
-            const thirdTextNode = paragraph.childNodes[2].childNodes[0].childNodes[0] as XmlTextNode;
+            const firstTextNode = getChildNode(paragraph, XmlNodeType.Text, 0, 0, 0);
+            const thirdTextNode = getChildNode(paragraph, XmlNodeType.Text, 2, 0, 0);
             const expected: DelimiterMark[] = [
                 {
                     placement: TagPlacement.TextNode,
@@ -263,7 +323,7 @@ describe(DelimiterSearcher, () => {
             expect(delimiters).toEqual(expected);
         });
 
-        it('handles delimiters splitted to several different run nodes', () => {
+        test('delimiters splitted across several different run nodes', () => {
 
             const paragraph = parseXml(`
                 <w:p>
@@ -282,7 +342,7 @@ describe(DelimiterSearcher, () => {
                 </w:p>
             `);
 
-            const firstTextNode = paragraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
+            const firstTextNode = getChildNode(paragraph, XmlNodeType.Text, 0, 0, 0);
             const expected: DelimiterMark[] = [
                 {
                     placement: TagPlacement.TextNode,
@@ -310,7 +370,7 @@ describe(DelimiterSearcher, () => {
 
     describe('text contains multiple delimiter prefixes', () => {
 
-        it('finds all delimiters in a simple paragraph', () => {
+        test('simple paragraph', () => {
 
             const paragraph = parseXml(`
                 <w:p>
@@ -320,7 +380,7 @@ describe(DelimiterSearcher, () => {
                 </w:p>
             `);
 
-            const textNode = paragraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
+            const textNode = getChildNode(paragraph, XmlNodeType.Text, 0, 0, 0);
             const expected: DelimiterMark[] = [
                 {
                     placement: TagPlacement.TextNode,
@@ -357,7 +417,7 @@ describe(DelimiterSearcher, () => {
             expect(delimiters).toEqual(expected);
         });
 
-        it('finds all delimiters in two different text nodes', () => {
+        test('two different text nodes', () => {
 
             const paragraph = parseXml(`
                 <w:p>
@@ -368,8 +428,8 @@ describe(DelimiterSearcher, () => {
                 </w:p>
             `);
 
-            const firstTextNode = paragraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
-            const secondTextNode = paragraph.childNodes[0].childNodes[1].childNodes[0] as XmlTextNode;
+            const firstTextNode = getChildNode(paragraph, XmlNodeType.Text, 0, 0, 0);
+            const secondTextNode = getChildNode(paragraph, XmlNodeType.Text, 0, 1, 0);
             const expected: DelimiterMark[] = [
                 {
                     placement: TagPlacement.TextNode,
@@ -394,7 +454,7 @@ describe(DelimiterSearcher, () => {
             expect(delimiters).toEqual(expected);
         });
 
-        it('finds all delimiters in two different run nodes', () => {
+        test('two different run nodes', () => {
 
             const paragraph = parseXml(`
                 <w:p>
@@ -410,8 +470,8 @@ describe(DelimiterSearcher, () => {
                 </w:p>
             `);
 
-            const firstTextNode = paragraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode;
-            const thirdTextNode = paragraph.childNodes[2].childNodes[0].childNodes[0] as XmlTextNode;
+            const firstTextNode = getChildNode(paragraph, XmlNodeType.Text, 0, 0, 0);
+            const thirdTextNode = getChildNode(paragraph, XmlNodeType.Text, 2, 0, 0);
             const expected: DelimiterMark[] = [
                 {
                     placement: TagPlacement.TextNode,

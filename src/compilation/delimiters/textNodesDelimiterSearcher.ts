@@ -43,6 +43,11 @@ export class TextNodesDelimiterSearcher {
             this.resetMatch();
         }
 
+        // Reset match state on inline drawing
+        if (officeMarkup.query.isInlineDrawingNode(it.node)) {
+            this.resetMatch();
+        }
+
         // Ignore non-text nodes
         if (!this.shouldSearchNode(it)) {
             return;

@@ -79,6 +79,10 @@ class Query {
         return !!listNumberProperties;
     }
 
+    public isInlineDrawingNode(node: XmlNode): boolean {
+        return node.nodeName === OmlNode.Wp.Inline && node.parentNode?.nodeName === OmlNode.W.Drawing;
+    }
+
     public findParagraphPropertiesNode(paragraphNode: XmlNode): XmlNode {
         if (!officeMarkup.query.isParagraphNode(paragraphNode))
             throw new Error(`Expected paragraph node but received a '${paragraphNode.nodeName}' node.`);

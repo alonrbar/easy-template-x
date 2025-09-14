@@ -41,6 +41,18 @@ class Wp {
      * exactly a good acronym but that's how it's called nevertheless.
      */
     public readonly DocPr = 'wp:docPr';
+    /**
+     * Inline DrawingML Object.
+     *
+     * see: http://officeopenxml.com/drwPicInline.php
+     */
+    public readonly Inline = 'wp:inline';
+    /**
+     * Anchor for Floating DrawingML Object.
+     * 
+     * see: http://officeopenxml.com/drwPicFloating.php
+     */
+    public readonly FloatingAnchor = 'wp:anchor';
 }
 
 /**
