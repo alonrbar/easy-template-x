@@ -97,9 +97,17 @@ export class TagParser {
         return tag;
     }
 
-    private processAttributeDelimiterPair(openDelimiter: AttributeDelimiterMark, closeDelimiter: AttributeDelimiterMark): AttributeTag {
-        // TODO: Implement
-        return null;
+    private processAttributeDelimiterPair(openDelimiter: AttributeDelimiterMark, closeDelimiter: AttributeDelimiterMark): Partial<AttributeTag> {
+        const attrValue = openDelimiter.xmlNode.attributes[openDelimiter.attributeName];
+        const tagText = attrValue.substring(openDelimiter.index, closeDelimiter.index + this.delimiters.tagEnd.length);
+
+        const tag: Partial<AttributeTag> = {
+            placement: TagPlacement.Attribute,
+            xmlNode: openDelimiter.xmlNode,
+            attributeName: openDelimiter.attributeName,
+            rawText: tagText,
+        };
+        return tag;
     }
 
     /**
