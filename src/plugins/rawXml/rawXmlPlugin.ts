@@ -29,7 +29,7 @@ export class RawXmlPlugin extends TemplatePlugin {
         if (value?.replaceParagraph) {
             xml.modify.remove(replaceNode);
         } else {
-            officeMarkup.modify.removeTag(tag.xmlTextNode);
+            officeMarkup.modify.removeTag(tag);
         }
     }
 }

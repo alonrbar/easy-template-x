@@ -27,7 +27,7 @@ export class ImagePlugin extends TemplatePlugin {
 
         const content = data.getScopeData<ImageContent>();
         if (!content || !content.source) {
-            officeMarkup.modify.removeTag(tag.xmlTextNode);
+            officeMarkup.modify.removeTag(tag);
             return;
         }
 
@@ -43,7 +43,7 @@ export class ImagePlugin extends TemplatePlugin {
 
         const wordTextNode = officeMarkup.query.containingTextNode(tag.xmlTextNode);
         xml.modify.insertAfter(imageXml, wordTextNode);
-        officeMarkup.modify.removeTag(tag.xmlTextNode);
+        officeMarkup.modify.removeTag(tag);
     }
 
     private async getNextImageId(context: TemplateContext): Promise<number> {

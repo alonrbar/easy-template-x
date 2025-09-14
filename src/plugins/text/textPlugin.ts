@@ -1,4 +1,4 @@
-import { ScopeData, Tag, TagPlacement } from "src/compilation";
+import { ScopeData, Tag, TagPlacement, TextNodeTag } from "src/compilation";
 import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
@@ -24,20 +24,21 @@ export class TextPlugin extends TemplatePlugin {
         const lines = stringValue(value).split('\n');
 
         if (lines.length < 2) {
-            this.replaceSingleLine(tag.xmlTextNode, lines.length ? lines[0] : '');
+            this.replaceSingleLine(tag, lines.length ? lines[0] : '');
         } else {
             this.replaceMultiLine(tag.xmlTextNode, lines);
         }
     }
 
-    private replaceSingleLine(textNode: XmlTextNode, text: string) {
+    private replaceSingleLine(tag: TextNodeTag, text: string) {
 
         // Set text
+        const textNode = tag.xmlTextNode;
         textNode.textContent = text;
 
         // Clean up if the text node is now empty
         if (!text) {
-            officeMarkup.modify.removeTag(textNode);
+            officeMarkup.modify.removeTag(tag);
             return;
         }
 

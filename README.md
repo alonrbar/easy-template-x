@@ -635,7 +635,7 @@ export class RawXmlPlugin extends TemplatePlugin {
         }
 
         // Remove the placeholder tag.
-        officeMarkup.modify.removeTag(tag.xmlTextNode);
+        officeMarkup.modify.removeTag(tag);
     }
 }
 ```

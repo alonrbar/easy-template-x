@@ -23,7 +23,7 @@ export class ChartPlugin extends TemplatePlugin {
 
         const content = data.getScopeData<ChartContent>();
         if (!content) {
-            officeMarkup.modify.removeTag(tag.xmlTextNode);
+            officeMarkup.modify.removeTag(tag);
             return;
         }
 
@@ -31,7 +31,7 @@ export class ChartPlugin extends TemplatePlugin {
         if (content.title) {
             updateTitle(tag, content.title);
         } else {
-            officeMarkup.modify.removeTag(tag.xmlTextNode);
+            officeMarkup.modify.removeTag(tag);
         }
 
         if (!chartHasData(content)) {

@@ -17,7 +17,7 @@ export class LinkPlugin extends TemplatePlugin {
 
         const content = data.getScopeData<LinkContent>();
         if (!content || !content.target) {
-            officeMarkup.modify.removeTag(tag.xmlTextNode);
+            officeMarkup.modify.removeTag(tag);
             return;
         }
 

@@ -1,3 +1,4 @@
+import { Tag, TagPlacement } from "src/compilation";
 import { xml, XmlGeneralNode, XmlNode, XmlTextNode } from "src/xml";
 import { OmlAttribute, OmlNode } from "./omlNode";
 
@@ -424,18 +425,42 @@ class Modify {
         }
     }
 
-    public removeTag(textNode: XmlTextNode): void {
+    public removeTag(tag: Tag): void {
 
-        const wordTextNode = officeMarkup.query.containingTextNode(textNode);
-        const runNode = officeMarkup.query.containingRunNode(textNode);
+        if (tag.placement === TagPlacement.TextNode) {
 
-        // Remove the word text node
-        xml.modify.remove(wordTextNode);
+            const wordTextNode = officeMarkup.query.containingTextNode(tag.xmlTextNode);
+            const runNode = officeMarkup.query.containingRunNode(tag.xmlTextNode);
 
-        // Remove the run node if it's empty
-        if (officeMarkup.query.isEmptyRun(runNode)) {
-            xml.modify.remove(runNode);
+            // Remove the word text node
+            xml.modify.remove(wordTextNode);
+
+            // Remove the run node if it's empty
+            if (officeMarkup.query.isEmptyRun(runNode)) {
+                xml.modify.remove(runNode);
+            }
+
+            return;
         }
+
+        if (tag.placement === TagPlacement.Attribute) {
+            if (!tag.xmlNode.attributes?.[tag.attributeName]) {
+                return;
+            }
+
+            // Remove the tag from the attribute value
+            tag.xmlNode.attributes[tag.attributeName] = tag.xmlNode.attributes[tag.attributeName].replace(tag.rawText, "");
+
+            // Remove the attribute if it's empty
+            if (tag.xmlNode.attributes[tag.attributeName] === "") {
+                delete tag.xmlNode.attributes[tag.attributeName];
+            }
+
+            return;
+        }
+
+        const anyTag = tag as any;
+        throw new Error(`Unexpected tag placement "${anyTag.placement}" for tag "${anyTag.rawText}".`);
     }
 }
 
