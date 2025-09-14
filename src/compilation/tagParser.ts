@@ -1,10 +1,10 @@
 import JSON5 from "json5";
 import { Delimiters } from "src/delimiters";
-import { InternalArgumentMissingError, MissingCloseDelimiterError, MissingStartDelimiterError, TagOptionsParseError } from "src/errors";
+import { InternalArgumentMissingError, InternalError, MissingCloseDelimiterError, MissingStartDelimiterError, TagOptionsParseError } from "src/errors";
 import { officeMarkup } from "src/office";
 import { normalizeDoubleQuotes } from "src/utils";
 import { TextNodeDelimiterMark } from "./delimiters";
-import { TagDisposition, TagPlacement, TextNodeTag } from "./tag";
+import { Tag, TagDisposition, TagPlacement, TextNodeTag } from "./tag";
 import { tagRegex } from "./tagUtils";
 
 export class TagParser {
@@ -20,44 +20,45 @@ export class TagParser {
         this.tagRegex = tagRegex(delimiters);
     }
 
-    public parse(delimiters: TextNodeDelimiterMark[]): TextNodeTag[] {
-        const tags: TextNodeTag[] = [];
+    public parse(delimiters: TextNodeDelimiterMark[]): Tag[] {
+        const tags: Tag[] = [];
 
-        let openedTag: Partial<TextNodeTag>;
         let openedDelimiter: TextNodeDelimiterMark;
         for (let i = 0; i < delimiters.length; i++) {
             const delimiter = delimiters[i];
 
-            // close before open
-            if (!openedTag && !delimiter.isOpen) {
+            // Close before open
+            if (!openedDelimiter && !delimiter.isOpen) {
                 const closeTagText = delimiter.xmlTextNode.textContent;
                 throw new MissingStartDelimiterError(closeTagText);
             }
 
-            // open before close
-            if (openedTag && delimiter.isOpen) {
+            // Open before close
+            if (openedDelimiter && delimiter.isOpen) {
                 const openTagText = openedDelimiter.xmlTextNode.textContent;
                 throw new MissingCloseDelimiterError(openTagText);
             }
 
-            // valid open
-            if (!openedTag && delimiter.isOpen) {
-                openedTag = {};
+            // Valid open
+            if (!openedDelimiter && delimiter.isOpen) {
                 openedDelimiter = delimiter;
             }
 
-            // valid close
-            if (openedTag && !delimiter.isOpen) {
+            // Valid close
+            if (openedDelimiter && !delimiter.isOpen) {
 
-                // normalize the underlying xml structure
+                // Normalize the underlying xml structure
                 // (make sure the tag's node only includes the tag's text)
-                this.normalizeTagNodes(openedDelimiter, delimiter, i, delimiters);
-                openedTag.xmlTextNode = openedDelimiter.xmlTextNode;
+                this.normalizeTextTagNodes(openedDelimiter, delimiter, i, delimiters);
+                const partialTag: Partial<TextNodeTag> = {
+                    placement: TagPlacement.TextNode,
+                    xmlTextNode: openedDelimiter.xmlTextNode,
+                    rawText: openedDelimiter.xmlTextNode.textContent
+                };
 
-                // extract tag info from tag's text
-                this.processTag(openedTag as TextNodeTag);
-                tags.push(openedTag as TextNodeTag);
-                openedTag = null;
+                // Extract tag info from tag's text
+                const tag = this.populateTagFields(partialTag);
+                tags.push(tag);
                 openedDelimiter = null;
             }
         }
@@ -73,7 +74,7 @@ export class TagParser {
      * Text node before: "some text {some tag} some more text"
      * Text nodes after: [ "some text ", "{some tag}", " some more text" ]
      */
-    private normalizeTagNodes(
+    private normalizeTextTagNodes(
         openDelimiter: TextNodeDelimiterMark,
         closeDelimiter: TextNodeDelimiterMark,
         closeDelimiterIndex: number,
@@ -92,7 +93,7 @@ export class TagParser {
             }
         }
 
-        // trim start
+        // Trim start
         if (openDelimiter.index > 0) {
             officeMarkup.modify.splitTextNode(startTextNode, openDelimiter.index, true);
             if (sameNode) {
@@ -100,7 +101,7 @@ export class TagParser {
             }
         }
 
-        // trim end
+        // Trim end
         if (closeDelimiter.index < endTextNode.textContent.length - 1) {
             endTextNode = officeMarkup.modify.splitTextNode(endTextNode, closeDelimiter.index + this.delimiters.tagEnd.length, true);
             if (sameNode) {
@@ -108,13 +109,13 @@ export class TagParser {
             }
         }
 
-        // join nodes
+        // Join nodes
         if (!sameNode) {
             officeMarkup.modify.joinTextNodesRange(startTextNode, endTextNode);
             endTextNode = startTextNode;
         }
 
-        // update offsets of next delimiters
+        // Update offsets of next delimiters
         for (let i = closeDelimiterIndex + 1; i < allDelimiters.length; i++) {
 
             let updated = false;
@@ -134,25 +135,27 @@ export class TagParser {
                 break;
         }
 
-        // update references
+        // Update references
         openDelimiter.xmlTextNode = startTextNode;
         closeDelimiter.xmlTextNode = endTextNode;
     }
 
-    private processTag(tag: TextNodeTag): void {
-        tag.placement = TagPlacement.TextNode;
-        tag.rawText = tag.xmlTextNode.textContent;
+    private populateTagFields(partialTag: Partial<Tag>): Tag {
+        if (!partialTag.rawText) {
+            throw new InternalError("tag.rawText is required");
+        }
+        const tag = partialTag as Tag;
 
         const tagParts = tag.rawText.match(this.tagRegex);
         const tagName = (tagParts.groups?.["tagName"] || '').trim();
 
-        // Ignoring empty tags.
+        // Ignoring empty tags
         if (!tagName?.length) {
             tag.disposition = TagDisposition.SelfClosed;
-            return;
+            return tag;
         }
 
-        // TextNodeTag options.
+        // Tag options
         const tagOptionsText = (tagParts.groups?.["tagOptions"] || '').trim();
         if (tagOptionsText) {
             try {
@@ -162,22 +165,23 @@ export class TagParser {
             }
         }
 
-        // Container open tag.
+        // Container open tag
         if (tagName.startsWith(this.delimiters.containerTagOpen)) {
             tag.disposition = TagDisposition.Open;
             tag.name = tagName.slice(this.delimiters.containerTagOpen.length).trim();
-            return;
+            return tag;
         }
 
-        // Container close tag.
+        // Container close tag
         if (tagName.startsWith(this.delimiters.containerTagClose)) {
             tag.disposition = TagDisposition.Close;
             tag.name = tagName.slice(this.delimiters.containerTagClose.length).trim();
-            return;
+            return tag;
         }
 
-        // Self-closed tag.
+        // Self-closed tag
         tag.disposition = TagDisposition.SelfClosed;
         tag.name = tagName;
+        return tag;
     }
 }
