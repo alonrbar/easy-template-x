@@ -3,8 +3,8 @@ import { Delimiters } from "src/delimiters";
 import { InternalArgumentMissingError, InternalError, MissingCloseDelimiterError, MissingStartDelimiterError, TagOptionsParseError } from "src/errors";
 import { officeMarkup } from "src/office";
 import { normalizeDoubleQuotes } from "src/utils";
-import { TextNodeDelimiterMark } from "./delimiters";
-import { Tag, TagDisposition, TagPlacement, TextNodeTag } from "./tag";
+import { AttributeDelimiterMark, DelimiterMark, TextNodeDelimiterMark } from "./delimiters";
+import { AttributeTag, Tag, TagDisposition, TagPlacement, TextNodeTag } from "./tag";
 import { tagRegex } from "./tagUtils";
 
 export class TagParser {
@@ -20,22 +20,22 @@ export class TagParser {
         this.tagRegex = tagRegex(delimiters);
     }
 
-    public parse(delimiters: TextNodeDelimiterMark[]): Tag[] {
+    public parse(delimiters: DelimiterMark[]): Tag[] {
         const tags: Tag[] = [];
 
-        let openedDelimiter: TextNodeDelimiterMark;
+        let openedDelimiter: DelimiterMark;
         for (let i = 0; i < delimiters.length; i++) {
             const delimiter = delimiters[i];
 
             // Close before open
             if (!openedDelimiter && !delimiter.isOpen) {
-                const closeTagText = delimiter.xmlTextNode.textContent;
+                const closeTagText = this.getPartialTagText(delimiter);
                 throw new MissingStartDelimiterError(closeTagText);
             }
 
             // Open before close
             if (openedDelimiter && delimiter.isOpen) {
-                const openTagText = openedDelimiter.xmlTextNode.textContent;
+                const openTagText = this.getPartialTagText(openedDelimiter);
                 throw new MissingCloseDelimiterError(openTagText);
             }
 
@@ -47,16 +47,8 @@ export class TagParser {
             // Valid close
             if (openedDelimiter && !delimiter.isOpen) {
 
-                // Normalize the underlying xml structure
-                // (make sure the tag's node only includes the tag's text)
-                this.normalizeTextTagNodes(openedDelimiter, delimiter, i, delimiters);
-                const partialTag: Partial<TextNodeTag> = {
-                    placement: TagPlacement.TextNode,
-                    xmlTextNode: openedDelimiter.xmlTextNode,
-                    rawText: openedDelimiter.xmlTextNode.textContent
-                };
-
-                // Extract tag info from tag's text
+                // Create the tag
+                const partialTag = this.processDelimiterPair(openedDelimiter, delimiter, i, delimiters);
                 const tag = this.populateTagFields(partialTag);
                 tags.push(tag);
                 openedDelimiter = null;
@@ -64,6 +56,50 @@ export class TagParser {
         }
 
         return tags;
+    }
+
+    private getPartialTagText(delimiter: DelimiterMark): string {
+        if (delimiter.placement === TagPlacement.TextNode) {
+            return delimiter.xmlTextNode.textContent;
+        }
+
+        if (delimiter.placement === TagPlacement.Attribute) {
+            return delimiter.xmlNode.attributes[delimiter.attributeName];
+        }
+
+        throw new Error(`Unexpected delimiter placement value "${(delimiter as any).placement}"`);
+    }
+
+    private processDelimiterPair(openDelimiter: DelimiterMark, closeDelimiter: DelimiterMark, closeDelimiterIndex: number, allDelimiters: DelimiterMark[]): Partial<Tag> {
+
+        if (openDelimiter.placement === TagPlacement.TextNode && closeDelimiter.placement === TagPlacement.TextNode) {
+            return this.processTextNodeDelimiterPair(openDelimiter, closeDelimiter, closeDelimiterIndex, allDelimiters);
+        }
+
+        if (openDelimiter.placement === TagPlacement.Attribute && closeDelimiter.placement === TagPlacement.Attribute) {
+            return this.processAttributeDelimiterPair(openDelimiter, closeDelimiter);
+        }
+
+        throw new Error(`Unexpected delimiter placement values. Open delimiter: "${openDelimiter.placement}", Close delimiter: "${closeDelimiter.placement}"`);
+    }
+
+    private processTextNodeDelimiterPair(openDelimiter: TextNodeDelimiterMark, closeDelimiter: TextNodeDelimiterMark, closeDelimiterIndex: number, allDelimiters: DelimiterMark[]): Partial<TextNodeTag> {
+
+        // Normalize the underlying xml structure
+        // (make sure the tag's node only includes the tag's text)
+        this.normalizeTextTagNodes(openDelimiter, closeDelimiter, closeDelimiterIndex, allDelimiters);
+
+        const tag: Partial<TextNodeTag> = {
+            placement: TagPlacement.TextNode,
+            xmlTextNode: openDelimiter.xmlTextNode,
+            rawText: openDelimiter.xmlTextNode.textContent
+        };
+        return tag;
+    }
+
+    private processAttributeDelimiterPair(openDelimiter: AttributeDelimiterMark, closeDelimiter: AttributeDelimiterMark): AttributeTag {
+        // TODO: Implement
+        return null;
     }
 
     /**
@@ -78,7 +114,7 @@ export class TagParser {
         openDelimiter: TextNodeDelimiterMark,
         closeDelimiter: TextNodeDelimiterMark,
         closeDelimiterIndex: number,
-        allDelimiters: TextNodeDelimiterMark[]
+        allDelimiters: DelimiterMark[]
     ): void {
 
         let startTextNode = openDelimiter.xmlTextNode;
@@ -121,12 +157,12 @@ export class TagParser {
             let updated = false;
             const curDelimiter = allDelimiters[i];
 
-            if (curDelimiter.xmlTextNode === openDelimiter.xmlTextNode) {
+            if (curDelimiter.placement === TagPlacement.TextNode && curDelimiter.xmlTextNode === openDelimiter.xmlTextNode) {
                 curDelimiter.index -= openDelimiter.index;
                 updated = true;
             }
 
-            if (curDelimiter.xmlTextNode === closeDelimiter.xmlTextNode) {
+            if (curDelimiter.placement === TagPlacement.TextNode && curDelimiter.xmlTextNode === closeDelimiter.xmlTextNode) {
                 curDelimiter.index -= closeDelimiter.index + this.delimiters.tagEnd.length;
                 updated = true;
             }

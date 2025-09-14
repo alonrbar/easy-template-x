@@ -2,7 +2,7 @@ import { Delimiters } from "src/delimiters";
 import { InternalArgumentMissingError } from "src/errors";
 import { XmlNode, XmlTreeIterator } from "src/xml";
 import { AttributesDelimiterSearcher } from "./attributesDelimiterSearcher";
-import { TextNodeDelimiterMark } from "./delimiterMark";
+import { DelimiterMark } from "./delimiterMark";
 import { TextNodesDelimiterSearcher } from "./textNodesDelimiterSearcher";
 
 export class DelimiterSearcher {
@@ -22,9 +22,9 @@ export class DelimiterSearcher {
         this.maxXmlDepth = maxXmlDepth;
     }
 
-    public findDelimiters(node: XmlNode): TextNodeDelimiterMark[] {
+    public findDelimiters(node: XmlNode): DelimiterMark[] {
 
-        const delimiters: TextNodeDelimiterMark[] = [];
+        const delimiters: DelimiterMark[] = [];
         const it = new XmlTreeIterator(node, this.maxXmlDepth);
         
         const attributeSearcher = new AttributesDelimiterSearcher(this.delimiters);

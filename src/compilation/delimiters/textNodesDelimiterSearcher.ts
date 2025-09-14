@@ -2,7 +2,7 @@ import { TagPlacement } from "src/compilation/tag";
 import { officeMarkup } from "src/office";
 import { first, last } from "src/utils";
 import { xml, XmlTextNode, XmlTreeIterator } from "src/xml";
-import { TextNodeDelimiterMark } from "./delimiterMark";
+import { DelimiterMark, TextNodeDelimiterMark } from "./delimiterMark";
 
 export class TextNodesDelimiterSearcher {    
 
@@ -36,7 +36,7 @@ export class TextNodesDelimiterSearcher {
         this.endDelimiter = endDelimiter;
     }
 
-    public processNode(it: XmlTreeIterator, delimiters: TextNodeDelimiterMark[]): void {
+    public processNode(it: XmlTreeIterator, delimiters: DelimiterMark[]): void {
 
         // Reset match state on paragraph transition
         if (officeMarkup.query.isParagraphNode(it.node)) {
@@ -72,7 +72,7 @@ export class TextNodesDelimiterSearcher {
         return true;
     }
 
-    private findDelimiters(it: XmlTreeIterator<XmlTextNode>, delimiters: TextNodeDelimiterMark[]): void {
+    private findDelimiters(it: XmlTreeIterator<XmlTextNode>, delimiters: DelimiterMark[]): void {
 
         //
         // Performance note:
@@ -142,7 +142,7 @@ export class TextNodesDelimiterSearcher {
         return textIndex;
     }
 
-    private fullMatch(it: XmlTreeIterator<XmlTextNode>, textIndex: number, delimiters: TextNodeDelimiterMark[]): number {
+    private fullMatch(it: XmlTreeIterator<XmlTextNode>, textIndex: number, delimiters: DelimiterMark[]): number {
 
         // Move all delimiters characters to the same text node
         if (this.matchOpenNodes.length > 1) {
