@@ -1,7 +1,7 @@
 import { COMMENT_NODE_NAME, TEXT_NODE_NAME, XmlCommentNode, XmlNode, XmlNodeType, XmlTextNode } from "src/xml";
 import { xml, XmlUtils } from "src/xml/xml";
+import { parseXml } from "test/testUtils";
 import { describe, expect, it } from "vitest";
-import { parseXml } from "../../testUtils";
 
 describe(XmlUtils, () => {
 

@@ -5,7 +5,7 @@ export default defineConfig({
     plugins: [tsconfigPaths()],
     test: {
         environment: 'node',
-        include: ['test/**/*.tests.ts'],
+        include: ['src/**/*.tests.ts', 'test/**/*.tests.ts'],
         snapshotSerializers: ['./test/xmlNodeSnapshotSerializer.ts'],
         reporters: process.env.GITHUB_ACTIONS ?
             ['default', 'junit', 'github-actions'] :

@@ -1,8 +1,8 @@
 import { DelimiterMark, DelimiterSearcher, TagPlacement } from "src/compilation";
 import { Delimiters } from "src/delimiters";
 import { XmlNodeType } from "src/xml";
+import { getChildNode, parseXml } from "test/testUtils";
 import { describe, expect, test } from "vitest";
-import { getChildNode, parseXml } from "../../testUtils";
 
 describe(DelimiterSearcher, () => {
 

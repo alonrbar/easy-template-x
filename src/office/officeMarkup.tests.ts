@@ -1,7 +1,7 @@
 import { officeMarkup, OfficeMarkup } from "src/office";
 import { XmlTextNode } from "src/xml";
+import { parseXml } from "test/testUtils";
 import { describe, expect, test } from "vitest";
-import { parseXml } from "../../testUtils";
 
 describe(OfficeMarkup, () => {
 
