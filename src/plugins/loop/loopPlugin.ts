@@ -1,4 +1,6 @@
-import { PathPart, ScopeData, Tag, TagPlacement, TemplateContext } from "src/compilation";
+import { PathPart, ScopeData } from "src/compilation/scopeData";
+import { Tag, TagPlacement } from "src/compilation/tag";
+import { TemplateContext } from "src/compilation/templateContext";
 import { TemplateSyntaxError } from "src/errors";
 import { PluginUtilities, TemplatePlugin } from "src/plugins/templatePlugin";
 import { TemplateData } from "src/templateData";

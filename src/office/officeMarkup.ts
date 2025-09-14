@@ -1,4 +1,4 @@
-import { Tag, TagPlacement } from "src/compilation";
+import { Tag, TagPlacement } from "src/compilation/tag";
 import { xml, XmlGeneralNode, XmlNode, XmlTextNode } from "src/xml";
 import { OmlAttribute, OmlNode } from "./omlNode";
 

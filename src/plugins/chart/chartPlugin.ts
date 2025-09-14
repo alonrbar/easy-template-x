@@ -1,4 +1,6 @@
-import { ScopeData, Tag, TagPlacement, TemplateContext, TextNodeTag } from "src/compilation";
+import { ScopeData } from "src/compilation/scopeData";
+import { Tag, TagPlacement, TextNodeTag } from "src/compilation/tag";
+import { TemplateContext } from "src/compilation/templateContext";
 import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup, OmlNode } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";

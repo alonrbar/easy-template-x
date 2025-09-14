@@ -1,6 +1,8 @@
-import { ScopeData, Tag, TagPlacement, TemplateContext } from "src/compilation";
+import { ScopeData } from "src/compilation/scopeData";
+import { Tag, TagPlacement } from "src/compilation/tag";
+import { TemplateContext } from "src/compilation/templateContext";
 import { TemplateSyntaxError } from "src/errors";
-import { RelType, officeMarkup } from "src/office";
+import { officeMarkup, RelType } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { xml, XmlNode } from "src/xml";
 import { LinkContent } from "./linkContent";
