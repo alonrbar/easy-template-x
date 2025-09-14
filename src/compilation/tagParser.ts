@@ -2,9 +2,10 @@ import JSON5 from "json5";
 import { Delimiters } from "src/delimiters";
 import { InternalArgumentMissingError, MissingCloseDelimiterError, MissingStartDelimiterError, TagOptionsParseError } from "src/errors";
 import { officeMarkup } from "src/office";
-import { normalizeDoubleQuotes, Regex } from "src/utils";
+import { normalizeDoubleQuotes } from "src/utils";
 import { TextNodeDelimiterMark } from "./delimiters";
-import { TextNodeTag, TagDisposition, TagPlacement } from "./tag";
+import { TagDisposition, TagPlacement, TextNodeTag } from "./tag";
+import { tagRegex } from "./tagUtils";
 
 export class TagParser {
 
@@ -16,9 +17,7 @@ export class TagParser {
             throw new InternalArgumentMissingError("delimiters");
 
         this.delimiters = delimiters;
-
-        const tagOptionsRegex = `${Regex.escape(delimiters.tagOptionsStart)}(?<tagOptions>.*?)${Regex.escape(delimiters.tagOptionsEnd)}`;
-        this.tagRegex = new RegExp(`^${Regex.escape(delimiters.tagStart)}(?<tagName>.*?)(${tagOptionsRegex})?${Regex.escape(delimiters.tagEnd)}`, 'm');
+        this.tagRegex = tagRegex(delimiters);
     }
 
     public parse(delimiters: TextNodeDelimiterMark[]): TextNodeTag[] {

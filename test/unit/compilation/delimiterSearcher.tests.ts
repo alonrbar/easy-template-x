@@ -1,4 +1,5 @@
 import { DelimiterMark, DelimiterSearcher, TagPlacement } from "src/compilation";
+import { Delimiters } from "src/delimiters";
 import { XmlTextNode } from "src/xml";
 import { describe, expect, it } from "vitest";
 import { parseXml } from "../../testUtils";
@@ -45,9 +46,10 @@ describe(DelimiterSearcher, () => {
                 }
             ];
 
-            const searcher = createDelimiterSearcher();
-            searcher.startDelimiter = '{';
-            searcher.endDelimiter = '}';
+            const searcher = createDelimiterSearcher({
+                tagStart: '{',
+                tagEnd: '}'
+            });
             const delimiters = searcher.findDelimiters(paragraph);
 
             expect(delimiters).toEqual(expected);
@@ -81,9 +83,10 @@ describe(DelimiterSearcher, () => {
                 }
             ];
 
-            const searcher = createDelimiterSearcher();
-            searcher.startDelimiter = '{';
-            searcher.endDelimiter = '}';
+            const searcher = createDelimiterSearcher({
+                tagStart: '{',
+                tagEnd: '}'
+            });
             const delimiters = searcher.findDelimiters(paragraph);
 
             expect(delimiters).toEqual(expected);
@@ -122,9 +125,10 @@ describe(DelimiterSearcher, () => {
                 }
             ];
 
-            const searcher = createDelimiterSearcher();
-            searcher.startDelimiter = '{';
-            searcher.endDelimiter = '}';
+            const searcher = createDelimiterSearcher({
+                tagStart: '{',
+                tagEnd: '}'
+            });
             const delimiters = searcher.findDelimiters(paragraph);
 
             expect(delimiters).toEqual(expected);
@@ -171,9 +175,10 @@ describe(DelimiterSearcher, () => {
                 }
             ];
 
-            const searcher = createDelimiterSearcher();
-            searcher.startDelimiter = '{{';
-            searcher.endDelimiter = '}}';
+            const searcher = createDelimiterSearcher({
+                tagStart: '{{',
+                tagEnd: '}}'
+            });
             const delimiters = searcher.findDelimiters(paragraph);
 
             expect(delimiters).toEqual(expected);
@@ -207,9 +212,10 @@ describe(DelimiterSearcher, () => {
                 }
             ];
 
-            const searcher = createDelimiterSearcher();
-            searcher.startDelimiter = '{{';
-            searcher.endDelimiter = '}}';
+            const searcher = createDelimiterSearcher({
+                tagStart: '{{',
+                tagEnd: '}}'
+            });
             const delimiters = searcher.findDelimiters(paragraph);
 
             expect(delimiters).toEqual(expected);
@@ -248,9 +254,10 @@ describe(DelimiterSearcher, () => {
                 }
             ];
 
-            const searcher = createDelimiterSearcher();
-            searcher.startDelimiter = '{{';
-            searcher.endDelimiter = '}}';
+            const searcher = createDelimiterSearcher({
+                tagStart: '{{',
+                tagEnd: '}}'
+            });
             const delimiters = searcher.findDelimiters(paragraph);
 
             expect(delimiters).toEqual(expected);
@@ -291,9 +298,10 @@ describe(DelimiterSearcher, () => {
                 }
             ];
 
-            const searcher = createDelimiterSearcher();
-            searcher.startDelimiter = '{{{';
-            searcher.endDelimiter = '}}}';
+            const searcher = createDelimiterSearcher({
+                tagStart: '{{{',
+                tagEnd: '}}}'
+            });
             const delimiters = searcher.findDelimiters(paragraph);
 
             expect(delimiters).toEqual(expected);
@@ -340,9 +348,10 @@ describe(DelimiterSearcher, () => {
                 }
             ];
 
-            const searcher = createDelimiterSearcher();
-            searcher.startDelimiter = '{!';
-            searcher.endDelimiter = '!}';
+            const searcher = createDelimiterSearcher({
+                tagStart: '{!',
+                tagEnd: '!}'
+            });
             const delimiters = searcher.findDelimiters(paragraph);
 
             expect(delimiters).toEqual(expected);
@@ -376,9 +385,10 @@ describe(DelimiterSearcher, () => {
                 }
             ];
 
-            const searcher = createDelimiterSearcher();
-            searcher.startDelimiter = '{!';
-            searcher.endDelimiter = '!}';
+            const searcher = createDelimiterSearcher({
+                tagStart: '{!',
+                tagEnd: '!}'
+            });
             const delimiters = searcher.findDelimiters(paragraph);
 
             expect(delimiters).toEqual(expected);
@@ -417,9 +427,10 @@ describe(DelimiterSearcher, () => {
                 }
             ];
 
-            const searcher = createDelimiterSearcher();
-            searcher.startDelimiter = '{!';
-            searcher.endDelimiter = '!}';
+            const searcher = createDelimiterSearcher({
+                tagStart: '{!',
+                tagEnd: '!}'
+            });
             const delimiters = searcher.findDelimiters(paragraph);
 
             expect(delimiters).toEqual(expected);
@@ -427,6 +438,7 @@ describe(DelimiterSearcher, () => {
     });
 });
 
-function createDelimiterSearcher(): DelimiterSearcher {
-    return new DelimiterSearcher();
+function createDelimiterSearcher(delimitersSetup?: Partial<Delimiters>): DelimiterSearcher {
+    const delimiters = new Delimiters(delimitersSetup);
+    return new DelimiterSearcher(delimiters, 20);
 }

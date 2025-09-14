@@ -20,17 +20,14 @@ export class TemplateHandler {
 
     constructor(options?: TemplateHandlerOptions) {
         this.options = new TemplateHandlerOptions(options);
+        const delimiters = this.options.delimiters as Delimiters;
 
         //
         // This is the library's composition root
         //
 
-        const delimiterSearcher = new DelimiterSearcher();
-        delimiterSearcher.startDelimiter = this.options.delimiters.tagStart;
-        delimiterSearcher.endDelimiter = this.options.delimiters.tagEnd;
-        delimiterSearcher.maxXmlDepth = this.options.maxXmlDepth;
-
-        const tagParser = new TagParser(this.options.delimiters as Delimiters);
+        const delimiterSearcher = new DelimiterSearcher(delimiters, this.options.maxXmlDepth);
+        const tagParser = new TagParser(delimiters);
 
         this.compiler = new TemplateCompiler(
             delimiterSearcher,

@@ -1,19 +1,27 @@
 import { TagPlacement } from "src/compilation/tag";
+import { tagRegex } from "src/compilation/tagUtils";
+import { Delimiters } from "src/delimiters";
+import { InternalArgumentMissingError } from "src/errors";
 import { OmlNode } from "src/office";
 import { xml, XmlGeneralNode, XmlTreeIterator } from "src/xml";
-import { AttributeDelimiterMark, TextNodeDelimiterMark } from "./delimiterMark";
+import { AttributeDelimiterMark, DelimiterMark } from "./delimiterMark";
 
-export class AttributesDelimiterSearcher {    
+const drawingDescriptionAttributeName = "descr";
 
-    private readonly startDelimiter: string;
-    private readonly endDelimiter: string;
+export class AttributesDelimiterSearcher {
 
-    public constructor(startDelimiter: string, endDelimiter: string) {
-        this.startDelimiter = startDelimiter;
-        this.endDelimiter = endDelimiter;
+    private readonly delimiters: Delimiters;
+    private readonly tagRegex: RegExp;
+
+    constructor(delimiters: Delimiters) {
+        if (!delimiters)
+            throw new InternalArgumentMissingError("delimiters");
+
+        this.delimiters = delimiters;
+        this.tagRegex = tagRegex(delimiters, true);
     }
 
-    public processNode(it: XmlTreeIterator, delimiters: TextNodeDelimiterMark[]): void {
+    public processNode(it: XmlTreeIterator, delimiters: DelimiterMark[]): void {
 
         // Ignore irrelevant nodes
         if (!this.shouldSearchNode(it)) {
@@ -35,7 +43,7 @@ export class AttributesDelimiterSearcher {
         if (!this.isDrawingPropertiesNode(it.node)) {
             return false;
         }
-        if (!it.node.attributes["descr"]) {
+        if (!it.node.attributes[drawingDescriptionAttributeName]) {
             return false;
         }
 
@@ -43,7 +51,7 @@ export class AttributesDelimiterSearcher {
     }
 
     private isDrawingPropertiesNode(node: XmlGeneralNode): boolean {
-        
+
         // Node is drawing properties
         if (node.nodeName !== OmlNode.Wp.DocPr) {
             return false;
@@ -57,17 +65,38 @@ export class AttributesDelimiterSearcher {
         return !!parent;
     }
 
-    private findDelimiters(it: XmlTreeIterator<XmlGeneralNode>, delimiters: TextNodeDelimiterMark[]): void {
-        // TODO
+    private findDelimiters(it: XmlTreeIterator<XmlGeneralNode>, delimiters: DelimiterMark[]): void {
+
+        // Currently we only support description attributes of drawing objects
+        this.findDelimitersInAttribute(it.node, drawingDescriptionAttributeName, delimiters);
     }
 
-    private createCurrentDelimiterMark(): AttributeDelimiterMark {
+    private findDelimitersInAttribute(node: XmlGeneralNode, attributeName: string, delimiters: DelimiterMark[]): void {
+        const attrValue = node.attributes?.[attributeName];
+        if (!attrValue) {
+            return;
+        }
+
+        let match: RegExpExecArray;
+        while (match = this.tagRegex.exec(attrValue)) {
+            const tag = match[0];
+            const openDelimiterIndex = match.index;
+            const closeDelimiterIndex = openDelimiterIndex + tag.length - this.delimiters.tagEnd.length;
+
+            const openDelimiter = this.createCurrentDelimiterMark(openDelimiterIndex, true, node, attributeName);
+            const closeDelimiter = this.createCurrentDelimiterMark(closeDelimiterIndex, false, node, attributeName);
+            delimiters.push(openDelimiter);
+            delimiters.push(closeDelimiter);
+        }
+    }
+
+    private createCurrentDelimiterMark(index: number, isOpen: boolean, xmlNode: XmlGeneralNode, attributeName: string): AttributeDelimiterMark {
         return {
+            isOpen: isOpen,
             placement: TagPlacement.Attribute,
-            index: 0,
-            isOpen: true,
-            xmlNode: null,
-            attributeName: "descr",
+            xmlNode: xmlNode,
+            attributeName: attributeName,
+            index: index,
         };
     }
 }

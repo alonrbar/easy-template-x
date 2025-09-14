@@ -1,3 +1,5 @@
+import { Delimiters } from "src/delimiters";
+import { InternalArgumentMissingError } from "src/errors";
 import { XmlNode, XmlTreeIterator } from "src/xml";
 import { AttributesDelimiterSearcher } from "./attributesDelimiterSearcher";
 import { TextNodeDelimiterMark } from "./delimiterMark";
@@ -5,17 +7,28 @@ import { TextNodesDelimiterSearcher } from "./textNodesDelimiterSearcher";
 
 export class DelimiterSearcher {
 
-    public maxXmlDepth = 20;
-    public startDelimiter = "{";
-    public endDelimiter = "}";
+    private readonly maxXmlDepth: number;
+    private readonly delimiters: Delimiters;
+
+    constructor(delimiters: Delimiters, maxXmlDepth: number) {
+        if (!delimiters) {
+            throw new InternalArgumentMissingError("delimiters");
+        }
+        if (!maxXmlDepth) {
+            throw new InternalArgumentMissingError("maxXmlDepth");
+        }
+
+        this.delimiters = delimiters;
+        this.maxXmlDepth = maxXmlDepth;
+    }
 
     public findDelimiters(node: XmlNode): TextNodeDelimiterMark[] {
 
         const delimiters: TextNodeDelimiterMark[] = [];
         const it = new XmlTreeIterator(node, this.maxXmlDepth);
         
-        const attributeSearcher = new AttributesDelimiterSearcher(this.startDelimiter, this.endDelimiter);
-        const textSearcher = new TextNodesDelimiterSearcher(this.startDelimiter, this.endDelimiter);
+        const attributeSearcher = new AttributesDelimiterSearcher(this.delimiters);
+        const textSearcher = new TextNodesDelimiterSearcher(this.delimiters.tagStart, this.delimiters.tagEnd);
 
         while (it.node) {
             attributeSearcher.processNode(it, delimiters);
