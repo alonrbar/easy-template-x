@@ -143,7 +143,7 @@ export class TagParser {
         tag.placement = TagPlacement.TextNode;
         tag.rawText = tag.xmlTextNode.textContent;
 
-        const tagParts = this.tagRegex.exec(tag.rawText);
+        const tagParts = tag.rawText.match(this.tagRegex);
         const tagName = (tagParts.groups?.["tagName"] || '').trim();
 
         // Ignoring empty tags.

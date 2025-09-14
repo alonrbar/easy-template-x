@@ -77,8 +77,8 @@ export class AttributesDelimiterSearcher {
             return;
         }
 
-        let match: RegExpExecArray;
-        while (match = this.tagRegex.exec(attrValue)) {
+        const matches = attrValue.matchAll(this.tagRegex);
+        for (const match of matches) {
             const tag = match[0];
             const openDelimiterIndex = match.index;
             const closeDelimiterIndex = openDelimiterIndex + tag.length - this.delimiters.tagEnd.length;
