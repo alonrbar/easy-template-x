@@ -12,7 +12,7 @@ export class RawXmlPlugin extends TemplatePlugin {
     public simpleTagReplacements(tag: Tag, data: ScopeData): void {
 
         if (tag.placement !== TagPlacement.TextNode) {
-            throw new TemplateSyntaxError("RawXml tag must be placed in a text node");
+            throw new TemplateSyntaxError(`RawXml tag "${tag.rawText}" must be placed in a text node but was placed in ${tag.placement}`);
         }
 
         const value = data.getScopeData<RawXmlContent>();

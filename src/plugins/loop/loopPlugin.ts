@@ -41,8 +41,11 @@ export class LoopPlugin extends TemplatePlugin {
         const openTag = tags[0];
         const closeTag = last(tags);
 
-        if (openTag.placement !== TagPlacement.TextNode || closeTag.placement !== TagPlacement.TextNode) {
-            throw new TemplateSyntaxError("Loop tags must be placed in text nodes");
+        if (openTag.placement !== TagPlacement.TextNode) {
+            throw new TemplateSyntaxError(`Loop opening tag "${openTag.rawText}" must be placed in a text node but was placed in ${openTag.placement}`);
+        }
+        if (closeTag.placement !== TagPlacement.TextNode) {
+            throw new TemplateSyntaxError(`Loop closing tag "${closeTag.rawText}" must be placed in a text node but was placed in ${closeTag.placement}`);
         }
 
         // select the suitable strategy

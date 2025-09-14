@@ -12,7 +12,7 @@ export class LinkPlugin extends TemplatePlugin {
     public async simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): Promise<void> {
 
         if (tag.placement !== TagPlacement.TextNode) {
-            throw new TemplateSyntaxError("Link tag must be placed in a text node");
+            throw new TemplateSyntaxError(`Link tag "${tag.rawText}" must be placed in a text node but was placed in ${tag.placement}`);
         }
 
         const content = data.getScopeData<LinkContent>();

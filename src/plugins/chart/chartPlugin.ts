@@ -13,12 +13,12 @@ export class ChartPlugin extends TemplatePlugin {
     public async simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): Promise<void> {
 
         if (tag.placement !== TagPlacement.TextNode) {
-            throw new TemplateSyntaxError("Chart tag must be placed in a text node");
+            throw new TemplateSyntaxError(`Chart tag "${tag.rawText}" must be placed in a text node but was placed in ${tag.placement}`);
         }
 
         const chartNode = xml.query.findParentByName(tag.xmlTextNode, "c:chart");
         if (!chartNode) {
-            throw new TemplateSyntaxError("Chart tag not placed in chart title");
+            throw new TemplateSyntaxError(`Chart tag "${tag.rawText}" must be placed in chart title`);
         }
 
         const content = data.getScopeData<ChartContent>();

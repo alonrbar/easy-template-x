@@ -22,7 +22,7 @@ export class ImagePlugin extends TemplatePlugin {
     public async simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): Promise<void> {
 
         if (tag.placement !== TagPlacement.TextNode) {
-            throw new TemplateSyntaxError("Image tag must be placed in a text node");
+            throw new TemplateSyntaxError(`Image tag "${tag.rawText}" must be placed in a text node but was placed in ${tag.placement}`);
         }
 
         const content = data.getScopeData<ImageContent>();
