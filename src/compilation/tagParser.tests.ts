@@ -3,8 +3,8 @@ import { AttributeTag, TagDisposition, TagPlacement } from "src/compilation/tag"
 import { TagParser } from "src/compilation/tagParser";
 import { Delimiters } from "src/delimiters";
 import { MissingCloseDelimiterError, MissingStartDelimiterError, TagOptionsParseError } from "src/errors";
-import { XmlNodeType, XmlTextNode } from "src/xml";
-import { getChildNode, parseXml } from "test/testUtils";
+import { xml, XmlNodeType, XmlTextNode } from "src/xml";
+import { parseXml } from "test/testUtils";
 import { describe, expect, test } from "vitest";
 
 describe(TagParser, () => {
@@ -17,7 +17,7 @@ describe(TagParser, () => {
                 <w:p><w:r><w:t>{# my loop  }{ my tag  }{/  my loop }</w:t></w:r></w:p>
             `, false);
 
-            const textNode = getChildNode(paragraph, XmlNodeType.Text, 0, 0, 0);
+            const textNode = xml.query.findByPath(paragraph, XmlNodeType.Text, 0, 0, 0);
             expect(textNode.textContent).toEqual('{# my loop  }{ my tag  }{/  my loop }');
 
             const delimiters: TextNodeDelimiterMark[] = [
@@ -90,7 +90,7 @@ describe(TagParser, () => {
                 </w:p>
             `);
 
-            const textNode = getChildNode(paragraph, XmlNodeType.Text, 0, 0, 0);
+            const textNode = xml.query.findByPath(paragraph, XmlNodeType.Text, 0, 0, 0);
             const delimiters: TextNodeDelimiterMark[] = [
                 {
                     placement: TagPlacement.TextNode,
@@ -144,7 +144,7 @@ describe(TagParser, () => {
                 </w:p>
             `);
 
-            const textNode = getChildNode(paragraph, XmlNodeType.Text, 0, 0, 0);
+            const textNode = xml.query.findByPath(paragraph, XmlNodeType.Text, 0, 0, 0);
             const delimiters: TextNodeDelimiterMark[] = [
                 {
                     placement: TagPlacement.TextNode,
@@ -201,9 +201,9 @@ describe(TagParser, () => {
             `);
             const runNode = paragraphNode.childNodes[0];
 
-            const firstTextNode = getChildNode(runNode, XmlNodeType.Text, 0, 0);
-            const secondTextNode = getChildNode(runNode, XmlNodeType.Text, 1, 0);
-            const thirdTextNode = getChildNode(runNode, XmlNodeType.Text, 2, 0);
+            const firstTextNode = xml.query.findByPath(runNode, XmlNodeType.Text, 0, 0);
+            const secondTextNode = xml.query.findByPath(runNode, XmlNodeType.Text, 1, 0);
+            const thirdTextNode = xml.query.findByPath(runNode, XmlNodeType.Text, 2, 0);
             const delimiters: TextNodeDelimiterMark[] = [
                 {
                     placement: TagPlacement.TextNode,
@@ -257,10 +257,10 @@ describe(TagParser, () => {
                     </w:r>
                 </w:p>
             `);
-            const runNode = getChildNode(paragraphNode, XmlNodeType.General, 0);
+            const runNode = xml.query.findByPath(paragraphNode, XmlNodeType.General, 0);
 
-            const firstTextNode = getChildNode(runNode, XmlNodeType.Text, 0, 0);
-            const secondTextNode = getChildNode(runNode, XmlNodeType.Text, 1, 0);
+            const firstTextNode = xml.query.findByPath(runNode, XmlNodeType.Text, 0, 0);
+            const secondTextNode = xml.query.findByPath(runNode, XmlNodeType.Text, 1, 0);
             const delimiters: TextNodeDelimiterMark[] = [
                 {
                     placement: TagPlacement.TextNode,
@@ -303,10 +303,10 @@ describe(TagParser, () => {
                 </w:p>
             `);
 
-            const firstTextNode = getChildNode(paragraphNode, XmlNodeType.Text, 0, 0, 0);
+            const firstTextNode = xml.query.findByPath(paragraphNode, XmlNodeType.Text, 0, 0, 0);
             expect(firstTextNode.textContent).toEqual('{#loop}{text}{/');
 
-            const thirdTextNode = getChildNode(paragraphNode, XmlNodeType.Text, 2, 0, 0);
+            const thirdTextNode = xml.query.findByPath(paragraphNode, XmlNodeType.Text, 2, 0, 0);
             expect(thirdTextNode.textContent).toEqual('}');
 
             const delimiters: TextNodeDelimiterMark[] = [
@@ -419,7 +419,7 @@ describe(TagParser, () => {
                 </w:p>
             `, false);
 
-            const docPrNode = getChildNode(paragraph, XmlNodeType.General, 0, 0, 0, 0);
+            const docPrNode = xml.query.findByPath(paragraph, XmlNodeType.General, 0, 0, 0, 0);
             expect(docPrNode.attributes.descr).toEqual('{my_tag}');
 
             const delimiters: AttributeDelimiterMark[] = [
@@ -462,7 +462,7 @@ describe(TagParser, () => {
                 </w:p>
             `, false);
 
-            const docPrNode = getChildNode(paragraph, XmlNodeType.General, 0, 0);
+            const docPrNode = xml.query.findByPath(paragraph, XmlNodeType.General, 0, 0);
             expect(docPrNode.attributes.descr).toEqual('{#loop}content{/loop}');
 
             const delimiters: AttributeDelimiterMark[] = [
@@ -525,7 +525,7 @@ describe(TagParser, () => {
                 </w:p>
             `, false);
 
-            const docPrNode = getChildNode(paragraph, XmlNodeType.General, 0, 0);
+            const docPrNode = xml.query.findByPath(paragraph, XmlNodeType.General, 0, 0);
             expect(docPrNode.attributes.descr).toEqual('{tag1}{tag2}{tag3}');
 
             const delimiters: AttributeDelimiterMark[] = [
@@ -600,7 +600,7 @@ describe(TagParser, () => {
                 </w:p>
             `, false);
 
-            const docPrNode = getChildNode(paragraph, XmlNodeType.General, 0, 0);
+            const docPrNode = xml.query.findByPath(paragraph, XmlNodeType.General, 0, 0);
             expect(docPrNode.attributes.descr).toEqual("{my_tag [opt: 'value', count: 5]}");
 
             const delimiters: AttributeDelimiterMark[] = [
@@ -639,7 +639,7 @@ describe(TagParser, () => {
                 </w:p>
             `, false);
 
-            const docPrNode = getChildNode(paragraph, XmlNodeType.General, 0, 0);
+            const docPrNode = xml.query.findByPath(paragraph, XmlNodeType.General, 0, 0);
             expect(docPrNode.attributes.descr).toEqual('my_tag}');
 
             const delimiters: AttributeDelimiterMark[] = [
@@ -676,10 +676,10 @@ describe(TagParser, () => {
                 </w:p>
             `, false);
 
-            const docPrNode1 = getChildNode(paragraph, XmlNodeType.General, 0, 0, 0, 0);
+            const docPrNode1 = xml.query.findByPath(paragraph, XmlNodeType.General, 0, 0, 0, 0);
             expect(docPrNode1.attributes.descr).toEqual('{my_tag');
 
-            const docPrNode2 = getChildNode(paragraph, XmlNodeType.General, 1, 0, 0, 0);
+            const docPrNode2 = xml.query.findByPath(paragraph, XmlNodeType.General, 1, 0, 0, 0);
             expect(docPrNode2.attributes.descr).toEqual('}');
 
             const delimiters: AttributeDelimiterMark[] = [
@@ -713,7 +713,7 @@ describe(TagParser, () => {
                 <w:p><w:r><w:t>${text}</w:t></w:r></w:p>
             `, false);
 
-            const textNode = getChildNode(paragraph, XmlNodeType.Text, 0, 0, 0);
+            const textNode = xml.query.findByPath(paragraph, XmlNodeType.Text, 0, 0, 0);
             const delimiters: TextNodeDelimiterMark[] = [
                 {
                     placement: TagPlacement.TextNode,
@@ -766,7 +766,7 @@ describe(TagParser, () => {
                 <w:p><w:r><w:t>${text}</w:t></w:r></w:p>
             `, false);
 
-            const textNode = getChildNode(paragraph, XmlNodeType.Text, 0, 0, 0);
+            const textNode = xml.query.findByPath(paragraph, XmlNodeType.Text, 0, 0, 0);
             const delimiters: TextNodeDelimiterMark[] = [
                 {
                     placement: TagPlacement.TextNode,
@@ -803,7 +803,7 @@ describe(TagParser, () => {
                 <w:p><w:r><w:t>${text}</w:t></w:r></w:p>
             `, false);
 
-            const textNode = getChildNode(paragraph, XmlNodeType.Text, 0, 0, 0);
+            const textNode = xml.query.findByPath(paragraph, XmlNodeType.Text, 0, 0, 0);
             const delimiters: TextNodeDelimiterMark[] = [
                 {
                     placement: TagPlacement.TextNode,

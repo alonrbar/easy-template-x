@@ -1,7 +1,6 @@
 import { TemplateHandler } from "src/templateHandler";
-import { XmlNodeType } from "src/xml";
+import { xml, XmlNodeType } from "src/xml";
 import { describe, expect, it } from "vitest";
-import { getChildNode } from "../testUtils";
 import { readFixture } from "./fixtureUtils";
 
 describe('text tag fixtures', () => {
@@ -155,7 +154,7 @@ describe('text tag fixtures', () => {
         const template = readFixture("image - placeholder - two tags.docx");
 
         const templateXml = await handler.getXml(template);
-        const imagePropertiesNodeBefore = getChildNode(templateXml, XmlNodeType.General, 0, 0, 1, 1, 0, 2);
+        const imagePropertiesNodeBefore = xml.query.findByPath(templateXml, XmlNodeType.General, 0, 0, 1, 1, 0, 2);
         const altTextAttributeBefore = imagePropertiesNodeBefore.attributes?.["descr"];
         expect(altTextAttributeBefore).toEqual("Hello {Placeholder 1} {Placeholder 2}");
 
@@ -166,7 +165,7 @@ describe('text tag fixtures', () => {
         const doc = await handler.process(template, data);
 
         const docXml = await handler.getXml(doc);
-        const imagePropertiesNodeAfter = getChildNode(docXml, XmlNodeType.General, 0, 0, 1, 1, 0, 2);
+        const imagePropertiesNodeAfter = xml.query.findByPath(docXml, XmlNodeType.General, 0, 0, 1, 1, 0, 2);
         const altTextAttributeAfter = imagePropertiesNodeAfter.attributes?.["descr"];
         expect(altTextAttributeAfter).toEqual("Hello World ");
     });
@@ -178,7 +177,7 @@ describe('text tag fixtures', () => {
         const template = readFixture("image - placeholder.docx");
 
         const templateXml = await handler.getXml(template);
-        const imagePropertiesNodeBefore = getChildNode(templateXml, XmlNodeType.General, 0, 0, 1, 1, 0, 2);
+        const imagePropertiesNodeBefore = xml.query.findByPath(templateXml, XmlNodeType.General, 0, 0, 1, 1, 0, 2);
         const altTextAttributeBefore = imagePropertiesNodeBefore.attributes?.["descr"];
         expect(altTextAttributeBefore).toEqual("{My Tag 2}");
 
@@ -187,7 +186,7 @@ describe('text tag fixtures', () => {
         const doc = await handler.process(template, data);
 
         const docXml = await handler.getXml(doc);
-        const imagePropertiesNodeAfter = getChildNode(docXml, XmlNodeType.General, 0, 0, 1, 1, 0, 2);
+        const imagePropertiesNodeAfter = xml.query.findByPath(docXml, XmlNodeType.General, 0, 0, 1, 1, 0, 2);
         const altTextAttributeAfter = imagePropertiesNodeAfter.attributes?.["descr"];
         expect(altTextAttributeAfter).toBeUndefined();
     });

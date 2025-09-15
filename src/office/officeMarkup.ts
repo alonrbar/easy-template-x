@@ -1,5 +1,5 @@
 import { Tag, TagPlacement } from "src/compilation/tag";
-import { xml, XmlGeneralNode, XmlNode, XmlTextNode } from "src/xml";
+import { xml, XmlGeneralNode, XmlNode, XmlNodeType, XmlTextNode } from "src/xml";
 import { OmlAttribute, OmlNode } from "./omlNode";
 
 //
@@ -75,7 +75,7 @@ class Query {
 
     public isListParagraph(paragraphNode: XmlNode): boolean {
         const paragraphProperties = officeMarkup.query.findParagraphPropertiesNode(paragraphNode);
-        const listNumberProperties = xml.query.findChildByName(paragraphProperties, OmlNode.W.NumberProperties);
+        const listNumberProperties = xml.query.findByPath(paragraphProperties, XmlNodeType.General, OmlNode.W.NumberProperties);
         return !!listNumberProperties;
     }
 

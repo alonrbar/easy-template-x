@@ -7,6 +7,12 @@ import { XmlTextNode } from "./xmlNode";
 import { XmlTreeIterator } from "./xmlTreeIterator";
 import type { IMap } from "src/types";
 
+export type NodeTypeToNode<T extends XmlNodeType> =
+    T extends typeof XmlNodeType.Text ? XmlTextNode :
+    T extends typeof XmlNodeType.Comment ? XmlCommentNode :
+    T extends typeof XmlNodeType.General ? XmlGeneralNode :
+    XmlNode;
+
 export type XmlNodePredicate = (node: XmlNode) => boolean;
 
 export class XmlUtils {
@@ -330,8 +336,33 @@ class Query {
         return (node.childNodes || []).find(child => predicate(child));
     }
 
-    public findChildByName(node: XmlNode, childName: string): XmlNode {
-        return xml.query.findChild(node, n => n.nodeName === childName);
+    public findByPath<T extends XmlNodeType>(root: XmlNode, nodeType: T, ...path: (string | number)[]): NodeTypeToNode<T> {
+        if (!root) {
+            return null;
+        }
+
+        let curNode = root;
+        for (let i = 0; i < path.length; i++) {
+            const curIndex = path[i];
+
+            if (typeof curIndex === 'string') {
+                curNode = xml.query.findChild(curNode, n => n.nodeName === curIndex);
+            }
+
+            if (typeof curIndex === 'number') {
+                const curNodeType = (i == path.length - 1) ? nodeType : XmlNodeType.General;
+                curNode = curNode.childNodes.filter(c => c.nodeType === curNodeType)[curIndex];
+            }
+
+            if (!curNode) {
+                return null;
+            }
+        }
+        
+        if (curNode.nodeType !== nodeType) {
+            return null;
+        }
+        return curNode as NodeTypeToNode<T>;
     }
 
     /**
