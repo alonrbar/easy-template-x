@@ -6,9 +6,9 @@ import { MimeTypeHelper } from "src/mimeType";
 import { officeMarkup, OmlNode } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { isNumber } from "src/utils/number";
-import { xml, XmlGeneralNode, XmlNode } from "src/xml";
+import { xml, XmlGeneralNode } from "src/xml";
+import { createImage } from "./createImage";
 import { ImageContent } from "./imageContent";
-import { nameFromId, pixelsToEmu, transparencyPercentToAlpha } from "./imageUtils";
 import { updateImage } from "./updateImage";
 
 interface ImagePluginContext {
@@ -42,14 +42,14 @@ export class ImagePlugin extends TemplatePlugin {
 
         // For text tags, create xml markup from scratch
         if (tag.placement === TagPlacement.TextNode) {
-            const imageXml = this.createMarkup(imageId, relId, content);
+            const imageXml = createImage(imageId, relId, content);
             const wordTextNode = officeMarkup.query.containingTextNode(tag.xmlTextNode);
             xml.modify.insertAfter(imageXml, wordTextNode);
         }
 
         // For attribute tags, modify the existing markup
         if (tag.placement === TagPlacement.Attribute) {
-            const drawingNode = xml.query.findParentByName(tag.xmlNode, OmlNode.W.Drawing) as XmlGeneralNode;
+            const drawingNode = xml.query.findParentByName(tag.xmlNode, OmlNode.W.Drawing);
             if (!drawingNode) {
                 throw new TemplateSyntaxError(`Cannot find placeholder image for tag "${tag.rawText}".`);
             }
@@ -95,117 +95,5 @@ export class ImagePlugin extends TemplatePlugin {
 
         lastIdMap[lastIdKey] = maxId + 1;
         return lastIdMap[lastIdKey];
-    }
-
-    private createMarkup(imageId: number, relId: string, content: ImageContent): XmlNode {
-
-        // http://officeopenxml.com/drwPicInline.php
-
-        //
-        // Performance note:
-        //
-        // I've tried to improve the markup generation performance by parsing
-        // the string once and caching the result (and of course customizing it
-        // per image) but it made no change whatsoever (in both cases 1000 items
-        // loop takes around 8 seconds on my machine) so I'm sticking with this
-        // approach which I find to be more readable.
-        //
-
-        const name = nameFromId(imageId);
-        const markupText = `
-            <w:drawing>
-                <wp:inline distT="0" distB="0" distL="0" distR="0">
-                    <wp:extent cx="${pixelsToEmu(content.width)}" cy="${pixelsToEmu(content.height)}"/>
-                    <wp:effectExtent l="0" t="0" r="0" b="0"/>
-                    ${this.docProperties(imageId, name, content)}
-                    <wp:cNvGraphicFramePr>
-                        <a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/>
-                    </wp:cNvGraphicFramePr>
-                    <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
-                        <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
-                            ${this.pictureMarkup(imageId, relId, name, content)}
-                        </a:graphicData>
-                    </a:graphic>
-                </wp:inline>
-            </w:drawing>
-        `;
-
-        const markupXml = xml.parser.parse(markupText) as XmlGeneralNode;
-        xml.modify.removeEmptyTextNodes(markupXml); // remove whitespace
-
-        return markupXml;
-    }
-
-    private docProperties(imageId: number, name: string, content: ImageContent): string {
-        if (content.altText) {
-            return `<wp:docPr id="${imageId}" name="${name}" descr="${content.altText}"/>`;
-        }
-
-        return `
-            <wp:docPr id="${imageId}" name="${name}">
-                <a:extLst xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
-					<a:ext uri="{C183D7F6-B498-43B3-948B-1728B52AA6E4}">
-						<adec:decorative xmlns:adec="http://schemas.microsoft.com/office/drawing/2017/decorative" val="1"/>
-					</a:ext>
-				</a:extLst>
-            </wp:docPr>
-        `;
-    }
-
-    private pictureMarkup(imageId: number, relId: string, name: string, content: ImageContent) {
-
-        // http://officeopenxml.com/drwPic.php
-
-        // Legend:
-        // nvPicPr - non-visual picture properties - id, name, etc.
-        // blipFill - binary large image (or) picture fill - image size, image fill, etc.
-        // spPr - shape properties - frame size, frame fill, etc.
-
-        return `
-            <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
-                <pic:nvPicPr>
-                    <pic:cNvPr id="${imageId}" name="${name}"/>
-                    <pic:cNvPicPr>
-                        <a:picLocks noChangeAspect="1" noChangeArrowheads="1"/>
-                    </pic:cNvPicPr>
-                </pic:nvPicPr>
-                <pic:blipFill>
-                    <a:blip r:embed="${relId}">
-                        ${this.transparencyMarkup(content.transparencyPercent)}
-                        <a:extLst>
-                            <a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}">
-                                <a14:useLocalDpi xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" val="0"/>
-                            </a:ext>
-                        </a:extLst>
-                    </a:blip>
-                    <a:srcRect/>
-                    <a:stretch>
-                        <a:fillRect/>
-                    </a:stretch>
-                </pic:blipFill>
-                <pic:spPr bwMode="auto">
-                    <a:xfrm>
-                        <a:off x="0" y="0"/>
-                        <a:ext cx="${pixelsToEmu(content.width)}" cy="${pixelsToEmu(content.height)}"/>
-                    </a:xfrm>
-                    <a:prstGeom prst="rect">
-                        <a:avLst/>
-                    </a:prstGeom>
-                    <a:noFill/>
-                    <a:ln>
-                        <a:noFill/>
-                    </a:ln>
-                </pic:spPr>
-            </pic:pic>
-        `;
-    }
-
-    private transparencyMarkup(transparencyPercent: number): string {
-        if (transparencyPercent === null || transparencyPercent === undefined) {
-            return '';
-        }
-
-        const alpha = transparencyPercentToAlpha(transparencyPercent);
-        return `<a:alphaModFix amt="${alpha}" />`;
     }
 }
