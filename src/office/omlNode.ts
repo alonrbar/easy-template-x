@@ -29,6 +29,7 @@ class A {
     public readonly Text = 'a:t';
     public readonly Graphic = 'a:graphic';
     public readonly GraphicData = 'a:graphicData';
+    public readonly Blip = 'a:blip';
 }
 
 /**
@@ -55,6 +56,10 @@ class Wp {
      * see: http://officeopenxml.com/drwPicFloating.php
      */
     public readonly FloatingAnchor = 'wp:anchor';
+    /**
+     * Drawing extent.
+     */
+    public readonly Extent = 'wp:extent';
 }
 
 /**
@@ -68,7 +73,9 @@ class Pic {
     public readonly NvPicPr = 'pic:nvPicPr';
     public readonly CnVPr = 'pic:cNvPr';
     public readonly BlipFill = 'pic:blipFill';
-    public readonly Blip = 'a:blip';
+    public readonly SpPr = 'pic:spPr';
+    public readonly Xfrm = 'a:xfrm';
+    public readonly Ext = 'a:ext';
 }
 
 /**

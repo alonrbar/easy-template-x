@@ -2,7 +2,7 @@ import { OmlNode } from "src/office";
 import { xml, XmlGeneralNode, XmlNodeType } from "src/xml";
 import { MalformedFileError } from "src/errors";
 import { ImageContent } from "./imageContent";
-import { nameFromId } from "./imageUtils";
+import { nameFromId, pixelsToEmu } from "./imageUtils";
 
 export function updateImage(drawingContainerNode: XmlGeneralNode, imageId: number, relId: string, content: ImageContent): void {
         
@@ -23,13 +23,14 @@ export function updateImage(drawingContainerNode: XmlGeneralNode, imageId: numbe
     // Update non-visual properties
     updateNonVisualProps(drawingNode, pictureNode, imageId, content);
 
-    // TODO:
-    // - Support image size override
-    // - Support image transparency override
+    // Update size
+    updateSize(drawingNode, pictureNode, content);
+
+    // TODO: Support image transparency override
 }
 
 function setRelId(pictureNode: XmlGeneralNode, relId: string) {
-    const blipNode = xml.query.findByPath(pictureNode, XmlNodeType.General, OmlNode.Pic.BlipFill, OmlNode.Pic.Blip);
+    const blipNode = xml.query.findByPath(pictureNode, XmlNodeType.General, OmlNode.Pic.BlipFill, OmlNode.A.Blip);
 
     pictureNode.attributes["r:embed"] = relId;
     blipNode.attributes["r:embed"] = relId;
@@ -56,5 +57,31 @@ function updateNonVisualProps(drawingNode: XmlGeneralNode, pictureNode: XmlGener
     if (content.altText) {
         docPrNode.attributes["descr"] = content.altText;
         nvPicPrNode.attributes["descr"] = content.altText;
+    }
+}
+
+function updateSize(drawingNode: XmlGeneralNode, pictureNode: XmlGeneralNode, content: ImageContent) {
+    if (typeof content.width !== 'number' && typeof content.height !== 'number') {
+        return;
+    }
+
+    const drawingExtentNode = xml.query.findByPath(drawingNode, XmlNodeType.General, OmlNode.Wp.Extent);
+    if (!drawingExtentNode) {
+        throw new MalformedFileError("Cannot find drawing extent node.");
+    }
+    const pictureExtentNode = xml.query.findByPath(pictureNode, XmlNodeType.General, OmlNode.Pic.SpPr, OmlNode.Pic.Xfrm, OmlNode.Pic.Ext);
+    if (!pictureExtentNode) {
+        throw new MalformedFileError("Cannot find picture extent node.");
+    }
+
+    if (typeof content.width === 'number') {
+        const widthEmu = pixelsToEmu(content.width);
+        drawingExtentNode.attributes["cx"] = widthEmu.toString();
+        pictureExtentNode.attributes["cx"] = widthEmu.toString();
+    }
+    if (typeof content.height === 'number') {
+        const heightEmu = pixelsToEmu(content.height);
+        drawingExtentNode.attributes["cy"] = heightEmu.toString();
+        pictureExtentNode.attributes["cy"] = heightEmu.toString();
     }
 }

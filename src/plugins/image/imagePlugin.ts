@@ -8,7 +8,7 @@ import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { isNumber } from "src/utils/number";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 import { ImageContent } from "./imageContent";
-import { nameFromId } from "./imageUtils";
+import { nameFromId, pixelsToEmu } from "./imageUtils";
 import { updateImage } from "./updateImage";
 
 interface ImagePluginContext {
@@ -115,7 +115,7 @@ export class ImagePlugin extends TemplatePlugin {
         const markupText = `
             <w:drawing>
                 <wp:inline distT="0" distB="0" distL="0" distR="0">
-                    <wp:extent cx="${this.pixelsToEmu(content.width)}" cy="${this.pixelsToEmu(content.height)}"/>
+                    <wp:extent cx="${pixelsToEmu(content.width)}" cy="${pixelsToEmu(content.height)}"/>
                     <wp:effectExtent l="0" t="0" r="0" b="0"/>
                     ${this.docProperties(imageId, name, content)}
                     <wp:cNvGraphicFramePr>
@@ -186,7 +186,7 @@ export class ImagePlugin extends TemplatePlugin {
                 <pic:spPr bwMode="auto">
                     <a:xfrm>
                         <a:off x="0" y="0"/>
-                        <a:ext cx="${this.pixelsToEmu(content.width)}" cy="${this.pixelsToEmu(content.height)}"/>
+                        <a:ext cx="${pixelsToEmu(content.width)}" cy="${pixelsToEmu(content.height)}"/>
                     </a:xfrm>
                     <a:prstGeom prst="rect">
                         <a:avLst/>
@@ -210,15 +210,5 @@ export class ImagePlugin extends TemplatePlugin {
 
         const alpha = Math.round((100 - transparencyPercent) * 1000);
         return `<a:alphaModFix amt="${alpha}" />`;
-    }
-
-    private pixelsToEmu(pixels: number): number {
-
-        // https://stackoverflow.com/questions/20194403/openxml-distance-size-units
-        // https://docs.microsoft.com/en-us/windows/win32/vml/msdn-online-vml-units#other-units-of-measurement
-        // https://en.wikipedia.org/wiki/Office_Open_XML_file_formats#DrawingML
-        // http://www.java2s.com/Code/CSharp/2D-Graphics/ConvertpixelstoEMUEMUtopixels.htm
-
-        return Math.round(pixels * 9525);
     }    
 }
