@@ -1,11 +1,11 @@
+import { MalformedFileError } from "src/errors";
 import { OmlNode } from "src/office";
 import { xml, XmlGeneralNode, XmlNodeType } from "src/xml";
-import { MalformedFileError } from "src/errors";
 import { ImageContent } from "./imageContent";
-import { nameFromId, pixelsToEmu } from "./imageUtils";
+import { nameFromId, pixelsToEmu, transparencyPercentToAlpha } from "./imageUtils";
 
 export function updateImage(drawingContainerNode: XmlGeneralNode, imageId: number, relId: string, content: ImageContent): void {
-        
+
     const inlineNode = xml.query.findByPath(drawingContainerNode, XmlNodeType.General, OmlNode.Wp.Inline);
     const floatingNode = xml.query.findByPath(drawingContainerNode, XmlNodeType.General, OmlNode.Wp.FloatingAnchor);
     const drawingNode = (inlineNode || floatingNode);
@@ -26,7 +26,8 @@ export function updateImage(drawingContainerNode: XmlGeneralNode, imageId: numbe
     // Update size
     updateSize(drawingNode, pictureNode, content);
 
-    // TODO: Support image transparency override
+    // Update transparency
+    updateTransparency(pictureNode, content);
 }
 
 function setRelId(pictureNode: XmlGeneralNode, relId: string) {
@@ -84,4 +85,29 @@ function updateSize(drawingNode: XmlGeneralNode, pictureNode: XmlGeneralNode, co
         drawingExtentNode.attributes["cy"] = heightEmu.toString();
         pictureExtentNode.attributes["cy"] = heightEmu.toString();
     }
+}
+
+function updateTransparency(pictureNode: XmlGeneralNode, content: ImageContent) {
+    if (content.transparencyPercent === null || content.transparencyPercent === undefined) {
+        return;
+    }
+
+    const blipNode = xml.query.findByPath(pictureNode, XmlNodeType.General, OmlNode.Pic.BlipFill, OmlNode.A.Blip);
+    if (!blipNode) {
+        throw new MalformedFileError("Cannot find blip node.");
+    }
+
+    let alphaNode = xml.query.findByPath(blipNode, XmlNodeType.General, OmlNode.A.AlphaModFix);
+
+    // If the alpha node is not present, create it
+    if (!alphaNode) {
+        alphaNode = xml.create.generalNode(OmlNode.A.AlphaModFix, {
+            attributes: {}
+        });
+        xml.modify.insertChild(blipNode, alphaNode, 0);
+    }
+
+    // Set the alpha value
+    const alpha = transparencyPercentToAlpha(content.transparencyPercent);
+    alphaNode.attributes["amt"] = alpha.toString();
 }

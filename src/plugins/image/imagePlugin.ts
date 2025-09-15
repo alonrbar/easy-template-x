@@ -1,14 +1,14 @@
 import { ScopeData } from "src/compilation/scopeData";
 import { Tag, TagPlacement } from "src/compilation/tag";
 import { TemplateContext } from "src/compilation/templateContext";
-import { TemplateDataError, TemplateSyntaxError } from "src/errors";
+import { TemplateSyntaxError } from "src/errors";
 import { MimeTypeHelper } from "src/mimeType";
 import { officeMarkup, OmlNode } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { isNumber } from "src/utils/number";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 import { ImageContent } from "./imageContent";
-import { nameFromId, pixelsToEmu } from "./imageUtils";
+import { nameFromId, pixelsToEmu, transparencyPercentToAlpha } from "./imageUtils";
 import { updateImage } from "./updateImage";
 
 interface ImagePluginContext {
@@ -200,15 +200,12 @@ export class ImagePlugin extends TemplatePlugin {
         `;
     }
 
-    private transparencyMarkup(transparencyPercent: number) {
+    private transparencyMarkup(transparencyPercent: number): string {
         if (transparencyPercent === null || transparencyPercent === undefined) {
             return '';
         }
-        if (transparencyPercent < 0 || transparencyPercent > 100) {
-            throw new TemplateDataError(`Transparency percent must be between 0 and 100, but was ${transparencyPercent}.`);
-        }
 
-        const alpha = Math.round((100 - transparencyPercent) * 1000);
+        const alpha = transparencyPercentToAlpha(transparencyPercent);
         return `<a:alphaModFix amt="${alpha}" />`;
-    }    
+    }
 }

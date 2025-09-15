@@ -21,11 +21,13 @@ export interface ImageContent extends PluginContent {
      */
     height?: number;
     /**
-     * Optional. If this is not set the image will be marked as "decorative".
+     * Optional.
      */
     altText?: string;
     /**
-     * Optional. A value between 0 and 100. If this is not set the image will be fully opaque.
+     * Optional. A value between 0 and 100. If this is not set, new images will
+     * be fully opaque and placeholder images will keep their original
+     * transparency.
      */
     transparencyPercent?: number;
 }

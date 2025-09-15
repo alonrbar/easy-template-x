@@ -154,6 +154,32 @@ describe('image fixtures', () => {
 
             // writeTempFile('image - placeholder - size override - output.docx', doc);
         });
+
+        test("transparency override", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("image - placeholder.docx");
+            const imageFile = readResource("panda1.jpg");
+
+            const imageData: ImageContent = {
+                _type: 'image',
+                format: MimeType.Jpeg,
+                source: imageFile,
+                altText: "There is no spoon.",
+                transparencyPercent: 33
+            };
+            const data = {
+                "My Tag 2": imageData
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('image - placeholder - transparency override - output.docx', doc);
+        });
     });
 
     describe('multiple images', () => {

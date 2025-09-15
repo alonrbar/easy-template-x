@@ -29,7 +29,11 @@ class A {
     public readonly Text = 'a:t';
     public readonly Graphic = 'a:graphic';
     public readonly GraphicData = 'a:graphicData';
+    /**
+     * Binary large image (or) picture.
+     */
     public readonly Blip = 'a:blip';
+    public readonly AlphaModFix = 'a:alphaModFix';
 }
 
 /**
@@ -70,9 +74,18 @@ class Wp {
  */
 class Pic {
     public readonly Pic = 'pic:pic';
+    /**
+     * Non-visual picture properties.
+     */
     public readonly NvPicPr = 'pic:nvPicPr';
     public readonly CnVPr = 'pic:cNvPr';
+    /**
+     * Binary large image (or) picture fill.
+     */
     public readonly BlipFill = 'pic:blipFill';
+    /**
+     * Shape properties.
+     */
     public readonly SpPr = 'pic:spPr';
     public readonly Xfrm = 'a:xfrm';
     public readonly Ext = 'a:ext';
