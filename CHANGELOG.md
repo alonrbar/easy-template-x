@@ -1,5 +1,16 @@
 # Changelog
 
+## [7.0.0 - 2025-09-15](https://github.com/alonrbar/easy-template-x/tree/v7.0.0)
+
+### Added
+
+- Image placeholders support ([#137](https://github.com/alonrbar/easy-template-x/issues/137)).
+
+### Changed
+
+- **BREAKING** - The `Tag` interface has been changed. There now two types of tags: `TextNodeTag` and `AttributeTag`. This may affect users calling the `TemplateHandler.parseTags` method (see the [tag file](https://github.com/alonrbar/easy-template-x/blob/v7.0.0/src/compilation/tag.ts) for details).
+- `MalformedFileError` error is thrown from additional places and the error messages were changed to be more informative.
+
 ## [6.2.3 - 2025-09-13](https://github.com/alonrbar/easy-template-x/tree/v6.2.3)
 
 ### Fixed
