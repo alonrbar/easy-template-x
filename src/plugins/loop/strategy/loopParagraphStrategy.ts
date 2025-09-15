@@ -12,8 +12,8 @@ export class LoopParagraphStrategy implements ILoopStrategy {
     public splitBefore(openTag: TextNodeTag, closeTag: TextNodeTag): SplitBeforeResult {
 
         // gather some info
-        let firstParagraph = officeMarkup.query.containingParagraphNode(openTag.xmlTextNode);
-        let lastParagraph = officeMarkup.query.containingParagraphNode(closeTag.xmlTextNode);
+        let firstParagraph: XmlNode = officeMarkup.query.containingParagraphNode(openTag.xmlTextNode);
+        let lastParagraph: XmlNode = officeMarkup.query.containingParagraphNode(closeTag.xmlTextNode);
         const areSame = (firstParagraph === lastParagraph);
 
         // split first paragraph

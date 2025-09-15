@@ -313,12 +313,12 @@ class Query {
         return newTextNode;
     }
 
-    public findParent(node: XmlNode, predicate: (node: XmlNode) => boolean): XmlNode {
+    public findParent(node: XmlNode, predicate: (node: XmlNode) => boolean): XmlGeneralNode {
 
         while (node) {
 
             if (predicate(node))
-                return node;
+                return node as XmlGeneralNode;
 
             node = node.parentNode;
         }
@@ -326,7 +326,7 @@ class Query {
         return null;
     }
 
-    public findParentByName(node: XmlNode, nodeName: string): XmlNode {
+    public findParentByName(node: XmlNode, nodeName: string): XmlGeneralNode {
         return xml.query.findParent(node, n => n.nodeName === nodeName);
     }
 

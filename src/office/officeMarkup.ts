@@ -123,41 +123,41 @@ class Query {
         if (!xml.query.isTextNode(node))
             throw new Error(`'Invalid argument node. Expected a XmlTextNode.`);
 
-        return xml.query.findParent(node, officeMarkup.query.isTextNode) as XmlGeneralNode;
+        return xml.query.findParent(node, officeMarkup.query.isTextNode);
     }
 
     /**
      * Search **upwards** for the first run node.
      */
-    public containingRunNode(node: XmlNode): XmlNode {
+    public containingRunNode(node: XmlNode): XmlGeneralNode {
         return xml.query.findParent(node, officeMarkup.query.isRunNode);
     }
 
     /**
      * Search **upwards** for the first paragraph node.
      */
-    public containingParagraphNode(node: XmlNode): XmlNode {
+    public containingParagraphNode(node: XmlNode): XmlGeneralNode {
         return xml.query.findParent(node, officeMarkup.query.isParagraphNode);
     }
 
     /**
      * Search **upwards** for the first "table row" node.
      */
-    public containingTableRowNode(node: XmlNode): XmlNode {
+    public containingTableRowNode(node: XmlNode): XmlGeneralNode {
         return xml.query.findParentByName(node, OmlNode.W.TableRow);
     }
 
     /**
      * Search **upwards** for the first "table cell" node.
      */
-    public containingTableCellNode(node: XmlNode): XmlNode {
+    public containingTableCellNode(node: XmlNode): XmlGeneralNode {
         return xml.query.findParent(node, officeMarkup.query.isTableCellNode);
     }
 
     /**
      * Search **upwards** for the first "table" node.
      */
-    public containingTableNode(node: XmlNode): XmlNode {
+    public containingTableNode(node: XmlNode): XmlGeneralNode {
         return xml.query.findParentByName(node, OmlNode.W.Table);
     }
 
@@ -347,7 +347,7 @@ class Modify {
         const totalText: string[] = [];
 
         // iterate runs
-        let curRunNode = firstRunNode;
+        let curRunNode: XmlNode = firstRunNode;
         while (curRunNode) {
 
             // iterate text nodes

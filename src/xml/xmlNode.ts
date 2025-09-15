@@ -24,6 +24,7 @@ export interface XmlTextNode extends XmlNodeBase {
     nodeType: typeof XmlNodeType.Text;
     nodeName: typeof TEXT_NODE_NAME;
     textContent: string;
+    childNodes?: never;
 }
 
 export interface XmlCommentNode extends XmlNodeBase {

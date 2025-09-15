@@ -3,6 +3,7 @@ import { Delimiters } from "src/delimiters";
 import { InternalArgumentMissingError, InternalError, MissingCloseDelimiterError, MissingStartDelimiterError, TagOptionsParseError } from "src/errors";
 import { officeMarkup, OmlNode } from "src/office";
 import { normalizeDoubleQuotes } from "src/utils";
+import { XmlNode } from "src/xml";
 import { AttributeDelimiterMark, DelimiterMark, TextNodeDelimiterMark } from "./delimiters";
 import { AttributeTag, Tag, TagDisposition, TagPlacement, TextNodeTag } from "./tag";
 import { tagRegex } from "./tagUtils";
@@ -118,7 +119,7 @@ export class TagParser {
         // Verify no inline drawing in the middle
         const startRun = officeMarkup.query.containingRunNode(openTextNode);
         const endRun = officeMarkup.query.containingRunNode(closeTextNode);
-        let currentRun = startRun;
+        let currentRun: XmlNode = startRun;
         while (currentRun && currentRun !== endRun) {
             const drawing = currentRun.childNodes?.find(child => child.nodeName === OmlNode.W.Drawing);
             if (!drawing) {
