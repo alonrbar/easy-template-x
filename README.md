@@ -333,7 +333,8 @@ And the third will produce this document:
 
 ### Image plugin
 
-Embed images into the document. The image plugin supports two modes:
+Embed images into the document.  
+The image plugin supports two modes:
 
 1. Text tag replacement
 2. Image placeholder replacement
@@ -348,20 +349,22 @@ Input template example:
 
 #### Image placeholder replacement
 
-Replace existing placeholder images in the document while preserving their size, position, and styling (it doesn't matter what image is used as the placeholder).
+Replace existing placeholder images while preserving their size, position, and styling.
+
+**Note:** You can use any image you want as the placeholder.
 
 Input template example:
 
 ![input template](./docs/assets/image-plugin-placeholder-in.png?raw=true)
 
-Make sure to insert a tag in the alt text of the placeholder image:
+To let `easy-template-x` know you want to replace the placeholder image, insert a tag in it's alt text:
 
 ![alt text context menu](./docs/assets/alt-text-context-menu.png?raw=true)
 ![alt text panel](./docs/assets/alt-text-panel.png?raw=true)
 
 #### Data and output
 
-The data and output are the same for both modes.
+The data and resulting output are the same for both modes.
 
 Input data:
 
@@ -371,8 +374,8 @@ Input data:
         _type: "image",
         source: fs.readFileSync("hero.png"),
         format: MimeType.Png,
-        width: 200, // Optional for placeholders, required for text tags
-        height: 200, // Optional for placeholders, required for text tags
+        width: 200, // Required for text tags, optional for placeholders
+        height: 200, // Required for text tags, optional for placeholders
         altText: "Kung Fu Hero", // Optional
         transparencyPercent: 80 // Optional
     }
