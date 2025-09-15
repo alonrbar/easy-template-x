@@ -23,7 +23,7 @@ export class Docx {
         try {
             zip = await Zip.load(file);
         } catch {
-            throw new MalformedFileError('docx');
+            throw new MalformedFileError("Failed to load zip file.");
         }
 
         // Load the docx file
@@ -37,7 +37,7 @@ export class Docx {
     public static async open(zip: Zip): Promise<Docx> {
         const mainDocumentPath = await Docx.getMainDocumentPath(zip);
         if (!mainDocumentPath)
-            throw new MalformedFileError('docx');
+            throw new MalformedFileError("Cannot find main document path.");
 
         return new Docx(mainDocumentPath, zip);
     }

@@ -21,7 +21,7 @@ export class Xlsx {
         try {
             zip = await Zip.load(file);
         } catch {
-            throw new MalformedFileError('xlsx');
+            throw new MalformedFileError("Failed to load zip file.");
         }
 
         // Load the xlsx file
@@ -35,7 +35,7 @@ export class Xlsx {
     public static async open(zip: Zip): Promise<Xlsx> {
         const mainDocumentPath = await Xlsx.getMainDocumentPath(zip);
         if (!mainDocumentPath)
-            throw new MalformedFileError('xlsx');
+            throw new MalformedFileError("Cannot find main document path.");
 
         return new Xlsx(mainDocumentPath, zip);
     }

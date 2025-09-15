@@ -1,4 +1,4 @@
-import { TemplateSyntaxError } from "src/errors";
+import { MalformedFileError, TemplateSyntaxError } from "src/errors";
 import { OmlAttribute, OpenXmlPart, RelType, Xlsx } from "src/office";
 import { IMap } from "src/types";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
@@ -41,17 +41,17 @@ export async function updateChart(chartPart: OpenXmlPart, chartData: ChartData) 
     // Get the chart node
     const root = await chartPart.xmlRoot();
     if (root.nodeName !== "c:chartSpace") {
-        throw new Error(`Unexpected chart root node "${root.nodeName}"`);
+        throw new MalformedFileError(`Unexpected chart root node "${root.nodeName}"`);
     }
 
     const chartWrapperNode = root.childNodes?.find(child => child.nodeName === "c:chart");
     if (!chartWrapperNode) {
-        throw new Error("Chart node not found");
+        throw new MalformedFileError("Chart node not found");
     }
 
     const plotAreaNode = chartWrapperNode.childNodes?.find(child => child.nodeName === "c:plotArea");
     if (!plotAreaNode) {
-        throw new Error("Plot area node not found");
+        throw new MalformedFileError("Plot area node not found");
     }
 
     const chartNode = plotAreaNode.childNodes?.find(child => Object.values(chartTypes).includes(child.nodeName as any)) as XmlGeneralNode;
