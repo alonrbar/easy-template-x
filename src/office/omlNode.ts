@@ -27,6 +27,8 @@ class A {
     public readonly Run = 'a:r';
     public readonly RunProperties = 'a:rPr';
     public readonly Text = 'a:t';
+    public readonly Graphic = 'a:graphic';
+    public readonly GraphicData = 'a:graphicData';
 }
 
 /**
@@ -56,6 +58,20 @@ class Wp {
 }
 
 /**
+ * Drawing Markup Language "picture" namespace node names.
+ * 
+ * These elements are part of the picture namespace:
+ * xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture".
+ */
+class Pic {
+    public readonly Pic = 'pic:pic';
+    public readonly NvPicPr = 'pic:nvPicPr';
+    public readonly CnVPr = 'pic:cNvPr';
+    public readonly BlipFill = 'pic:blipFill';
+    public readonly Blip = 'a:blip';
+}
+
+/**
  * Office Markup Language (OML) node names.
  *
  * Office Markup Language is my generic term for the markup languages that are
@@ -79,6 +95,11 @@ export class OmlNode {
      * Drawing Markup Language "wordprocessing drawing" namespace node names.
      */
     public static readonly Wp = new Wp();
+
+    /**
+     * Drawing Markup Language "picture" namespace node names.
+     */
+    public static readonly Pic = new Pic();
 }
 
 export class OmlAttribute {

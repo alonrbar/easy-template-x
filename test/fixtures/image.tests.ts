@@ -2,6 +2,7 @@ import { MimeType } from "src/mimeType";
 import { MediaFiles } from "src/office/mediaFiles";
 import { ImageContent } from "src/plugins/image";
 import { TemplateHandler } from "src/templateHandler";
+import { xml, XmlNodeType } from "src/xml";
 import { Zip } from "src/zip";
 import { describe, expect, test } from "vitest";
 import { range, readResource } from "../testUtils";
@@ -89,6 +90,42 @@ describe('image fixtures', () => {
             expect(docXml).toMatchSnapshot();
 
             // writeTempFile('image - transparency - output.docx', doc);
+        });
+    });
+
+    describe('placeholder image', () => {
+
+        test("simple", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("image - placeholder.docx");
+            const imageFile = readResource("panda1.jpg");
+
+            const templateText = await handler.getText(template);
+            expect(templateText.trim()).toEqual("{My Tag 1}");
+
+            const templateXml = await handler.getXml(template);
+            const imagePropertiesNode = xml.query.findByPath(templateXml, XmlNodeType.General, 0, 0, 1, 1, 0, 2);
+            const altTextAttribute = imagePropertiesNode.attributes?.["descr"];
+            expect(altTextAttribute).toEqual("{My Tag 2}");
+
+            const imageData: ImageContent = {
+                _type: 'image',
+                format: MimeType.Jpeg,
+                source: imageFile,
+                altText: "There is no spoon."
+            };
+            const data = {
+                "My Tag 2": imageData
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('image - placeholder - output.docx', doc);
         });
     });
 

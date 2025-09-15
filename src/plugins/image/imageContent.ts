@@ -8,8 +8,18 @@ export interface ImageContent extends PluginContent {
     _type: 'image';
     source: Binary;
     format: ImageFormat;
-    width: number;
-    height: number;
+    /**
+     * When using an image placeholder, `width` and `height` properties are
+     * optional and if not set the image will keep its original size. Otherwise,
+     * they are required.
+     */
+    width?: number;
+    /**
+     * When using an image placeholder, `width` and `height` properties are
+     * optional and if not set the image will keep its original size. Otherwise,
+     * they are required.
+     */
+    height?: number;
     /**
      * Optional. If this is not set the image will be marked as "decorative".
      */

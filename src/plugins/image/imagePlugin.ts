@@ -8,6 +8,8 @@ import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { isNumber } from "src/utils/number";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 import { ImageContent } from "./imageContent";
+import { nameFromId } from "./imageUtils";
+import { updateImage } from "./updateImage";
 
 interface ImagePluginContext {
     /**
@@ -23,10 +25,6 @@ export class ImagePlugin extends TemplatePlugin {
 
     public async simpleTagReplacements(tag: Tag, data: ScopeData, context: TemplateContext): Promise<void> {
 
-        if (tag.placement !== TagPlacement.TextNode) {
-            throw new TemplateSyntaxError(`Image tag "${tag.rawText}" must be placed in a text node but was placed in ${tag.placement}`);
-        }
-
         const content = data.getScopeData<ImageContent>();
         if (!content || !content.source) {
             officeMarkup.modify.removeTag(tag);
@@ -39,12 +37,25 @@ export class ImagePlugin extends TemplatePlugin {
         const relId = await context.currentPart.rels.add(mediaFilePath, relType);
         await context.docx.contentTypes.ensureContentType(content.format);
 
-        // Create the xml markup
+        // Generate a unique image ID
         const imageId = await this.getNextImageId(context);
-        const imageXml = this.createMarkup(imageId, relId, content);
 
-        const wordTextNode = officeMarkup.query.containingTextNode(tag.xmlTextNode);
-        xml.modify.insertAfter(imageXml, wordTextNode);
+        // For text tags, create xml markup from scratch
+        if (tag.placement === TagPlacement.TextNode) {
+            const imageXml = this.createMarkup(imageId, relId, content);
+            const wordTextNode = officeMarkup.query.containingTextNode(tag.xmlTextNode);
+            xml.modify.insertAfter(imageXml, wordTextNode);
+        }
+
+        // For attribute tags, modify the existing markup
+        if (tag.placement === TagPlacement.Attribute) {
+            const drawingNode = xml.query.findParentByName(tag.xmlNode, OmlNode.W.Drawing) as XmlGeneralNode;
+            if (!drawingNode) {
+                throw new TemplateSyntaxError(`Cannot find placeholder image for tag "${tag.rawText}".`);
+            }
+            updateImage(drawingNode, imageId, relId, content);
+        }
+
         officeMarkup.modify.removeTag(tag);
     }
 
@@ -100,7 +111,7 @@ export class ImagePlugin extends TemplatePlugin {
         // approach which I find to be more readable.
         //
 
-        const name = `Picture ${imageId}`;
+        const name = nameFromId(imageId);
         const markupText = `
             <w:drawing>
                 <wp:inline distT="0" distB="0" distL="0" distR="0">
@@ -209,5 +220,5 @@ export class ImagePlugin extends TemplatePlugin {
         // http://www.java2s.com/Code/CSharp/2D-Graphics/ConvertpixelstoEMUEMUtopixels.htm
 
         return Math.round(pixels * 9525);
-    }
+    }    
 }
