@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.0.1 - 2025-09-15](https://github.com/alonrbar/easy-template-x/tree/v7.0.1)
+
+### Fixed
+
+- Fix typings.
+
 ## [7.0.0 - 2025-09-15](https://github.com/alonrbar/easy-template-x/tree/v7.0.0)
 
 ### Added
