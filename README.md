@@ -32,6 +32,8 @@ Generate docx documents from templates, in Node or in the browser.
     - [Nested Conditions](#nested-conditions)
     - [Controlling loop behavior](#controlling-loop-behavior)
   - [Image plugin](#image-plugin)
+    - [Text tag replacement](#text-tag-replacement)
+    - [Image placeholder replacement](#image-placeholder-replacement)
   - [Link plugin](#link-plugin)
   - [Chart plugin](#chart-plugin)
   - [Raw xml plugin](#raw-xml-plugin)
@@ -331,11 +333,35 @@ And the third will produce this document:
 
 ### Image plugin
 
-Embed images into the document.
+Embed images into the document. The image plugin supports two modes:
 
-Input template:
+1. Text tag replacement
+2. Image placeholder replacement
 
-![input template](./docs/assets/image-plugin-in.png?raw=true)
+#### Text tag replacement
+
+Insert inline images by placing tags in the document body.
+
+Input template example:
+
+![input template](./docs/assets/image-plugin-text-in.png?raw=true)
+
+#### Image placeholder replacement
+
+Replace existing placeholder images in the document while preserving their size, position, and styling (it doesn't matter what image is used as the placeholder).
+
+Input template example:
+
+![input template](./docs/assets/image-plugin-placeholder-in.png?raw=true)
+
+Make sure to insert a tag in the alt text of the placeholder image:
+
+![alt text context menu](./docs/assets/alt-text-context-menu.png?raw=true)
+![alt text panel](./docs/assets/alt-text-panel.png?raw=true)
+
+#### Data and output
+
+The data and output are the same for both modes.
 
 Input data:
 
@@ -345,8 +371,8 @@ Input data:
         _type: "image",
         source: fs.readFileSync("hero.png"),
         format: MimeType.Png,
-        width: 200,
-        height: 200,
+        width: 200, // Optional for placeholders, required for text tags
+        height: 200, // Optional for placeholders, required for text tags
         altText: "Kung Fu Hero", // Optional
         transparencyPercent: 80 // Optional
     }
