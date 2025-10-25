@@ -529,7 +529,7 @@ The only exceptions are the "loop" content type which still uses the "#" opening
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-#### [Types of changes](http://keepachangelog.com)
+**[Types of changes:](http://keepachangelog.com)**
 
 - **Added** for new features.
 - **Changed** for changes in existing functionality.
