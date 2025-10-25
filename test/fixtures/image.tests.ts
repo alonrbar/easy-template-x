@@ -1,3 +1,4 @@
+import { TemplateSyntaxError } from "src/errors";
 import { MimeType } from "src/mimeType";
 import { MediaFiles } from "src/office/mediaFiles";
 import { ImageContent } from "src/plugins/image";
@@ -179,6 +180,33 @@ describe('image fixtures', () => {
             expect(docXml).toMatchSnapshot();
 
             // writeTempFile('image - placeholder - transparency override - output.docx', doc);
+        });
+
+        test("misplaced in chart alt text", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - alt text.docx");
+            const imageFile = readResource("panda1.jpg");
+
+            const imageData: ImageContent = {
+                _type: 'image',
+                format: MimeType.Jpeg,
+                source: imageFile,
+                altText: "There is no spoon."
+            };
+            const data = {
+                MyChart: imageData
+            };
+
+            let error: Error;
+            try {
+                await handler.process(template, data);
+            } catch (e) {
+                error = e as Error;
+            }
+            expect(error).toBeInstanceOf(TemplateSyntaxError);
+            expect(error.message).toContain("MyChart");
         });
     });
 

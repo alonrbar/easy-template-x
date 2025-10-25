@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.0.2 - 2025-10-25](https://github.com/alonrbar/easy-template-x/tree/v7.0.2)
+
+### Changed
+
+- Improved error message for misplaced image tags.
+
 ## [7.0.1 - 2025-09-15](https://github.com/alonrbar/easy-template-x/tree/v7.0.1)
 
 ### Fixed

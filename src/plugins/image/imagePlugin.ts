@@ -53,7 +53,7 @@ export class ImagePlugin extends TemplatePlugin {
             if (!drawingNode) {
                 throw new TemplateSyntaxError(`Cannot find placeholder image for tag "${tag.rawText}".`);
             }
-            updateImage(drawingNode, imageId, relId, content);
+            updateImage(tag, drawingNode, imageId, relId, content);
         }
 
         officeMarkup.modify.removeTag(tag);

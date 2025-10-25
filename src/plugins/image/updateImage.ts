@@ -1,10 +1,11 @@
-import { MalformedFileError } from "src/errors";
+import { Tag } from "src/compilation/tag";
+import { MalformedFileError, TemplateSyntaxError } from "src/errors";
 import { OmlNode } from "src/office";
 import { xml, XmlGeneralNode, XmlNodeType } from "src/xml";
 import { ImageContent } from "./imageContent";
 import { nameFromId, pixelsToEmu, transparencyPercentToAlpha } from "./imageUtils";
 
-export function updateImage(drawingContainerNode: XmlGeneralNode, imageId: number, relId: string, content: ImageContent): void {
+export function updateImage(tag: Tag, drawingContainerNode: XmlGeneralNode, imageId: number, relId: string, content: ImageContent): void {
 
     const inlineNode = xml.query.findByPath(drawingContainerNode, XmlNodeType.General, OmlNode.Wp.Inline);
     const floatingNode = xml.query.findByPath(drawingContainerNode, XmlNodeType.General, OmlNode.Wp.FloatingAnchor);
@@ -14,7 +15,10 @@ export function updateImage(drawingContainerNode: XmlGeneralNode, imageId: numbe
     }
     const pictureNode = xml.query.findByPath(drawingNode, XmlNodeType.General, OmlNode.A.Graphic, OmlNode.A.GraphicData, OmlNode.Pic.Pic);
     if (!pictureNode) {
-        throw new MalformedFileError("Invalid drawing container node. Expected picture node.");
+        throw new TemplateSyntaxError(
+            `Invalid template syntax for image tag "${tag.rawText}". ` +
+            `Please make sure the tag is placed in the alt text of an image placeholder.`
+        );
     }
 
     // Set rel ID
