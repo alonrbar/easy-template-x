@@ -10,6 +10,7 @@
 /node_modules
 /out
 /test-reports
+/test/temp
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

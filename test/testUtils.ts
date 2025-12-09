@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import * as path from "path";
 import { loremIpsum } from "lorem-ipsum";
 import { xml, XmlNode } from "../src/xml";
 
@@ -32,9 +33,15 @@ export function readResource(filename: string): Buffer {
 }
 
 export function writeTempFile(filename: string, file: Buffer): string {
-    const path = '/temp/' + filename;
-    fs.writeFileSync(path, file);
-    return path;
+    const filePath = path.join('./test/temp', filename);
+    const dir = path.dirname(filePath);
+
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+
+    fs.writeFileSync(filePath, file);
+    return filePath;
 }
 
 function _removeWhiteSpace(text: string): string {

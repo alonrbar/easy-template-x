@@ -2,6 +2,7 @@ export * from './image';
 export * from './link';
 export * from './loop';
 export * from './rawXml';
+export * from './rawXmlMulti';
 export * from './text';
 export * from "./chart";
 export * from './defaultPlugins';

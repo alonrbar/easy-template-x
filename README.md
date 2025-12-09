@@ -38,6 +38,7 @@ Generate docx documents from templates, in Node or in the browser.
   - [Link plugin](#link-plugin)
   - [Chart plugin](#chart-plugin)
   - [Raw xml plugin](#raw-xml-plugin)
+  - [Raw xml multi paragraph plugin](#raw-xml-multi-paragraph-plugin)
   - [Writing custom plugins](#writing-your-own-plugins)
 - [Listing tags](#listing-tags)
 - [Scope resolution](#scope-resolution)
@@ -625,6 +626,25 @@ Input data:
 Output document:
 
 ![output document](./docs/assets/rawxml-plugin-out.png?raw=true)
+
+### Raw xml multi paragraph plugin
+
+Similar to the [Raw xml plugin](#raw-xml-plugin), but accepts an array of strings for the `xml` property. This allows for easier insertion of multiple paragraphs or XML fragments.
+
+Input data:
+
+```javascript
+{
+    "My Content": {
+        _type: 'rawXmlMultiParagraph',
+        xml: [
+             '<w:p><w:r><w:t>Paragraph 1</w:t></w:r></w:p>',
+             '<w:p><w:r><w:t>Paragraph 2</w:t></w:r></w:p>'
+        ],
+        replaceParagraph: true
+    }
+}
+```
 
 ### Writing your own plugins
 
