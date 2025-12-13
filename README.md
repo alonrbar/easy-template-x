@@ -43,7 +43,6 @@ Generate docx documents from templates, in Node or in the browser.
 - [Scope resolution](#scope-resolution)
 - [Extensions](#extensions)
   - [Community Extensions](#community-extensions)
-    - [Data Binding Extension](#data-binding-extension)
 - [Template handler options](#template-handler-options)
   - [Custom tag delimiters](#custom-tag-delimiters)
   - [Advanced syntax and custom resolvers](#advanced-syntax-and-custom-resolvers)
@@ -749,11 +748,7 @@ const handler = new TemplateHandler({
 The following extensions were developed by the community.  
 Want to see your extension here? Submit a pull request or [open an issue](https://github.com/alonrbar/easy-template-x/issues).
 
-#### Data Binding Extension
-
-The [easy-template-x-data-binding](https://github.com/sebastianrogers/easy-template-x-data-binding) extension supports updating [custom XML files](https://docs.microsoft.com/en-gb/archive/blogs/modonovan/word-2007-content-controls-and-xml-part-1-the-basics) inside Word documents.
-
-This allows using `easy-template-x` to automatically fill [Word forms](https://support.office.com/en-us/article/create-forms-that-users-complete-or-print-in-word-040c5cc1-e309-445b-94ac-542f732c8c8b) that uses content controls.
+- **Data Binding Extension** - The [easy-template-x-data-binding](https://github.com/sebastianrogers/easy-template-x-data-binding) extension supports updating [custom XML parts](https://www.google.com/search?q=word+custom+xml+part) inside Word documents.
 
 ## Template handler options
 
