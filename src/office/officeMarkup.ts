@@ -20,7 +20,8 @@ import { OmlAttribute, OmlNode } from "./omlNode";
 //   </w:r>
 // </w:p>
 //
-// see: http://officeopenxml.com/WPcontentOverview.php
+// - For an easy introduction, see: http://officeopenxml.com/WPcontentOverview.php
+// - For the complete specification, see: https://ecma-international.org/publications-and-standards/standards/ecma-376/
 //
 
 /**

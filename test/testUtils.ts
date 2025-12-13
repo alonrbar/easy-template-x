@@ -2,6 +2,14 @@ import * as fs from "fs";
 import { loremIpsum } from "lorem-ipsum";
 import { xml, XmlNode } from "../src/xml";
 
+export function compareableText(text: string): string {
+    text = _removeWhiteSpace(text);
+    text = text.replace(/[–]/g, '-');
+    text = text.replace(/[“”]/g, '"');
+    text = text.replace(/[’]/g, "'");
+    return text;
+}
+
 export function removeWhiteSpace(text: string): string {
     return _removeWhiteSpace(text);
 }

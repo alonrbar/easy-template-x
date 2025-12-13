@@ -13,6 +13,26 @@ class W {
     public readonly TableCell = 'w:tc';
     public readonly Drawing = 'w:drawing';
     public readonly NumberProperties = 'w:numPr';
+    /**
+     * Structured document tag (content control).
+     * 
+     * See: ECMA-376, Part 1, sections 17.5 and 17.5.2
+     */
+    public readonly StructuredTag = 'w:sdt';
+    /**
+     * Structured document tag properties.
+     */
+    public readonly StructuredTagProperties = 'w:sdtPr';
+    /**
+     * Structured document tag content.
+     */
+    public readonly StructuredTagContent = 'w:sdtContent';
+    /**
+     * Complex field character (legacy form field).
+     * 
+     * see: http://officeopenxml.com/WPfields.php
+     */
+    public readonly FieldChar = 'w:fldChar';
 }
 
 /**
@@ -98,6 +118,9 @@ class Pic {
  * used in Office Open XML documents. Including but not limited to
  * Wordprocessing Markup Language, Drawing Markup Language and Spreadsheet
  * Markup Language.
+ * 
+ * - For an easy introduction, see: http://officeopenxml.com/WPcontentOverview.php
+ * - For the complete specification, see: https://ecma-international.org/publications-and-standards/standards/ecma-376/
  */
 export class OmlNode {
 
@@ -124,4 +147,10 @@ export class OmlNode {
 
 export class OmlAttribute {
     public static readonly SpacePreserve = 'xml:space';
+    /**
+     * Complex field character type.
+     * 
+     * see: http://officeopenxml.com/WPfields.php
+     */
+    public static readonly FieldCharType = 'w:fldCharType';
 }
