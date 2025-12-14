@@ -12,10 +12,10 @@ Generate docx documents from templates, in Node or in the browser.
 >
 > Check out [templatedocs.io](https://templatedocs.io) - a cloud platform for document generation with:
 >
-> ✓ PDF support  
-> ✓ REST API integration  
-> ✓ Built-in email delivery  
+> ✓ Built-in workflow automation and email delivery  
 > ✓ Zapier and Make integration  
+> ✓ REST API integration  
+> ✓ PDF output support  
 > ✓ Live preview functionality  
 > ✓ Easy-to-use UI  
 >
