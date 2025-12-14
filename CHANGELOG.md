@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.0.3 - 2025-12-14](https://github.com/alonrbar/easy-template-x/tree/v7.0.3)
+
+### Fixed
+
+- Throw an informative error when a loop tag is found inside a content control.
+
 ## [7.0.2 - 2025-10-25](https://github.com/alonrbar/easy-template-x/tree/v7.0.2)
 
 ### Changed
