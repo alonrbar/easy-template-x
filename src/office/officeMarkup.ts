@@ -162,6 +162,13 @@ class Query {
         return xml.query.findParentByName(node, OmlNode.W.Table);
     }
 
+    /**
+     * Search **upwards** for the first `w:sdtContent` node.
+     */
+    public containingStructuredTagContentNode(node: XmlNode): XmlGeneralNode {
+        return xml.query.findParentByName(node, OmlNode.W.StructuredTagContent);
+    }
+
     //
     // Advanced queries
     //

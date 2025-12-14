@@ -2,6 +2,7 @@ import { PathPart, ScopeData } from "src/compilation/scopeData";
 import { Tag, TagPlacement } from "src/compilation/tag";
 import { TemplateContext } from "src/compilation/templateContext";
 import { TemplateSyntaxError } from "src/errors";
+import { officeMarkup } from "src/office/officeMarkup";
 import { PluginUtilities, TemplatePlugin } from "src/plugins/templatePlugin";
 import { TemplateData } from "src/templateData";
 import { last } from "src/utils";
@@ -48,6 +49,12 @@ export class LoopPlugin extends TemplatePlugin {
         }
         if (closeTag.placement !== TagPlacement.TextNode) {
             throw new TemplateSyntaxError(`Loop closing tag "${closeTag.rawText}" must be placed in a text node but was placed in ${closeTag.placement}`);
+        }
+        if (officeMarkup.query.containingStructuredTagContentNode(openTag.xmlTextNode)) {
+            throw new TemplateSyntaxError(`Loop tag "${openTag.rawText}" cannot be placed inside a content control`);
+        }
+        if (officeMarkup.query.containingStructuredTagContentNode(closeTag.xmlTextNode)) {
+            throw new TemplateSyntaxError(`Loop tag "${closeTag.rawText}" cannot be placed inside a content control`);
         }
 
         // Select the suitable strategy
