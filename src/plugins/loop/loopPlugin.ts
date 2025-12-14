@@ -39,7 +39,7 @@ export class LoopPlugin extends TemplatePlugin {
             }
         }
 
-        // vars
+        // Vars
         const openTag = tags[0];
         const closeTag = last(tags);
 
@@ -50,24 +50,24 @@ export class LoopPlugin extends TemplatePlugin {
             throw new TemplateSyntaxError(`Loop closing tag "${closeTag.rawText}" must be placed in a text node but was placed in ${closeTag.placement}`);
         }
 
-        // select the suitable strategy
+        // Select the suitable strategy
         const loopStrategy = this.loopStrategies.find(strategy => strategy.isApplicable(openTag, closeTag, isCondition));
         if (!loopStrategy)
             throw new Error(`No loop strategy found for tag '${openTag.rawText}'.`);
 
-        // prepare to loop
+        // Prepare to loop
         const { firstNode, nodesToRepeat, lastNode } = loopStrategy.splitBefore(openTag, closeTag);
 
-        // repeat (loop) the content
+        // Repeat (loop) the content
         const repeatedNodes = this.repeat(nodesToRepeat, value.length);
 
-        // recursive compilation
+        // Recursive compilation
         // (this step can be optimized in the future if we'll keep track of the
         // path to each token and use that to create new tokens instead of
         // search through the text again)
         const compiledNodes = await this.compile(isCondition, repeatedNodes, data, context);
 
-        // merge back to the document
+        // Merge back to the document
         loopStrategy.mergeBack(compiledNodes, firstNode, lastNode);
     }
 
@@ -88,20 +88,20 @@ export class LoopPlugin extends TemplatePlugin {
     private async compile(isCondition: boolean, nodeGroups: XmlNode[][], data: ScopeData, context: TemplateContext): Promise<XmlNode[][]> {
         const compiledNodeGroups: XmlNode[][] = [];
 
-        // compile each node group with it's relevant data
+        // Compile each node group with it's relevant data
         for (let i = 0; i < nodeGroups.length; i++) {
 
-            // create dummy root node
+            // Create dummy root node
             const curNodes = nodeGroups[i];
             const dummyRootNode = xml.create.generalNode('dummyRootNode');
             curNodes.forEach(node => xml.modify.appendChild(dummyRootNode, node));
 
-            // compile the new root
+            // Compile the new root
             const conditionTag = this.updatePathBefore(isCondition, data, i);
             await this.utilities.compiler.compile(dummyRootNode, data, context);
             this.updatePathAfter(isCondition, data, conditionTag);
 
-            // disconnect from dummy root
+            // Disconnect from dummy root
             const curResult: XmlNode[] = [];
             while (dummyRootNode.childNodes && dummyRootNode.childNodes.length) {
                 const child = xml.modify.removeChild(dummyRootNode, 0);
@@ -115,7 +115,7 @@ export class LoopPlugin extends TemplatePlugin {
 
     private updatePathBefore(isCondition: boolean, data: ScopeData, groupIndex: number): PathPart {
 
-        // if it's a condition - don't go deeper in the path
+        // If it's a condition - don't go deeper in the path
         // (so we need to extract the already pushed condition tag)
         if (isCondition) {
             if (groupIndex > 0) {
@@ -125,14 +125,14 @@ export class LoopPlugin extends TemplatePlugin {
             return data.pathPop();
         }
 
-        // else, it's an array - push the current index
+        // Else, it's an array - push the current index
         data.pathPush(groupIndex);
         return null;
     }
 
     private updatePathAfter(isCondition: boolean, data: ScopeData, conditionTag: PathPart): void {
 
-        // reverse the "before" path operation
+        // Reverse the "before" path operation
         if (isCondition) {
             data.pathPush(conditionTag);
         } else {

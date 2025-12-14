@@ -11,31 +11,32 @@ export class LoopParagraphStrategy implements ILoopStrategy {
 
     public splitBefore(openTag: TextNodeTag, closeTag: TextNodeTag): SplitBeforeResult {
 
-        // gather some info
+        // Gather some info
         let firstParagraph: XmlNode = officeMarkup.query.containingParagraphNode(openTag.xmlTextNode);
         let lastParagraph: XmlNode = officeMarkup.query.containingParagraphNode(closeTag.xmlTextNode);
         const areSame = (firstParagraph === lastParagraph);
 
-        // split first paragraph
-        let splitResult = officeMarkup.modify.splitParagraphByTextNode(firstParagraph, openTag.xmlTextNode, true);
+        // Split first paragraph
+        const removeTextNode = true;
+        let splitResult = officeMarkup.modify.splitParagraphByTextNode(firstParagraph, openTag.xmlTextNode, removeTextNode);
         firstParagraph = splitResult[0];
         let afterFirstParagraph = splitResult[1];
         if (areSame)
             lastParagraph = afterFirstParagraph;
 
-        // split last paragraph
-        splitResult = officeMarkup.modify.splitParagraphByTextNode(lastParagraph, closeTag.xmlTextNode, true);
+        // Split last paragraph
+        splitResult = officeMarkup.modify.splitParagraphByTextNode(lastParagraph, closeTag.xmlTextNode, removeTextNode);
         const beforeLastParagraph = splitResult[0];
         lastParagraph = splitResult[1];
         if (areSame)
             afterFirstParagraph = beforeLastParagraph;
 
-        // disconnect splitted paragraph from their parents
+        // Disconnect splitted paragraph from their parents
         xml.modify.remove(afterFirstParagraph);
         if (!areSame)
             xml.modify.remove(beforeLastParagraph);
 
-        // extract all paragraphs in between
+        // Extract all paragraphs in between
         let middleParagraphs: XmlNode[];
         if (areSame) {
             middleParagraphs = [afterFirstParagraph];
@@ -56,20 +57,20 @@ export class LoopParagraphStrategy implements ILoopStrategy {
         let mergeTo = firstParagraph;
         for (const curParagraphsGroup of middleParagraphs) {
 
-            // merge first paragraphs
+            // Merge first paragraphs
             officeMarkup.modify.joinParagraphs(mergeTo, curParagraphsGroup[0]);
 
-            // add middle and last paragraphs to the original document
+            // Add middle and last paragraphs to the original document
             for (let i = 1; i < curParagraphsGroup.length; i++) {
                 xml.modify.insertBefore(curParagraphsGroup[i], lastParagraph);
                 mergeTo = curParagraphsGroup[i];
             }
         }
 
-        // merge last paragraph
+        // Merge last paragraph
         officeMarkup.modify.joinParagraphs(mergeTo, lastParagraph);
 
-        // remove the old last paragraph (was merged into the new one)
+        // Remove the old last paragraph (was merged into the new one)
         xml.modify.remove(lastParagraph);
     }
 }

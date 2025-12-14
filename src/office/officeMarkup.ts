@@ -220,11 +220,11 @@ class Modify {
         let firstXmlTextNode: XmlTextNode;
         let secondXmlTextNode: XmlTextNode;
 
-        // split nodes
+        // Split nodes
         const wordTextNode = officeMarkup.query.containingTextNode(textNode);
         const newWordTextNode = xml.create.cloneNode(wordTextNode, true);
 
-        // set space preserve to prevent display differences after splitting
+        // Set space preserve to prevent display differences after splitting
         // (otherwise if there was a space in the middle of the text node and it
         // is now at the beginning or end of the text node it will be ignored)
         officeMarkup.modify.setSpacePreserveAttribute(wordTextNode);
@@ -232,7 +232,7 @@ class Modify {
 
         if (addBefore) {
 
-            // insert new node before existing one
+            // Insert new node before existing one
             xml.modify.insertBefore(newWordTextNode, wordTextNode);
 
             firstXmlTextNode = xml.query.lastTextChild(newWordTextNode);
@@ -240,7 +240,7 @@ class Modify {
 
         } else {
 
-            // insert new node after existing one
+            // Insert new node after existing one
             const curIndex = wordTextNode.parentNode.childNodes.indexOf(wordTextNode);
             xml.modify.insertChild(wordTextNode.parentNode, newWordTextNode, curIndex + 1);
 
@@ -248,7 +248,7 @@ class Modify {
             secondXmlTextNode = xml.query.lastTextChild(newWordTextNode);
         }
 
-        // edit text
+        // Edit text
         const firstText = firstXmlTextNode.textContent;
         const secondText = secondXmlTextNode.textContent;
         firstXmlTextNode.textContent = firstText.substring(0, splitIndex);
@@ -265,27 +265,29 @@ class Modify {
      */
     public splitParagraphByTextNode(paragraph: XmlNode, textNode: XmlTextNode, removeTextNode: boolean): [XmlNode, XmlNode] {
 
-        // input validation
+        // Input validation
         const containingParagraph = officeMarkup.query.containingParagraphNode(textNode);
         if (containingParagraph != paragraph)
-            throw new Error(`Node 'textNode' is not a contained in the specified paragraph.`);
+            throw new Error(`Node 'textNode' is not contained in the specified paragraph.`);
 
         const runNode = officeMarkup.query.containingRunNode(textNode);
         const wordTextNode = officeMarkup.query.containingTextNode(textNode);
 
-        // create run clone
+        // 1. Split the run
+
+        // Create run clone (left) and keep the original run (right).
         const leftRun = xml.create.cloneNode(runNode, false);
         const rightRun = runNode;
         xml.modify.insertBefore(leftRun, rightRun);
 
-        // copy props from original run node (preserve style)
+        // Copy props from original run node (preserve style)
         const runProps = rightRun.childNodes.find(node => officeMarkup.query.isRunPropertiesNode(node));
         if (runProps) {
             const leftRunProps = xml.create.cloneNode(runProps, true);
             xml.modify.appendChild(leftRun, leftRunProps);
         }
 
-        // move nodes from 'right' to 'left'
+        // Move all text nodes up to the specified text node, to the new run.
         const firstRunChildIndex = (runProps ? 1 : 0);
         let curChild = rightRun.childNodes[firstRunChildIndex];
         while (curChild != wordTextNode) {
@@ -294,24 +296,26 @@ class Modify {
             curChild = rightRun.childNodes[firstRunChildIndex];
         }
 
-        // remove text node
+        // Remove text node
         if (removeTextNode) {
             xml.modify.removeChild(rightRun, firstRunChildIndex);
         }
 
-        // create paragraph clone
+        // 2. Split the paragraph
+
+        // Create paragraph clone (left) and keep the original paragraph (right).
         const leftPara = xml.create.cloneNode(containingParagraph, false);
         const rightPara = containingParagraph;
         xml.modify.insertBefore(leftPara, rightPara);
 
-        // copy props from original paragraph (preserve style)
+        // Copy props from original paragraph (preserve style)
         const paragraphProps = rightPara.childNodes.find(node => officeMarkup.query.isParagraphPropertiesNode(node));
         if (paragraphProps) {
             const leftParagraphProps = xml.create.cloneNode(paragraphProps, true);
             xml.modify.appendChild(leftPara, leftParagraphProps);
         }
 
-        // move nodes from 'right' to 'left'
+        // Move all run nodes up to the original run (right), to the new paragraph (left).
         const firstParaChildIndex = (paragraphProps ? 1 : 0);
         curChild = rightPara.childNodes[firstParaChildIndex];
         while (curChild != rightRun) {
@@ -320,7 +324,7 @@ class Modify {
             curChild = rightPara.childNodes[firstParaChildIndex];
         }
 
-        // clean paragraphs - remove empty runs
+        // Clean paragraphs - remove empty runs
         if (officeMarkup.query.isEmptyRun(leftRun))
             xml.modify.remove(leftRun);
         if (officeMarkup.query.isEmptyRun(rightRun))
@@ -334,7 +338,7 @@ class Modify {
      */
     public joinTextNodesRange(from: XmlTextNode, to: XmlTextNode): void {
 
-        // find run nodes
+        // Find run nodes
         const firstRunNode = officeMarkup.query.containingRunNode(from);
         const secondRunNode = officeMarkup.query.containingRunNode(to);
 
@@ -342,16 +346,16 @@ class Modify {
         if (secondRunNode.parentNode !== paragraphNode)
             throw new Error('Can not join text nodes from separate paragraphs.');
 
-        // find "word text nodes"
+        // Find "word text nodes"
         const firstWordTextNode = officeMarkup.query.containingTextNode(from);
         const secondWordTextNode = officeMarkup.query.containingTextNode(to);
         const totalText: string[] = [];
 
-        // iterate runs
+        // Iterate runs
         let curRunNode: XmlNode = firstRunNode;
         while (curRunNode) {
 
-            // iterate text nodes
+            // Iterate text nodes
             let curWordTextNode: XmlNode;
             if (curRunNode === firstRunNode) {
                 curWordTextNode = firstWordTextNode;
@@ -365,11 +369,11 @@ class Modify {
                     continue;
                 }
 
-                // move text to first node
+                // Move text to first node
                 const curXmlTextNode = xml.query.lastTextChild(curWordTextNode);
                 totalText.push(curXmlTextNode.textContent);
 
-                // next text node
+                // Next text node
                 const textToRemove = curWordTextNode;
                 if (curWordTextNode === secondWordTextNode) {
                     curWordTextNode = null;
@@ -377,13 +381,13 @@ class Modify {
                     curWordTextNode = curWordTextNode.nextSibling;
                 }
 
-                // remove current text node
+                // Remove current text node
                 if (textToRemove !== firstWordTextNode) {
                     xml.modify.remove(textToRemove);
                 }
             }
 
-            // next run
+            // Next run
             const runToRemove = curRunNode;
             if (curRunNode === secondRunNode) {
                 curRunNode = null;
@@ -391,13 +395,13 @@ class Modify {
                 curRunNode = curRunNode.nextSibling;
             }
 
-            // remove current run
+            // Remove current run
             if (!runToRemove.childNodes || !runToRemove.childNodes.length) {
                 xml.modify.remove(runToRemove);
             }
         }
 
-        // set the text content
+        // Set the text content
         const firstXmlTextNode = xml.query.lastTextChild(firstWordTextNode);
         firstXmlTextNode.textContent = totalText.join('');
     }
