@@ -22,9 +22,17 @@ export class RawXmlPlugin extends TemplatePlugin {
             officeMarkup.query.containingParagraphNode(tag.xmlTextNode) :
             officeMarkup.query.containingTextNode(tag.xmlTextNode);
 
-        if (typeof value?.xml === 'string') {
-            const newNode = xml.parser.parse(value.xml);
-            xml.modify.insertBefore(newNode, replaceNode);
+        if (typeof value?.xml === 'string' || Array.isArray(value?.xml)) {
+            // Parse the xml content
+            const xmlContent = Array.isArray(value.xml) ? value.xml.join('') : value.xml;
+            const wrappedXml = `<root>${xmlContent}</root>`;
+            const parsedRoot = xml.parser.parse(wrappedXml);
+
+            // Insert the xml content
+            const children = [...(parsedRoot.childNodes || [])];
+            for (const child of children) {
+                xml.modify.insertBefore(child, replaceNode);
+            }
         }
 
         if (value?.replaceParagraph) {
