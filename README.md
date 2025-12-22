@@ -651,20 +651,27 @@ import { officeMarkup, xml } from "easy-template-x";
  */
 export class RawXmlPlugin extends TemplatePlugin {
 
+    // Declare the unique "content type" this plugin handles
     public readonly contentType = 'rawXml';
 
+    // Plugin logic goes here:
     public simpleTagReplacements(tag: Tag, data: ScopeData): void {
 
         if (tag.placement !== TagPlacement.TextNode) {
             throw new TemplateSyntaxError(`RawXml tag "${tag.rawText}" must be placed in a text node but was placed in ${tag.placement}`);
         }
 
+        // Get the value to use from the input data.
         const value = data.getScopeData<RawXmlContent>();
 
+        // Tag.xmlTextNode always reference the actual xml text node.
+        // In MS Word each text node is wrapped by a <w:t> node so we retrieve that.
         const replaceNode = value?.replaceParagraph ?
             officeMarkup.query.containingParagraphNode(tag.xmlTextNode) :
             officeMarkup.query.containingTextNode(tag.xmlTextNode);
 
+        // If the input data contains an "xml" string property or array, parse it and insert 
+        // the content next to the placeholder tag.
         if (typeof value?.xml === 'string' || Array.isArray(value?.xml)) {
             // Parse the xml content
             const xmlContent = Array.isArray(value.xml) ? value.xml.join('') : value.xml;
@@ -678,6 +685,7 @@ export class RawXmlPlugin extends TemplatePlugin {
             }
         }
 
+        // Remove the placeholder tag.
         if (value?.replaceParagraph) {
             xml.modify.remove(replaceNode);
         } else {
