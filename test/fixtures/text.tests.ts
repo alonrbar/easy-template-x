@@ -120,6 +120,28 @@ describe('text tag fixtures', () => {
         // writeTempFile('simple - multiline - output.docx', doc);
     });
 
+    it("preserves leading newlines in text replacement", async () => {
+
+        const handler = new TemplateHandler();
+
+        // load the template
+
+        const template: Buffer = readFixture("simple.docx");
+        const templateText = await handler.getText(template);
+        expect(templateText.trim()).toEqual("{simple_prop}");
+
+        // replace tags
+
+        const data = {
+            simple_prop: '\nleading newline'
+        };
+
+        const doc = await handler.process(template, data);
+
+        const docText = await handler.getText(doc);
+        expect(docText.trim()).toEqual("leading newline");
+    });
+
     it("escapes xml special characters", async () => {
 
         const handler = new TemplateHandler();
