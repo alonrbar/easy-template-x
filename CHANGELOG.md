@@ -1,10 +1,14 @@
 # Changelog
 
-## [Unreleased]
+## [7.1.0 - 2026-01-21](https://github.com/alonrbar/easy-template-x/tree/v7.1.0)
 
 ### Added
 
-- RawXml plugin supports an array of strings.
+- RawXml plugin supports an array of strings ([#153](https://github.com/alonrbar/easy-template-x/pull/153)).
+
+### Fixed
+
+- Preserve leading newlines in text replacement ([#154](https://github.com/alonrbar/easy-template-x/pull/154)).
 
 ## [7.0.3 - 2025-12-14](https://github.com/alonrbar/easy-template-x/tree/v7.0.3)
 
