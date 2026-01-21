@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.1.1 - 2026-01-21](https://github.com/alonrbar/easy-template-x/tree/v7.1.1)
+
+### Fixed
+
+- Avoid leaving empty text nodes in the document when replacing multi-line text
+  (not necessarily visually distinguishable, but creates cleaner markup).
+
 ## [7.1.0 - 2026-01-21](https://github.com/alonrbar/easy-template-x/tree/v7.1.0)
 
 ### Added
