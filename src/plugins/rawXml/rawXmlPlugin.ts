@@ -22,7 +22,10 @@ export class RawXmlPlugin extends TemplatePlugin {
             officeMarkup.query.containingParagraphNode(tag.xmlTextNode) :
             officeMarkup.query.containingTextNode(tag.xmlTextNode);
 
-        if (typeof value?.xml === 'string' || Array.isArray(value?.xml)) {
+        if (
+            typeof value?.xml === 'string' ||
+            (Array.isArray(value?.xml) && value.xml.every(item => typeof item === "string"))
+        ) {
             // Parse the xml content
             const xmlContent = Array.isArray(value.xml) ? value.xml.join('') : value.xml;
             const wrappedXml = `<root>${xmlContent}</root>`;

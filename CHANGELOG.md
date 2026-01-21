@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- RawXml plugin supports an array of strings.
+
 ## [7.0.3 - 2025-12-14](https://github.com/alonrbar/easy-template-x/tree/v7.0.3)
 
 ### Fixed

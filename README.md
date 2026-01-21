@@ -615,16 +615,8 @@ Input data:
 {
     "Dont worry be happy": {
         _type: 'rawXml',
-        xml: '<w:sym w:font="Wingdings" w:char="F04A"/>',
-        replaceParagraph: false,  // Optional - whether to replace the entire paragraph or just the tag itself
-    },
-    "Multiple Paragraphs": {
-        _type: 'rawXml',
-        xml: [
-            '<w:p><w:r><w:t>Paragraph 1</w:t></w:r></w:p>',
-            '<w:p><w:r><w:t>Paragraph 2</w:t></w:r></w:p>'
-        ],
-        replaceParagraph: true
+        xml: '<w:sym w:font="Wingdings" w:char="F04A"/>',  // string | string[]
+        replaceParagraph: false,  // Optional - should the plugin replace an entire paragraph or just the tag itself
     }
 }
 ```
@@ -641,7 +633,7 @@ make it easier to do the actual xml modification.
 
 _To better understand the internal structure of Word documents check out [this excellent source](http://officeopenxml.com/WPcontentOverview.php)._
 
-Example plugin implementation ([source](./src/plugins/rawXml/rawXmlPlugin.ts)):
+Example plugin implementation (this is a simplified example of the [RawXmlPlugin](#raw-xml-plugin) - read the full source [here](./src/plugins/rawXml/rawXmlPlugin.ts)):
 
 ```typescript
 import { officeMarkup, xml } from "easy-template-x";
@@ -656,41 +648,23 @@ export class RawXmlPlugin extends TemplatePlugin {
 
     // Plugin logic goes here:
     public simpleTagReplacements(tag: Tag, data: ScopeData): void {
-
-        if (tag.placement !== TagPlacement.TextNode) {
-            throw new TemplateSyntaxError(`RawXml tag "${tag.rawText}" must be placed in a text node but was placed in ${tag.placement}`);
-        }
-
+        
         // Get the value to use from the input data.
         const value = data.getScopeData<RawXmlContent>();
+        if (value && typeof value.xml === 'string') {
 
-        // Tag.xmlTextNode always reference the actual xml text node.
-        // In MS Word each text node is wrapped by a <w:t> node so we retrieve that.
-        const replaceNode = value?.replaceParagraph ?
-            officeMarkup.query.containingParagraphNode(tag.xmlTextNode) :
-            officeMarkup.query.containingTextNode(tag.xmlTextNode);
+            // Tag.xmlTextNode always reference the actual xml text node.
+            // In MS Word each text node is wrapped by a <w:t> node so we retrieve that.
+            const wordTextNode = officeMarkup.query.containingTextNode(tag.xmlTextNode);
 
-        // If the input data contains an "xml" string property or array, parse it and insert 
-        // the content next to the placeholder tag.
-        if (typeof value?.xml === 'string' || Array.isArray(value?.xml)) {
-            // Parse the xml content
-            const xmlContent = Array.isArray(value.xml) ? value.xml.join('') : value.xml;
-            const wrappedXml = `<root>${xmlContent}</root>`;
-            const parsedRoot = xml.parser.parse(wrappedXml);
-
-            // Insert the xml content
-            const children = [...(parsedRoot.childNodes || [])];
-            for (const child of children) {
-                xml.modify.insertBefore(child, replaceNode);
-            }
+            // If the input data contains an "xml" string property, parse it and insert 
+            // the content next to the placeholder tag.
+            const newNode = xml.parser.parse(value.xml);
+            xml.modify.insertBefore(newNode, wordTextNode);
         }
 
         // Remove the placeholder tag.
-        if (value?.replaceParagraph) {
-            xml.modify.remove(replaceNode);
-        } else {
-            officeMarkup.modify.removeTag(tag);
-        }
+        officeMarkup.modify.removeTag(tag);
     }
 }
 ```
@@ -700,8 +674,7 @@ The content type that this plugin expects to see is:
 ```typescript
 export interface RawXmlContent extends PluginContent {
     _type: 'rawXml';
-    xml: string | string[];
-    replaceParagraph?: boolean;
+    xml: string;
 }
 ```
 
