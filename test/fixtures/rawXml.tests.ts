@@ -4,7 +4,7 @@ import { readFixture } from "./fixtureUtils";
 
 describe('raw xml fixture', () => {
 
-    it("inserts raw xml content into textNode", async () => {
+    it("4 inserts raw xml content into text node", async () => {
 
         const template = readFixture("simple.docx");
 
@@ -25,7 +25,7 @@ describe('raw xml fixture', () => {
         // writeTempFile('raw xml - output.docx', doc);
     });
 
-    it("inserts raw xml content into paragrafNode", async () => {
+    it("3 replaces a paragraph with raw xml content", async () => {
 
         const template = readFixture("simple.docx");
 
@@ -47,14 +47,16 @@ describe('raw xml fixture', () => {
         // writeTempFile('raw xml - output.docx', doc);
     });
 
-    it("inserts raw xml content from an array of strings", async () => {
+    it("2 supports array as input", async () => {
 
         const template = readFixture("simple.docx");
 
         const data = {
             simple_prop: {
                 _type: 'rawXml',
-                xml: ['<w:sym w:font="Wingdings" w:char="F04A"/>']
+                xml: [
+                    '<w:sym w:font="Wingdings" w:char="F04A"/>'
+                ]
             }
         };
 
@@ -65,7 +67,7 @@ describe('raw xml fixture', () => {
         expect(docXml).toMatchSnapshot();
     });
 
-    it("inserts multiple paragraphs from an array", async () => {
+    it("1 replaces multiple paragraphs", async () => {
 
         const template = readFixture("simple.docx");
 
@@ -87,7 +89,7 @@ describe('raw xml fixture', () => {
         expect(docXml).toMatchSnapshot();
     });
 
-    it("works inside a loop", async () => {
+    it("5 works inside a loop", async () => {
         
         const template = readFixture("loop - simple.docx");
 
