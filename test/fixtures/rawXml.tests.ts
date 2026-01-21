@@ -46,4 +46,75 @@ describe('raw xml fixture', () => {
 
         // writeTempFile('raw xml - output.docx', doc);
     });
+
+    it("inserts raw xml content from an array of strings", async () => {
+
+        const template = readFixture("simple.docx");
+
+        const data = {
+            simple_prop: {
+                _type: 'rawXml',
+                xml: ['<w:sym w:font="Wingdings" w:char="F04A"/>']
+            }
+        };
+
+        const handler = new TemplateHandler();
+        const doc = await handler.process(template, data);
+
+        const docXml = await handler.getXml(doc);
+        expect(docXml).toMatchSnapshot();
+    });
+
+    it("inserts multiple paragraphs from an array", async () => {
+
+        const template = readFixture("simple.docx");
+
+        const data = {
+            simple_prop: {
+                _type: 'rawXml',
+                xml: [
+                    '<w:p><w:r><w:t>Paragraph 1</w:t></w:r></w:p>',
+                    '<w:p><w:r><w:t>Paragraph 2</w:t></w:r></w:p>'
+                ],
+                replaceParagraph: true
+            }
+        };
+
+        const handler = new TemplateHandler();
+        const doc = await handler.process(template, data);
+
+        const docXml = await handler.getXml(doc);
+        expect(docXml).toMatchSnapshot();
+    });
+
+    it("works inside a loop", async () => {
+        
+        const template = readFixture("loop - simple.docx");
+
+        const data = {
+            loop_prop: [
+                {
+                    simple_prop: {
+                        _type: 'rawXml',
+                        xml: ['<w:p><w:r><w:t>Repl 1</w:t></w:r></w:p>'],
+                        replaceParagraph: true
+                    }
+                },
+                {
+                    simple_prop: {
+                        _type: 'rawXml',
+                        xml: ['<w:p><w:r><w:t>Repl 2</w:t></w:r></w:p>'],
+                        replaceParagraph: true
+                    }
+                }
+            ]
+        };
+
+        const handler = new TemplateHandler();
+        
+        const doc = await handler.process(template, data);
+
+        const docXml = await handler.getXml(doc);
+        expect(docXml).toMatchSnapshot();
+    });
 });
