@@ -79,7 +79,7 @@ export class TextPlugin extends TemplatePlugin {
         const namespace = runNode.nodeName.split(':')[0];
 
         // First line
-        if (lines[0]) {
+        if (typeof lines[0] === 'string') {
             textNode.textContent = lines[0];
         }
 
