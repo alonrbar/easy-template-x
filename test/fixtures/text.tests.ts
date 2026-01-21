@@ -140,6 +140,11 @@ describe('text tag fixtures', () => {
 
         const docText = await handler.getText(doc);
         expect(docText.trim()).toEqual("leading newline");
+
+        const docXml = await handler.getXml(doc);
+        expect(docXml).toMatchSnapshot();
+
+        // writeTempFile('text - leading newline - output.docx', doc);
     });
 
     it("escapes xml special characters", async () => {
