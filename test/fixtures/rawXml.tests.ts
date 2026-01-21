@@ -4,7 +4,7 @@ import { readFixture } from "./fixtureUtils";
 
 describe('raw xml fixture', () => {
 
-    it("4 inserts raw xml content into text node", async () => {
+    it("inserts raw xml content into text node", async () => {
 
         const template = readFixture("simple.docx");
 
@@ -25,7 +25,7 @@ describe('raw xml fixture', () => {
         // writeTempFile('raw xml - output.docx', doc);
     });
 
-    it("3 replaces a paragraph with raw xml content", async () => {
+    it("replaces a paragraph with raw xml content", async () => {
 
         const template = readFixture("simple.docx");
 
@@ -47,7 +47,7 @@ describe('raw xml fixture', () => {
         // writeTempFile('raw xml - output.docx', doc);
     });
 
-    it("2 supports array as input", async () => {
+    it("supports array as input", async () => {
 
         const template = readFixture("simple.docx");
 
@@ -67,7 +67,7 @@ describe('raw xml fixture', () => {
         expect(docXml).toMatchSnapshot();
     });
 
-    it("1 replaces multiple paragraphs", async () => {
+    it("replaces multiple paragraphs", async () => {
 
         const template = readFixture("simple.docx");
 
@@ -89,7 +89,7 @@ describe('raw xml fixture', () => {
         expect(docXml).toMatchSnapshot();
     });
 
-    it("5 works inside a loop", async () => {
+    it("works inside a loop", async () => {
         
         const template = readFixture("loop - simple.docx");
 
