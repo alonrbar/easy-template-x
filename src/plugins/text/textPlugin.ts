@@ -4,7 +4,7 @@ import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup } from "src/office";
 import { TemplatePlugin } from "src/plugins/templatePlugin";
 import { stringValue } from "src/utils";
-import { xml, XmlNode, XmlTextNode } from "src/xml";
+import { xml, XmlNode } from "src/xml";
 
 export const TEXT_CONTENT_TYPE = 'text';
 
@@ -22,7 +22,7 @@ export class TextPlugin extends TemplatePlugin {
 
         if (tag.placement === TagPlacement.TextNode) {
             this.replaceInTextNode(tag, strValue);
-            return; 
+            return;
         }
 
         if (tag.placement === TagPlacement.Attribute) {
@@ -40,7 +40,7 @@ export class TextPlugin extends TemplatePlugin {
         if (lines.length < 2) {
             this.replaceSingleLine(tag, lines.length ? lines[0] : '');
         } else {
-            this.replaceMultiLine(tag.xmlTextNode, lines);
+            this.replaceMultiLine(tag, lines);
         }
     }
 
@@ -73,15 +73,15 @@ export class TextPlugin extends TemplatePlugin {
         officeMarkup.modify.setSpacePreserveAttribute(wordTextNode);
     }
 
-    private replaceMultiLine(textNode: XmlTextNode, lines: string[]) {
+    private replaceMultiLine(tag: TextNodeTag, lines: string[]) {
 
+        const textNode = tag.xmlTextNode;
         const runNode = officeMarkup.query.containingRunNode(textNode);
         const namespace = runNode.nodeName.split(':')[0];
 
         // First line
-        if (typeof lines[0] === 'string') {
-            textNode.textContent = lines[0];
-        }
+        const firstLine = lines[0];
+        textNode.textContent = firstLine;
 
         // Other lines
         for (let i = 1; i < lines.length; i++) {
@@ -95,6 +95,11 @@ export class TextPlugin extends TemplatePlugin {
                 const lineNode = this.createOfficeTextNode(namespace, lines[i]);
                 xml.modify.appendChild(runNode, lineNode);
             }
+        }
+
+        // Clean up if the original text node is now empty
+        if (!firstLine) {
+            officeMarkup.modify.removeTag(tag);
         }
     }
 
