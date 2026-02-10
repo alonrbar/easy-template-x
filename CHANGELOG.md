@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.2.0 - 2026-02-10](https://github.com/alonrbar/easy-template-x/tree/v7.2.0)
+
+### Added
+
+- New `loopOver` option: `paragraph` - to repeat full paragraphs more easily.
+
 ## [7.1.1 - 2026-01-21](https://github.com/alonrbar/easy-template-x/tree/v7.1.1)
 
 ### Fixed
