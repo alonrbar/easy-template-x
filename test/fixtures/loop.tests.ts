@@ -407,30 +407,138 @@ describe('loop fixtures', () => {
 
     describe('paragraph', () => {
 
-        test("open and close tag in the same paragraph", async () => {
+        test("single line - no loopOver option", async () => {
 
             const handler = new TemplateHandler();
 
-            const template = readFixture("loop - same line.docx");
+            const template = readFixture("loop - paragraph - one line - without loopOver.docx");
             const templateText = await handler.getText(template);
-            expect(templateText.trim()).toEqual("{#loop_prop}{simple_prop}!{/loop_prop}");
+            expect(removeWhiteSpace(templateText)).toEqual(removeWhiteSpace(`
+                Before {#loop_prop} middle1 {simple_prop} middle2 {/loop_prop} after
+            `));
 
             const data = {
                 loop_prop: [
-                    { simple_prop: 'first' },
-                    { simple_prop: 'second' }
+                    { simple_prop: 'FIRST' },
+                    { simple_prop: 'SECOND' }
                 ]
             };
 
             const doc = await handler.process(template, data);
 
             const docText = await handler.getText(doc);
-            expect(docText).toEqual("first!second!");
+            expect(removeWhiteSpace(docText)).toEqual(removeWhiteSpace(`
+                Before middle1 FIRST middle2 middle1 SECOND middle2 after
+            `));
 
             const docXml = await handler.getXml(doc);
             expect(docXml).toMatchSnapshot();
 
-            // writeTempFile('simple loop - same line - output.docx', doc);
+            // writeTempFile('loop - paragraph - one line - without loopOver - output.docx', doc);
+        });
+
+        test("single line - loopOver: paragraph", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("loop - paragraph - one line - with loopOver.docx");
+            const templateText = await handler.getText(template);
+            expect(removeWhiteSpace(templateText)).toEqual(removeWhiteSpace(`
+                Before {#loop_prop [loopOver: “paragraph”]} middle1 {simple_prop} middle2 {/loop_prop} after
+            `));
+
+            const data = {
+                loop_prop: [
+                    { simple_prop: 'FIRST' },
+                    { simple_prop: 'SECOND' }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docText = await handler.getText(doc);
+            expect(removeWhiteSpace(docText)).toEqual(removeWhiteSpace(`
+                Before middle1 FIRST middle2 after
+                Before middle1 SECOND middle2 after
+            `));
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - paragraph - one line - with loopOver - output.docx', doc);
+        });
+
+        test("multi line - no loopOver option", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("loop - paragraph - multi line - without loopOver.docx");
+            const templateText = await handler.getText(template);
+            expect(removeWhiteSpace(templateText)).toEqual(removeWhiteSpace(`
+                Before1 {#loop_prop} After1
+                Before2 {simple_prop} After2
+                Before3 {/loop_prop} After3
+            `));
+
+            const data = {
+                loop_prop: [
+                    { simple_prop: 'FIRST' },
+                    { simple_prop: 'SECOND' }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docText = await handler.getText(doc);
+            expect(removeWhiteSpace(docText)).toEqual(removeWhiteSpace(`
+                Before1 After1
+                Before2 FIRST After2
+                Before3 After1
+                Before2 SECOND After2
+                Before3 After3
+            `));
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - multi line - without loopOver - output.docx', doc);
+        });
+
+        test("multi line - loopOver: paragraph", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("loop - paragraph - multi line - with loopOver.docx");
+            const templateText = await handler.getText(template);
+            expect(removeWhiteSpace(templateText)).toEqual(removeWhiteSpace(`
+                Before1 {#loop_prop [loopOver: “paragraph”]} After1
+                Before2 {simple_prop} After2
+                Before3 {/loop_prop} After3
+            `));
+
+            const data = {
+                loop_prop: [
+                    { simple_prop: 'FIRST' },
+                    { simple_prop: 'SECOND' }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docText = await handler.getText(doc);
+            expect(removeWhiteSpace(docText)).toEqual(removeWhiteSpace(`
+                Before1 After1
+                Before2 FIRST After2
+                Before3 After3
+                Before1 After1
+                Before2 SECOND After2
+                Before3 After3
+            `));
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - paragraph - multi line - with loopOver - output.docx', doc);
         });
     });
 

@@ -7,7 +7,7 @@ import { PluginUtilities, TemplatePlugin } from "src/plugins/templatePlugin";
 import { TemplateData } from "src/templateData";
 import { last } from "src/utils";
 import { xml, XmlNode } from "src/xml";
-import { ILoopStrategy, LoopListStrategy, LoopContentStrategy, LoopTableColumnsStrategy, LoopTableRowsStrategy } from "./strategy";
+import { ILoopStrategy, LoopListStrategy, LoopParagraphStrategy, LoopContentStrategy, LoopTableColumnsStrategy, LoopTableRowsStrategy } from "./strategy";
 
 export const LOOP_CONTENT_TYPE = 'loop';
 
@@ -16,6 +16,7 @@ export class LoopPlugin extends TemplatePlugin {
     public readonly contentType = LOOP_CONTENT_TYPE;
 
     private readonly loopStrategies: ILoopStrategy[] = [
+        new LoopParagraphStrategy(),
         new LoopTableColumnsStrategy(),
         new LoopTableRowsStrategy(),
         new LoopListStrategy(),
