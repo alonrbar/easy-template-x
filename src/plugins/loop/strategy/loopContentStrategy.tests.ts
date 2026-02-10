@@ -1,11 +1,11 @@
 import { TagDisposition, TagPlacement, TextNodeTag, XmlTextNode } from "src";
-import { LoopParagraphStrategy } from "src/plugins/loop/strategy";
+import { LoopContentStrategy } from "./loopContentStrategy";
 import { parseXml } from "test/testUtils";
 import { describe, expect, it } from "vitest";
 
-describe(LoopParagraphStrategy, () => {
+describe(LoopContentStrategy, () => {
 
-    describe(LoopParagraphStrategy.prototype.splitBefore, () => {
+    describe(LoopContentStrategy.prototype.splitBefore, () => {
 
         it("when the closing loop tag's run has additional content before the tag, the extra content is preserved (bug #36)", () => {
 
@@ -45,7 +45,7 @@ describe(LoopParagraphStrategy, () => {
             expect(openTag.xmlTextNode.textContent).toEqual('{#loop}');
             expect(closeTag.xmlTextNode.textContent).toEqual('{/loop}');
 
-            const strategy = new LoopParagraphStrategy();
+            const strategy = new LoopContentStrategy();
 
             //
             // test

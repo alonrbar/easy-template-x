@@ -3,7 +3,7 @@ import { officeMarkup } from "src/office";
 import { xml, XmlNode } from "src/xml";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
-export class LoopParagraphStrategy implements ILoopStrategy {
+export class LoopContentStrategy implements ILoopStrategy {
 
     public isApplicable(openTag: TextNodeTag, closeTag: TextNodeTag, isCondition: boolean): boolean {
         return true;

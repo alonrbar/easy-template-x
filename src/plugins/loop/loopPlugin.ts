@@ -7,7 +7,7 @@ import { PluginUtilities, TemplatePlugin } from "src/plugins/templatePlugin";
 import { TemplateData } from "src/templateData";
 import { last } from "src/utils";
 import { xml, XmlNode } from "src/xml";
-import { ILoopStrategy, LoopListStrategy, LoopParagraphStrategy, LoopTableColumnsStrategy, LoopTableRowsStrategy } from "./strategy";
+import { ILoopStrategy, LoopListStrategy, LoopContentStrategy, LoopTableColumnsStrategy, LoopTableRowsStrategy } from "./strategy";
 
 export const LOOP_CONTENT_TYPE = 'loop';
 
@@ -19,7 +19,7 @@ export class LoopPlugin extends TemplatePlugin {
         new LoopTableColumnsStrategy(),
         new LoopTableRowsStrategy(),
         new LoopListStrategy(),
-        new LoopParagraphStrategy() // the default strategy
+        new LoopContentStrategy() // the default strategy
     ];
 
     public setUtilities(utilities: PluginUtilities): void {
