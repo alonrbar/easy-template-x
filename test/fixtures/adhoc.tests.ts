@@ -11,10 +11,15 @@ describe.skip('ad-hoc tests', () => {
         const fileName = "test_template";
         const template = fs.readFileSync(`/temp/${fileName}.docx`);
 
-        const data = {};
+        const data = {
+            students: [
+                { name: "Alice" },
+                { name: "Bob" }
+            ]
+        };
 
         const doc = await handler.process(template, data);
 
-        fs.writeFileSync(`/temp/client error/${fileName} - output.docx`, doc);
+        fs.writeFileSync(`/temp/${fileName} - output.docx`, doc);
     });
 });

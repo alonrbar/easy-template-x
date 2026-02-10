@@ -292,7 +292,7 @@ The default heuristics are as follows:
 ##### Changing the default
 
 To use a different behavior than the default one you can use the `loopOver`
-option. Supported values are: `row`, `column` and `content`.
+option. Supported values are: `row`, `column`, `paragraph` and `content`.
 
 **Note:** This option controls conditions too.
 
@@ -330,6 +330,22 @@ The second will produce this document:
 And the third will produce this document:
 
 ![output document](./docs/assets/loop-over-content-out.png?raw=true)
+
+For paragraphs, you can choose between this syntax (same as the default behavior):
+
+![input template](./docs/assets/loop-over-paragraph-in-1.png?raw=true)
+
+And this syntax:
+
+![input template](./docs/assets/loop-over-paragraph-in-2.png?raw=true)
+
+The first will produce this document:
+
+![output document](./docs/assets/loop-over-paragraph-out-1.png?raw=true)
+
+And the second will produce this document:
+
+![output document](./docs/assets/loop-over-paragraph-out-2.png?raw=true)
 
 ### Image plugin
 
