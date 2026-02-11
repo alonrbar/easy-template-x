@@ -759,6 +759,59 @@ describe(TagParser, () => {
             expect(tags[1].rawText).toEqual('{/loop}');
         });
 
+        test('simple - with whitespace', () => {
+
+            const text = '{ # loop [opt: "yes"] }{ / loop }';
+            const paragraph = parseXml(`
+                <w:p><w:r><w:t>${text}</w:t></w:r></w:p>
+            `, false);
+
+            const textNode = xml.query.findByPath(paragraph, XmlNodeType.Text, 0, 0, 0);
+            const delimiters: TextNodeDelimiterMark[] = [
+                {
+                    placement: TagPlacement.TextNode,
+                    isOpen: true,
+                    index: 0,
+                    xmlTextNode: textNode
+                },
+                {
+                    placement: TagPlacement.TextNode,
+                    isOpen: false,
+                    index: 22,
+                    xmlTextNode: textNode
+                },
+                {
+                    placement: TagPlacement.TextNode,
+                    isOpen: true,
+                    index: 23,
+                    xmlTextNode: textNode
+                },
+                {
+                    placement: TagPlacement.TextNode,
+                    isOpen: false,
+                    index: 32,
+                    xmlTextNode: textNode
+                }
+            ];
+
+            const parser = createTagParser();
+            const tags = parser.parse(delimiters);
+
+            expect(tags.length).toEqual(2);
+
+            // open tag
+            expect(tags[0].disposition).toEqual(TagDisposition.Open);
+            expect(tags[0].name).toEqual('loop');
+            expect(tags[0].options).toEqual({ opt: 'yes' });
+            expect(tags[0].rawText).toEqual('{ # loop [opt: "yes"] }');
+
+            // close tag
+            expect(tags[1].disposition).toEqual(TagDisposition.Close);
+            expect(tags[1].name).toEqual('loop');
+            expect(tags[1].options).toBeFalsy();
+            expect(tags[1].rawText).toEqual('{ / loop }');
+        });
+
         test('angular parser style with brackets', () => {
 
             const text = '{something[0] [[myOpt: 5]]}';
