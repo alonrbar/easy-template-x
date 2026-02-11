@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.2.1 - 2026-02-11](https://github.com/alonrbar/easy-template-x/tree/v7.2.1)
+
+### Fixed
+
+- Fix parsing of tag options with whitespace.
+
 ## [7.2.0 - 2026-02-10](https://github.com/alonrbar/easy-template-x/tree/v7.2.0)
 
 ### Added
