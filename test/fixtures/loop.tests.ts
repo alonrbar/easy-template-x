@@ -540,6 +540,37 @@ describe('loop fixtures', () => {
 
             // writeTempFile('loop - paragraph - multi line - with loopOver - output.docx', doc);
         });
+
+        test("loop - table cells with loopOver paragraph", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("loop - table - loopOver paragraph.docx");
+            const templateText = await handler.getText(template);
+            expect(removeWhiteSpace(templateText)).toEqual(removeWhiteSpace(`
+                Hello1 {#loop1 [loopOver: “paragraph”]}{val}{/loop1} World1
+                Hello2 {#loop1 [loopOver: “paragraph”]}{val}{/loop1} World2
+                Hello3 {#loop1 [loopOver: “paragraph”]}{val}{/loop1} World3
+            `));
+
+            const data = {
+                loop1: [] as any[]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docText = await handler.getText(doc);
+            expect(removeWhiteSpace(docText)).toEqual(removeWhiteSpace(`
+                Hello1 World1
+                Hello2 World2
+                Hello3 World3
+            `));
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - table - loopOver paragraph - output.docx', doc);
+        });
     });
 
     describe('table', () => {

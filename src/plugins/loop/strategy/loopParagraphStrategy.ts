@@ -1,7 +1,7 @@
 import { TextNodeTag } from "src/compilation";
+import { officeMarkup, OmlNode } from "src/office";
 import { LoopOver, LoopTagOptions } from "src/plugins/loop/loopTagOptions";
-import { officeMarkup } from "src/office";
-import { xml, XmlNode } from "src/xml";
+import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
 export class LoopParagraphStrategy implements ILoopStrategy {
@@ -38,6 +38,11 @@ export class LoopParagraphStrategy implements ILoopStrategy {
             }
         }
 
+        // We cannot leave table cells completely empty, so we track them.
+        // See: http://officeopenxml.com/WPtableCell.php
+        const firstTableCell = officeMarkup.query.containingTableCellNode(firstParagraph);
+        const lastTableCell = officeMarkup.query.containingTableCellNode(lastParagraph);
+
         // Remove old paragraphs - between first and last paragraph.
         xml.modify.removeSiblings(firstParagraph, lastParagraph);
 
@@ -45,6 +50,22 @@ export class LoopParagraphStrategy implements ILoopStrategy {
         xml.modify.remove(firstParagraph);
         if (firstParagraph !== lastParagraph) {
             xml.modify.remove(lastParagraph);
+        }
+
+        // Make sure the table cells are not empty (if they exist).
+        if (newParagraphs.length === 0) {
+            this.fillTableCell(firstTableCell);
+            this.fillTableCell(lastTableCell);
+        }
+    }
+
+    private fillTableCell(tableCell: XmlGeneralNode): void {
+        if (
+            tableCell &&
+            !tableCell.childNodes?.find(node => officeMarkup.query.isParagraphNode(node)) &&
+            !tableCell.childNodes?.find(node => officeMarkup.query.isTableNode(node))
+        ) {
+            xml.modify.appendChild(tableCell, xml.create.generalNode(OmlNode.W.Paragraph));
         }
     }
 }

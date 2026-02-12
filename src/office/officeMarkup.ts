@@ -62,6 +62,10 @@ class Query {
         return node.nodeName === OmlNode.W.RunProperties || node.nodeName === OmlNode.A.RunProperties;
     }
 
+    public isTableNode(node: XmlNode): boolean {
+        return node.nodeName === OmlNode.W.Table;
+    }
+
     public isTableCellNode(node: XmlNode): boolean {
         return node.nodeName === OmlNode.W.TableCell;
     }
