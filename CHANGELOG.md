@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.2.2 - 2026-02-12](https://github.com/alonrbar/easy-template-x/tree/v7.2.2)
+
+### Fixed
+
+- Fix loop over paragraph when the loop is inside a table cell.
+
 ## [7.2.1 - 2026-02-11](https://github.com/alonrbar/easy-template-x/tree/v7.2.1)
 
 ### Fixed
