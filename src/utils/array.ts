@@ -1,4 +1,3 @@
-import { IMap } from '../types';
 
 export type ItemMapper<TIn, TOut = string> = (item: TIn, index: number) => TOut;
 
@@ -18,11 +17,11 @@ export function last<T>(array: T[]): T {
     return array[array.length - 1];
 }
 
-export function toDictionary<TIn, TOut = TIn>(array: TIn[], keySelector: ItemMapper<TIn>, valueSelector?: ItemMapper<TIn, TOut>): IMap<TOut> {
+export function toDictionary<TIn, TOut = TIn>(array: TIn[], keySelector: ItemMapper<TIn>, valueSelector?: ItemMapper<TIn, TOut>): Record<string, TOut> {
     if (!array.length)
         return {};
 
-    const res: IMap<any> = {};
+    const res: Record<string, any> = {};
     array.forEach((item, index) => {
         const key = keySelector(item, index);
         const value = (valueSelector ? valueSelector(item, index) : item);

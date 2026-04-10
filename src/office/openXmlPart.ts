@@ -1,4 +1,4 @@
-import { Constructor, IMap } from "src/types";
+import { Constructor } from "src/types";
 import { Binary } from "src/utils";
 import { xml, XmlNode } from "src/xml";
 import { Zip } from "src/zip";
@@ -18,7 +18,7 @@ export class OpenXmlPart {
     public readonly path: string;
 
     private root: XmlNode;
-    private readonly openedParts: IMap<OpenXmlPart> = {};
+    private readonly openedParts: Record<string, OpenXmlPart> = {};
     private readonly zip: Zip;
 
     constructor(path: string, zip: Zip) {

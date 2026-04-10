@@ -1,5 +1,5 @@
 import { MalformedFileError } from "src/errors";
-import { Constructor, IMap } from "src/types";
+import { Constructor } from "src/types";
 import { Binary } from "src/utils";
 import { Zip } from "src/zip";
 import { OpenXmlPart } from "./openXmlPart";
@@ -53,7 +53,7 @@ export class Xlsx {
 
     public readonly mainDocument: OpenXmlPart;
 
-    private readonly _parts: IMap<OpenXmlPart> = {};
+    private readonly _parts: Record<string, OpenXmlPart> = {};
 
     private readonly zip: Zip;
 

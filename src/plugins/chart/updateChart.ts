@@ -1,6 +1,5 @@
 import { MalformedFileError, TemplateSyntaxError } from "src/errors";
 import { OmlAttribute, OpenXmlPart, RelType, Xlsx } from "src/office";
-import { IMap } from "src/types";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 import { ChartColors } from "./chartColors";
 import {
@@ -580,7 +579,7 @@ async function updateEmbeddedExcelFile(existingChart: ExistingChart, chartData: 
     await xlsxPart.save(newXlsxBinary);
 }
 
-async function updateSharedStringsPart(workbookPart: OpenXmlPart, chartData: ChartData): Promise<IMap<number>> {
+async function updateSharedStringsPart(workbookPart: OpenXmlPart, chartData: ChartData): Promise<Record<string, number>> {
 
     // Get the shared strings part
     const sharedStringsPart = await workbookPart.getFirstPartByType(RelType.SharedStrings);
@@ -595,7 +594,7 @@ async function updateSharedStringsPart(workbookPart: OpenXmlPart, chartData: Cha
     root.childNodes = [];
 
     let count = 0;
-    const sharedStrings: IMap<number> = {};
+    const sharedStrings: Record<string, number> = {};
 
     function addString(str: string) {
         xml.modify.appendChild(root, xml.create.generalNode("si", {
@@ -643,7 +642,7 @@ async function updateSharedStringsPart(workbookPart: OpenXmlPart, chartData: Cha
     return sharedStrings;
 }
 
-async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, sharedStrings: IMap<number>, chartData: ChartData): Promise<OpenXmlPart> {
+async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, sharedStrings: Record<string, number>, chartData: ChartData): Promise<OpenXmlPart> {
 
     // Get the sheet rel ID
     const root = await workbookPart.xmlRoot();
@@ -679,7 +678,7 @@ async function updateSheetPart(workbookPart: OpenXmlPart, sheetName: string, sha
     return sheetPart;
 }
 
-async function updateSheetRootStandard(workbookPart: OpenXmlPart, sheetRoot: XmlNode, chartData: StandardChartData, sharedStrings: IMap<number>): Promise<XmlNode[]> {
+async function updateSheetRootStandard(workbookPart: OpenXmlPart, sheetRoot: XmlNode, chartData: StandardChartData, sharedStrings: Record<string, number>): Promise<XmlNode[]> {
 
     // Create first row
     const firstRow = `
@@ -728,7 +727,7 @@ async function updateSheetRootStandard(workbookPart: OpenXmlPart, sheetRoot: Xml
     ];
 }
 
-async function updateSheetRootScatter(workbookPart: OpenXmlPart, sheetRoot: XmlNode, chartData: ScatterChartData, sharedStrings: IMap<number>): Promise<XmlNode[]> {
+async function updateSheetRootScatter(workbookPart: OpenXmlPart, sheetRoot: XmlNode, chartData: ScatterChartData, sharedStrings: Record<string, number>): Promise<XmlNode[]> {
 
     const isBubbleChart = isBubbleChartData(chartData);
 

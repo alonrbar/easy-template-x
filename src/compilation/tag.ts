@@ -1,4 +1,3 @@
-import type { IMap } from "src/types";
 import type { XmlGeneralNode, XmlTextNode } from "src/xml";
 
 export const TagDisposition = Object.freeze({
@@ -20,7 +19,7 @@ export type Tag = TextNodeTag | AttributeTag;
 
 export interface BaseTag {
     name: string;
-    options?: IMap<any>;
+    options?: Record<string, any>;
     /**
      * The full tag text, for instance: "{#my-tag}".
      */

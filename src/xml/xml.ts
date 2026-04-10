@@ -5,7 +5,6 @@ import { COMMENT_NODE_NAME, XmlGeneralNode, XmlNode, XmlNodeType } from "./xmlNo
 import { TEXT_NODE_NAME, XmlCommentNode } from "./xmlNode";
 import { XmlTextNode } from "./xmlNode";
 import { XmlTreeIterator } from "./xmlTreeIterator";
-import type { IMap } from "src/types";
 
 export type NodeTypeToNode<T extends XmlNodeType> =
     T extends typeof XmlNodeType.Text ? XmlTextNode :
@@ -128,7 +127,7 @@ class Parser {
 }
 
 interface XmlGeneralNodeInit {
-    attributes?: IMap<string>;
+    attributes?: Record<string, string>;
     childNodes?: XmlNode[];
 }
 

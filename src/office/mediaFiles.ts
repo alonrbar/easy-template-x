@@ -1,5 +1,4 @@
 import { MimeType, MimeTypeHelper } from '../mimeType';
-import { IMap } from '../types';
 import { Binary, Path, sha1 } from '../utils';
 import { Zip } from '../zip';
 
@@ -10,7 +9,7 @@ export class MediaFiles {
 
     private static readonly mediaDir = 'word/media';
 
-    private hashes: IMap<string>;
+    private hashes: Record<string, string>;
     private readonly files = new Map<Binary, string>();
     private nextFileId = 0;
 

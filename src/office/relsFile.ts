@@ -1,4 +1,3 @@
-import { IMap } from "src/types";
 import { Path } from "src/utils";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 import { Zip } from "src/zip";
@@ -11,8 +10,8 @@ import { Relationship, RelTargetMode } from "./relationship";
  */
 export class RelsFile {
 
-    private rels: IMap<Relationship>;
-    private relTargets: IMap<string>;
+    private rels: Record<string, Relationship>;
+    private relTargets: Record<string, string>;
     private nextRelId = 0;
 
     private readonly partDir: string;

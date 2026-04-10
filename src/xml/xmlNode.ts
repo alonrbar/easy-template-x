@@ -1,4 +1,3 @@
-import { IMap } from "src/types";
 
 export const XmlNodeType = Object.freeze({
     Text: "Text",
@@ -35,5 +34,5 @@ export interface XmlCommentNode extends XmlNodeBase {
 
 export interface XmlGeneralNode extends XmlNodeBase {
     nodeType: typeof XmlNodeType.General;
-    attributes?: IMap<string>;
+    attributes?: Record<string, string>;
 }

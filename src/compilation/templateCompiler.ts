@@ -1,6 +1,5 @@
 import { UnclosedTagError, UnknownContentTypeError, UnopenedTagError } from '../errors';
 import { PluginContent, TemplatePlugin } from '../plugins';
-import { IMap } from '../types';
 import { isPromiseLike, stringValue, toDictionary } from '../utils';
 import { XmlNode } from '../xml';
 import { DelimiterSearcher } from './delimiters';
@@ -27,7 +26,7 @@ export interface TemplateCompilerOptions {
  */
 export class TemplateCompiler {
 
-    private readonly pluginsLookup: IMap<TemplatePlugin>;
+    private readonly pluginsLookup: Record<string, TemplatePlugin>;
     private readonly delimiterSearcher: DelimiterSearcher;
     private readonly tagParser: TagParser;
     private readonly options: TemplateCompilerOptions;
