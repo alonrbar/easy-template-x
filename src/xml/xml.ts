@@ -532,22 +532,22 @@ class Modify {
             throw new InternalArgumentMissingError("childOrIndex");
 
         if (!parent.childNodes || !parent.childNodes.length)
-            throw new Error('Parent node has node children');
+            throw new Error('Parent node has no children');
 
-        // get child index
+        // Get child index
         let childIndex: number;
         if (typeof childOrIndex === 'number') {
             childIndex = childOrIndex;
         } else {
             childIndex = parent.childNodes.indexOf(childOrIndex);
             if (childIndex === -1)
-                throw new Error('Specified child node is not a child of the specified parent');
+                throw new Error('Selected child node is not a child of the specified parent');
         }
 
         if (childIndex >= parent.childNodes.length)
             throw new RangeError(`Child index ${childIndex} is out of range. Parent has only ${parent.childNodes.length} child nodes.`);
 
-        // update references
+        // Update references
         const child = parent.childNodes[childIndex];
         if (childIndex > 0) {
             const beforeChild = parent.childNodes[childIndex - 1];
@@ -556,7 +556,7 @@ class Modify {
         child.parentNode = null;
         child.nextSibling = null;
 
-        // remove and return
+        // Remove and return
         return parent.childNodes.splice(childIndex, 1)[0];
     }
 
