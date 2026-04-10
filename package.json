@@ -49,6 +49,7 @@
     "build-src": "rollup -c",
     "build-types": "tsc -p tsconfig.types.json --emitDeclarationOnly",
     "build": "yarn build-types && yarn build-src",
+    "push-both": "git push && git checkout master && git merge develop && git push && git checkout develop",
     "release": "yarn clean && yarn quality && yarn build && yarn dist-verify",
     "dist-verify": "yarn dist-verify-cjs && yarn dist-verify-es",
     "dist-verify-cjs": "cd dist-verify/cjs && npm install && node main.js",
