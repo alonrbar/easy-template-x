@@ -87,6 +87,10 @@ class Parser {
         return this._serializeNode(node, 0, options);
     }
 
+    public serializeFile(xmlNode: XmlNode): string {
+        return Parser.xmlFileHeader + xml.parser.serializeNode(xmlNode);
+    }
+
     private _serializeNode(node: XmlNode, depth: number, options?: XmlSerializationOptions): string {
         if (!node)
             return '';
@@ -141,10 +145,6 @@ class Parser {
 
         const closeIndent = "\n" + " ".repeat(depth * indentSize);
         return openTag + childrenXml + closeIndent + closeTag;
-    }
-
-    public serializeFile(xmlNode: XmlNode): string {
-        return Parser.xmlFileHeader + xml.parser.serializeNode(xmlNode);
     }
 }
 
