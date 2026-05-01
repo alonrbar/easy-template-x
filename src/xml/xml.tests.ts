@@ -39,6 +39,12 @@ describe(XmlUtils, () => {
             const str = xml.parser.serializeNode(node);
             expect(str).toEqual('<!-- comment -->');
         });
+
+        it('serializes a node with indentation', () => {
+            const node = parseXml('<node><child>hello</child></node>', true);
+            const str = xml.parser.serializeNode(node, { indent: 2 });
+            expect(str).toEqual('<node>\n  <child>hello</child>\n</node>');
+        });
     });
 
     describe(xml.create.fromDomNode, () => {

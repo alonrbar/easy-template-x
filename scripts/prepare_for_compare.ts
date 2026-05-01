@@ -1,7 +1,7 @@
 import * as fs from 'fs/promises';
-import * as path from 'path';
 import JSZip from 'jszip';
-import { DOMParser, XMLSerializer } from '@xmldom/xmldom';
+import * as path from 'path';
+import { xml } from 'src/xml';
 
 try {
     await main();
@@ -126,18 +126,10 @@ async function prettifyXmlFilesInFolder(dir: string): Promise<void> {
 }
 
 async function prettifyXmlFile(xmlPath: string): Promise<void> {
-    const parser = new DOMParser();
-    const serializer = new XMLSerializer();
-
     const content = await fs.readFile(xmlPath, 'utf-8');
-    const doc = parser.parseFromString(content, 'text/xml');
-    const xml = serializer.serializeToString(doc);
-
-    // Add line breaks and indentation for better readability
-    const prettyXml = xml
-        .replace(/></g, '>\n<')
-        .replace(/^</gm, '  <')
-        .replace(/^<\?xml/g, '<?xml');
-
+    const xmlNode = xml.parser.parse(content);
+    const prettyXml = xml.parser.serializeNode(xmlNode, {
+        indent: 2
+    });
     await fs.writeFile(xmlPath, prettyXml, 'utf-8');
 }

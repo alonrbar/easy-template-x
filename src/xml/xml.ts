@@ -22,6 +22,15 @@ export class XmlUtils {
     public readonly modify = new Modify();
 }
 
+export interface XmlSerializationOptions {
+    /**
+     * If specified, the XML will be serialized pretty-printed with the
+     * specified number of spaces for each level of indentation. Otherwise, the
+     * XML will be serialized in a compact format (single line).
+     */
+    indent?: number;
+}
+
 class Parser {
 
     private static xmlFileHeader = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
@@ -74,7 +83,11 @@ class Parser {
         });
     }
 
-    public serializeNode(node: XmlNode): string {
+    public serializeNode(node: XmlNode, options?: XmlSerializationOptions): string {
+        return this._serializeNode(node, 0, options);
+    }
+
+    private _serializeNode(node: XmlNode, depth: number, options?: XmlSerializationOptions): string {
         if (!node)
             return '';
 
@@ -101,24 +114,33 @@ class Parser {
         const suffix = hasChildren ? '' : '/';
         const openTag = `<${node.nodeName}${attributes}${suffix}>`;
 
-        let xmlString: string;
-
-        if (hasChildren) {
-
-            // child nodes
-            const childrenXml = node.childNodes
-                .map(child => xml.parser.serializeNode(child))
-                .join('');
-
-            // close tag
-            const closeTag = `</${node.nodeName}>`;
-
-            xmlString = openTag + childrenXml + closeTag;
-        } else {
-            xmlString = openTag;
+        // No children
+        if (!hasChildren) {
+            return openTag;
         }
 
-        return xmlString;
+        // Close tag
+        const closeTag = `</${node.nodeName}>`;
+
+        // Children without indentation
+        const indentSize = options?.indent ?? 0;
+        if (!indentSize || node.childNodes.every(xml.query.isTextNode)) {
+
+            const childrenXml = node.childNodes
+                .map(child => this._serializeNode(child, depth + 1, options))
+                .join('');
+
+            return openTag + childrenXml + closeTag;
+        }
+
+        // Children with indentation
+        const childIndent = "\n" + " ".repeat((depth + 1) * indentSize);
+        const childrenXml = node.childNodes
+            .map(child => `${childIndent}${this._serializeNode(child, depth + 1, options)}`)
+            .join("");
+
+        const closeIndent = "\n" + " ".repeat(depth * indentSize);
+        return openTag + childrenXml + closeIndent + closeTag;
     }
 
     public serializeFile(xmlNode: XmlNode): string {
@@ -357,7 +379,7 @@ class Query {
                 return null;
             }
         }
-        
+
         if (curNode.nodeType !== nodeType) {
             return null;
         }
