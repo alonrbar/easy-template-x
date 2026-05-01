@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Updated xmldom dependency.
 - Internal refactoring and code cleanup.
 
 ## [7.2.3 - 2026-04-03](https://github.com/alonrbar/easy-template-x/tree/v7.2.3)
