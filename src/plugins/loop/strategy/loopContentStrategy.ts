@@ -1,4 +1,5 @@
 import { TextNodeTag } from "src/compilation";
+import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup } from "src/office";
 import { xml, XmlNode } from "src/xml";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
@@ -15,6 +16,19 @@ export class LoopContentStrategy implements ILoopStrategy {
         let firstParagraph: XmlNode = officeMarkup.query.containingParagraphNode(openTag.xmlTextNode);
         let lastParagraph: XmlNode = officeMarkup.query.containingParagraphNode(closeTag.xmlTextNode);
         const areSame = (firstParagraph === lastParagraph);
+
+        // The open and close tags must live in paragraphs that are siblings of
+        // the same parent. Otherwise the loop spans a structural boundary (for
+        // instance, one tag is inside a table cell and the other is not) and we
+        // would fail later on while trying to collect the nodes in between with
+        // an obscure "Cannot read properties of undefined (reading
+        // 'nextSibling')" error. Fail fast with a clear message instead.
+        if (!areSame && firstParagraph.parentNode !== lastParagraph.parentNode) {
+            throw new TemplateSyntaxError(
+                `Loop open and close tags are not placed in the same container: "${openTag.rawText}" and "${closeTag.rawText}". ` +
+                `Make sure both tags are at the same level (for example, both outside of a table, or both within the same table cell).`
+            );
+        }
 
         // Split first paragraph
         const removeTextNode = true;

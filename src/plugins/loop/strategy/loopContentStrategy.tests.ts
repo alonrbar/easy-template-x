@@ -1,4 +1,4 @@
-import { TagDisposition, TagPlacement, TextNodeTag, XmlTextNode } from "src";
+import { TagDisposition, TagPlacement, TemplateSyntaxError, TextNodeTag, XmlTextNode } from "src";
 import { LoopContentStrategy } from "./loopContentStrategy";
 import { parseXml } from "test/testUtils";
 import { describe, expect, it } from "vitest";
@@ -59,6 +59,62 @@ describe(LoopContentStrategy, () => {
             const textNode = wordTextNode?.childNodes?.[0] as XmlTextNode;
             expect(textNode).toBeTruthy();
             expect(textNode.textContent).toEqual('before');
+        });
+
+        it("throws a clear error when the open and close tags are not in the same container", () => {
+
+            //
+            // prepare
+            //
+
+            const body = parseXml(`
+                <w:body>
+                    <w:p>
+                        <w:r>
+                            <w:t>{#loop}</w:t>
+                        </w:r>
+                    </w:p>
+                    <w:tbl>
+                        <w:tr>
+                            <w:tc>
+                                <w:p>
+                                    <w:r>
+                                        <w:t>{/loop}</w:t>
+                                    </w:r>
+                                </w:p>
+                            </w:tc>
+                        </w:tr>
+                    </w:tbl>
+                </w:body>
+            `);
+
+            const openParagraph = body.childNodes[0];
+            const closeParagraph = body.childNodes[1].childNodes[0].childNodes[0].childNodes[0];
+
+            const openTag: TextNodeTag = {
+                name: 'loop',
+                placement: TagPlacement.TextNode,
+                disposition: TagDisposition.Open,
+                rawText: '{#loop}',
+                xmlTextNode: openParagraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode
+            };
+            const closeTag: TextNodeTag = {
+                name: 'loop',
+                placement: TagPlacement.TextNode,
+                disposition: TagDisposition.Close,
+                rawText: '{/loop}',
+                xmlTextNode: closeParagraph.childNodes[0].childNodes[0].childNodes[0] as XmlTextNode
+            };
+            expect(openTag.xmlTextNode.textContent).toEqual('{#loop}');
+            expect(closeTag.xmlTextNode.textContent).toEqual('{/loop}');
+
+            const strategy = new LoopContentStrategy();
+
+            //
+            // test
+            //
+
+            expect(() => strategy.splitBefore(openTag, closeTag)).toThrow(TemplateSyntaxError);
         });
     });
 });
