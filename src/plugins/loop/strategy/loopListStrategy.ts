@@ -1,4 +1,5 @@
 import { TextNodeTag } from "src/compilation";
+import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup } from "src/office";
 import { xml, XmlNode } from "src/xml";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
@@ -18,9 +19,15 @@ export class LoopListStrategy implements ILoopStrategy {
 
         const firstParagraph = officeMarkup.query.containingParagraphNode(openTag.xmlTextNode);
         const lastParagraph = officeMarkup.query.containingParagraphNode(closeTag.xmlTextNode);
+
+        // Make sure the paragraphs are siblings
+        if (firstParagraph.parentNode !== lastParagraph.parentNode) {
+            throw new TemplateSyntaxError(`Open and close tags are not in the same container: ${openTag.rawText} and ${closeTag.rawText}. For example, one is inside a table cell and the other is not.`);
+        }
+
         const paragraphsToRepeat = xml.query.siblingsInRange(firstParagraph, lastParagraph);
 
-        // remove the loop tags
+        // Remove the loop tags
         xml.modify.remove(openTag.xmlTextNode);
         xml.modify.remove(closeTag.xmlTextNode);
 
@@ -39,7 +46,7 @@ export class LoopListStrategy implements ILoopStrategy {
             }
         }
 
-        // remove the old paragraphs
+        // Remove the old paragraphs
         xml.modify.remove(firstParagraph);
         if (firstParagraph !== lastParagraphs) {
             xml.modify.remove(lastParagraphs);

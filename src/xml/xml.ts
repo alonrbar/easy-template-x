@@ -395,15 +395,15 @@ class Query {
         if (!lastNode)
             throw new InternalArgumentMissingError("lastNode");
 
+        if (firstNode.parentNode !== lastNode.parentNode)
+            throw new Error(`Nodes are not siblings: '${firstNode.nodeName}' and '${lastNode.nodeName}'.`);
+
         const range: XmlNode[] = [];
         let curNode = firstNode;
         while (curNode && curNode !== lastNode) {
             range.push(curNode);
             curNode = curNode.nextSibling;
         }
-
-        if (!curNode)
-            throw new Error('Nodes are not siblings.');
 
         range.push(lastNode);
         return range;
@@ -597,6 +597,14 @@ class Modify {
      * Return the removed nodes.
      */
     public removeSiblings(from: XmlNode, to: XmlNode): XmlNode[] {
+        if (!from)
+            throw new InternalArgumentMissingError("from");
+        if (!to)
+            throw new InternalArgumentMissingError("to");
+
+        if (from.parentNode !== to.parentNode)
+            throw new Error(`Nodes are not siblings: '${from.nodeName}' and '${to.nodeName}'.`);
+
         if (from === to)
             return [];
 

@@ -143,14 +143,14 @@ export class TemplateCompiler {
                     // As long as we don't change the input to
                     // this method (fromIndex in particular) this
                     // should never happen.
-                    throw new UnopenedTagError(tag.name);
+                    throw new UnopenedTagError(tag.name, tag.rawText);
                 }
                 continue;
             }
         }
 
         if (i === tags.length) {
-            throw new UnclosedTagError(openTag.name);
+            throw new UnclosedTagError(openTag.name, openTag.rawText);
         }
 
         return i;

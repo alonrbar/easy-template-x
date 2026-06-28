@@ -1,4 +1,5 @@
 import { TextNodeTag } from "src/compilation";
+import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup, OmlNode } from "src/office";
 import { LoopOver, LoopTagOptions } from "src/plugins/loop/loopTagOptions";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
@@ -14,6 +15,12 @@ export class LoopParagraphStrategy implements ILoopStrategy {
     public splitBefore(openTag: TextNodeTag, closeTag: TextNodeTag): SplitBeforeResult {
         const firstParagraph = officeMarkup.query.containingParagraphNode(openTag.xmlTextNode);
         const lastParagraph = officeMarkup.query.containingParagraphNode(closeTag.xmlTextNode);
+
+        // Make sure the paragraphs are siblings.
+        if (firstParagraph.parentNode !== lastParagraph.parentNode) {
+            throw new TemplateSyntaxError(`Open and close tags are not in the same container: ${openTag.rawText} and ${closeTag.rawText}. For example, one is inside a table cell and the other is not.`);
+        }
+
         const paragraphsToRepeat = xml.query.siblingsInRange(firstParagraph, lastParagraph);
 
         // Remove the loop tags.

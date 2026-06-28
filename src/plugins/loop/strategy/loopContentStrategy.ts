@@ -1,4 +1,5 @@
 import { TextNodeTag } from "src/compilation";
+import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup } from "src/office";
 import { xml, XmlNode } from "src/xml";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
@@ -15,6 +16,11 @@ export class LoopContentStrategy implements ILoopStrategy {
         let firstParagraph: XmlNode = officeMarkup.query.containingParagraphNode(openTag.xmlTextNode);
         let lastParagraph: XmlNode = officeMarkup.query.containingParagraphNode(closeTag.xmlTextNode);
         const areSame = (firstParagraph === lastParagraph);
+
+        // Make sure the paragraphs are siblings
+        if (firstParagraph.parentNode !== lastParagraph.parentNode) {
+            throw new TemplateSyntaxError(`Open and close tags are not in the same container: ${openTag.rawText} and ${closeTag.rawText}. For example, one is inside a table cell and the other is not.`);
+        }
 
         // Split first paragraph
         const removeTextNode = true;
