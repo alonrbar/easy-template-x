@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.2.5 - 2026-06-28](https://github.com/alonrbar/easy-template-x/tree/v7.2.5)
+
+### Fixed
+
+- Improve error messages for misplaced loop tags.
+
 ## [7.2.4 - 2026-05-01](https://github.com/alonrbar/easy-template-x/tree/v7.2.4)
 
 ### Changed
