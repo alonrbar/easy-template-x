@@ -1,0 +1,15 @@
+{
+  "name": "easy-dist-verify-nodenext",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "verify": "tsc && node .tmp/main.js"
+  },
+  "dependencies": {
+    "easy-template-x": "file:../.."
+  },
+  "devDependencies": {
+    "typescript": "5.9.2"
+  }
+}
