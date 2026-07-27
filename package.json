@@ -15,12 +15,16 @@
   "homepage": "https://github.com/alonrbar/easy-template-x",
   "repository": {
     "type": "git",
-    "url": "https://github.com/alonrbar/easy-template-x.git"
+    "url": "git+https://github.com/alonrbar/easy-template-x.git"
   },
   "bugs": {
     "url": "https://github.com/alonrbar/easy-template-x/issues"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "type": "module",
+  "sideEffects": false,
   "main": "dist/cjs/easy-template-x.cjs",
   "module": "dist/es/easy-template-x.mjs",
   "exports": {
@@ -33,7 +37,7 @@
       "default": "./dist/es/easy-template-x.mjs"
     }
   },
-  "typings": "dist/types/index.d.mts",
+  "typings": "dist/types/index.d.ts",
   "files": [
     "dist",
     "src"
