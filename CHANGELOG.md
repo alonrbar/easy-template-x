@@ -1,5 +1,16 @@
 # Changelog
 
+## [7.2.6 - 2026-07-27](https://github.com/alonrbar/easy-template-x/tree/v7.2.6)
+
+### Changed
+
+- Set minimum Node.js version to 20. Library may still work with older versions,
+  but the support is not guaranteed.
+
+### Fixed
+
+- Fix typings.
+
 ## [7.2.5 - 2026-06-28](https://github.com/alonrbar/easy-template-x/tree/v7.2.5)
 
 ### Fixed
