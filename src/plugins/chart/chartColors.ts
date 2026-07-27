@@ -164,18 +164,20 @@ export class ChartColors {
         }
 
         const root = await colorsPart.xmlRoot();
-        const accents = root.childNodes?.
+        const rootGenChildren = root.childNodes?.filter(xml.query.isGeneralNode);
+        const accents = rootGenChildren?.
             filter(child => child.nodeName === "a:schemeClr")?.
-            map((node: XmlGeneralNode) => node.attributes["val"]);
+            map(node => node.attributes["val"]);
 
-        const variations: ColorVariation[] = root.childNodes?.
+        const variations: ColorVariation[] = rootGenChildren?.
             filter(child => child.nodeName === "cs:variation")?.
-            map((node: XmlGeneralNode) => {
+            map(node => {
                 if (!node.childNodes?.length) {
                     return null;
                 }
-                const lumModNode = node.childNodes.find(n => n.nodeName === "a:lumMod") as XmlGeneralNode;
-                const lumOffNode = node.childNodes.find(n => n.nodeName === "a:lumOff") as XmlGeneralNode;
+                const nodeGenChildren = node.childNodes?.filter(xml.query.isGeneralNode);
+                const lumModNode = nodeGenChildren?.find(n => n.nodeName === "a:lumMod") as XmlGeneralNode;
+                const lumOffNode = nodeGenChildren?.find(n => n.nodeName === "a:lumOff") as XmlGeneralNode;
                 return {
                     lumMod: lumModNode?.attributes["val"],
                     lumOff: lumOffNode?.attributes["val"],

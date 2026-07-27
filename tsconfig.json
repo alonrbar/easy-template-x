@@ -17,8 +17,12 @@
         // --- module resolution --- //
 
         "typeRoots" : ["./node_modules/@types","./src/@types"],
-        "moduleResolution": "node",
-        "baseUrl": ".",
+        "moduleResolution": "bundler",
+        "paths": {
+            "src": ["./src/index.ts"],
+            "src/*": ["./src/*"],
+            "test/*": ["./test/*"]
+        },
 
         // --- validation options --- //
 

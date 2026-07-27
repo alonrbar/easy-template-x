@@ -32,12 +32,12 @@ export class TagParser {
                 openedTextDelimiter = this.processDelimiter(delimiters, i, openedTextDelimiter, tags);
                 continue;
             }
-            
+
             if (delimiters[i].placement === TagPlacement.Attribute) {
                 openedAttributeDelimiter = this.processDelimiter(delimiters, i, openedAttributeDelimiter, tags);
                 continue;
             }
-            
+
             throw new Error(`Unexpected delimiter placement value "${(delimiters[i] as any).placement}"`);
         }
 
@@ -261,7 +261,7 @@ export class TagParser {
             try {
                 tag.options = JSON5.parse("{" + normalizeDoubleQuotes(tagOptionsText) + "}");
             } catch (e) {
-                throw new TagOptionsParseError(tag.rawText, e);
+                throw new TagOptionsParseError(tag.rawText, e as any);
             }
         }
 

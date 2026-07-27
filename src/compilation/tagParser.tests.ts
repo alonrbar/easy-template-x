@@ -877,7 +877,7 @@ describe(TagParser, () => {
             try {
                 parser.parse(delimiters);
             } catch (e) {
-                err = e;
+                err = e as any;
             }
 
             expect(err).toBeTruthy();
