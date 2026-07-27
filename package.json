@@ -25,15 +25,15 @@
   "module": "dist/es/easy-template-x.mjs",
   "exports": {
     "require": {
-      "types": "./dist/types/index.d.ts",
+      "types": "./dist/types/index.d.cts",
       "default": "./dist/cjs/easy-template-x.cjs"
     },
     "import": {
-      "types": "./dist/types/index.d.ts",
+      "types": "./dist/types/index.d.mts",
       "default": "./dist/es/easy-template-x.mjs"
     }
   },
-  "typings": "dist/types/index.d.ts",
+  "typings": "dist/types/index.d.mts",
   "files": [
     "dist",
     "src"
@@ -50,7 +50,8 @@
     "build-types": "rollup -c rollup.dts.config.js",
     "build": "yarn build-types && yarn build-src",
     "push-both": "git push && git checkout master && git merge develop && git push && git checkout develop",
-    "release": "yarn clean && yarn quality && yarn build && yarn dist-verify",
+    "release": "yarn clean && yarn quality && yarn build && yarn dist-verify && yarn attw",
+    "attw": "attw --pack .",
     "dist-verify": "yarn dist-verify-cjs && yarn dist-verify-es && yarn dist-verify-nodenext",
     "dist-verify-cjs": "cd dist-verify/cjs && npm install && node main.js",
     "dist-verify-es": "cd dist-verify/es && npm install && node main.js",
@@ -68,6 +69,7 @@
     "lodash.get": "4.4.2"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
     "@babel/core": "7.28.4",
     "@babel/preset-env": "7.28.3",
     "@babel/preset-typescript": "7.27.1",
