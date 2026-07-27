@@ -36,5 +36,11 @@
         "skipLibCheck": true,
         "strictNullChecks": false,
         "erasableSyntaxOnly": true,
-    }
+    },
+    "exclude": [
+        "node_modules",
+        ".tmp",
+        "dist",
+        "dist-verify"
+    ]
 }
