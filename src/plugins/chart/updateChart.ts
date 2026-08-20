@@ -338,7 +338,7 @@ function updateInlineSeries(existingChart: ExistingChart, chartData: ChartData) 
 
     // The schema requires series to appear before elements like c:dLbls and
     // c:axId, so the new series are inserted where the old series were.
-    const firstSeriesIndex = existingChart.chartNode.childNodes?.findIndex(child => child.nodeName === "c:ser");
+    const firstSeriesIndex = (existingChart.chartNode.childNodes ?? []).findIndex(child => child.nodeName === "c:ser");
 
     // Remove all old series
     xml.modify.removeChildren(existingChart.chartNode, child => child.nodeName === "c:ser");
@@ -347,7 +347,10 @@ function updateInlineSeries(existingChart: ExistingChart, chartData: ChartData) 
     const newSeries = chartData.series.map((s, index) => createSeries(existingChart, s.name, index, chartData));
 
     // Insert new series
-    let insertIndex = (firstSeriesIndex ?? -1) === -1 ? (existingChart.chartNode.childNodes?.length ?? 0) : firstSeriesIndex;
+    let insertIndex = firstSeriesIndex;
+    if (insertIndex < 0) {
+        insertIndex = (existingChart.chartNode.childNodes ?? []).length;
+    }
     for (const series of newSeries) {
         xml.modify.insertChild(existingChart.chartNode, series, insertIndex);
         insertIndex++;
@@ -476,7 +479,7 @@ function scatterValuesMarkup(seriesIndex: number, chartData: ScatterChartData, s
         `;
     });
 
-    // Bubble size values (aligned to the x values, like the y values)
+    // Bubble size values
     const bubbleSizeNodes = isBubbleChartData(chartData) ? bubbleSizeValues(xValues, chartData.series[seriesIndex]).map((size, index) => {
         if (size === null || size === undefined) {
             return "";
