@@ -101,7 +101,8 @@ interface ExistingChart {
 interface ExistingSeries {
     sheetName: string;
     shapePropertiesMarkup: string;
-    chartSpecificMarkup: string;
+    preValuesMarkup: string;
+    postValuesMarkup: string;
     categoriesMarkup: string;
     chartExtensibilityMarkup: string;
 }
@@ -128,7 +129,8 @@ function readSingleSeries(seriesNode: XmlNode, chartData: ChartData): ExistingSe
     return {
         sheetName,
         shapePropertiesMarkup: xml.parser.serializeNode(shapeProperties),
-        chartSpecificMarkup: chartSpecificMarkup(seriesNode),
+        preValuesMarkup: preValuesMarkup(seriesNode),
+        postValuesMarkup: postValuesMarkup(seriesNode),
         categoriesMarkup: categoriesMarkup(chartData, sheetName, formatCode),
         chartExtensibilityMarkup: xml.parser.serializeNode(chartExtensibility),
     };
@@ -274,37 +276,57 @@ function scatterXValuesMarkup(chartData: ScatterChartData, sheetName: string): s
     `;
 }
 
-function chartSpecificMarkup(firstSeries: XmlNode): string {
+/**
+ * Series elements that appear between the shape properties and the categories
+ * (or x values), in schema order.
+ *
+ * Covers the relevant parts of CT_AreaSer, CT_BarSer, CT_LineSer, CT_PieSer,
+ * CT_ScatterSer and CT_BubbleSer. Word rejects the document as corrupted when
+ * these elements are out of order.
+ */
+function preValuesMarkup(firstSeries: XmlNode): string {
     if (!firstSeries) {
         return "";
     }
 
+    const invertIfNegative = firstSeries.childNodes?.find(child => child.nodeName === "c:invertIfNegative");
     const pictureOptions = firstSeries.childNodes?.find(child => child.nodeName === "c:pictureOptions");
+    const explosion = firstSeries.childNodes?.find(child => child.nodeName === "c:explosion");
+    const marker = firstSeries.childNodes?.find(child => child.nodeName === "c:marker");
+    const dPt = firstSeries.childNodes?.filter(child => child.nodeName === "c:dPt");
     const dLbls = firstSeries.childNodes?.find(child => child.nodeName === "c:dLbls");
     const trendline = firstSeries.childNodes?.find(child => child.nodeName === "c:trendline");
     const errBars = firstSeries.childNodes?.find(child => child.nodeName === "c:errBars");
-    const invertIfNegative = firstSeries.childNodes?.find(child => child.nodeName === "c:invertIfNegative");
-    const marker = firstSeries.childNodes?.find(child => child.nodeName === "c:marker");
-    const smooth = firstSeries.childNodes?.find(child => child.nodeName === "c:smooth");
-    const explosion = firstSeries.childNodes?.find(child => child.nodeName === "c:explosion");
-    const dPt = firstSeries.childNodes?.filter(child => child.nodeName === "c:dPt");
-    const firstSliceAngle = firstSeries.childNodes?.find(child => child.nodeName === "c:firstSliceAngle");
-    const holeSize = firstSeries.childNodes?.find(child => child.nodeName === "c:holeSize");
-    const serTx = firstSeries.childNodes?.find(child => child.nodeName === "c:serTx");
 
     return `
+        ${xml.parser.serializeNode(invertIfNegative)}
         ${xml.parser.serializeNode(pictureOptions)}
+        ${xml.parser.serializeNode(explosion)}
+        ${xml.parser.serializeNode(marker)}
+        ${dPt.map(dPt => xml.parser.serializeNode(dPt)).join("\n")}
         ${xml.parser.serializeNode(dLbls)}
         ${xml.parser.serializeNode(trendline)}
         ${xml.parser.serializeNode(errBars)}
-        ${xml.parser.serializeNode(invertIfNegative)}
-        ${xml.parser.serializeNode(marker)}
+    `;
+}
+
+/**
+ * Series elements that appear between the values and the chart extensibility
+ * element, in schema order.
+ */
+function postValuesMarkup(firstSeries: XmlNode): string {
+    if (!firstSeries) {
+        return "";
+    }
+
+    const shape = firstSeries.childNodes?.find(child => child.nodeName === "c:shape");
+    const bubble3D = firstSeries.childNodes?.find(child => child.nodeName === "c:bubble3D");
+    const smooth = firstSeries.childNodes?.find(child => child.nodeName === "c:smooth");
+
+    return `
+        ${xml.parser.serializeNode(shape)}
+        ${xml.parser.serializeNode(bubble3D)}
         ${xml.parser.serializeNode(smooth)}
-        ${xml.parser.serializeNode(explosion)}
-        ${dPt.map(dPt => xml.parser.serializeNode(dPt)).join("\n")}
-        ${xml.parser.serializeNode(firstSliceAngle)}
-        ${xml.parser.serializeNode(holeSize)}
-        ${xml.parser.serializeNode(serTx)}
     `;
 }
 
@@ -346,9 +368,10 @@ function createSeries(existingChart: ExistingChart, seriesName: string, seriesIn
             <c:order val="${seriesIndex}"/>
             ${title}
             ${existingSeries?.shapePropertiesMarkup ?? ""}
-            ${existingSeries?.chartSpecificMarkup ?? ""}
+            ${existingSeries?.preValuesMarkup ?? ""}
             ${existingSeries?.categoriesMarkup ?? ""}
             ${values}
+            ${existingSeries?.postValuesMarkup ?? ""}
             ${existingSeries?.chartExtensibilityMarkup ?? ""}
         </c:ser>
     `);
