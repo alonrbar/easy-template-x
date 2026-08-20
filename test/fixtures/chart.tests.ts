@@ -131,6 +131,21 @@ describe("chart fixtures", () => {
             await verifySnapshot("chart - line - title", doc);
         });
 
+        test("update title with text before and after the tag in the same text node", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("chart - line - tag mid-title.docx");
+            const doc = await handler.process(template, {
+                MyChart: {
+                    _type: "chart",
+                    title: "My Amazing Chart"
+                }
+            });
+
+            await verifySnapshot("chart - line - tag mid-title", doc);
+        });
+
         test("numeric categories - without format code", async () => {
 
             const chartData: ChartContent = {

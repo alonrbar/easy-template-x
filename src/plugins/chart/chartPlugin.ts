@@ -63,25 +63,36 @@ function updateTitle(tag: TextNodeTag, newTitle: string) {
 
     // Split the run if needed.
     // Chart title run node can only have one text node
-    const curRun = officeMarkup.query.containingRunNode(newWordTextNode);
-    const runTextNodes = curRun.childNodes.filter(node => officeMarkup.query.isTextNode(node));
+    const originalRun = officeMarkup.query.containingRunNode(newWordTextNode);
+    const runTextNodes = originalRun.childNodes.filter(node => officeMarkup.query.isTextNode(node));
     if (runTextNodes.length > 1) {
 
-        // Remove the last text node
-        const lastTextNode = runTextNodes[runTextNodes.length - 1];
-        xml.modify.remove(lastTextNode);
+        // Get all non-empty text nodes
+        const nonEmptyTextNodes = runTextNodes.filter(node => !officeMarkup.query.isEmptyTextNode(node));
 
-        // Create a new run
-        const newRun = xml.create.cloneNode(curRun, true);
-        for (const node of newRun.childNodes) {
-            if (officeMarkup.query.isTextNode(node)) {
-                xml.modify.remove(node);
-            }
+        // Clear the run
+        for (const textNode of runTextNodes) {
+            xml.modify.remove(textNode);
         }
-        xml.modify.insertAfter(newRun, curRun);
 
-        // Add the text node to the new run
-        xml.modify.appendChild(newRun, lastTextNode);
+        // Create one run per text node
+        const emptyRun = xml.create.cloneNode(originalRun, true);
+        let curRun = originalRun;
+        let prevRun = originalRun;
+        for (const textNode of nonEmptyTextNodes) {
+
+            // Add one text node to the current run
+            xml.modify.appendChild(curRun, textNode);
+
+            // Insert the current run after the previous run
+            if (curRun !== prevRun) {
+                xml.modify.insertAfter(curRun, prevRun);
+            }
+
+            // Advance the loop variables
+            prevRun = curRun;
+            curRun = xml.create.cloneNode(emptyRun, true);
+        }
     }
 }
 
