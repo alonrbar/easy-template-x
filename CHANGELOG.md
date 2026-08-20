@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.2.8 - 2026-08-20](https://github.com/alonrbar/easy-template-x/tree/v7.2.8)
+
+### Fixed
+
+- Fix chart title update (used to create invalid documents in some cases).
+
 ## [7.2.7 - 2026-08-20](https://github.com/alonrbar/easy-template-x/tree/v7.2.7)
 
 ### Fixed
