@@ -807,26 +807,28 @@ async function updateSheetRootScatter(workbookPart: OpenXmlPart, sheetRoot: XmlN
     const xValues = scatterXValues(chartData.series);
 
     // Create other rows
+    function numericCellMarkup(rowIndex: number, columnIndex: number, value: number): string {
+        if (value === null || value === undefined) {
+            return `<c r="${excelRowAndColumnId(rowIndex, columnIndex)}"/>`;
+        }
+        return `
+            <c r="${excelRowAndColumnId(rowIndex, columnIndex)}">
+                <v>${value}</v>
+            </c>
+        `;
+    }
     const yValues = chartData.series.map(s => scatterYValues(xValues, s));
     const bubbleSizes = isBubbleChart ? chartData.series.map(s => bubbleSizeValues(xValues, s)) : [];
     function otherRowColumns(rowIndex: number) {
         return chartData.series.map((s, seriesIndex) => {
             const baseIndex = isBubbleChart ? seriesIndex * 2 : seriesIndex;
 
-            const yValueColumn = `
-                <c r="${excelRowAndColumnId(rowIndex + 1, baseIndex + 1)}">
-                    <v>${yValues[seriesIndex][rowIndex]}</v>
-                </c>
-            `;
+            const yValueColumn = numericCellMarkup(rowIndex + 1, baseIndex + 1, yValues[seriesIndex][rowIndex]);
             if (!isBubbleChart) {
                 return yValueColumn;
             }
 
-            const bubbleSizeColumn = `
-                <c r="${excelRowAndColumnId(rowIndex + 1, baseIndex + 2)}">
-                    <v>${bubbleSizes[seriesIndex][rowIndex]}</v>
-                </c>
-            `;
+            const bubbleSizeColumn = numericCellMarkup(rowIndex + 1, baseIndex + 2, bubbleSizes[seriesIndex][rowIndex]);
             return `
                 ${yValueColumn}
                 ${bubbleSizeColumn}
