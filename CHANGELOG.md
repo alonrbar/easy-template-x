@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.2.7 - 2026-08-20](https://github.com/alonrbar/easy-template-x/tree/v7.2.7)
+
+### Fixed
+
+- Fix scatter charts issues that resulted in invalid documents.
+
 ## [7.2.6 - 2026-07-27](https://github.com/alonrbar/easy-template-x/tree/v7.2.6)
 
 ### Changed
