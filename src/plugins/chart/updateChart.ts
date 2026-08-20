@@ -314,13 +314,21 @@ function chartSpecificMarkup(firstSeries: XmlNode): string {
 
 function updateInlineSeries(existingChart: ExistingChart, chartData: ChartData) {
 
+    // The schema requires series to appear before elements like c:dLbls and
+    // c:axId, so the new series are inserted where the old series were.
+    const firstSeriesIndex = existingChart.chartNode.childNodes?.findIndex(child => child.nodeName === "c:ser");
+
     // Remove all old series
     xml.modify.removeChildren(existingChart.chartNode, child => child.nodeName === "c:ser");
 
     // Create new series
     const newSeries = chartData.series.map((s, index) => createSeries(existingChart, s.name, index, chartData));
+
+    // Insert new series
+    let insertIndex = (firstSeriesIndex ?? -1) === -1 ? (existingChart.chartNode.childNodes?.length ?? 0) : firstSeriesIndex;
     for (const series of newSeries) {
-        xml.modify.appendChild(existingChart.chartNode, series);
+        xml.modify.insertChild(existingChart.chartNode, series, insertIndex);
+        insertIndex++;
     }
 }
 
