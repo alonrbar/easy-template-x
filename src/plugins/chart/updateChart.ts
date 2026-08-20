@@ -476,14 +476,14 @@ function scatterValuesMarkup(seriesIndex: number, chartData: ScatterChartData, s
         `;
     });
 
-    // Bubble size values
-    const bubbleSizeNodes = isBubbleChartData(chartData) ? chartData.series[seriesIndex].values.map((v, index) => {
-        if (v.size === null || v.size === undefined) {
+    // Bubble size values (aligned to the x values, like the y values)
+    const bubbleSizeNodes = isBubbleChartData(chartData) ? bubbleSizeValues(xValues, chartData.series[seriesIndex]).map((size, index) => {
+        if (size === null || size === undefined) {
             return "";
         }
         return `
             <c:pt idx="${index}">
-                <c:v>${v.size}</c:v>
+                <c:v>${size}</c:v>
             </c:pt>
         `;
     }) : [];
