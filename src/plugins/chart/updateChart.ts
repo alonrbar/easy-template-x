@@ -359,7 +359,7 @@ function createSeries(existingChart: ExistingChart, seriesName: string, seriesIn
     const isNewSeries = !existingChart.series[seriesIndex];
     const existingSeries = existingChart.series[seriesIndex] ?? firstSeries;
 
-    const title = titleMarkup(seriesName, seriesIndex, existingSeries?.sheetName);
+    const title = titleMarkup(seriesName, seriesIndex, chartData, existingSeries?.sheetName);
     const values = valuesMarkup(seriesIndex, chartData, existingSeries?.sheetName);
 
     const series = parseXmlNode(`
@@ -382,7 +382,7 @@ function createSeries(existingChart: ExistingChart, seriesName: string, seriesIn
     return series;
 }
 
-function titleMarkup(seriesName: string, seriesIndex: number, sheetName: string): string {
+function titleMarkup(seriesName: string, seriesIndex: number, chartData: ChartData, sheetName: string): string {
     if (!sheetName) {
         return `
             <c:tx>
@@ -391,7 +391,7 @@ function titleMarkup(seriesName: string, seriesIndex: number, sheetName: string)
         `;
     }
 
-    const formula = `${sheetName}!$${excelColumnId(seriesIndex + 1)}$1`;
+    const formula = `${sheetName}!$${excelColumnId(seriesFirstColumnIndex(seriesIndex, chartData))}$1`;
     return `
         <c:tx>
             <c:strRef>
@@ -521,7 +521,7 @@ function scatterValuesMarkup(seriesIndex: number, chartData: ScatterChartData, s
 
     // Number reference
 
-    const yValColumnId = excelColumnId(seriesIndex + 1);
+    const yValColumnId = excelColumnId(seriesFirstColumnIndex(seriesIndex, chartData));
     const yValFormula = `${sheetName}!$${yValColumnId}$2:$${yValColumnId}$${yValues.length + 1}`;
     const yVal = `
         <c:yVal>
@@ -540,7 +540,7 @@ function scatterValuesMarkup(seriesIndex: number, chartData: ScatterChartData, s
         return yVal;
     }
 
-    const bubbleSizeColumnId = excelColumnId(seriesIndex + 2);
+    const bubbleSizeColumnId = excelColumnId(seriesFirstColumnIndex(seriesIndex, chartData) + 1);
     const bubbleSizeFormula = `${sheetName}!$${bubbleSizeColumnId}$2:$${bubbleSizeColumnId}$${yValues.length + 1}`;
     const bubbleSize = `
         <c:bubbleSize>
@@ -559,6 +559,16 @@ function scatterValuesMarkup(seriesIndex: number, chartData: ScatterChartData, s
         ${yVal}
         ${bubbleSize}
     `;
+}
+
+/**
+ * The worksheet column index (zero based, where column zero holds the
+ * categories or x values) of the first column of the given series. Bubble
+ * chart series occupy two columns each (y values and bubble sizes), all other
+ * chart types occupy a single column per series.
+ */
+function seriesFirstColumnIndex(seriesIndex: number, chartData: ChartData): number {
+    return isBubbleChartData(chartData) ? seriesIndex * 2 + 1 : seriesIndex + 1;
 }
 
 function selectSeriesColor(seriesIndex: number, chartData: ChartData): string | number {
