@@ -437,6 +437,14 @@ class Modify {
     }
 
     public setSpacePreserveAttribute(node: XmlGeneralNode): void {
+
+        // The xml:space attribute is only relevant for WordprocessingML text
+        // nodes. DrawingML text nodes (a:t) do not accept any attributes and
+        // preserve whitespace by default.
+        if (node.nodeName !== OmlNode.W.Text) {
+            return;
+        }
+
         if (!node.attributes) {
             node.attributes = {};
         }
