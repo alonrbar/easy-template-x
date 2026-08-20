@@ -823,7 +823,7 @@ async function updateSheetRootScatter(workbookPart: OpenXmlPart, sheetRoot: XmlN
             }
 
             const bubbleSizeColumn = `
-                <c r="${excelRowAndColumnId(rowIndex + 1, baseIndex + 2)}" t="s">
+                <c r="${excelRowAndColumnId(rowIndex + 1, baseIndex + 2)}">
                     <v>${bubbleSizes[seriesIndex][rowIndex]}</v>
                 </c>
             `;
