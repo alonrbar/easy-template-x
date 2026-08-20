@@ -571,6 +571,14 @@ function seriesFirstColumnIndex(seriesIndex: number, chartData: ChartData): numb
     return isBubbleChartData(chartData) ? seriesIndex * 2 + 1 : seriesIndex + 1;
 }
 
+/**
+ * The total number of worksheet columns, including the first column which
+ * holds the categories or x values.
+ */
+function totalColumnsCount(chartData: ChartData): number {
+    return isBubbleChartData(chartData) ? chartData.series.length * 2 + 1 : chartData.series.length + 1;
+}
+
 function selectSeriesColor(seriesIndex: number, chartData: ChartData): string | number {
 
     // Use manual hex color
@@ -796,7 +804,7 @@ async function updateSheetRootScatter(workbookPart: OpenXmlPart, sheetRoot: XmlN
         `;
     });
     const firstRow = `
-        <row r="1" spans="1:${chartData.series.length + 1}">
+        <row r="1" spans="1:${totalColumnsCount(chartData)}">
             <c r="A1" t="s">
                 <v>${sharedStrings[xValuesTitle]}</v>
             </c>
@@ -836,7 +844,7 @@ async function updateSheetRootScatter(workbookPart: OpenXmlPart, sheetRoot: XmlN
         });
     }
     const otherRows = xValues.map((x, rowIndex) => `
-        <row r="${rowIndex + 2}" spans="1:${chartData.series.length + 1}">
+        <row r="${rowIndex + 2}" spans="1:${totalColumnsCount(chartData)}">
             <c r="${excelRowAndColumnId(rowIndex + 1, 0)}">
                 <v>${x}</v>
             </c>
@@ -859,7 +867,7 @@ async function updateTablePart(sheetPart: OpenXmlPart, chartData: ChartData) {
 
     // Update ref attribute
     const tablePartRoot = await tablePart.xmlRoot() as XmlGeneralNode;
-    tablePartRoot.attributes["ref"] = `A1:${excelRowAndColumnId(tableRowsCount(chartData), chartData.series.length)}`;
+    tablePartRoot.attributes["ref"] = `A1:${excelRowAndColumnId(tableRowsCount(chartData), totalColumnsCount(chartData) - 1)}`;
 
     // Find old table columns
     const tableColumnsNode = tablePartRoot.childNodes?.find(child => child.nodeName === "tableColumns");
@@ -876,7 +884,7 @@ async function updateTablePart(sheetPart: OpenXmlPart, chartData: ChartData) {
         `;
     });
     const tableColumns = `
-        <tableColumns count="${chartData.series.length + 1}">
+        <tableColumns count="${totalColumnsCount(chartData)}">
             <tableColumn id="1" name="${firstColumnName}"/>
             ${otherColumns.join("\n")}
         </tableColumns>
