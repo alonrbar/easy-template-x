@@ -1,5 +1,26 @@
 # Changelog
 
+## [8.0.0 - 2026-09-24](https://github.com/alonrbar/easy-template-x/tree/v8.0.0)
+
+This version replaces the `@xmldom/xmldom` dependency with an in-house XML
+parser. Most users should not notice any difference, but since xmldom was a core
+dependency it is marked with a major version bump.
+
+### Added
+
+- New root error type: `TemplateFileError`. Used for errors caused by a file
+  that cannot be read or processed (e.g. unsupported file types and malformed
+  internal XML parts).
+
+### Changed
+
+- Replace `@xmldom/xmldom` with a minimal in-house XML parser.  
+  The new parser only supports the XML subset used by Office Open XML files (no
+  DTD support, so entity expansion and XXE attacks are avoided).
+- **BREAKING** - Malformed XML (e.g. in a `rawXml` tag value) now throws a clear
+  `XmlParseError` (derived from the new `TemplateFileError`) instead of being
+  silently parsed into a partial tree.
+
 ## [7.2.8 - 2026-08-20](https://github.com/alonrbar/easy-template-x/tree/v7.2.8)
 
 ### Fixed
