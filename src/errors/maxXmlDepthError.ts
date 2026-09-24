@@ -1,4 +1,6 @@
-export class MaxXmlDepthError extends Error {
+import { TemplateFileError } from "./templateFileError";
+
+export class MaxXmlDepthError extends TemplateFileError {
 
     public readonly maxDepth: number;
 

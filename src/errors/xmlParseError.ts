@@ -1,4 +1,6 @@
-export class XmlParseError extends Error {
+import { TemplateFileError } from "./templateFileError";
+
+export class XmlParseError extends TemplateFileError {
 
     /**
      * Zero-based character offset into the parsed string.

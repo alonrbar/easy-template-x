@@ -1,6 +1,8 @@
-export class MalformedFileError extends Error {
+import { TemplateFileError } from "./templateFileError";
+
+export class MalformedFileError extends TemplateFileError {
 
     constructor(message: string) {
         super(message);
-    }    
+    }
 }

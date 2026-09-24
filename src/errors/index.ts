@@ -6,6 +6,7 @@ export * from './missingCloseDelimiterError';
 export * from './missingStartDelimiterError';
 export * from './tagOptionsParseError';
 export * from './templateDataError';
+export * from './templateFileError';
 export * from './templateSyntaxError';
 export * from './unclosedTagError';
 export * from './unidentifiedFileTypeError';

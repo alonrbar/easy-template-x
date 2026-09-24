@@ -1,4 +1,6 @@
-export class UnsupportedFileTypeError extends Error {
+import { TemplateFileError } from "./templateFileError";
+
+export class UnsupportedFileTypeError extends TemplateFileError {
 
     public readonly fileType: string;
 
