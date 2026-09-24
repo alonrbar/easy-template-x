@@ -12,3 +12,4 @@ export * from './unidentifiedFileTypeError';
 export * from './unknownContentTypeError';
 export * from './unopenedTagError';
 export * from './unsupportedFileTypeError';
+export * from './xmlParseError';

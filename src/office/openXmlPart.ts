@@ -49,12 +49,7 @@ export class OpenXmlPart {
      */
     public async getText(): Promise<string> {
         const xmlDocument = await this.xmlRoot();
-
-        // Ugly but good enough...
-        const xmlString = xml.parser.serializeFile(xmlDocument);
-        const domDocument = xml.parser.domParse(xmlString);
-
-        return domDocument.documentElement.textContent;
+        return xml.query.textContent(xmlDocument);
     }
 
     /**

@@ -1,4 +1,4 @@
-import { COMMENT_NODE_NAME, TEXT_NODE_NAME, XmlCommentNode, XmlNode, XmlNodeType, XmlTextNode } from "src/xml";
+import { XmlNode, XmlNodeType } from "src/xml";
 import { xml, XmlUtils } from "src/xml/xml";
 import { parseXml } from "test/testUtils";
 import { describe, expect, it } from "vitest";
@@ -34,6 +34,21 @@ describe(XmlUtils, () => {
             expect(str).toEqual('<node att="Some &quot;quoted&quot; value."/>');
         });
 
+        it('serializes whitespace in an attribute as character references', () => {
+            const node = xml.create.generalNode('node');
+            node.attributes = {
+                att: 'a\nb\rc\td e'
+            };
+            const str = xml.parser.serializeNode(node);
+            expect(str).toEqual('<node att="a&#10;b&#13;c&#9;d e"/>');
+        });
+
+        it('serializes a carriage return in text as a character reference', () => {
+            const node = xml.create.textNode('a\r\nb\tc');
+            const str = xml.parser.serializeNode(node);
+            expect(str).toEqual('a&#13;\nb\tc');
+        });
+
         it('serializes a comment node', () => {
             const node = xml.create.commentNode('comment');
             const str = xml.parser.serializeNode(node);
@@ -45,110 +60,6 @@ describe(XmlUtils, () => {
             const str = xml.parser.serializeNode(node, { indent: 2 });
             expect(str).toEqual('<node>\n  <child>hello</child>\n</node>');
         });
-    });
-
-    describe(xml.create.fromDomNode, () => {
-
-        it('creates a valid xml node from a single dom node', () => {
-
-            const domNode = createDomNode('<my-node/>');
-            const xmlNode = xml.create.fromDomNode(domNode);
-
-            expect(xmlNode.nodeName).toEqual('my-node');
-            expect(xmlNode.nodeType).toEqual(XmlNodeType.General);
-            expect(xmlNode.parentNode).toBeFalsy();
-            expect(xmlNode.childNodes.length).toEqual(0);
-            expect(xmlNode.nextSibling).toBeFalsy();
-        });
-
-        it('creates a valid xml tree from a dom node with a single child', () => {
-            const domNode = createDomNode(`
-                <root>
-                    <child></child>
-                </root>
-            `, true);
-            const xmlNode = xml.create.fromDomNode(domNode);
-
-            // root
-            const root = xmlNode;
-            expect(root.nodeName).toEqual('root');
-            expect(xmlNode.nodeType).toEqual(XmlNodeType.General);
-            expect(root.parentNode).toBeFalsy();
-            expect(root.childNodes.length).toEqual(1);
-            expect(root.nextSibling).toBeFalsy();
-
-            // child
-            const child = root.childNodes[0];
-            expect(child.nodeName).toEqual('child');
-            expect(xmlNode.nodeType).toEqual(XmlNodeType.General);
-            expect(child.parentNode).toEqual(root);
-            expect(child.childNodes.length).toEqual(0);
-            expect(child.nextSibling).toBeFalsy();
-        });
-
-        it('creates a valid xml tree from a mixed tree', () => {
-            const domNode = createDomNode(`
-                <root>
-                    <!-- comment -->
-                    <child></child>
-                    <child></child>
-                    <other-child>hi</other-child>
-                </root>
-            `, true);
-            const xmlNode = xml.create.fromDomNode(domNode);
-
-            // root
-            const root = xmlNode;
-            expect(root.nodeName).toEqual('root');
-            expect(root.nodeType).toEqual(XmlNodeType.General);
-            expect(root.parentNode).toBeFalsy();
-            expect(root.childNodes.length).toEqual(4);
-            expect(root.nextSibling).toBeFalsy();
-
-            const comment = root.childNodes[0];
-            const child1 = root.childNodes[1];
-            const child2 = root.childNodes[2];
-            const child3 = root.childNodes[3];
-            const grandchild1 = root.childNodes[3].childNodes[0];
-
-            // comment
-            expect(comment.nodeName).toEqual(COMMENT_NODE_NAME);
-            expect(comment.nodeType).toEqual(XmlNodeType.Comment);
-            expect(comment.parentNode).toEqual(root);
-            expect(comment.childNodes).toBeFalsy();
-            expect((comment as XmlCommentNode).commentContent).toEqual('comment');
-            expect(comment.nextSibling).toEqual(child1);
-
-            // child #1
-            expect(child1.nodeName).toEqual('child');
-            expect(child1.nodeType).toEqual(XmlNodeType.General);
-            expect(child1.parentNode).toEqual(root);
-            expect(child1.childNodes.length).toEqual(0);
-            expect(child1.nextSibling).toEqual(child2);
-
-            // child #2
-            expect(child2.nodeName).toEqual('child');
-            expect(child2.nodeType).toEqual(XmlNodeType.General);
-            expect(child2.parentNode).toEqual(root);
-            expect(child2.childNodes.length).toEqual(0);
-            expect(child2.nextSibling).toEqual(child3);
-
-            // child #3
-            expect(child3.nodeName).toEqual('other-child');
-            expect(child3.nodeType).toEqual(XmlNodeType.General);
-            expect(child3.parentNode).toEqual(root);
-            expect(child3.childNodes.length).toEqual(1);
-            expect(child3.nextSibling).toBeFalsy();
-
-            // grandchild #3
-            expect(grandchild1.nodeName).toEqual(TEXT_NODE_NAME);
-            expect(grandchild1.nodeType).toEqual(XmlNodeType.Text);
-            expect(grandchild1.parentNode).toEqual(child3);
-            expect((grandchild1 as XmlTextNode).textContent).toEqual('hi');
-            expect(grandchild1.childNodes).toBeFalsy();
-            expect(grandchild1.nextSibling).toBeFalsy();
-        });
-
     });
 
     describe(xml.modify.insertBefore, () => {
@@ -257,10 +168,3 @@ describe(XmlUtils, () => {
     });
 
 });
-
-function createDomNode(xmlString: string, removeWhiteSpace = false): Node {
-    if (removeWhiteSpace) // remove all whitespace outside of tags
-        xmlString = xmlString.replace(/>\s+</g, '><').trim();
-    const document = xml.parser.domParse(xmlString);
-    return document.documentElement;
-}

@@ -1,9 +1,9 @@
-import { DOMParser } from "@xmldom/xmldom";
 import { InternalArgumentMissingError, InternalError } from "src/errors";
 import { last } from "src/utils";
 import { COMMENT_NODE_NAME, XmlGeneralNode, XmlNode, XmlNodeType } from "./xmlNode";
 import { TEXT_NODE_NAME, XmlCommentNode } from "./xmlNode";
 import { XmlTextNode } from "./xmlNode";
+import { XmlParser } from "./xmlParser";
 import { XmlTreeIterator } from "./xmlTreeIterator";
 
 export type NodeTypeToNode<T extends XmlNodeType> =
@@ -36,28 +36,15 @@ class Parser {
     private static xmlFileHeader = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
 
     /**
-     * We always use the DOMParser from 'xmldom', even in the browser since it
-     * handles xml namespaces more forgivingly (required mainly by the
-     * RawXmlPlugin).
+     * Parse an XML string into an XmlNode tree.
+     *
+     * Throws an `XmlParseError` if the input is not well-formed.
      */
-    private static readonly parser = new DOMParser({
-        errorHandler: {
-            // Ignore xmldom warnings. They are often incorrect since we are
-            // parsing OOXML, not HTML.
-            warning: () => { },
-        }
-    });
-
     public parse(str: string): XmlNode {
-        const doc = this.domParse(str);
-        return xml.create.fromDomNode(doc.documentElement);
-    }
-
-    public domParse(str: string): Document {
         if (str === null || str === undefined)
             throw new InternalArgumentMissingError("str");
 
-        return Parser.parser.parseFromString(str, "text/xml");
+        return XmlParser.parse(str);
     }
 
     /**
@@ -71,16 +58,28 @@ class Parser {
         if (typeof str !== 'string')
             throw new TypeError(`Expected a string, got '${(str as any).constructor.name}'.`);
 
-        return str.replace(/[<>&'"]/g, c => {
+        return str.replace(/[<>&'"\r]/g, c => {
             switch (c) {
                 case '<': return '&lt;';
                 case '>': return '&gt;';
                 case '&': return '&amp;';
                 case '\'': return '&apos;';
                 case '"': return '&quot;';
+                case '\r': return '&#13;';
             }
             return '';
         });
+    }
+
+    /**
+     * Encode string to make it safe to use inside an xml attribute value.
+     *
+     * In addition to `encodeValue`, line feeds and tabs are encoded as
+     * character references since literal ones would be normalized to spaces by
+     * the parser.
+     */
+    public encodeAttributeValue(str: string): string {
+        return this.encodeValue(str).replace(/[\n\t]/g, c => c === '\n' ? '&#10;' : '&#9;');
     }
 
     public serializeNode(node: XmlNode, options?: XmlSerializationOptions): string {
@@ -108,7 +107,7 @@ class Parser {
             const attributeNames = Object.keys(node.attributes);
             if (attributeNames.length) {
                 attributes = ' ' + attributeNames
-                    .map(name => `${name}="${xml.parser.encodeValue(node.attributes[name] || '')}"`)
+                    .map(name => `${name}="${xml.parser.encodeAttributeValue(node.attributes[name] || '')}"`)
                     .join(' ');
             }
         }
@@ -205,63 +204,6 @@ class Create {
             clone.parentNode = null;
             return clone;
         }
-    }
-
-    /**
-     * The conversion is always deep.
-     */
-    public fromDomNode(domNode: Node): XmlNode {
-        let xmlNode: XmlNode;
-
-        // basic properties
-        switch (domNode.nodeType) {
-            case domNode.TEXT_NODE: {
-                xmlNode = xml.create.textNode(domNode.textContent);
-                break;
-            }
-            case domNode.COMMENT_NODE: {
-                xmlNode = xml.create.commentNode(domNode.textContent?.trim());
-                break;
-            }
-            case domNode.ELEMENT_NODE: {
-                const generalNode = xmlNode = xml.create.generalNode(domNode.nodeName);
-                const attributes = (domNode as Element).attributes;
-                if (attributes) {
-                    generalNode.attributes = {};
-                    for (let i = 0; i < attributes.length; i++) {
-                        const curAttribute = attributes.item(i);
-                        generalNode.attributes[curAttribute.name] = curAttribute.value;
-                    }
-                }
-                break;
-            }
-            default: {
-                xmlNode = xml.create.generalNode(domNode.nodeName);
-                break;
-            }
-        }
-
-        // children
-        if (domNode.childNodes) {
-            xmlNode.childNodes = [];
-            let prevChild: XmlNode;
-            for (let i = 0; i < domNode.childNodes.length; i++) {
-
-                // clone child
-                const domChild = domNode.childNodes.item(i);
-                const curChild = xml.create.fromDomNode(domChild);
-
-                // set references
-                xmlNode.childNodes.push(curChild);
-                curChild.parentNode = xmlNode;
-                if (prevChild) {
-                    prevChild.nextSibling = curChild;
-                }
-                prevChild = curChild;
-            }
-        }
-
-        return xmlNode as XmlNode;
     }
 }
 
@@ -407,6 +349,35 @@ class Query {
 
         range.push(lastNode);
         return range;
+    }
+
+    /**
+     * Returns the concatenated text content of the node and all of its
+     * descendants (comments excluded).
+     */
+    public textContent(node: XmlNode): string {
+        if (!node)
+            return '';
+
+        let text = '';
+        const stack: XmlNode[] = [node];
+        while (stack.length) {
+            const cur = stack.pop();
+
+            // Text content
+            if (xml.query.isTextNode(cur)) {
+                text += cur.textContent || '';
+                continue;
+            }
+
+            // Recursive search
+            if (cur.childNodes) {
+                for (let i = cur.childNodes.length - 1; i >= 0; i--) {
+                    stack.push(cur.childNodes[i]);
+                }
+            }
+        }
+        return text;
     }
 
     public descendants(node: XmlNode, maxDepth: number, predicate: XmlNodePredicate): XmlNode[] {
