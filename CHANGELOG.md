@@ -1,5 +1,11 @@
 # Changelog
 
+## [8.0.1 - 2026-11-04](https://github.com/alonrbar/easy-template-x/tree/v8.0.1)
+
+### Changed
+
+- Readme updates.
+
 ## [8.0.0 - 2026-09-24](https://github.com/alonrbar/easy-template-x/tree/v8.0.0)
 
 This version replaces the `@xmldom/xmldom` dependency with an in-house XML
