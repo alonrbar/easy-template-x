@@ -1,7 +1,7 @@
 import { TextNodeTag } from "src/compilation";
 import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup, OmlNode } from "src/office";
-import { LoopOver, LoopTagOptions } from "src/plugins/loop/loopTagOptions";
+import { getRepeatMode, LoopTagOptions, RepeatMode } from "src/plugins/loop/loopTagOptions";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
@@ -9,7 +9,7 @@ export class LoopParagraphStrategy implements ILoopStrategy {
 
     public async isApplicable(openTag: TextNodeTag, closeTag: TextNodeTag, isCondition: boolean): Promise<boolean> {
         const options = openTag.options as LoopTagOptions;
-        return options?.loopOver === LoopOver.Paragraph;
+        return getRepeatMode(options) === RepeatMode.Paragraph;
     }
 
     public splitBefore(openTag: TextNodeTag, closeTag: TextNodeTag): SplitBeforeResult {

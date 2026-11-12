@@ -2,7 +2,7 @@ import { TextNodeTag } from "src/compilation";
 import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup } from "src/office";
 import { xml, XmlNode } from "src/xml";
-import { LoopOver, LoopTagOptions } from "../loopTagOptions";
+import { getRepeatMode, LoopTagOptions, RepeatMode } from "../loopTagOptions";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
 export class LoopTableRowsStrategy implements ILoopStrategy {
@@ -17,7 +17,7 @@ export class LoopTableRowsStrategy implements ILoopStrategy {
             return false;
 
         const options = openTag.options as LoopTagOptions;
-        const forceRowLoop = options?.loopOver === LoopOver.Row;
+        const forceRowLoop = getRepeatMode(options) === RepeatMode.Row;
 
         // If both tags are in the same cell, assume it's a paragraph loop (iterate content, not rows).
         if (!forceRowLoop && openCell === closeCell)

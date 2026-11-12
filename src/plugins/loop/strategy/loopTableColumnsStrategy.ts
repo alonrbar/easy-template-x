@@ -1,6 +1,6 @@
 import { TextNodeTag } from "src/compilation";
 import { officeMarkup } from "src/office";
-import { LoopOver, LoopTagOptions } from "src/plugins/loop/loopTagOptions";
+import { getRepeatMode, LoopTagOptions, RepeatMode } from "src/plugins/loop/loopTagOptions";
 import { xml, XmlNode } from "src/xml";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
@@ -16,7 +16,7 @@ export class LoopTableColumnsStrategy implements ILoopStrategy {
             return false;
 
         const options = openTag.options as LoopTagOptions;
-        const forceColumnLoop = options?.loopOver === LoopOver.Column;
+        const forceColumnLoop = getRepeatMode(options) === RepeatMode.Column;
 
         // If both tags are in the same cell, assume it's a paragraph loop (iterate content, not columns).
         if (!forceColumnLoop && openCell === closeCell)

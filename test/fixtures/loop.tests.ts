@@ -569,6 +569,37 @@ describe('loop fixtures', () => {
             // writeTempFile('loop - paragraph - multi line - with loopOver - output.docx', doc);
         });
 
+        test("loop - table cells with repeat paragraph", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("loop - table - repeat paragraph.docx");
+            const templateText = await handler.getText(template);
+            expect(removeWhiteSpace(templateText)).toEqual(removeWhiteSpace(`
+                Hello1 {#loop1 [repeat: “paragraph”]}{val}{/loop1} World1
+                Hello2 {#loop1 [repeat: “paragraph”]}{val}{/loop1} World2
+                Hello3 {#loop1 [repeat: “paragraph”]}{val}{/loop1} World3
+            `));
+
+            const data = {
+                loop1: [] as any[]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docText = await handler.getText(doc);
+            expect(removeWhiteSpace(docText)).toEqual(removeWhiteSpace(`
+                Hello1 World1
+                Hello2 World2
+                Hello3 World3
+            `));
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - table - repeat paragraph - output.docx', doc);
+        });
+
         test("loop - table cells with loopOver paragraph", async () => {
 
             const handler = new TemplateHandler();
@@ -602,6 +633,48 @@ describe('loop fixtures', () => {
     });
 
     describe('table', () => {
+
+        test("repeat option", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("loop - table - repeat.docx");
+            const templateText = await handler.getText(template);
+            expect(removeWhiteSpace(templateText)).toEqual(removeWhiteSpace(`
+                [Row1]{#loop1}{val}{/loop1}{#loop2}{val}{/loop2}
+                [Row2]{#loop3[repeat:“row”]}{val}{/loop3}
+                [Row3]{#loop4[repeat:“content”]}{val}{/loop4}
+            `));
+
+            const data = {
+                loop1: [
+                    { val: 'val1' },
+                    { val: 'val2' }
+                ],
+                loop2: [
+                    { val: 'val3' },
+                    { val: 'val4' }
+                ],
+                loop3: [
+                    { val: 'val5' },
+                    { val: 'val6' }
+                ],
+                loop4: [
+                    { val: 'val7' },
+                    { val: 'val8' }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docText = await handler.getText(doc);
+            expect(docText).toEqual("[Row1]val1val2val3val4[Row2]val5[Row2]val6[Row3]val7val8");
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - table - repeat - output.docx', doc);
+        });
 
         test("loopOver option", async () => {
 

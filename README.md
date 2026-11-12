@@ -277,7 +277,7 @@ _If you are looking for a yet more powerful conditional syntax see the [alternat
 
 The loop plugin uses some heuristics to determine the right behavior in each
 case (i.e. when to loop over rows, columns, paragraphs, etc.). You can control this behavior
-explicitly through the `loopOver` option as explain below.
+explicitly through the `repeat` option as explained below.
 
 ##### Default behavior
 
@@ -291,8 +291,11 @@ The default heuristics are as follows:
 
 ##### Changing the default
 
-To use a different behavior than the default one you can use the `loopOver`
+To use a different behavior than the default one you can use the `repeat`
 option. Supported values are: `row`, `column`, `paragraph` and `content`.
+For instance: `{#students [repeat: "row"]}`.
+
+_The `repeat` option was previously called `loopOver`. The old name is still supported but is now deprecated. It may be removed in a future major version._
 
 **Note:** This option controls conditions too.
 
@@ -309,43 +312,43 @@ For instance, given this data:
 
 You can use this syntax:
 
-![input template](./docs/assets/loop-over-row-in.png?raw=true)
+![input template](./docs/assets/loop-repeat-row-in.png?raw=true)
 
 Or this syntax:
 
-![input template](./docs/assets/loop-over-column-in.png?raw=true)
+![input template](./docs/assets/loop-repeat-column-in.png?raw=true)
 
 Or this syntax:
 
-![input template](./docs/assets/loop-over-content-in.png?raw=true)
+![input template](./docs/assets/loop-repeat-content-in.png?raw=true)
 
 The first will produce this document:
 
-![output document](./docs/assets/loop-over-row-out.png?raw=true)
+![output document](./docs/assets/loop-repeat-row-out.png?raw=true)
 
 The second will produce this document:
 
-![output document](./docs/assets/loop-over-column-out.png?raw=true)
+![output document](./docs/assets/loop-repeat-column-out.png?raw=true)
 
 And the third will produce this document:
 
-![output document](./docs/assets/loop-over-content-out.png?raw=true)
+![output document](./docs/assets/loop-repeat-content-out.png?raw=true)
 
 For paragraphs, you can choose between this syntax (same as the default behavior):
 
-![input template](./docs/assets/loop-over-paragraph-in-1.png?raw=true)
+![input template](./docs/assets/loop-repeat-paragraph-in-1.png?raw=true)
 
 And this syntax:
 
-![input template](./docs/assets/loop-over-paragraph-in-2.png?raw=true)
+![input template](./docs/assets/loop-repeat-paragraph-in-2.png?raw=true)
 
 The first will produce this document:
 
-![output document](./docs/assets/loop-over-paragraph-out-1.png?raw=true)
+![output document](./docs/assets/loop-repeat-paragraph-out-1.png?raw=true)
 
 And the second will produce this document:
 
-![output document](./docs/assets/loop-over-paragraph-out-2.png?raw=true)
+![output document](./docs/assets/loop-repeat-paragraph-out-2.png?raw=true)
 
 ### Image plugin
 

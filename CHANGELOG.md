@@ -6,6 +6,11 @@
 
 - Support list loops numbered by the paragraph style.
 
+### Changed
+
+- Rename the `loopOver` loop option to `repeat` (e.g. `{#students [repeat: "row"]}`).
+  The `loopOver` alias is still supported but deprecated and may be removed in a future major version.
+
 ## [8.0.1 - 2026-11-04](https://github.com/alonrbar/easy-template-x/tree/v8.0.1)
 
 ### Changed
