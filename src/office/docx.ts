@@ -81,7 +81,7 @@ export class Docx {
         this.mainDocument = new OpenXmlPart(mainDocumentPath, zip);
         this.mediaFiles = new MediaFiles(zip);
         this.contentTypes = new ContentTypesFile(zip);
-        this.styles = new Styles(this.mainDocument.rels, zip);
+        this.styles = new Styles(this.mainDocument);
     }
 
     //

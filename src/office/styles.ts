@@ -1,15 +1,12 @@
 import { xml, XmlGeneralNode, XmlNodeType } from "src/xml";
-import { Zip } from "src/zip";
 import { OmlNode } from "./omlNode";
+import { OpenXmlPart } from "./openXmlPart";
 import { RelType } from "./relationship";
-import { RelsFile } from "./relsFile";
 
 export type StyleType = 'paragraph' | 'character' | 'table' | 'numbering';
 
 /**
  * The styles of a document (defined in its styles part).
- *
- * The styles are read-only - changes are not persisted.
  */
 export class Styles {
 
@@ -20,12 +17,10 @@ export class Styles {
     private readonly defaultIds = new Map<StyleType, string>();
     private loaded: Promise<void>;
 
-    private readonly mainDocumentRels: RelsFile;
-    private readonly zip: Zip;
+    private readonly mainDocument: OpenXmlPart;
 
-    constructor(mainDocumentRels: RelsFile, zip: Zip) {
-        this.mainDocumentRels = mainDocumentRels;
-        this.zip = zip;
+    constructor(mainDocument: OpenXmlPart) {
+        this.mainDocument = mainDocument;
     }
 
     /**
@@ -84,28 +79,17 @@ export class Styles {
 
     private load(): Promise<void> {
         if (!this.loaded) {
-            this.loaded = this.parseStylesFile();
+            this.loaded = this.parseStylesPart();
         }
         return this.loaded;
     }
 
-    private async parseStylesFile(): Promise<void> {
-
-        // Read the styles part directly (rather than opening it through the
-        // main document) so it is not re-serialized on export.
-        const rels = await this.mainDocumentRels.list();
-        const stylesRel = rels.find(rel => rel.type === RelType.Styles);
-        if (!stylesRel)
+    private async parseStylesPart(): Promise<void> {
+        const stylesPart = await this.mainDocument.getFirstPartByType(RelType.Styles);
+        if (!stylesPart)
             return;
 
-        const stylesPath = this.mainDocumentRels.absoluteTargetPath(stylesRel.target);
-        const stylesFile = this.zip.getFile(stylesPath);
-        if (!stylesFile)
-            return;
-
-        const stylesXml = await stylesFile.getContentText();
-        const stylesRoot = xml.parser.parse(stylesXml);
-
+        const stylesRoot = await stylesPart.xmlRoot();
         for (const node of (stylesRoot?.childNodes ?? [])) {
             if (!xml.query.isGeneralNode(node) || node.nodeName !== OmlNode.W.Style)
                 continue;

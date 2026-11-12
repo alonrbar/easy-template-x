@@ -1,4 +1,5 @@
-import { RelType, Styles } from "src/office";
+import { Styles } from "src/office";
+import { xml } from "src/xml";
 import { describe, expect, test } from "vitest";
 
 describe(Styles, () => {
@@ -119,14 +120,11 @@ describe(Styles, () => {
 });
 
 function createStyles(stylesXml: string): Styles {
-    const fakeRels: any = {
-        list: () => Promise.resolve(stylesXml ? [{ type: RelType.Styles, target: "styles.xml" }] : []),
-        absoluteTargetPath: (target: string) => `word/${target}`
+    const stylesPart: any = stylesXml && {
+        xmlRoot: () => Promise.resolve(xml.parser.parse(stylesXml.trim()))
     };
-    const fakeZip: any = {
-        getFile: () => ({
-            getContentText: () => Promise.resolve(stylesXml.trim())
-        })
+    const fakeMainDocument: any = {
+        getFirstPartByType: () => Promise.resolve(stylesPart)
     };
-    return new Styles(fakeRels, fakeZip);
+    return new Styles(fakeMainDocument);
 }
