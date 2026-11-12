@@ -7,7 +7,7 @@ import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
 export class LoopParagraphStrategy implements ILoopStrategy {
 
-    public isApplicable(openTag: TextNodeTag, closeTag: TextNodeTag, isCondition: boolean): boolean {
+    public async isApplicable(openTag: TextNodeTag, closeTag: TextNodeTag, isCondition: boolean): Promise<boolean> {
         const options = openTag.options as LoopTagOptions;
         return options?.loopOver === LoopOver.Paragraph;
     }

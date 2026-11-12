@@ -13,6 +13,10 @@ class W {
     public readonly TableCell = 'w:tc';
     public readonly Drawing = 'w:drawing';
     public readonly NumberProperties = 'w:numPr';
+    public readonly NumberingId = 'w:numId';
+    public readonly ParagraphStyle = 'w:pStyle';
+    public readonly Style = 'w:style';
+    public readonly BasedOn = 'w:basedOn';
     /**
      * Structured document tag (content control).
      * 

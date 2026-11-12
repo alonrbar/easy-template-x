@@ -7,6 +7,7 @@ import { MediaFiles } from "./mediaFiles";
 import { OpenXmlPart } from "./openXmlPart";
 import { RelType } from "./relationship";
 import { RelsFile } from "./relsFile";
+import { Styles } from "./styles";
 
 /**
  * Represents a single docx file.
@@ -56,6 +57,7 @@ export class Docx {
     public readonly mainDocument: OpenXmlPart;
     public readonly mediaFiles: MediaFiles;
     public readonly contentTypes: ContentTypesFile;
+    public readonly styles: Styles;
 
     private readonly zip: Zip;
 
@@ -79,6 +81,7 @@ export class Docx {
         this.mainDocument = new OpenXmlPart(mainDocumentPath, zip);
         this.mediaFiles = new MediaFiles(zip);
         this.contentTypes = new ContentTypesFile(zip);
+        this.styles = new Styles(this.mainDocument.rels, zip);
     }
 
     //

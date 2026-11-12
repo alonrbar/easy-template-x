@@ -1,6 +1,7 @@
 import { Tag, TagPlacement } from "src/compilation/tag";
 import { xml, XmlGeneralNode, XmlNode, XmlNodeType, XmlTextNode } from "src/xml";
 import { OmlAttribute, OmlNode } from "./omlNode";
+import { Styles } from "./styles";
 
 //
 // Wordprocessing Markup Language (WML) intro:
@@ -78,10 +79,27 @@ class Query {
         return node.nodeName === OmlNode.W.ParagraphProperties || node.nodeName === OmlNode.A.ParagraphProperties;
     }
 
-    public isListParagraph(paragraphNode: XmlNode): boolean {
+    public async isListParagraph(paragraphNode: XmlNode, styles: Styles): Promise<boolean> {
         const paragraphProperties = officeMarkup.query.findParagraphPropertiesNode(paragraphNode);
         const listNumberProperties = xml.query.findByPath(paragraphProperties, XmlNodeType.General, OmlNode.W.NumberProperties);
-        return !!listNumberProperties;
+        if (listNumberProperties) {
+            return true;
+        }
+
+        // DrawingML paragraphs don't use document styles
+        if (paragraphNode.nodeName !== OmlNode.W.Paragraph) {
+            return false;
+        }
+
+        // Check if the paragraph is numbered according to the document styles
+        const styleNode = xml.query.findByPath(paragraphProperties, XmlNodeType.General, OmlNode.W.ParagraphStyle);
+        const styleId = styleNode?.attributes?.['w:val'];
+        if (!styleId) {
+            return false;
+        }
+
+        const isNumbered = await styles.isNumbered(styleId);
+        return isNumbered;
     }
 
     public isInlineDrawingNode(node: XmlNode): boolean {

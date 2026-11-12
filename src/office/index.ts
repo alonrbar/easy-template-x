@@ -3,4 +3,5 @@ export * from './omlNode';
 export * from './officeMarkup';
 export * from './openXmlPart';
 export * from './relationship';
+export * from './styles';
 export * from './xlsx';

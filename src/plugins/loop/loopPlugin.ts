@@ -59,7 +59,13 @@ export class LoopPlugin extends TemplatePlugin {
         }
 
         // Select the suitable strategy
-        const loopStrategy = this.loopStrategies.find(strategy => strategy.isApplicable(openTag, closeTag, isCondition));
+        let loopStrategy: ILoopStrategy;
+        for (const strategy of this.loopStrategies) {
+            if (await strategy.isApplicable(openTag, closeTag, isCondition, context.docx)) {
+                loopStrategy = strategy;
+                break;
+            }
+        }
         if (!loopStrategy)
             throw new Error(`No loop strategy found for tag '${openTag.rawText}'.`);
 

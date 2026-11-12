@@ -1,5 +1,11 @@
 # Changelog
 
+## [UNRELEASED](https://github.com/alonrbar/easy-template-x/tree/develop)
+
+### Added
+
+- Support list loops numbered by the paragraph style.
+
 ## [8.0.1 - 2026-11-04](https://github.com/alonrbar/easy-template-x/tree/v8.0.1)
 
 ### Changed

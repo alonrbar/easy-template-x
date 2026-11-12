@@ -1,4 +1,6 @@
+import { OmlNode } from "src/office";
 import { TemplateHandler } from "src/templateHandler";
+import { xml } from "src/xml";
 import { removeWhiteSpace } from "test/testUtils";
 import { describe, expect, test } from "vitest";
 import { readFixture } from "./fixtureUtils";
@@ -93,6 +95,32 @@ describe('loop fixtures', () => {
             expect(docXml).toMatchSnapshot();
 
             // writeTempFile('loop - list - output.docx', doc);
+        });
+
+        test("list loop with numbering from the paragraph style", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("loop - list - numbering from style.docx");
+            const templateText = await handler.getText(template);
+            expect(templateText.trim()).toEqual("{#items}{name}{/items}");
+
+            const data = {
+                items: [
+                    { name: 'first' },
+                    { name: 'second' }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docText = await handler.getText(doc);
+            expect(docText).toEqual("firstsecond");
+
+            // Each item is a separate list paragraph
+            const docXml = await handler.getXml(doc);
+            const paragraphs = xml.query.descendants(docXml, 20, node => node.nodeName === OmlNode.W.Paragraph);
+            expect(paragraphs.map(p => xml.query.textContent(p))).toEqual(["first", "second"]);
         });
 
         test("custom loop delimiters", async () => {
