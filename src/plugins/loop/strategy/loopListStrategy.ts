@@ -1,6 +1,7 @@
 import { TextNodeTag } from "src/compilation";
 import { TemplateSyntaxError } from "src/errors";
 import { Docx, officeMarkup } from "src/office";
+import { getRepeatMode, LoopTagOptions } from "src/plugins/loop/loopTagOptions";
 import { xml, XmlNode } from "src/xml";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
@@ -8,6 +9,13 @@ export class LoopListStrategy implements ILoopStrategy {
 
     public async isApplicable(openTag: TextNodeTag, closeTag: TextNodeTag, isCondition: boolean, docx: Docx): Promise<boolean> {
         if (isCondition) {
+            return false;
+        }
+
+        // An explicit repeat mode takes precedence over list detection.
+        const options = openTag.options as LoopTagOptions;
+        const repeatMode = getRepeatMode(options);
+        if (repeatMode) {
             return false;
         }
 

@@ -123,6 +123,29 @@ describe('loop fixtures', () => {
             expect(paragraphs.map(p => xml.query.textContent(p))).toEqual(["first", "second"]);
         });
 
+        test("list loop with an explicit content repeat mode", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("loop - list - repeat content.docx");
+            const templateText = await handler.getText(template);
+            expect(templateText.trim()).toEqual('{#items [repeat: "content"]}{name}, {/items}');
+
+            const data = {
+                items: [
+                    { name: 'first' },
+                    { name: 'second' }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - list - repeat content - output.docx', doc);
+        });
+
         test("custom loop delimiters", async () => {
 
             const handler = new TemplateHandler({

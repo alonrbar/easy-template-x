@@ -8,8 +8,15 @@
 
 ### Changed
 
-- Rename the `loopOver` loop option to `repeat` (e.g. `{#students [repeat: "row"]}`).
-  The `loopOver` alias is still supported but deprecated and may be removed in a future major version.
+- Rename the `loopOver` loop option to `repeat` (e.g. `{#students [repeat: "row"]}`).  
+  The `loopOver` alias is still supported but deprecated and may be removed in a
+  future major version.
+
+### Fixed
+
+- An explicit `repeat` option is no longer ignored by table and list detection
+  (so `[repeat: "content"]` inside a list now correctly repeats the content, not
+  the list items).
 
 ## [8.0.1 - 2026-11-04](https://github.com/alonrbar/easy-template-x/tree/v8.0.1)
 
