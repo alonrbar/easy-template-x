@@ -82,10 +82,9 @@ export class ImagePlugin extends TemplatePlugin {
 
         // Init next image ID.
         const partRoot = await context.currentPart.xmlRoot();
-        const maxDepth = context.options.maxXmlDepth;
 
         // Get all existing doc props IDs
-        const docProps = xml.query.descendants(partRoot, maxDepth, node => {
+        const docProps = xml.query.descendants(partRoot, node => {
             return xml.query.isGeneralNode(node) && node.nodeName === OmlNode.Wp.DocPr;
         }) as XmlGeneralNode[];
 

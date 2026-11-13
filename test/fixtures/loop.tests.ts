@@ -119,7 +119,7 @@ describe('loop fixtures', () => {
 
             // Each item is a separate list paragraph
             const docXml = await handler.getXml(doc);
-            const paragraphs = xml.query.descendants(docXml, 20, node => node.nodeName === OmlNode.W.Paragraph);
+            const paragraphs = xml.query.descendants(docXml, node => node.nodeName === OmlNode.W.Paragraph);
             expect(paragraphs.map(p => xml.query.textContent(p))).toEqual(["first", "second"]);
         });
 

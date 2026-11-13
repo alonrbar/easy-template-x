@@ -4,7 +4,6 @@ import { COMMENT_NODE_NAME, XmlGeneralNode, XmlNode, XmlNodeType } from "./xmlNo
 import { TEXT_NODE_NAME, XmlCommentNode } from "./xmlNode";
 import { XmlTextNode } from "./xmlNode";
 import { XmlParser } from "./xmlParser";
-import { XmlTreeIterator } from "./xmlTreeIterator";
 
 export type NodeTypeToNode<T extends XmlNodeType> =
     T extends typeof XmlNodeType.Text ? XmlTextNode :
@@ -380,15 +379,30 @@ class Query {
         return text;
     }
 
-    public descendants(node: XmlNode, maxDepth: number, predicate: XmlNodePredicate): XmlNode[] {
+    public descendants(node: XmlNode, predicate?: XmlNodePredicate): XmlNode[] {
         const result: XmlNode[] = [];
-        const it = new XmlTreeIterator(node, maxDepth);
-        while (it.node) {
-            if (predicate(it.node)) {
-                result.push(it.node);
-            }
-            it.next();
+        if (!node || !node.childNodes) {
+            return result;
         }
+
+        const stack: XmlNode[] = node.childNodes.slice().reverse();
+        while (stack.length) {
+
+            // Visit the top of the stack.
+            const cur = stack.pop();
+            if (!predicate || predicate(cur)) {
+                result.push(cur);
+            }
+
+            // Push the children of the current node to the stack.
+            if (!cur.childNodes?.length) {
+                continue;
+            }
+            for (let i = cur.childNodes.length - 1; i >= 0; i--) {
+                stack.push(cur.childNodes[i]);
+            }
+        }
+
         return result;
     }
 }
