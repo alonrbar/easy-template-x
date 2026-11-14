@@ -1,6 +1,6 @@
 import { OmlNode } from "src/office";
 import { TemplateHandler } from "src/templateHandler";
-import { xml } from "src/xml";
+import { xml, XmlNode } from "src/xml";
 import { removeWhiteSpace } from "test/testUtils";
 import { describe, expect, test } from "vitest";
 import { readFixture } from "./fixtureUtils";
@@ -458,6 +458,143 @@ describe('loop fixtures', () => {
 
     describe('paragraph', () => {
 
+        test("preferParagraphLoops - paragraphs enclosed by the tags are repeated", async () => {
+
+            const handler = new TemplateHandler({ preferParagraphLoops: true });
+
+            const template = readFixture("loop - paragraph - enclosed.docx");
+            const templateXml = await handler.getXml(template);
+            expect(paragraphTexts(templateXml)).toEqual([
+
+                // 1. Tags at the paragraph boundaries (ignoring whitespace and
+                //    bookmarks) - the paragraph should be repeated.
+                "  {#items}{name}{/items} ",
+
+                // 2. Tags inside the paragraph - the content should be repeated.
+                "Names: {#items}{name}, {/items}",
+
+                // 3. Tags in their own paragraphs - the tag paragraphs should be removed.
+                "{#items}",
+                "- {name}",
+                "{/items}"
+            ]);
+
+            const data = {
+                items: [
+                    { name: "A" },
+                    { name: "B" }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docXml = await handler.getXml(doc);
+            expect(paragraphTexts(docXml)).toEqual([
+                "  A ",
+                "  B ",
+                "Names: A, B, ",
+                "- A",
+                "- B"
+            ]);
+
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - paragraph - enclosed - preferParagraphLoops - output.docx', doc);
+        });
+
+        test("preferParagraphLoops - disabled by default", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("loop - paragraph - enclosed.docx");
+
+            const data = {
+                items: [
+                    { name: "A" },
+                    { name: "B" }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            // The content between the tags is repeated.
+            const docXml = await handler.getXml(doc);
+            expect(paragraphTexts(docXml)).toEqual([
+                "  AB ",
+                "Names: A, B, ",
+                "",
+                "- A",
+                "",
+                "- B",
+                ""
+            ]);
+
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - paragraph - enclosed - default - output.docx', doc);
+        });
+
+        test("preferParagraphLoops - empty list removes the enclosed paragraphs", async () => {
+
+            const handler = new TemplateHandler({ preferParagraphLoops: true });
+
+            const template = readFixture("loop - paragraph - enclosed.docx");
+
+            const doc = await handler.process(template, { items: [] });
+
+            const docXml = await handler.getXml(doc);
+            expect(paragraphTexts(docXml)).toEqual([
+                "Names: "
+            ]);
+
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - paragraph - enclosed - empty list - output.docx', doc);
+        });
+
+        test("preferParagraphLoops - table cell is not left empty", async () => {
+
+            const handler = new TemplateHandler({ preferParagraphLoops: true });
+
+            const template = readFixture("loop - table - single cell.docx");
+
+            // The inner loop removes all of its paragraphs, so each outer
+            // iteration produces no paragraphs.
+            const data = {
+                outer: [
+                    { inner: [] as any[] }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - table - single cell - output.docx', doc);
+        });
+
+        test("preferParagraphLoops - text boxes and shapes next to the tags", async () => {
+
+            const handler = new TemplateHandler({ preferParagraphLoops: true });
+
+            const template = readFixture("loop - paragraph - with text box.docx");
+
+            const data = {
+                items: [
+                    { name: "A" },
+                    { name: "B" }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - paragraph - with text box - output.docx', doc);
+        });
+
         test("single line - no loopOver option", async () => {
 
             const handler = new TemplateHandler();
@@ -863,3 +1000,9 @@ describe('loop fixtures', () => {
         });
     });
 });
+
+function paragraphTexts(docXml: XmlNode): string[] {
+    return xml.query
+        .descendants(docXml, node => node.nodeName === OmlNode.W.Paragraph)
+        .map(paragraph => xml.query.textContent(paragraph));
+}

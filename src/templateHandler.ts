@@ -77,7 +77,8 @@ export class TemplateHandler {
             currentPart: null,
             pluginContext: {},
             options: {
-                maxXmlDepth: this.options.maxXmlDepth
+                maxXmlDepth: this.options.maxXmlDepth,
+                preferParagraphLoops: this.options.preferParagraphLoops
             }
         };
 

@@ -212,7 +212,7 @@ class Query {
         return false;
     }
 
-    public isEmptyRun(node: XmlNode): boolean {
+    public isEmptyRun(node: XmlNode, options?: IsEmptyRunOptions): boolean {
         if (!officeMarkup.query.isRunNode(node))
             throw new Error(`Run node expected but '${node.nodeName}' received.`);
 
@@ -221,14 +221,73 @@ class Query {
             if (officeMarkup.query.isRunPropertiesNode(child))
                 continue;
 
-            if (officeMarkup.query.isTextNode(child) && officeMarkup.query.isEmptyTextNode(child))
+            if (officeMarkup.query.isTextNode(child)) {
+                if (officeMarkup.query.isEmptyTextNode(child)) {
+                    continue;
+                }
+                if (options?.ignoreWhitespace && !xml.query.textContent(child).trim()) {
+                    continue;
+                }
+            }
+
+            if (options?.ignoreWhitespace && (
+                child.nodeName === OmlNode.W.Tab ||
+                child.nodeName === OmlNode.W.LastRenderedPageBreak
+            )) {
                 continue;
+            }
 
             return false;
         }
 
         return true;
     }
+
+    /**
+     * Recursively list all text nodes under the given node.
+     *
+     * Text inside embedded objects (drawings, shapes, text boxes, etc.) is
+     * not included.
+     */
+    public listTextNodes(node: XmlNode): XmlTextNode[] {
+        if (!node) {
+            return [];
+        }
+
+        // Embedded object - skip its text.
+        if (
+            node.nodeName === OmlNode.W.Drawing ||
+            node.nodeName === OmlNode.W.Picture ||
+            node.nodeName === OmlNode.W.Object ||
+            node.nodeName === OmlNode.Mc.AlternateContent
+        ) {
+            return [];
+        }
+
+        // Word text node - get its xml text node children.
+        if (officeMarkup.query.isTextNode(node)) {
+            if (!node.childNodes?.length) {
+                return [];
+            }
+            return node.childNodes.filter(child => xml.query.isTextNode(child));
+        }
+
+        // Recursive call.
+        const result: XmlTextNode[] = [];
+        for (const child of (node.childNodes ?? [])) {
+            const childTextNodes = officeMarkup.query.listTextNodes(child);
+            result.push(...childTextNodes);
+        }
+        return result;
+    }
+}
+
+interface IsEmptyRunOptions {
+    /**
+     * If true, whitespace, tabs and layout hints are considered empty.
+     * Default: false.
+     */
+    ignoreWhitespace?: boolean;
 }
 
 /**

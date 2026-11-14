@@ -287,7 +287,15 @@ The default heuristics are as follows:
 2. If both loop tags are in the same column - the plugin will repeat the **column**.
 3. If both loop tags are inside a table - the plugin will repeat the relevant table **rows**.
 4. If both loop tags are in a list - the plugin will repeat the relevant **list items**.
-5. Otherwise - the plugin will use a naive approach for repeating the **content** in between the loop tags.
+5. When the [preferParagraphLoops](#template-handler-options) option is on:
+   - If the loop tags are at the two ends of the paragraphs (the opening tag is
+     at the beginning of a paragraph and the closing tag is at the end of a
+     paragraph) - the plugin will repeat the **paragraphs** (whitespace and
+     non-text elements, such as bookmarks, images and shapes around the tags,
+     are ignored for the purpose of checking paragraph boundaries).
+   - Paragraphs that contain nothing but the opening or closing loop tags are removed.
+   - _This behavior will become the default in a future major version._
+6. Otherwise - the plugin will use a naive approach for repeating the **content** in between the loop tags.
 
 ##### Changing the default
 
@@ -794,6 +802,8 @@ const handler = new TemplateHandler({
     },
 
     maxXmlDepth: 20,
+
+    preferParagraphLoops: false, // boolean
 
     extensions: { // ExtensionOptions
         beforeCompilation: undefined, // TemplateExtension[]

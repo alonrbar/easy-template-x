@@ -275,7 +275,7 @@ class Query {
         return newTextNode;
     }
 
-    public findParent(node: XmlNode, predicate: (node: XmlNode) => boolean): XmlGeneralNode {
+    public findParent(node: XmlNode, predicate: XmlNodePredicate): XmlGeneralNode {
 
         while (node) {
 
@@ -292,10 +292,36 @@ class Query {
         return xml.query.findParent(node, n => n.nodeName === nodeName);
     }
 
-    public findChild(node: XmlNode, predicate: (node: XmlNode) => boolean): XmlNode {
+    public findChild(node: XmlNode, predicate: XmlNodePredicate): XmlNode {
         if (!node)
             return null;
         return (node.childNodes || []).find(child => predicate(child));
+    }
+
+    public findDescendant(node: XmlNode, predicate: XmlNodePredicate): XmlNode {
+        if (!node || !node.childNodes) {
+            return null;
+        }
+
+        const stack: XmlNode[] = node.childNodes.slice().reverse();
+        while (stack.length) {
+
+            // Visit the top of the stack.
+            const cur = stack.pop();
+            if (predicate(cur)) {
+                return cur;
+            }
+
+            // Push the children of the current node to the stack.
+            if (!cur.childNodes?.length) {
+                continue;
+            }
+            for (let i = cur.childNodes.length - 1; i >= 0; i--) {
+                stack.push(cur.childNodes[i]);
+            }
+        }
+
+        return null;
     }
 
     public findByPath<T extends XmlNodeType>(root: XmlNode, nodeType: T, ...path: (string | number)[]): NodeTypeToNode<T> {

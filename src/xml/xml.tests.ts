@@ -172,6 +172,50 @@ describe(XmlUtils, () => {
 
     describe("query", () => {
 
+        describe(xml.query.findDescendant, () => {
+
+            it('finds only descendants of a node, not itself or its siblings', () => {
+                const root = parseXml(`
+                    <root>
+                        <child1>
+                            <grandchild1/>
+                        </child1>
+                        <child2>
+                            <grandchild2/>
+                        </child2>
+                    </root>
+                `, true);
+
+                const child1 = root.childNodes[0];
+                expect(child1.nodeName).toEqual('child1');
+
+                const got = xml.query.findDescendant(child1, node => node.nodeName === 'grandchild1');
+                expect(got).not.toBeNull();
+                expect(got.nodeName).toEqual('grandchild1');
+            });
+
+            it('finds descendants in reading order', () => {
+                const root = parseXml(`
+                    <root>
+                        <child1>
+                            <grandchild1/>
+                        </child1>
+                        <child2>
+                            <grandchild2>
+                                <grandchild3/>
+                            </grandchild2>
+                            <grandchild3/>
+                        </child2>
+                    </root>
+                `, true);
+
+                const got = xml.query.findDescendant(root, node => node.nodeName === 'grandchild3');
+                expect(got).not.toBeNull();
+                expect(got.nodeName).toEqual('grandchild3');
+                expect(got.parentNode.nodeName).toEqual('grandchild2');
+            });
+        });
+
         describe(xml.query.descendants, () => {
 
             it('finds only descendants of a node, not itself or its siblings', () => {

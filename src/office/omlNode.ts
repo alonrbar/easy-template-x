@@ -8,10 +8,27 @@ class W {
     public readonly Run = 'w:r';
     public readonly RunProperties = 'w:rPr';
     public readonly Text = 'w:t';
+    public readonly Tab = 'w:tab';
+    public readonly LastRenderedPageBreak = 'w:lastRenderedPageBreak';
+    public readonly BookmarkStart = 'w:bookmarkStart';
+    public readonly BookmarkEnd = 'w:bookmarkEnd';
+    /**
+     * Proofing error (spelling or grammar) marker.
+     */
+    public readonly ProofError = 'w:proofErr';
+    public readonly SectionProperties = 'w:sectPr';
     public readonly Table = 'w:tbl';
     public readonly TableRow = 'w:tr';
     public readonly TableCell = 'w:tc';
     public readonly Drawing = 'w:drawing';
+    /**
+     * VML (legacy) drawing.
+     */
+    public readonly Picture = 'w:pict';
+    /**
+     * Embedded object (e.g. OLE object).
+     */
+    public readonly Object = 'w:object';
     public readonly NumberProperties = 'w:numPr';
     public readonly NumberingId = 'w:numId';
     public readonly ParagraphStyle = 'w:pStyle';
@@ -116,6 +133,19 @@ class Pic {
 }
 
 /**
+ * Markup Compatibility namespace node names.
+ *
+ * These elements are part of the markup compatibility namespace:
+ * xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006".
+ */
+class Mc {
+    /**
+     * Alternate content (e.g. a drawing with a VML fallback).
+     */
+    public readonly AlternateContent = 'mc:AlternateContent';
+}
+
+/**
  * Office Markup Language (OML) node names.
  *
  * Office Markup Language is my generic term for the markup languages that are
@@ -147,6 +177,11 @@ export class OmlNode {
      * Drawing Markup Language "picture" namespace node names.
      */
     public static readonly Pic = new Pic();
+
+    /**
+     * Markup Compatibility namespace node names.
+     */
+    public static readonly Mc = new Mc();
 }
 
 export class OmlAttribute {

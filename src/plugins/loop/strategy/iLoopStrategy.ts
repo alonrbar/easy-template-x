@@ -1,12 +1,11 @@
-import { TextNodeTag } from "src/compilation";
-import { Docx } from "src/office";
+import { TemplateContext, TextNodeTag } from "src/compilation";
 import { XmlNode } from "src/xml";
 
 export interface ILoopStrategy {
 
-    isApplicable(openTag: TextNodeTag, closeTag: TextNodeTag, isCondition: boolean, docx: Docx): Promise<boolean>;
+    isApplicable(openTag: TextNodeTag, closeTag: TextNodeTag, isCondition: boolean, context: TemplateContext): Promise<boolean>;
 
-    splitBefore(openTag: TextNodeTag, closeTag: TextNodeTag): SplitBeforeResult;
+    splitBefore(openTag: TextNodeTag, closeTag: TextNodeTag, context: TemplateContext): SplitBeforeResult;
 
     mergeBack(compiledNodes: XmlNode[][], firstNode: XmlNode, lastNode: XmlNode): void;
 }
