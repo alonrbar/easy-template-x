@@ -68,17 +68,19 @@ class Parser {
         if (typeof str !== 'string')
             throw new TypeError(`Expected a string, got '${(str as any).constructor.name}'.`);
 
-        return str.replace(Parser.invalidXmlChars, '').replace(/[<>&'"\r]/g, c => {
-            switch (c) {
-                case '<': return '&lt;';
-                case '>': return '&gt;';
-                case '&': return '&amp;';
-                case '\'': return '&apos;';
-                case '"': return '&quot;';
-                case '\r': return '&#13;';
-            }
-            return '';
-        });
+        return str
+            .replace(Parser.invalidXmlChars, '')
+            .replace(/[<>&'"\r]/g, c => {
+                switch (c) {
+                    case '<': return '&lt;';
+                    case '>': return '&gt;';
+                    case '&': return '&amp;';
+                    case '\'': return '&apos;';
+                    case '"': return '&quot;';
+                    case '\r': return '&#13;';
+                }
+                return '';
+            });
     }
 
     /**
