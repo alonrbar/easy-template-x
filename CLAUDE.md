@@ -1,6 +1,6 @@
 # Claude
 
-You have only two instructions:
+You have only three instructions:
 
 ## Read the AGENTS.md file
 
@@ -29,3 +29,16 @@ Second - keep it simple and be concise.
   it would take", "the lay of the land", etc.
 - Mention a problem only if it is still unresolved and needs my attention.
 - Keep it short and concise. If I need more information, I will ask for it.
+
+## Git rules clarifications
+
+Lastly, the following are Claude-specific Git rules that are additional to the ones in AGENTS.md.
+
+- ALWAYS name your branches with the format `claude/*`.
+- Force-push your own `claude/*` branches (e.g. after rebasing a PR stack)
+  without asking. Push one branch per command, exactly as
+  `git push --force-with-lease origin <branch>` or
+  `git push -q --force-with-lease origin <branch>` (`-q` goes before
+  `--force-with-lease`, never after the branch) - no loops, `&&` chains or
+  other flags - so the pre-approved permission rule in `.claude/settings.json`
+  matches.
