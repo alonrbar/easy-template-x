@@ -22,20 +22,15 @@ export class TemplateHandlerOptions {
      *
      * Controls how loops handle paragraphs.
      *
-     * When enabled:
-     * - If a loop without an explicit `repeat` option starts at the beginning
-     *   of a paragraph and ends at the end of a paragraph, it repeats the
-     *   entire paragraphs instead of just the content between the tags.
-     * - Paragraphs containing only a loop tag are removed.
+     * When enabled, if each tag of the loop is alone in its own paragraph, the
+     * loop repeats the paragraphs between them and removes the tags themselves
+     * and the paragraphs holding them.
      *
      * Additional rules:
+     * - Whitespace around the tags is ignored.
      * - Loops that repeat table rows, table columns or list items are not
      *   affected.
-     * - Whitespace and non-text elements (bookmarks, images, shapes, etc.) are
-     *   ignored when checking paragraph boundaries, so a paragraph containing
-     *   them is still repeated as a whole.
-     *
-     * This behavior will become the default in a future major version.
+     * - Explicit `repeat` option overrides this behavior.
      *
      * Default: false
      */

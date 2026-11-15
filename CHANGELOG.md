@@ -2,13 +2,11 @@
 
 ## [UNRELEASED](https://github.com/alonrbar/easy-template-x/tree/develop)
 
-**Notice:** Two deprecations have been introduced in this version. Read below.
-
 ### Added
 
-- New `preferParagraphLoops` handler option - when enabled, and the loop
-  tags are at the two ends of the paragraphs, the loop plugin repeats the
-  paragraphs (see the [README](https://github.com/alonrbar/easy-template-x#controlling-loop-behavior) for details).
+- New `preferParagraphLoops` handler option - when enabled, if each loop tag
+  is alone in its own paragraph, the loop plugin repeats the paragraphs in
+  between and removes the tag paragraphs (see [Controlling Loop Behavior](https://github.com/alonrbar/easy-template-x#controlling-loop-behavior) for details).
 - Support list loops numbered by the paragraph style.
 
 ### Changed
@@ -17,13 +15,8 @@
 
 ### Deprecated
 
-The following are deprecated and may be removed in a future major version:
-
-- The `loopOver` option alias is still supported but is now *deprecated* - use
+- The `loopOver` option alias is still supported but is now deprecated - use
   the `repeat` option instead.
-- The new `preferParagraphLoops` option default value is `false` - the default
-  *will change* to `true` in a future major version. Set it explicitly today to
-  avoid breaking changes in the future.
 
 ### Fixed
 

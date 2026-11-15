@@ -218,8 +218,13 @@ class Query {
 
         for (const child of (node.childNodes ?? [])) {
 
-            if (officeMarkup.query.isRunPropertiesNode(child))
+            if (options?.ignoreNodes?.includes(child)) {
                 continue;
+            }
+
+            if (officeMarkup.query.isRunPropertiesNode(child)) {
+                continue;
+            }
 
             if (officeMarkup.query.isTextNode(child)) {
                 if (officeMarkup.query.isEmptyTextNode(child)) {
@@ -288,6 +293,7 @@ interface IsEmptyRunOptions {
      * Default: false.
      */
     ignoreWhitespace?: boolean;
+    ignoreNodes?: XmlNode[];
 }
 
 /**

@@ -2,7 +2,6 @@ import { TemplateContext, TextNodeTag } from "src/compilation";
 import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup, OmlNode } from "src/office";
 import { getRepeatMode, LoopTagOptions, RepeatMode } from "src/plugins/loop/loopTagOptions";
-import { first, last } from "src/utils";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
@@ -28,14 +27,17 @@ export class LoopParagraphStrategy implements ILoopStrategy {
             return false;
         }
 
-        // Get the non-empty text nodes of each paragraph.
-        const firstParagraphTextNodes = officeMarkup.query.listTextNodes(firstParagraph).filter(node => node.textContent?.trim());
-        const firstTextNode = first(firstParagraphTextNodes);
-        const lastParagraphTextNodes = officeMarkup.query.listTextNodes(lastParagraph).filter(node => node.textContent?.trim());
-        const lastTextNode = last(lastParagraphTextNodes);
+        // Check that the loop tags are not in the same paragraph.
+        if (firstParagraph === lastParagraph) {
+            return false;
+        }
 
-        // Check if the loop tags are at the two ends of the paragraphs.
-        return firstTextNode === openTag.xmlTextNode && lastTextNode === closeTag.xmlTextNode;
+        // Check if each loop tag is alone in its paragraph.
+        const openTextNode = officeMarkup.query.containingTextNode(openTag.xmlTextNode);
+        const closeTextNode = officeMarkup.query.containingTextNode(closeTag.xmlTextNode);
+        const openTagAlone = this.isEmptyParagraph(firstParagraph, [openTextNode]);
+        const closeTagAlone = this.isEmptyParagraph(lastParagraph, [closeTextNode]);
+        return openTagAlone && closeTagAlone;
     }
 
     public splitBefore(openTag: TextNodeTag, closeTag: TextNodeTag, context: TemplateContext): SplitBeforeResult {
@@ -110,13 +112,13 @@ export class LoopParagraphStrategy implements ILoopStrategy {
         }
     }
 
-    private isEmptyParagraph(node: XmlNode): boolean {
+    private isEmptyParagraph(node: XmlNode, ignoreWordTextNodes?: XmlNode[]): boolean {
         if (!officeMarkup.query.isParagraphNode(node))
             throw new Error(`Paragraph node expected but '${node.nodeName}' received.`);
 
         for (const child of (node.childNodes ?? [])) {
 
-            // Paragraph properties
+            // Paragraph properties nodes:
             if (officeMarkup.query.isParagraphPropertiesNode(child)) {
 
                 // We consider section break paragraphs to be non-empty.
@@ -129,11 +131,14 @@ export class LoopParagraphStrategy implements ILoopStrategy {
             }
 
             // Ignore empty runs.
-            if (officeMarkup.query.isRunNode(child) && officeMarkup.query.isEmptyRun(child, { ignoreWhitespace: true })) {
+            if (officeMarkup.query.isRunNode(child) && officeMarkup.query.isEmptyRun(child, {
+                ignoreWhitespace: true,
+                ignoreNodes: ignoreWordTextNodes
+            })) {
                 continue;
             }
 
-            // Ignore bookmarks and proof errors.
+            // Ignore bookmarks and proof errors nodes.
             if (
                 child.nodeName === OmlNode.W.BookmarkStart ||
                 child.nodeName === OmlNode.W.BookmarkEnd ||
