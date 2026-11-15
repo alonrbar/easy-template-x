@@ -291,7 +291,12 @@ The default heuristics are as follows:
 
 ##### The preferParagraphLoops option
 
+> **Recommended:**  
+> For new projects, it is recommended to set this option to `true`.
+
 When the [preferParagraphLoops](#template-handler-options) option is on, if each loop tag is alone in its own paragraph (ignoring whitespace) - the plugin will repeat the **paragraphs** in between them, instead of the content, and remove the paragraphs of the tags themselves.  
+
+You can still override this behavior by using the [repeat](#the-repeat-option) option (see below).
 
 Going back to the first example, if the template is:
 
