@@ -1,6 +1,6 @@
 # Changelog
 
-## [UNRELEASED](https://github.com/alonrbar/easy-template-x/tree/develop)
+## [8.1.0 - 2026-11-15](https://github.com/alonrbar/easy-template-x/tree/v8.1.0)
 
 ### Added
 
@@ -23,6 +23,7 @@
 - An explicit `repeat` option inside a table or list is now handled correctly
   (so `[repeat: "content"]` inside a list now correctly repeats the content, not
   the list items).
+- Fix control characters handling in XML serialization ([#164](https://github.com/alonrbar/easy-template-x/issues/164)).
 
 ## [8.0.1 - 2026-11-04](https://github.com/alonrbar/easy-template-x/tree/v8.0.1)
 
