@@ -1,5 +1,29 @@
 # Changelog
 
+## [UNRELEASED](https://github.com/alonrbar/easy-template-x/tree/develop)
+
+### Added
+
+- New `preferParagraphLoops` handler option - when enabled, if each loop tag
+  is alone in its own paragraph, the loop plugin repeats the paragraphs in
+  between and removes the tag paragraphs (see [Controlling Loop Behavior](https://github.com/alonrbar/easy-template-x#controlling-loop-behavior) for details).
+- Support list loops numbered by the paragraph style.
+
+### Changed
+
+- Rename the `loopOver` loop option to `repeat` (e.g. `{#students [repeat: "row"]}`).
+
+### Deprecated
+
+- The `loopOver` option alias is still supported but is now deprecated - use
+  the `repeat` option instead.
+
+### Fixed
+
+- An explicit `repeat` option inside a table or list is now handled correctly
+  (so `[repeat: "content"]` inside a list now correctly repeats the content, not
+  the list items).
+
 ## [8.0.1 - 2026-11-04](https://github.com/alonrbar/easy-template-x/tree/v8.0.1)
 
 ### Changed

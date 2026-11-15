@@ -1,18 +1,27 @@
-import { TextNodeTag } from "src/compilation";
+import { TemplateContext, TextNodeTag } from "src/compilation";
 import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup } from "src/office";
+import { getRepeatMode, LoopTagOptions } from "src/plugins/loop/loopTagOptions";
 import { xml, XmlNode } from "src/xml";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
 export class LoopListStrategy implements ILoopStrategy {
 
-    public isApplicable(openTag: TextNodeTag, closeTag: TextNodeTag, isCondition: boolean): boolean {
+    public async isApplicable(openTag: TextNodeTag, closeTag: TextNodeTag, isCondition: boolean, context: TemplateContext): Promise<boolean> {
         if (isCondition) {
             return false;
         }
 
+        // An explicit repeat mode takes precedence over list detection.
+        const options = openTag.options as LoopTagOptions;
+        const repeatMode = getRepeatMode(options);
+        if (repeatMode) {
+            return false;
+        }
+
         const containingParagraph = officeMarkup.query.containingParagraphNode(openTag.xmlTextNode);
-        return officeMarkup.query.isListParagraph(containingParagraph);
+        const isListParagraph = await officeMarkup.query.isListParagraph(containingParagraph, context.docx.styles);
+        return isListParagraph;
     }
 
     public splitBefore(openTag: TextNodeTag, closeTag: TextNodeTag): SplitBeforeResult {

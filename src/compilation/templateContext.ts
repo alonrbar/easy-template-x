@@ -12,4 +12,5 @@ export interface TemplateContext {
 
 export interface TemplateOptions {
     maxXmlDepth: number;
+    preferParagraphLoops: boolean;
 }

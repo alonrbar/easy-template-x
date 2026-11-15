@@ -1,4 +1,7 @@
+import { OmlNode } from "src/office";
 import { TemplateHandler } from "src/templateHandler";
+import { normalizeDoubleQuotes } from "src/utils/txt";
+import { xml, XmlNode } from "src/xml";
 import { removeWhiteSpace } from "test/testUtils";
 import { describe, expect, test } from "vitest";
 import { readFixture } from "./fixtureUtils";
@@ -93,6 +96,55 @@ describe('loop fixtures', () => {
             expect(docXml).toMatchSnapshot();
 
             // writeTempFile('loop - list - output.docx', doc);
+        });
+
+        test("list loop with numbering from the paragraph style", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("loop - list - numbering from style.docx");
+            const templateText = await handler.getText(template);
+            expect(templateText.trim()).toEqual("{#items}{name}{/items}");
+
+            const data = {
+                items: [
+                    { name: 'first' },
+                    { name: 'second' }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docText = await handler.getText(doc);
+            expect(docText).toEqual("firstsecond");
+
+            // Each item is a separate list paragraph
+            const docXml = await handler.getXml(doc);
+            const paragraphs = xml.query.descendants(docXml, node => node.nodeName === OmlNode.W.Paragraph);
+            expect(paragraphs.map(p => xml.query.textContent(p))).toEqual(["first", "second"]);
+        });
+
+        test("list loop with an explicit content repeat mode", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("loop - list - repeat content.docx");
+            const templateText = await handler.getText(template);
+            expect(templateText.trim()).toEqual('{#items [repeat: "content"]}{name}, {/items}');
+
+            const data = {
+                items: [
+                    { name: 'first' },
+                    { name: 'second' }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - list - repeat content - output.docx', doc);
         });
 
         test("custom loop delimiters", async () => {
@@ -407,6 +459,221 @@ describe('loop fixtures', () => {
 
     describe('paragraph', () => {
 
+        test("preferParagraphLoops - on", async () => {
+
+            const handler = new TemplateHandler({
+                preferParagraphLoops: true
+            });
+
+            const template = readFixture("loop - preferParagraphLoops.docx");
+            const templateXml = await handler.getXml(template);
+            expect(paragraphTexts(templateXml)).toEqual([
+
+                "Paragraphs with whitespace",
+                "  {#items}",
+                "{name}",
+                "{/}",
+                "",
+                "Paragraphs with text",
+                "Names: {#items}",
+                "{name}",
+                "{/}",
+                "",
+                "Explicit repeat option",
+                '{#items [repeat: "content"]}',
+                "{name}",
+                "{/}",
+                "",
+                "Single paragraph",
+                "Names: {#items}{name}, {/}",
+                "",
+                "Single table cell",
+                "{#items}",
+                "{name}",
+                "{/}",
+                "",
+            ]);
+
+            const data = {
+                items: [
+                    { name: "Alice" },
+                    { name: "Bob" }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docXml = await handler.getXml(doc);
+
+            expect(paragraphTexts(docXml)).toEqual([
+
+                "Paragraphs with whitespace",
+                "Alice",
+                "Bob",
+                "",
+                "Paragraphs with text",
+                "Names: ",
+                "Alice",
+                "",
+                "Bob",
+                "",
+                "",
+                "Explicit repeat option",
+                "",
+                "Alice",
+                "",
+                "Bob",
+                "",
+                "",
+                "Single paragraph",
+                "Names: Alice, Bob, ",
+                "",
+                "Single table cell",
+                "Alice",
+                "Bob",
+                "",
+            ]);
+
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - preferParagraphLoops - on - output.docx', doc);
+        });
+
+        test("preferParagraphLoops - off by default", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("loop - preferParagraphLoops.docx");
+
+            const data = {
+                items: [
+                    { name: "Alice" },
+                    { name: "Bob" }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docXml = await handler.getXml(doc);
+
+            expect(paragraphTexts(docXml)).toEqual([
+
+                "Paragraphs with whitespace",
+                "  ",
+                "Alice",
+                "",
+                "Bob",
+                "",
+                "",
+                "Paragraphs with text",
+                "Names: ",
+                "Alice",
+                "",
+                "Bob",
+                "",
+                "",
+                "Explicit repeat option",
+                "",
+                "Alice",
+                "",
+                "Bob",
+                "",
+                "",
+                "Single paragraph",
+                "Names: Alice, Bob, ",
+                "",
+                "Single table cell",
+                "",
+                "Alice",
+                "",
+                "Bob",
+                "",
+                "",
+            ]);
+
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - preferParagraphLoops - off - output.docx', doc);
+        });
+
+        test("preferParagraphLoops - empty array", async () => {
+
+            const handler = new TemplateHandler({
+                preferParagraphLoops: true
+            });
+
+            const template = readFixture("loop - preferParagraphLoops.docx");
+
+            const data = {
+                items: [] as any[]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docXml = await handler.getXml(doc);
+
+            expect(paragraphTexts(docXml)).toEqual([
+
+                "Paragraphs with whitespace",
+                "",
+                "Paragraphs with text",
+                "Names: ",
+                "",
+                "Explicit repeat option",
+                "",
+                "",
+                "Single paragraph",
+                "Names: ",
+                "",
+                "Single table cell",
+                "",
+                "",
+            ]);
+
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - preferParagraphLoops - empty - output.docx', doc);
+        });
+
+        test("preferParagraphLoops - false condition", async () => {
+
+            const handler = new TemplateHandler({
+                preferParagraphLoops: true
+            });
+
+            const template = readFixture("loop - preferParagraphLoops.docx");
+
+            const data = {
+                items: false
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docXml = await handler.getXml(doc);
+
+            expect(paragraphTexts(docXml)).toEqual([
+
+                "Paragraphs with whitespace",
+                "",
+                "Paragraphs with text",
+                "Names: ",
+                "",
+                "Explicit repeat option",
+                "",
+                "",
+                "Single paragraph",
+                "Names: ",
+                "",
+                "Single table cell",
+                "",
+                "",
+            ]);
+
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - preferParagraphLoops - false condition - output.docx', doc);
+        });
+
         test("single line - no loopOver option", async () => {
 
             const handler = new TemplateHandler();
@@ -541,6 +808,37 @@ describe('loop fixtures', () => {
             // writeTempFile('loop - paragraph - multi line - with loopOver - output.docx', doc);
         });
 
+        test("loop - table cells with repeat paragraph", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("loop - table - repeat paragraph.docx");
+            const templateText = await handler.getText(template);
+            expect(removeWhiteSpace(templateText)).toEqual(removeWhiteSpace(`
+                Hello1 {#loop1 [repeat: “paragraph”]}{val}{/loop1} World1
+                Hello2 {#loop1 [repeat: “paragraph”]}{val}{/loop1} World2
+                Hello3 {#loop1 [repeat: “paragraph”]}{val}{/loop1} World3
+            `));
+
+            const data = {
+                loop1: [] as any[]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docText = await handler.getText(doc);
+            expect(removeWhiteSpace(docText)).toEqual(removeWhiteSpace(`
+                Hello1 World1
+                Hello2 World2
+                Hello3 World3
+            `));
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - table - repeat paragraph - output.docx', doc);
+        });
+
         test("loop - table cells with loopOver paragraph", async () => {
 
             const handler = new TemplateHandler();
@@ -574,6 +872,48 @@ describe('loop fixtures', () => {
     });
 
     describe('table', () => {
+
+        test("repeat option", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("loop - table - repeat.docx");
+            const templateText = await handler.getText(template);
+            expect(removeWhiteSpace(templateText)).toEqual(removeWhiteSpace(`
+                [Row1]{#loop1}{val}{/loop1}{#loop2}{val}{/loop2}
+                [Row2]{#loop3[repeat:“row”]}{val}{/loop3}
+                [Row3]{#loop4[repeat:“content”]}{val}{/loop4}
+            `));
+
+            const data = {
+                loop1: [
+                    { val: 'val1' },
+                    { val: 'val2' }
+                ],
+                loop2: [
+                    { val: 'val3' },
+                    { val: 'val4' }
+                ],
+                loop3: [
+                    { val: 'val5' },
+                    { val: 'val6' }
+                ],
+                loop4: [
+                    { val: 'val7' },
+                    { val: 'val8' }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docText = await handler.getText(doc);
+            expect(docText).toEqual("[Row1]val1val2val3val4[Row2]val5[Row2]val6[Row3]val7val8");
+
+            const docXml = await handler.getXml(doc);
+            expect(docXml).toMatchSnapshot();
+
+            // writeTempFile('loop - table - repeat - output.docx', doc);
+        });
 
         test("loopOver option", async () => {
 
@@ -739,3 +1079,10 @@ describe('loop fixtures', () => {
         });
     });
 });
+
+function paragraphTexts(docXml: XmlNode): string[] {
+    return xml.query
+        .descendants(docXml, node => node.nodeName === OmlNode.W.Paragraph)
+        .map(paragraph => xml.query.textContent(paragraph))
+        .map(normalizeDoubleQuotes);
+}

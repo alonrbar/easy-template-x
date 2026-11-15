@@ -6,7 +6,7 @@ import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
 export class LoopContentStrategy implements ILoopStrategy {
 
-    public isApplicable(openTag: TextNodeTag, closeTag: TextNodeTag, isCondition: boolean): boolean {
+    public async isApplicable(openTag: TextNodeTag, closeTag: TextNodeTag, isCondition: boolean): Promise<boolean> {
         return true;
     }
 

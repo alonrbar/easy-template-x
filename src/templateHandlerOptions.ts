@@ -14,15 +14,35 @@ export class TemplateHandlerOptions {
      *
      * Default: false
      */
-    public skipEmptyTags?= false;
+    public skipEmptyTags? = false;
 
-    public defaultContentType?= TEXT_CONTENT_TYPE;
+    /**
+     * See:
+     * https://github.com/alonrbar/easy-template-x#controlling-loop-behavior
+     *
+     * Controls how loops handle paragraphs.
+     *
+     * When enabled, if each tag of the loop is alone in its own paragraph, the
+     * loop repeats the paragraphs between them and removes the tags themselves
+     * and the paragraphs holding them.
+     *
+     * Additional rules:
+     * - Whitespace around the tags is ignored.
+     * - Loops that repeat table rows, table columns or list items are not
+     *   affected.
+     * - Explicit `repeat` option overrides this behavior.
+     *
+     * Default: false
+     */
+    public preferParagraphLoops? = false;
 
-    public containerContentType?= LOOP_CONTENT_TYPE;
+    public defaultContentType? = TEXT_CONTENT_TYPE;
+
+    public containerContentType? = LOOP_CONTENT_TYPE;
 
     public delimiters?: Partial<Delimiters> = new Delimiters();
 
-    public maxXmlDepth?= 20;
+    public maxXmlDepth? = 20;
 
     public extensions?: ExtensionOptions = {};
 

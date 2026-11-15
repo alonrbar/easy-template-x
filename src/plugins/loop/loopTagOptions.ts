@@ -1,24 +1,41 @@
-export const LoopOver = Object.freeze({
+import { ValueOf } from "src/types";
+
+export const RepeatMode = Object.freeze({
     /**
-     * Loop over the entire table row.
+     * Repeat the entire table row.
      */
     Row: 'row',
     /**
-     * Loop over the entire table column.
+     * Repeat the entire table column.
      */
     Column: 'column',
     /**
-     * Loop over the entire paragraph.
+     * Repeat the entire paragraph.
      */
     Paragraph: 'paragraph',
     /**
-     * Loop over the content enclosed between the opening and closing tag.
+     * Repeat the content enclosed between the opening and closing tag.
      */
     Content: 'content'
 } as const);
 
-export type LoopOver = typeof LoopOver[keyof typeof LoopOver];
+export type RepeatMode = ValueOf<typeof RepeatMode>;
 
 export class LoopTagOptions {
-    public loopOver: LoopOver = LoopOver.Content;
+    /**
+     * What to repeat on each iteration.
+     */
+    public repeat?: RepeatMode;
+    /**
+     * @deprecated Use `repeat` instead.
+     */
+    public loopOver?: RepeatMode;
+}
+
+/**
+ * Get the `repeat` option value of a loop tag, falling back to the deprecated
+ * `loopOver` option.
+ */
+export function getRepeatMode(options: LoopTagOptions): RepeatMode {
+    return options?.repeat ?? options?.loopOver;
 }

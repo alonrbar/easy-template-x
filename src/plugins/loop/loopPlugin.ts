@@ -16,10 +16,10 @@ export class LoopPlugin extends TemplatePlugin {
     public readonly contentType = LOOP_CONTENT_TYPE;
 
     private readonly loopStrategies: ILoopStrategy[] = [
-        new LoopParagraphStrategy(),
         new LoopTableColumnsStrategy(),
         new LoopTableRowsStrategy(),
         new LoopListStrategy(),
+        new LoopParagraphStrategy(),
         new LoopContentStrategy() // the default strategy
     ];
 
@@ -59,12 +59,18 @@ export class LoopPlugin extends TemplatePlugin {
         }
 
         // Select the suitable strategy
-        const loopStrategy = this.loopStrategies.find(strategy => strategy.isApplicable(openTag, closeTag, isCondition));
+        let loopStrategy: ILoopStrategy;
+        for (const strategy of this.loopStrategies) {
+            if (await strategy.isApplicable(openTag, closeTag, isCondition, context)) {
+                loopStrategy = strategy;
+                break;
+            }
+        }
         if (!loopStrategy)
             throw new Error(`No loop strategy found for tag '${openTag.rawText}'.`);
 
         // Prepare to loop
-        const { firstNode, nodesToRepeat, lastNode } = loopStrategy.splitBefore(openTag, closeTag);
+        const { firstNode, nodesToRepeat, lastNode } = loopStrategy.splitBefore(openTag, closeTag, context);
 
         // Repeat (loop) the content
         const repeatedNodes = this.repeat(nodesToRepeat, value.length);

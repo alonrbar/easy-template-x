@@ -54,17 +54,17 @@ Generate docx documents from templates, in Node or in the browser.
 ## Node Example
 
 ```typescript
-import * as fs from 'fs';
-import { TemplateHandler } from 'easy-template-x';
+import * as fs from "fs";
+import { TemplateHandler } from "easy-template-x";
 
 // 1. read template file
-const templateFile = fs.readFileSync('myTemplate.docx');
+const templateFile = fs.readFileSync("myTemplate.docx");
 
 // 2. process the template
 const data = {
     posts: [
-        { author: 'Alon Bar', text: 'Very important\ntext here!' },
-        { author: 'Alon Bar', text: 'Forgot to mention that...' }
+        { author: "Anakin", text: "Luke, I am\nyour father." },
+        { author: "Luke", text: "No! That's impossible!" }
     ]
 };
 
@@ -72,7 +72,7 @@ const handler = new TemplateHandler();
 const doc = await handler.process(templateFile, data);
 
 // 3. save output
-fs.writeFileSync('myTemplate - output.docx', doc);
+fs.writeFileSync("myTemplate - output.docx", doc);
 ```
 
 Input:
@@ -89,21 +89,21 @@ The following example produces the same output while running in the browser.
 Notice that the actual template processing (step 2) is exactly the same as in the previous Node example.
 
 ```typescript
-import { TemplateHandler } from 'easy-template-x';
+import { TemplateHandler } from "easy-template-x";
 
 // 1. read template file
 
 // (in this example we're loading the template by performing  
 //  an AJAX call using the fetch API, another common way to  
 //  get your hand on a Blob is to use an HTML File Input)
-const response = await fetch('http://somewhere.com/myTemplate.docx');
+const response = await fetch("http://somewhere.com/myTemplate.docx");
 const templateFile = await response.blob();
 
 // 2. process the template
 const data = {
     posts: [
-        { author: 'Alon Bar', text: 'Very important\ntext here!' },
-        { author: 'Alon Bar', text: 'Forgot to mention that...' }
+        { author: "Anakin", text: "Luke, I am\nyour father." },
+        { author: "Luke", text: "No! That's impossible!" }
     ]
 };
 
@@ -111,7 +111,7 @@ const handler = new TemplateHandler();
 const doc = await handler.process(templateFile, data);
 
 // 3. save output
-saveFile('myTemplate - output.docx', doc);
+saveFile("myTemplate - output.docx", doc);
 
 function saveFile(filename, blob) {
 
@@ -277,7 +277,7 @@ _If you are looking for a yet more powerful conditional syntax see the [alternat
 
 The loop plugin uses some heuristics to determine the right behavior in each
 case (i.e. when to loop over rows, columns, paragraphs, etc.). You can control this behavior
-explicitly through the `loopOver` option as explain below.
+explicitly through the `repeat` option as explained below.
 
 ##### Default behavior
 
@@ -289,12 +289,30 @@ The default heuristics are as follows:
 4. If both loop tags are in a list - the plugin will repeat the relevant **list items**.
 5. Otherwise - the plugin will use a naive approach for repeating the **content** in between the loop tags.
 
-##### Changing the default
+##### The preferParagraphLoops option
 
-To use a different behavior than the default one you can use the `loopOver`
-option. Supported values are: `row`, `column`, `paragraph` and `content`.
+When the [preferParagraphLoops](#template-handler-options) option is on, if each loop tag is alone in its own paragraph (ignoring whitespace) - the plugin will repeat the **paragraphs** in between them, instead of the content, and remove the paragraphs of the tags themselves.  
 
-**Note:** This option controls conditions too.
+Going back to the first example, if the template is:
+
+![input template](./docs/assets/template-in.png?raw=true)
+
+The result will be:
+
+![output document](./docs/assets/template-out-prefer-paragraph.png?raw=true)
+
+Instead of:
+
+![output document](./docs/assets/template-out.png?raw=true)
+
+##### The repeat option
+
+To explicitly control the loop behavior you can use the `repeat` option. Supported values are: `row`, `column`, `paragraph` and `content`.
+
+**Notes:**
+
+- This option controls conditions too.
+- The option was previously called `loopOver`. The old name is still supported but is now deprecated.
 
 For instance, given this data:
 
@@ -309,43 +327,43 @@ For instance, given this data:
 
 You can use this syntax:
 
-![input template](./docs/assets/loop-over-row-in.png?raw=true)
+![input template](./docs/assets/loop-repeat-row-in.png?raw=true)
 
 Or this syntax:
 
-![input template](./docs/assets/loop-over-column-in.png?raw=true)
+![input template](./docs/assets/loop-repeat-column-in.png?raw=true)
 
 Or this syntax:
 
-![input template](./docs/assets/loop-over-content-in.png?raw=true)
+![input template](./docs/assets/loop-repeat-content-in.png?raw=true)
 
 The first will produce this document:
 
-![output document](./docs/assets/loop-over-row-out.png?raw=true)
+![output document](./docs/assets/loop-repeat-row-out.png?raw=true)
 
 The second will produce this document:
 
-![output document](./docs/assets/loop-over-column-out.png?raw=true)
+![output document](./docs/assets/loop-repeat-column-out.png?raw=true)
 
 And the third will produce this document:
 
-![output document](./docs/assets/loop-over-content-out.png?raw=true)
+![output document](./docs/assets/loop-repeat-content-out.png?raw=true)
 
-For paragraphs, you can choose between this syntax (same as the default behavior):
+For paragraphs, you can choose between this syntax:
 
-![input template](./docs/assets/loop-over-paragraph-in-1.png?raw=true)
+![input template](./docs/assets/loop-repeat-paragraph-in-1.png?raw=true)
 
 And this syntax:
 
-![input template](./docs/assets/loop-over-paragraph-in-2.png?raw=true)
+![input template](./docs/assets/loop-repeat-paragraph-in-2.png?raw=true)
 
 The first will produce this document:
 
-![output document](./docs/assets/loop-over-paragraph-out-1.png?raw=true)
+![output document](./docs/assets/loop-repeat-paragraph-out-1.png?raw=true)
 
 And the second will produce this document:
 
-![output document](./docs/assets/loop-over-paragraph-out-2.png?raw=true)
+![output document](./docs/assets/loop-repeat-paragraph-out-2.png?raw=true)
 
 ### Image plugin
 
@@ -416,9 +434,9 @@ Input data:
 ```javascript
 {
     "easy": {
-        _type: 'link',
-        text: 'super easy',  // Optional - if not specified the `target` property will be used
-        target: 'https://github.com/alonrbar/easy-template-x'
+        _type: "link",
+        text: "super easy",  // Optional - if not specified the `target` property will be used
+        target: "https://github.com/alonrbar/easy-template-x"
     }
 }
 ```
@@ -630,8 +648,8 @@ Input data:
 ```javascript
 {
     "Dont worry be happy": {
-        _type: 'rawXml',
-        xml: '<w:sym w:font="Wingdings" w:char="F04A"/>',  // string | string[]
+        _type: "rawXml",
+        xml: "<w:sym w:font=\"Wingdings\" w:char=\"F04A\"/>",  // string | string[]
         replaceParagraph: false,  // Optional - should the plugin replace an entire paragraph or just the tag itself
     }
 }
@@ -660,14 +678,14 @@ import { officeMarkup, xml } from "easy-template-x";
 export class RawXmlPlugin extends TemplatePlugin {
 
     // Declare the unique "content type" this plugin handles
-    public readonly contentType = 'rawXml';
+    public readonly contentType = "rawXml";
 
     // Plugin logic goes here:
     public simpleTagReplacements(tag: Tag, data: ScopeData): void {
         
         // Get the value to use from the input data.
         const value = data.getScopeData<RawXmlContent>();
-        if (value && typeof value.xml === 'string') {
+        if (value && typeof value.xml === "string") {
 
             // Tag.xmlTextNode always reference the actual xml text node.
             // In MS Word each text node is wrapped by a <w:t> node so we retrieve that.
@@ -689,7 +707,7 @@ The content type that this plugin expects to see is:
 
 ```typescript
 export interface RawXmlContent extends PluginContent {
-    _type: 'rawXml';
+    _type: "rawXml";
     xml: string;
 }
 ```
@@ -699,9 +717,9 @@ export interface RawXmlContent extends PluginContent {
 You can get the list of [tags](https://github.com/alonrbar/easy-template-x/blob/master/src/compilation/tag.ts) in a template by calling the `parseTags` method as follows:
 
 ```typescript
-import { TemplateHandler } from 'easy-template-x';
+import { TemplateHandler } from "easy-template-x";
 
-const templateFile = fs.readFileSync('myTemplate.docx');
+const templateFile = fs.readFileSync("myTemplate.docx");
 
 const handler = new TemplateHandler();
 const tags = await handler.parseTags(templateFile);
@@ -791,6 +809,8 @@ const handler = new TemplateHandler({
     },
 
     maxXmlDepth: 20,
+
+    preferParagraphLoops: false, // boolean
 
     extensions: { // ExtensionOptions
         beforeCompilation: undefined, // TemplateExtension[]

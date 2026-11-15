@@ -2,12 +2,18 @@ import { TextNodeTag } from "src/compilation";
 import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup } from "src/office";
 import { xml, XmlNode } from "src/xml";
-import { LoopOver, LoopTagOptions } from "../loopTagOptions";
+import { getRepeatMode, LoopTagOptions, RepeatMode } from "../loopTagOptions";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
 export class LoopTableRowsStrategy implements ILoopStrategy {
 
-    public isApplicable(openTag: TextNodeTag, closeTag: TextNodeTag, isCondition: boolean): boolean {
+    public async isApplicable(openTag: TextNodeTag, closeTag: TextNodeTag, isCondition: boolean): Promise<boolean> {
+        const options = openTag.options as LoopTagOptions;
+
+        const repeatMode = getRepeatMode(options);
+        if (repeatMode && repeatMode !== RepeatMode.Row)
+            return false;
+
         const openCell = officeMarkup.query.containingTableCellNode(openTag.xmlTextNode);
         if (!openCell)
             return false;
@@ -16,8 +22,7 @@ export class LoopTableRowsStrategy implements ILoopStrategy {
         if (!closeCell)
             return false;
 
-        const options = openTag.options as LoopTagOptions;
-        const forceRowLoop = options?.loopOver === LoopOver.Row;
+        const forceRowLoop = (repeatMode === RepeatMode.Row);
 
         // If both tags are in the same cell, assume it's a paragraph loop (iterate content, not rows).
         if (!forceRowLoop && openCell === closeCell)

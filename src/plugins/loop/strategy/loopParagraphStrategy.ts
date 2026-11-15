@@ -1,18 +1,46 @@
-import { TextNodeTag } from "src/compilation";
+import { TemplateContext, TextNodeTag } from "src/compilation";
 import { TemplateSyntaxError } from "src/errors";
 import { officeMarkup, OmlNode } from "src/office";
-import { LoopOver, LoopTagOptions } from "src/plugins/loop/loopTagOptions";
+import { getRepeatMode, LoopTagOptions, RepeatMode } from "src/plugins/loop/loopTagOptions";
 import { xml, XmlGeneralNode, XmlNode } from "src/xml";
 import { ILoopStrategy, SplitBeforeResult } from "./iLoopStrategy";
 
 export class LoopParagraphStrategy implements ILoopStrategy {
 
-    public isApplicable(openTag: TextNodeTag, closeTag: TextNodeTag, isCondition: boolean): boolean {
+    public async isApplicable(openTag: TextNodeTag, closeTag: TextNodeTag, isCondition: boolean, context: TemplateContext): Promise<boolean> {
         const options = openTag.options as LoopTagOptions;
-        return options?.loopOver === LoopOver.Paragraph;
+
+        // Explicit repeat mode.
+        const repeatMode = getRepeatMode(options);
+        if (repeatMode) {
+            return repeatMode === RepeatMode.Paragraph;
+        }
+
+        if (!context.options.preferParagraphLoops) {
+            return false;
+        }
+
+        // Check if the paragraphs are siblings.
+        const firstParagraph = officeMarkup.query.containingParagraphNode(openTag.xmlTextNode);
+        const lastParagraph = officeMarkup.query.containingParagraphNode(closeTag.xmlTextNode);
+        if (firstParagraph.parentNode !== lastParagraph.parentNode) {
+            return false;
+        }
+
+        // Check that the loop tags are not in the same paragraph.
+        if (firstParagraph === lastParagraph) {
+            return false;
+        }
+
+        // Check if each loop tag is alone in its paragraph.
+        const openTextNode = officeMarkup.query.containingTextNode(openTag.xmlTextNode);
+        const closeTextNode = officeMarkup.query.containingTextNode(closeTag.xmlTextNode);
+        const openTagAlone = this.isEmptyParagraph(firstParagraph, [openTextNode]);
+        const closeTagAlone = this.isEmptyParagraph(lastParagraph, [closeTextNode]);
+        return openTagAlone && closeTagAlone;
     }
 
-    public splitBefore(openTag: TextNodeTag, closeTag: TextNodeTag): SplitBeforeResult {
+    public splitBefore(openTag: TextNodeTag, closeTag: TextNodeTag, context: TemplateContext): SplitBeforeResult {
         const firstParagraph = officeMarkup.query.containingParagraphNode(openTag.xmlTextNode);
         const lastParagraph = officeMarkup.query.containingParagraphNode(closeTag.xmlTextNode);
 
@@ -21,11 +49,21 @@ export class LoopParagraphStrategy implements ILoopStrategy {
             throw new TemplateSyntaxError(`Open and close tags are not in the same container: ${openTag.rawText} and ${closeTag.rawText}. For example, one is inside a table cell and the other is not.`);
         }
 
-        const paragraphsToRepeat = xml.query.siblingsInRange(firstParagraph, lastParagraph);
+        let paragraphsToRepeat = xml.query.siblingsInRange(firstParagraph, lastParagraph);
 
         // Remove the loop tags.
         xml.modify.remove(openTag.xmlTextNode);
         xml.modify.remove(closeTag.xmlTextNode);
+
+        // The first and last paragraphs are skipped if they are empty after removing the tag.
+        if (context.options.preferParagraphLoops) {
+            if (this.isEmptyParagraph(firstParagraph)) {
+                paragraphsToRepeat = paragraphsToRepeat.slice(1);
+            }
+            if (this.isEmptyParagraph(lastParagraph)) {
+                paragraphsToRepeat = paragraphsToRepeat.slice(0, -1);
+            }
+        }
 
         return {
             firstNode: firstParagraph,
@@ -60,10 +98,8 @@ export class LoopParagraphStrategy implements ILoopStrategy {
         }
 
         // Make sure the table cells are not empty (if they exist).
-        if (newParagraphs.length === 0) {
-            this.fillTableCell(firstTableCell);
-            this.fillTableCell(lastTableCell);
-        }
+        this.fillTableCell(firstTableCell);
+        this.fillTableCell(lastTableCell);
     }
 
     private fillTableCell(tableCell: XmlGeneralNode): void {
@@ -74,5 +110,52 @@ export class LoopParagraphStrategy implements ILoopStrategy {
         ) {
             xml.modify.appendChild(tableCell, xml.create.generalNode(OmlNode.W.Paragraph));
         }
+    }
+
+    private isEmptyParagraph(node: XmlNode, ignoreWordTextNodes?: XmlNode[]): boolean {
+        if (!officeMarkup.query.isParagraphNode(node))
+            throw new Error(`Paragraph node expected but '${node.nodeName}' received.`);
+
+        for (const child of (node.childNodes ?? [])) {
+
+            // Paragraph properties nodes:
+            if (officeMarkup.query.isParagraphPropertiesNode(child)) {
+
+                // We consider section break paragraphs to be non-empty.
+                if (xml.query.findChild(child, n => n.nodeName === OmlNode.W.SectionProperties)) {
+                    return false;
+                }
+
+                // Other paragraph properties are ignored.
+                continue;
+            }
+
+            // Ignore empty runs.
+            if (officeMarkup.query.isRunNode(child) && officeMarkup.query.isEmptyRun(child, {
+                ignoreWhitespace: true,
+                ignoreNodes: ignoreWordTextNodes
+            })) {
+                continue;
+            }
+
+            // Ignore bookmarks and proof errors nodes.
+            if (
+                child.nodeName === OmlNode.W.BookmarkStart ||
+                child.nodeName === OmlNode.W.BookmarkEnd ||
+                child.nodeName === OmlNode.W.ProofError
+            ) {
+                continue;
+            }
+
+            // Ignore empty text nodes.
+            if (xml.query.isTextNode(child) && !child.textContent?.trim()) {
+                continue;
+            }
+
+            // Everything else is considered content.
+            return false;
+        }
+
+        return true;
     }
 }
