@@ -36,6 +36,15 @@ class Parser {
     private static xmlFileHeader = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
 
     /**
+     * Characters that are not allowed in XML 1.0 documents, not even as
+     * character references.
+     *
+     * https://www.w3.org/TR/xml/#charsets
+     */
+    // eslint-disable-next-line no-control-regex
+    private static invalidXmlChars = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g;
+
+    /**
      * Parse an XML string into an XmlNode tree.
      *
      * Throws an `XmlParseError` if the input is not well-formed.
@@ -50,6 +59,8 @@ class Parser {
     /**
      * Encode string to make it safe to use inside xml tags.
      *
+     * Characters that are not allowed in XML 1.0 are removed.
+     *
      * https://stackoverflow.com/questions/7918868/how-to-escape-xml-entities-in-javascript
      */
     public encodeValue(str: string): string {
@@ -58,7 +69,7 @@ class Parser {
         if (typeof str !== 'string')
             throw new TypeError(`Expected a string, got '${(str as any).constructor.name}'.`);
 
-        return str.replace(/[<>&'"\r]/g, c => {
+        return str.replace(Parser.invalidXmlChars, '').replace(/[<>&'"\r]/g, c => {
             switch (c) {
                 case '<': return '&lt;';
                 case '>': return '&gt;';

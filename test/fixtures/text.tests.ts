@@ -27,6 +27,22 @@ describe('text tag fixtures', () => {
         expect(docText.trim()).toEqual("hello world");
     });
 
+    it("removes characters that are not allowed in XML", async () => {
+
+        const handler = new TemplateHandler();
+
+        const template: Buffer = readFixture("simple.docx");
+
+        const data = {
+            simple_prop: 'pasted\u000Btext\u0000\u0001\u001F\uFFFE'
+        };
+
+        const doc = await handler.process(template, data);
+
+        const docText = await handler.getText(doc);
+        expect(docText.trim()).toEqual("pastedtext");
+    });
+
     it("removes empty tags", async () => {
 
         const handler = new TemplateHandler();

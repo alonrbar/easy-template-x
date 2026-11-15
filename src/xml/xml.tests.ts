@@ -49,6 +49,21 @@ describe(XmlUtils, () => {
             expect(str).toEqual('a&#13;\nb\tc');
         });
 
+        it('removes characters that are not allowed in XML from text', () => {
+            const node = xml.create.textNode('a\u0000b\u0001c\u000Bd\u000Ce\u001Ff\uFFFEg\uFFFFh\n\ti');
+            const str = xml.parser.serializeNode(node);
+            expect(str).toEqual('abcdefgh\n\ti');
+        });
+
+        it('removes characters that are not allowed in XML from an attribute', () => {
+            const node = xml.create.generalNode('node');
+            node.attributes = {
+                att: 'a\u000Bb\u0000c'
+            };
+            const str = xml.parser.serializeNode(node);
+            expect(str).toEqual('<node att="abc"/>');
+        });
+
         it('serializes a comment node', () => {
             const node = xml.create.commentNode('comment');
             const str = xml.parser.serializeNode(node);
