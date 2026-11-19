@@ -49,6 +49,10 @@ export class LoopListStrategy implements ILoopStrategy {
 
     public mergeBack(paragraphGroups: XmlNode[][], firstParagraph: XmlNode, lastParagraphs: XmlNode): void {
 
+        // Remove old paragraphs - between first and last paragraph (before the
+        // new ones are inserted, as they go between them too)
+        xml.modify.removeSiblings(firstParagraph, lastParagraphs);
+
         for (const curParagraphsGroup of paragraphGroups) {
             for (const paragraph of curParagraphsGroup) {
                 xml.modify.insertBefore(paragraph, lastParagraphs);

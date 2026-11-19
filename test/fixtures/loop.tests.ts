@@ -98,6 +98,27 @@ describe('loop fixtures', () => {
             // writeTempFile('loop - list - output.docx', doc);
         });
 
+        test("list loop over more than two paragraphs", async () => {
+
+            const handler = new TemplateHandler();
+
+            const template = readFixture("loop - list - multiple paragraphs.docx");
+            const templateText = await handler.getText(template);
+            expect(templateText).toEqual("Items:{#list}Name: {name}Qty: {qty}Note{/list}After");
+
+            const data = {
+                list: [
+                    { name: "A", qty: 1 },
+                    { name: "B", qty: 2 }
+                ]
+            };
+
+            const doc = await handler.process(template, data);
+
+            const docText = await handler.getText(doc);
+            expect(docText).toEqual("Items:Name: AQty: 1NoteName: BQty: 2NoteAfter");
+        });
+
         test("list loop with numbering from the paragraph style", async () => {
 
             const handler = new TemplateHandler();
