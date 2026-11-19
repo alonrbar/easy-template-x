@@ -1,5 +1,11 @@
 # Changelog
 
+## [8.1.1 - 2026-11-19](https://github.com/alonrbar/easy-template-x/tree/v8.1.1)
+
+### Fixed
+
+- Fix list loops over multiple paragraphs ([#167](https://github.com/alonrbar/easy-template-x/pull/167)).
+
 ## [8.1.0 - 2026-11-15](https://github.com/alonrbar/easy-template-x/tree/v8.1.0)
 
 ### Added
